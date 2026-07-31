@@ -22,12 +22,16 @@ export function useEarlyAccess() {
 export function EarlyAccessProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const lastFocus = useRef<HTMLElement | null>(null);
   const nameRef = useRef<HTMLInputElement | null>(null);
 
   const open = useCallback(() => {
     lastFocus.current = document.activeElement as HTMLElement;
     setSubmitted(false);
+    setSubmitting(false);
+    setError(null);
     setIsOpen(true);
   }, []);
 
@@ -53,16 +57,40 @@ export function EarlyAccessProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [isOpen, close]);
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
     }
-    /* Placeholder: wire up to your list provider here.
-       The form values are available via new FormData(form). */
-    setSubmitted(true);
+
+    const data = new FormData(form);
+    const payload = {
+      name: String(data.get("name") || ""),
+      email: String(data.get("email") || ""),
+      business: String(data.get("business") || ""),
+      app: String(data.get("app") || ""),
+    };
+
+    setError(null);
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/early-access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error || "Something went wrong. Please try again.");
+      }
+      setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -89,23 +117,26 @@ export function EarlyAccessProvider({ children }: { children: ReactNode }) {
               <form onSubmit={onSubmit} noValidate>
                 <div className="field">
                   <label htmlFor="f-name">Name</label>
-                  <input id="f-name" name="name" type="text" required autoComplete="name" ref={nameRef} />
+                  <input id="f-name" name="name" type="text" required autoComplete="name" ref={nameRef} disabled={submitting} />
                 </div>
                 <div className="field">
                   <label htmlFor="f-email">Work email</label>
-                  <input id="f-email" name="email" type="email" required autoComplete="email" />
+                  <input id="f-email" name="email" type="email" required autoComplete="email" disabled={submitting} />
                 </div>
                 <div className="field">
                   <label htmlFor="f-biz">Business name</label>
-                  <input id="f-biz" name="business" type="text" required autoComplete="organization" />
+                  <input id="f-biz" name="business" type="text" required autoComplete="organization" disabled={submitting} />
                 </div>
                 <div className="field">
                   <label htmlFor="f-app">
                     What kind of app do you want to put to work? <span className="opt">(optional)</span>
                   </label>
-                  <textarea id="f-app" name="app" rows={3} placeholder="An order tracker, a booking tool, a customer portal…" />
+                  <textarea id="f-app" name="app" rows={3} placeholder="An order tracker, a booking tool, a customer portal…" disabled={submitting} />
                 </div>
-                <button className="btn" type="submit">Get early access</button>
+                {error && <p className="form-error" role="alert">{error}</p>}
+                <button className="btn" type="submit" disabled={submitting}>
+                  {submitting ? "Sending…" : "Get early access"}
+                </button>
               </form>
             </div>
           ) : (

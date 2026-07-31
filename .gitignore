@@ -50,4 +50,12 @@ logs
 
 # vercel
 .vercel
+
+# local data (early-access submissions)
+/data
+
+# cloudflare / opennext
+/.open-next
+.wrangler
+cloudflare-env.d.ts
 .claude/launch.json

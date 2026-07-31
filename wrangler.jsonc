@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hostnsoft",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-03-25",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  },
+  // EARLY_ACCESS_WEBHOOK_URL is set manually in the Cloudflare dashboard,
+  // so it's intentionally NOT defined here. keep_vars preserves dashboard
+  // vars/secrets across deploys instead of wiping them.
+  "keep_vars": true
+}

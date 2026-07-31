@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { GetAccessButton } from "./EarlyAccess";
+import { Logo } from "./Logo";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -16,10 +17,7 @@ export function Header() {
   return (
     <header className={scrolled ? "scrolled" : ""}>
       <div className="wrap nav">
-        <div className="brand">
-          <span className="logo"><span></span></span>
-          AppHome
-        </div>
+        <Logo />
         <GetAccessButton />
       </div>
     </header>

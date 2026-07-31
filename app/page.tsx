@@ -1,6 +1,7 @@
 import { EarlyAccessProvider, GetAccessButton } from "./components/EarlyAccess";
 import { Header } from "./components/Header";
 import { HeroVisual } from "./components/HeroVisual";
+import { Logo } from "./components/Logo";
 
 export default function Home() {
   return (
@@ -127,7 +128,7 @@ export default function Home() {
       <footer>
         <div className="wrap foot">
           <div>
-            <div className="brand"><span className="logo"><span></span></span> AppHome</div>
+            <Logo />
             <div className="tag">The home for your business apps.</div>
           </div>
           <div className="foot-links">
