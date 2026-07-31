@@ -35,13 +35,16 @@ export default function Home() {
       </section>
 
       {/* ===== Three outcomes ===== */}
-      <section>
+      <section className="outcomes">
         <div className="wrap">
           <div className="sec-head">
+            <span className="eyebrow"><span className="dot"></span> All in one place</span>
             <h2>Everything your business app needs to become useful.</h2>
+            <p>Three simple things turn an app you made into one your whole team can rely on.</p>
           </div>
           <div className="cards">
             <div className="card">
+              <span className="num">01</span>
               <span className="ic">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1" />
@@ -52,6 +55,7 @@ export default function Home() {
               <p>Give your app a real web address that is ready to open and share.</p>
             </div>
             <div className="card">
+              <span className="num">02</span>
               <span className="ic">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -63,6 +67,7 @@ export default function Home() {
               <p>Invite your team or customers, and choose who can use each app.</p>
             </div>
             <div className="card">
+              <span className="num">03</span>
               <span className="ic">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="3" width="7" height="7" rx="1.5" />
