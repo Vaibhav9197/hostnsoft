@@ -5,9 +5,9 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
-  title: "AppHome — The home for your business apps",
+  title: "hostnsoft — Turn AI-made apps into tools your whole business runs on",
   description:
-    "Get a live link, share it with your people, and keep every business app in one simple place.",
+    "Drop a folder of files or describe an app, and get a live, shareable URL — with database, auth, AI, file storage, payments, and realtime already wired in. No servers, no config, no code.",
 };
 
 export default function RootLayout({

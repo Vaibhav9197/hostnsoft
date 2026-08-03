@@ -10,7 +10,14 @@ import {
   type ReactNode,
 } from "react";
 
-type Ctx = { open: () => void };
+type OpenOptions = {
+  /** Pre-fill the "what kind of app" field (e.g. the prompt typed in the hero). */
+  app?: string;
+  /** Optional context line shown under the title (e.g. "Connecting a GitHub repo"). */
+  context?: string;
+};
+
+type Ctx = { open: (opts?: OpenOptions) => void };
 const EarlyAccessContext = createContext<Ctx | null>(null);
 
 export function useEarlyAccess() {
@@ -24,14 +31,18 @@ export function EarlyAccessProvider({ children }: { children: ReactNode }) {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [prefillApp, setPrefillApp] = useState("");
+  const [context, setContext] = useState("");
   const lastFocus = useRef<HTMLElement | null>(null);
   const nameRef = useRef<HTMLInputElement | null>(null);
 
-  const open = useCallback(() => {
+  const open = useCallback((opts?: OpenOptions) => {
     lastFocus.current = document.activeElement as HTMLElement;
     setSubmitted(false);
     setSubmitting(false);
     setError(null);
+    setPrefillApp(opts?.app?.trim() || "");
+    setContext(opts?.context?.trim() || "");
     setIsOpen(true);
   }, []);
 
@@ -113,7 +124,9 @@ export function EarlyAccessProvider({ children }: { children: ReactNode }) {
           {!submitted ? (
             <div>
               <h3 id="modalTitle">Get early access</h3>
-              <p className="sub">Be among the first businesses to put AI&#8209;made apps to work.</p>
+              <p className="sub">
+                {context || "Be among the first businesses to put AI‑made apps to work."}
+              </p>
               <form onSubmit={onSubmit} noValidate>
                 <div className="field">
                   <label htmlFor="f-name">Name</label>
@@ -131,7 +144,15 @@ export function EarlyAccessProvider({ children }: { children: ReactNode }) {
                   <label htmlFor="f-app">
                     What kind of app do you want to put to work? <span className="opt">(optional)</span>
                   </label>
-                  <textarea id="f-app" name="app" rows={3} placeholder="An order tracker, a booking tool, a customer portal…" disabled={submitting} />
+                  <textarea
+                    id="f-app"
+                    name="app"
+                    rows={3}
+                    placeholder="An order tracker, a booking tool, a customer portal…"
+                    defaultValue={prefillApp}
+                    key={prefillApp}
+                    disabled={submitting}
+                  />
                 </div>
                 {error && <p className="form-error" role="alert">{error}</p>}
                 <button className="btn" type="submit" disabled={submitting}>
@@ -166,7 +187,7 @@ export function GetAccessButton({
 }) {
   const { open } = useEarlyAccess();
   return (
-    <button className={className} onClick={open}>
+    <button className={className} onClick={() => open()}>
       {children}
     </button>
   );
