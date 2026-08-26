@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { StatusPill } from "../components/console/StatusPill";
+import { SkillDialog } from "../components/console/SkillDialog";
 import { relativeTime } from "../lib/format";
 import type { AppSummary } from "../lib/types";
 
 export default function OverviewPage() {
   const [apps, setApps] = useState<AppSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [skillOpen, setSkillOpen] = useState(false);
 
   useEffect(() => {
     let live = true;
@@ -28,11 +30,13 @@ export default function OverviewPage() {
           <h1 className="con-h1">Your apps</h1>
           <p className="con-sub">Everything you’ve deployed to this workspace.</p>
         </div>
-        <Link href="/app/tokens" className="con-btn">
+        <button type="button" className="con-btn" onClick={() => setSkillOpen(true)}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
           Deploy an app
-        </Link>
+        </button>
       </div>
+
+      <SkillDialog open={skillOpen} onClose={() => setSkillOpen(false)} />
 
       <OnboardingStrip />
 
