@@ -1,118 +1,103 @@
 import { AppsMarquee } from "./components/AppsMarquee";
 import { EarlyAccessProvider, GetAccessButton } from "./components/EarlyAccess";
 import { Header } from "./components/Header";
-import { HeroEntry } from "./components/HeroEntry";
 import { Logo } from "./components/Logo";
 
 /* ---------- Section data ---------- */
 
 const LOOP = [
   {
-    k: "Create",
-    d: "Describe an app, drop a folder, or connect a repo. It goes live in seconds.",
+    k: "Bring your app",
+    d: "Any language, any framework, built by any tool. Read the port from PORT and bind to 0.0.0.0 — that’s the only requirement.",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 5v14M5 12h14" />
+        <path d="M3 7l9-4 9 4v10l-9 4-9-4V7Z" /><path d="M3 7l9 4 9-4M12 11v10" />
       </svg>
     ),
   },
   {
-    k: "Share",
-    d: "Copy the live link. Your whole team is already logged in — no new passwords.",
+    k: "Deploy",
+    d: "Run one command, or just tell your AI agent to ship it. No Dockerfile, no YAML, no config files to write.",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
-        <path d="m8.6 13.5 6.8 4M15.4 6.5 8.6 10.5" />
+        <path d="M12 15V4m0 0-4 4m4-4 4 4" /><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
       </svg>
     ),
   },
   {
-    k: "Change",
-    d: "Ask for a change in plain English. Review it on a preview. Approve, and it’s live.",
+    k: "Auto‑build",
+    d: "hostnsoft detects your language and framework and builds the image itself. Nothing for you to configure.",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 2v6h-6" /><path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
-        <path d="M3 22v-6h6" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+        <rect x="3" y="5" width="18" height="14" rx="1" /><path d="M7 9l3 3-3 3M13 15h4" />
       </svg>
     ),
   },
   {
-    k: "Grow",
-    d: "Every app lives in one workspace. Your collection grows into the tools you run on.",
+    k: "Go live",
+    d: "Your app is reachable at a generated URL in seconds — with a database and persistent storage already attached.",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" />
+        <circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" />
       </svg>
     ),
   },
 ];
 
 const CAPS = [
-  { t: "Collect payments", s: "Charge for it, take subscriptions, get paid worldwide.", i: "M2 8h20M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2M2 8v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8M6 15h4" },
-  { t: "Send WhatsApp updates", s: "Text and email people the moment something happens.", i: "M4 20l1.5-4A8 8 0 1 1 9 19.5L4 20Z" },
-  { t: "AI built in", s: "Chat, image generation, search — no API keys to manage.", i: "M12 3l2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5Z" },
-  { t: "Login for your team", s: "Everyone in your workspace is signed in automatically.", i: "M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21a8 8 0 0 1 16 0" },
-  { t: "Save data forever", s: "Enter it once. Come back tomorrow — it’s still there.", i: "M4 7c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3ZM4 7v10c0 1.7 3.6 3 8 3s8-1.3 8-3V7M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" },
-  { t: "Works on phones", s: "Your apps look right on any screen, out of the box.", i: "M7 2h10a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1ZM11 18h2" },
-  { t: "Attach files & photos", s: "Upload receipts, PDFs, images — served back fast.", i: "M21 15V6a2 2 0 0 0-2-2h-7l-2-2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14M12 11v6M9 14h6" },
-  { t: "Work together live", s: "Many people, one app, updating in real time.", i: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" },
-];
-
-const GALLERY = [
-  { t: "Order Tracker", s: "Log orders, see status at a glance", c: "#86F09B" },
-  { t: "Expense Approvals", s: "Submit, approve, reimburse", c: "#6BE8C0" },
-  { t: "Lead Intake", s: "Capture leads, get notified", c: "#C7F58A" },
-  { t: "Appointment Booking", s: "Let customers pick a slot", c: "#7BC8F0" },
-  { t: "Employee Checklist", s: "Daily tasks, done and signed", c: "#F0D06E" },
-  { t: "Customer Feedback", s: "Collect ratings and notes", c: "#B79BF0" },
-  { t: "Inventory Log", s: "Track stock in and out", c: "#F0A18A" },
-  { t: "Complaint Desk", s: "Log issues, resolve, follow up", c: "#8AF0D0" },
-  { t: "Sales Leaderboard", s: "See who’s ahead this month", c: "#F0A6C4" },
+  { t: "No Dockerfile", s: "hostnsoft detects your stack and builds the image for you. Delete the Dockerfile — you won’t need one.", i: "M3 7l9-4 9 4v10l-9 4-9-4V7Zm0 0 9 4 9-4M12 11v10" },
+  { t: "Database included", s: "An embedded Postgres (PGlite) ships with every app. No provisioning, connection strings, or credentials.", i: "M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3Zm0 0v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" },
+  { t: "Persistent storage", s: "Write under DATA_DIR and your data survives every redeploy. Nothing to mount or back up by hand.", i: "M5 4h11l3 3v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Zm3 0v5h7V4M8 13h8v6H8z" },
+  { t: "Automatic builds", s: "Hand over your source; hostnsoft builds and ships it. No CI pipeline to wire up.", i: "M13 3 4 14h6l-1 7 9-11h-6l1-7Z" },
+  { t: "Live URL out of the box", s: "Every deploy gets a generated, shareable HTTPS URL the moment the app is up.", i: "M9 15l6-6M10.5 7.5l1-1a4 4 0 0 1 5.7 5.7l-1 1M13.5 16.5l-1 1a4 4 0 0 1-5.7-5.7l1-1" },
+  { t: "Deploy from your AI agent", s: "Install the hostnsoft skill and just say “deploy this.” It packages, ships, and verifies for you.", i: "M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm3 4 3 3-3 3m6 0h4" },
+  { t: "Memory that scales with you", s: "Add a database and hostnsoft allocates more memory automatically — no dials to turn.", i: "M6 4h12v4H6zM4 8h16v12H4zM8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01" },
+  { t: "Safe redeploys", s: "Ship a new version any time. Your data, storage, and URL stay put across deploys.", i: "M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16" },
 ];
 
 const COMPARE = {
-  cols: ["hostnsoft", "No-code builders", "Hosting platforms", "Backend tools", "AI chat artifacts"],
+  cols: ["hostnsoft", "Container PaaS", "Serverless", "Self‑managed VPS", "Static hosts"],
   rows: [
-    { label: "Built for non-technical users", v: ["yes", "yes", "no", "no", "part"] },
-    { label: "Bring apps made by any AI", v: ["yes", "no", "yes", "yes", "no"] },
-    { label: "Backend included, zero config", v: ["yes", "yes", "no", "part", "no"] },
-    { label: "Change-with-approval loop", v: ["yes", "no", "no", "no", "no"] },
-    { label: "Team & workspace built in", v: ["yes", "yes", "part", "no", "no"] },
-    { label: "Live, shareable URL", v: ["yes", "yes", "yes", "no", "no"] },
+    { label: "Deploy with no Dockerfile", v: ["yes", "part", "part", "no", "yes"] },
+    { label: "Database included, zero config", v: ["yes", "no", "no", "no", "no"] },
+    { label: "Persistent storage built in", v: ["yes", "part", "no", "yes", "no"] },
+    { label: "Deploy straight from your AI agent", v: ["yes", "no", "no", "no", "no"] },
+    { label: "Runs a real server, not just static files", v: ["yes", "yes", "part", "yes", "no"] },
+    { label: "Live HTTPS URL on the first deploy", v: ["yes", "yes", "yes", "part", "yes"] },
   ],
 };
 
 const TRUST = [
-  { t: "Your data is yours", s: "Export everything, any time. No lock-in, no hostage-taking.", i: "M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6l-8-4ZM9 12l2 2 4-4" },
-  { t: "Nothing changes without approval", s: "Every AI change waits on a preview until an admin says yes.", i: "M9 12l2 2 4-4M12 3l7 4v5c0 4.5-3 7-7 9-4-2-7-4.5-7-9V7l7-4Z" },
-  { t: "You control who sees what", s: "Admin, Editor, Viewer roles — set at the workspace level.", i: "M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21a8 8 0 0 1 16 0" },
-  { t: "Backed up automatically", s: "Your apps and data are backed up so a bad day isn’t a lost one.", i: "M4 7c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3ZM4 7v10c0 1.7 3.6 3 8 3s8-1.3 8-3V7" },
+  { t: "Your data is yours", s: "Everything lives in your app’s DATA_DIR. Export it any time. No lock‑in, no hostage‑taking.", i: "M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6l-8-4ZM9 12l2 2 4-4" },
+  { t: "Verified, not just accepted", s: "Every deploy is checked to be actually running and reachable before it’s reported as done.", i: "M9 12l2 2 4-4M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z" },
+  { t: "Redeploys never lose data", s: "Your database and uploaded files persist across every version you ship. Rollbacks stay safe.", i: "M4 7c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3ZM4 7v10c0 1.7 3.6 3 8 3s8-1.3 8-3V7" },
+  { t: "Backed up automatically", s: "Your app and its data are backed up so a bad day isn’t a lost one.", i: "M4 7c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3ZM4 7v10c0 1.7 3.6 3 8 3s8-1.3 8-3V7" },
 ];
 
 const FAQ = [
   {
-    q: "Do I need to know how to code?",
-    a: "No. Describe the app you want in plain English, or drop in something you already made with an AI tool. hostnsoft handles the URL, the database, logins, and everything else behind the scenes.",
+    q: "What do I need to change in my app?",
+    a: "Almost nothing. Read the listening port from the PORT environment variable and bind to 0.0.0.0 instead of localhost. Don’t include a Dockerfile — hostnsoft detects your language and framework and builds the image for you.",
   },
   {
-    q: "What can I bring in?",
-    a: "A prompt (start from nothing), a folder or zip exported from ChatGPT, Claude, Bolt, v0, Lovable or a plain HTML export, or a GitHub repo that auto-deploys on every push.",
+    q: "What can I deploy?",
+    a: "Any app that runs as a web server — Node, Python, Go and more — whether you hand‑wrote it or generated it with an AI tool like Claude, ChatGPT, Bolt, v0 or Lovable. hostnsoft auto‑detects the language and framework at deploy time.",
   },
   {
-    q: "What if AI breaks something my business depends on?",
-    a: "It can’t — not silently. Every change lands on a preview URL first with a plain-English summary of what changed. Nothing goes live until an admin approves it, and every change is logged.",
+    q: "How does the database work?",
+    a: "Every app can use an embedded Postgres (PGlite) with zero setup — no provisioning, connection strings or credentials. Point it at the DATA_DIR path hostnsoft provides and it persists across redeploys. It’s a single‑instance embedded database, ideal for apps that run as one instance.",
   },
   {
-    q: "Who can see and use my apps?",
-    a: "By default, only members of your workspace. Everyone there is signed in automatically. Sharing an app outside your workspace is a deliberate, one-click action with a clear warning.",
+    q: "How do I deploy?",
+    a: "Install the hostnsoft skill in Claude Code, Cowork or your terminal and say “deploy this” — it packages your app, ships it, and verifies it’s live before handing you the URL. Prefer to do it yourself? Run one command against the deploy API.",
   },
   {
-    q: "What’s built in?",
-    a: "Hosting, a database, team login, file uploads, AI, realtime collaboration, payments, and email/WhatsApp/SMS messaging — all zero-config. That fixed set is the whole platform, on purpose.",
+    q: "Does my data survive a redeploy?",
+    a: "Yes. Anything written under DATA_DIR — your database and uploaded files — persists across every deploy, so shipping a new version never wipes your data. Your generated URL stays the same too.",
   },
   {
     q: "When can I start?",
-    a: "We’re onboarding early-access workspaces now, ahead of general availability later this year. Join the list and we’ll reach out with an invite.",
+    a: "We’re onboarding early‑access accounts now, ahead of general availability later this year. Join the list and we’ll reach out with an invite and your deploy token.",
   },
 ];
 
@@ -134,31 +119,33 @@ export default function Home() {
         <div className="wrap">
           <div className="hero-head">
             <span className="eyebrow"><span className="dot"></span> Early access is opening — 2026</span>
-            <h1>The home for every app your business builds.</h1>
+            <h1>Deploy any app. Get a live URL.</h1>
             <p className="hero-lead">
-              Drop a folder or describe what you want, and get a live, shareable URL.
+              Managed hosting that builds your app for you — no Dockerfile, no config. Ship it from your terminal or your AI agent.
             </p>
           </div>
-          <HeroEntry />
+          <div className="hero-cta">
+            <GetAccessButton />
+          </div>
           <div className="hero-foot">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 12l2 2 4-4" /><circle cx="12" cy="12" r="9" />
             </svg>
-            Database, logins, AI, payments and messaging — already wired in. No servers, no config, no code.
+            Automatic builds, a database and persistent storage — already wired in. No servers, no Dockerfile, no config.
           </div>
         </div>
       </section>
 
-      {/* ===== Sample-apps marquee ===== */}
+      {/* ===== Live-apps marquee ===== */}
       <AppsMarquee />
 
-      {/* ===== 2. The loop ===== */}
+      {/* ===== 2. How it works ===== */}
       <section className="loop">
         <div className="wrap">
           <div className="sec-head">
             <span className="eyebrow"><span className="dot"></span> How it works</span>
-            <h2>Create, share, change, grow.</h2>
-            <p>Making the app is the easy part now. The real story is what happens after — and that’s the loop hostnsoft is built around.</p>
+            <h2>From your code to a live URL, in four steps.</h2>
+            <p>Point your app at hostnsoft, deploy, and let it handle the build, the server, and the database. No infrastructure to manage.</p>
           </div>
           <div className="loop-grid">
             {LOOP.map((s, idx) => (
@@ -183,8 +170,8 @@ export default function Home() {
         <div className="wrap">
           <div className="sec-head">
             <span className="eyebrow"><span className="dot"></span> Batteries included</span>
-            <h2>Everything a real business app needs — already wired in.</h2>
-            <p>No API keys, no plumbing. Each app you bring gets the whole set, free.</p>
+            <h2>Everything hosting an app needs — already wired in.</h2>
+            <p>No Dockerfile, no CI, no database to provision. Bring the code; hostnsoft handles the rest.</p>
           </div>
           <div className="caps-grid">
             {CAPS.map((c) => (
@@ -202,92 +189,69 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== 4. App gallery ===== */}
-      <section className="gallery">
-        <div className="wrap">
-          <div className="sec-head">
-            <span className="eyebrow"><span className="dot"></span> Start from a real example</span>
-            <h2>The apps businesses actually run on.</h2>
-            <p>Pick one, make it yours in plain English, and share it with your team today.</p>
-          </div>
-          <div className="gallery-grid">
-            {GALLERY.map((g) => (
-              <div className="tile" key={g.t}>
-                <div className="tile-top" style={{ ["--tc" as string]: g.c }}>
-                  <div className="tile-chrome"><span></span><span></span><span></span></div>
-                  <div className="tile-rows">
-                    <div className="tr tr-head"></div>
-                    <div className="tr"></div>
-                    <div className="tr"></div>
-                    <div className="tr short"></div>
-                  </div>
-                </div>
-                <div className="tile-body">
-                  <h3>{g.t}</h3>
-                  <p>{g.s}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="gallery-cta">
-            <GetAccessButton>Start from any of these</GetAccessButton>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== 5. Change-with-approval (the moat) ===== */}
+      {/* ===== 4. The deploy experience ===== */}
       <section className="moat">
         <div className="wrap moat-grid">
           <div className="moat-copy">
-            <span className="eyebrow"><span className="dot"></span> The safety net</span>
-            <h2>Change anything in plain English — nothing goes live without a yes.</h2>
+            <span className="eyebrow"><span className="dot"></span> The deploy experience</span>
+            <h2>Ship it with one command — or just ask your agent.</h2>
             <p>
-              Businesses change; your apps should keep up. Ask for a new field, a new step,
-              a new rule. The AI proposes it on a preview and shows you exactly what changed.
+              Install the hostnsoft skill in Claude Code, Cowork or your terminal. Say
+              “deploy this,” and it packages your app, ships it, and verifies it’s
+              actually running before it hands you the URL.
             </p>
             <div className="reassure">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 12l2 2 4-4" /><circle cx="12" cy="12" r="9" />
               </svg>
-              You stay in control before any update reaches your team.
+              A deploy is confirmed live — not just accepted — before it’s called done.
             </div>
           </div>
 
           <div className="review">
             <div className="review-bar">
-              <span className="review-tag">Preview</span>
-              <span className="review-url">notes-update.hostnsoft.com</span>
+              <span className="review-tag">Terminal</span>
+              <span className="review-url">~/order-tracker</span>
             </div>
             <div className="msg you">
               <div className="bubble">
                 <div className="who">You</div>
-                Add a notes field to the order form, and drop the delivery-date column.
+                Deploy this to hostnsoft.
               </div>
             </div>
             <div className="diff">
-              <div className="diff-title">Here’s what will change:</div>
-              <div className="diff-line add">
-                <span className="sign">+</span> Added a <b>Notes</b> field to the order form
+              <div className="diff-title">hostnsoft deploy</div>
+              <div className="diff-line">
+                <span className="sign">›</span> Packaged order-tracker — no Dockerfile needed
               </div>
-              <div className="diff-line rem">
-                <span className="sign">−</span> Removed the <b>Delivery date</b> column from the dashboard
+              <div className="diff-line">
+                <span className="sign">›</span> Detected <b>Node.js</b> · building image
+              </div>
+              <div className="diff-line add">
+                <span className="sign">✓</span> Deployed <b>v2026.08.26</b>
+              </div>
+              <div className="diff-line add">
+                <span className="sign">✓</span> Verified running · <b>200 OK</b>
+              </div>
+              <div className="diff-line url">
+                <span className="sign">↗</span> <a href="#">https://order-tracker.hostnsoft.com</a>
               </div>
             </div>
             <div className="approve">
-              <button className="btn approve-btn" type="button">Approve &amp; go live</button>
-              <button className="btn-ghost" type="button">Discard</button>
+              <button className="btn approve-btn" type="button">Open live URL</button>
+              <button className="btn-ghost" type="button">Redeploy</button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ===== 6. Comparison ===== */}
+      {/* ===== 5. Comparison ===== */}
       <section className="compare">
         <div className="wrap">
           <div className="sec-head">
             <span className="eyebrow"><span className="dot"></span> Why hostnsoft</span>
-            <h2>The only place your AI‑made apps can live and grow.</h2>
-            <p>No-code builders lock you into their editor. Hosting platforms are built for developers. hostnsoft is built for your whole team.</p>
+            <h2>The simplest way to put a real app online.</h2>
+            <p>Container platforms want a Dockerfile. Serverless won’t run a stateful server. A VPS makes you the sysadmin. hostnsoft just takes your code and runs it.</p>
           </div>
           <div className="compare-scroll">
             <table className="compare-table">
@@ -314,13 +278,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== 7. Trust ===== */}
+      {/* ===== 6. Trust ===== */}
       <section className="trust-sec">
         <div className="wrap">
           <div className="sec-head">
             <span className="eyebrow"><span className="dot"></span> Trust &amp; safety</span>
-            <h2>Your business data, handled the way you’d want.</h2>
-            <p>AI plus your business data is worth being careful with. So we made the careful choices the defaults.</p>
+            <h2>Your app and its data, handled the way you’d want.</h2>
+            <p>Running someone’s app and data is worth being careful with. So we made the careful choices the defaults.</p>
           </div>
           <div className="trust-grid">
             {TRUST.map((t) => (
@@ -340,20 +304,20 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== 8. Pricing hint + CTA ===== */}
+      {/* ===== 7. Pricing hint + CTA ===== */}
       <section className="final">
         <div className="wrap">
           <div className="final-card">
-            <span className="price-hint">One simple plan per business · generous limits · no per-seat surprises</span>
-            <h2>Your business will make more apps. Give them one home.</h2>
-            <p>AI makes it easy to create useful tools. hostnsoft makes them easy to share, keep safe, and improve — as a team.</p>
+            <span className="price-hint">One simple plan per app · generous limits · no per-seat surprises</span>
+            <h2>Stop wrestling with servers. Just ship.</h2>
+            <p>hostnsoft builds, hosts, and keeps your app running — so you can spend your time on the app, not the infrastructure.</p>
             <GetAccessButton />
-            <div className="cta-sub">Be among the first businesses to put AI‑made apps to work.</div>
+            <div className="cta-sub">Be among the first to deploy on hostnsoft.</div>
           </div>
         </div>
       </section>
 
-      {/* ===== 9. FAQ ===== */}
+      {/* ===== 8. FAQ ===== */}
       <section className="faq">
         <div className="wrap">
           <div className="sec-head">
@@ -383,9 +347,9 @@ export default function Home() {
             <div className="footer-brand">
               <Logo markSize={34} />
               <p className="footer-tag">
-                The home for every app your business builds. Drop a folder or describe
-                what you want, and get a live, shareable URL — with database, logins, AI,
-                payments and messaging built in.
+                Managed hosting for any app. Deploy from your terminal or your AI
+                agent, and get a live URL with a database and persistent storage
+                built in — no Dockerfile, no config, no servers to manage.
               </p>
               <div className="footer-social">
                 <a href="#" aria-label="hostnsoft on X" title="X">
@@ -408,17 +372,17 @@ export default function Home() {
                 <h4>Product</h4>
                 <a href="#">How it works</a>
                 <a href="#">Capabilities</a>
-                <a href="#">App gallery</a>
-                <a href="#">Change approval</a>
+                <a href="#">Deploy guide</a>
+                <a href="#">Why hostnsoft</a>
                 <a href="#">Pricing</a>
               </div>
               <div className="footer-col">
-                <h4>Use cases</h4>
-                <a href="#">Order Tracker</a>
-                <a href="#">Appointment Booking</a>
-                <a href="#">Lead Intake</a>
-                <a href="#">Expense Approvals</a>
-                <a href="#">Customer Feedback</a>
+                <h4>Deploy from</h4>
+                <a href="#">Claude Code</a>
+                <a href="#">Cowork</a>
+                <a href="#">Terminal / CLI</a>
+                <a href="#">Deploy API</a>
+                <a href="#">CI pipelines</a>
               </div>
               <div className="footer-col">
                 <h4>Company</h4>

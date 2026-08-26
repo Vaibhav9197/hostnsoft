@@ -125,7 +125,7 @@ export function EarlyAccessProvider({ children }: { children: ReactNode }) {
             <div>
               <h3 id="modalTitle">Get early access</h3>
               <p className="sub">
-                {context || "Be among the first businesses to put AI‑made apps to work."}
+                {context || "Be among the first to deploy on hostnsoft."}
               </p>
               <form onSubmit={onSubmit} noValidate>
                 <div className="field">
@@ -142,13 +142,13 @@ export function EarlyAccessProvider({ children }: { children: ReactNode }) {
                 </div>
                 <div className="field">
                   <label htmlFor="f-app">
-                    What kind of app do you want to put to work? <span className="opt">(optional)</span>
+                    What are you looking to deploy? <span className="opt">(optional)</span>
                   </label>
                   <textarea
                     id="f-app"
                     name="app"
                     rows={3}
-                    placeholder="An order tracker, a booking tool, a customer portal…"
+                    placeholder="A Node API, a Python web app, an internal tool…"
                     defaultValue={prefillApp}
                     key={prefillApp}
                     disabled={submitting}

@@ -5,9 +5,9 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
-  title: "hostnsoft — Turn AI-made apps into tools your whole business runs on",
+  title: "hostnsoft — Deploy any app. Get a live URL.",
   description:
-    "Drop a folder of files or describe an app, and get a live, shareable URL — with database, auth, AI, file storage, payments, and realtime already wired in. No servers, no config, no code.",
+    "Managed hosting that builds your app automatically — no Dockerfile, no config. Deploy from your terminal or your AI agent, and get a live URL with a database and persistent storage built in.",
 };
 
 export default function RootLayout({
