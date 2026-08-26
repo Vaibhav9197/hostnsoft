@@ -13,3 +13,16 @@ export async function GET(
   }
   return NextResponse.json({ app });
 }
+
+// DELETE /api/apps/:appId — tear down the app. Dummy acknowledgement for now.
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ appId: string }> },
+) {
+  const { appId } = await params;
+  const app = getApp(appId);
+  if (!app) {
+    return NextResponse.json({ error: "App not found" }, { status: 404 });
+  }
+  return NextResponse.json({ ok: true, message: `${app.name} deleted.` });
+}

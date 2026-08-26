@@ -70,3 +70,21 @@ export interface ApiToken {
   createdAt: string;
   revokedAt: string | null;
 }
+
+export interface EnvVar {
+  key: string;
+  value: string;
+  secret: boolean;
+  updatedAt: string;
+}
+
+export type DomainStatus = "active" | "pending" | "error";
+
+export interface Domain {
+  id: string;
+  hostname: string;
+  primary: boolean;
+  status: DomainStatus;
+  cnameTarget: string;
+  createdAt: string;
+}

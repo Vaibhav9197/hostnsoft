@@ -7,6 +7,8 @@ import type {
   ApiToken,
   Deployment,
   DeploymentEvent,
+  Domain,
+  EnvVar,
 } from "./types";
 
 export const WORKSPACE = { name: "Ashish’s workspace", slug: "ashish" };
@@ -239,8 +241,49 @@ const TOKENS: ApiToken[] = [
   },
 ];
 
+const ENV: Record<string, EnvVar[]> = {
+  app_order_tracker: [
+    { key: "NODE_ENV", value: "production", secret: false, updatedAt: "2026-08-02T11:00:00Z" },
+    { key: "STRIPE_SECRET_KEY", value: "sk_live_51H8xR2eZvK... (hidden)", secret: true, updatedAt: "2026-08-02T11:00:00Z" },
+    { key: "WHATSAPP_TOKEN", value: "EAAG9ZC... (hidden)", secret: true, updatedAt: "2026-08-19T13:01:00Z" },
+    { key: "SUPPORT_EMAIL", value: "help@order-tracker.com", secret: false, updatedAt: "2026-08-11T10:20:00Z" },
+  ],
+  app_lead_intake: [
+    { key: "NODE_ENV", value: "production", secret: false, updatedAt: "2026-08-10T08:30:00Z" },
+    { key: "SLACK_WEBHOOK_URL", value: "https://hooks.slack.com/... (hidden)", secret: true, updatedAt: "2026-08-24T16:38:30Z" },
+  ],
+};
+
+const DEFAULT_ENV: EnvVar[] = [
+  { key: "NODE_ENV", value: "production", secret: false, updatedAt: "2026-08-20T12:00:00Z" },
+];
+
+const CUSTOM_DOMAINS: Record<string, Domain[]> = {
+  app_order_tracker: [
+    { id: "dom_ot_1", hostname: "orders.acme.com", primary: false, status: "active", cnameTarget: "order-tracker.hostnsoft.com", createdAt: "2026-08-05T10:00:00Z" },
+  ],
+  app_lead_intake: [
+    { id: "dom_li_1", hostname: "leads.acme.com", primary: false, status: "pending", cnameTarget: "lead-intake.hostnsoft.com", createdAt: "2026-08-25T09:00:00Z" },
+  ],
+};
+
 export function listApps(): AppSummary[] {
   return APPS;
+}
+
+export function listEnv(appId: string): EnvVar[] {
+  if (!APPS.some((a) => a.id === appId)) return [];
+  return ENV[appId] ?? DEFAULT_ENV;
+}
+
+export function listDomains(appId: string): Domain[] {
+  const app = APPS.find((a) => a.id === appId);
+  if (!app) return [];
+  const host = (app.url ?? "").replace(/^https?:\/\//, "");
+  const primary: Domain[] = host
+    ? [{ id: "dom_default", hostname: host, primary: true, status: "active", cnameTarget: host, createdAt: app.createdAt }]
+    : [];
+  return [...primary, ...(CUSTOM_DOMAINS[appId] ?? [])];
 }
 
 export function getApp(id: string): AppDetail | null {

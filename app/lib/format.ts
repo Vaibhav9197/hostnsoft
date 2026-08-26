@@ -40,6 +40,9 @@ export const STATUS_LABEL: Record<string, string> = {
   deploying: "Deploying",
   superseded: "Superseded",
   rolled_back: "Rolled back",
+  active: "Active",
+  pending: "Pending",
+  error: "Error",
 };
 
 // Maps a status to a semantic tone used by the status pill styles.
@@ -47,14 +50,17 @@ export function statusTone(status: string): "ok" | "warn" | "err" | "muted" {
   switch (status) {
     case "running":
     case "live":
+    case "active":
       return "ok";
     case "building":
     case "deploying":
     case "queued":
     case "sleeping":
+    case "pending":
       return "warn";
     case "crashed":
     case "failed":
+    case "error":
       return "err";
     default:
       return "muted";

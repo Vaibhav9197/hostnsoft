@@ -119,7 +119,7 @@ export default function Home() {
         <div className="wrap">
           <div className="hero-head">
             <span className="eyebrow"><span className="dot"></span> Early access is opening — 2026</span>
-            <h1>Deploy any app. Get a live URL.</h1>
+            <h1>Deploy any app<br /><span className="hl">Get a live URL</span></h1>
             <p className="hero-lead">
               Managed hosting that builds your app for you — no Dockerfile, no config. Ship it from your terminal or your AI agent.
             </p>
