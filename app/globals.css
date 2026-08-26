@@ -364,19 +364,19 @@ section{padding:18px 0}
 .con-link:hover{background:var(--surface-2);color:var(--ink)}
 .con-link.active{background:var(--accent-soft);border-color:var(--accent-line);color:var(--ink)}
 .con-link.active svg{color:var(--accent)}
-.con-side-foot{margin-top:auto;padding-top:12px;border-top:1px solid var(--line)}
+.con-side-foot{margin-top:auto;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
 .con-doclink{display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:.85rem;color:var(--ink-faint)}
 .con-doclink svg{width:16px;height:16px}
 .con-doclink:hover{color:var(--ink)}
 
-/* ---- Main + topbar ---- */
+/* ---- Sidebar user ---- */
+.con-user-block{display:flex;align-items:center;gap:10px;padding:6px 4px}
+.con-user-block .con-user-meta{flex:1;min-width:0;text-align:left;line-height:1.25}
+.con-user-name{font-size:.85rem;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.con-user-mail{font-size:.73rem;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---- Main ---- */
 .con-main{display:flex;flex-direction:column;min-width:0}
-.con-top{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:16px;height:64px;padding:0 28px;border-bottom:1px solid var(--line);background:rgba(11,13,12,.82);backdrop-filter:blur(10px)}
-.con-top-title{font-weight:700;color:var(--ink)}
-.con-user{display:flex;align-items:center;gap:12px}
-.con-user-meta{text-align:right;line-height:1.2}
-.con-user-name{font-size:.86rem;font-weight:600;color:var(--ink)}
-.con-user-mail{font-size:.74rem;color:var(--ink-faint)}
 .con-avatar{display:grid;place-items:center;width:34px;height:34px;background:var(--surface-2);border:1px solid var(--line-strong);color:var(--ink);font-weight:700;font-size:.9rem}
 .con-logout{width:34px;height:34px;display:grid;place-items:center;background:transparent;border:1px solid var(--line);color:var(--ink-soft);cursor:pointer;transition:color .14s,border-color .14s}
 .con-logout svg{width:17px;height:17px}

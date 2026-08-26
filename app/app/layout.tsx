@@ -23,7 +23,6 @@ const APP_NAV = [
 
 export default function ConsoleLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const appMatch = pathname.match(/^\/app\/apps\/([^/]+)/);
   const appId = appMatch?.[1] ?? null;
 
@@ -36,27 +35,30 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
       )}
 
       <div className="con-main">
-        <header className="con-top">
-          <div className="con-top-title" />
-          <div className="con-user">
-            <div className="con-user-meta">
-              <div className="con-user-name">{USER.name}</div>
-              <div className="con-user-mail">{USER.email}</div>
-            </div>
-            <span className="con-avatar" aria-hidden="true">{USER.name.charAt(0)}</span>
-            <button
-              type="button"
-              className="con-logout"
-              onClick={() => router.push("/")}
-              aria-label="Log out"
-              title="Log out"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>
-            </button>
-          </div>
-        </header>
         <main className="con-content">{children}</main>
       </div>
+    </div>
+  );
+}
+
+function SidebarUser() {
+  const router = useRouter();
+  return (
+    <div className="con-user-block">
+      <span className="con-avatar" aria-hidden="true">{USER.name.charAt(0)}</span>
+      <div className="con-user-meta">
+        <div className="con-user-name">{USER.name}</div>
+        <div className="con-user-mail">{USER.email}</div>
+      </div>
+      <button
+        type="button"
+        className="con-logout"
+        onClick={() => router.push("/")}
+        aria-label="Log out"
+        title="Log out"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>
+      </button>
     </div>
   );
 }
@@ -90,10 +92,7 @@ function WorkspaceSidebar({ pathname }: { pathname: string }) {
       </nav>
 
       <div className="con-side-foot">
-        <a className="con-doclink" href="/skills/hostnsoft-deploy.skill" download>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14" /></svg>
-          Deploy skill
-        </a>
+        <SidebarUser />
       </div>
     </aside>
   );
@@ -147,6 +146,7 @@ function AppSidebar({ appId, pathname }: { appId: string; pathname: string }) {
             Open live URL
           </a>
         )}
+        <SidebarUser />
       </div>
     </aside>
   );
