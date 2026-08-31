@@ -30,39 +30,46 @@ export function formatBytes(bytes: number | null): string {
 }
 
 export const STATUS_LABEL: Record<string, string> = {
-  running: "Running",
-  building: "Building",
-  crashed: "Crashed",
-  sleeping: "Sleeping",
+  // deployment statuses (hostnsoft-api)
+  success: "Success",
   failed: "Failed",
-  live: "Live",
-  queued: "Queued",
-  deploying: "Deploying",
-  superseded: "Superseded",
-  rolled_back: "Rolled back",
+  in_progress: "In progress",
+  // project health
+  unknown: "Unknown",
+  // membership status
   active: "Active",
-  pending: "Pending",
-  error: "Error",
+  invited: "Invited",
+  // token status (UI-derived)
+  revoked: "Revoked",
 };
 
 // Maps a status to a semantic tone used by the status pill styles.
 export function statusTone(status: string): "ok" | "warn" | "err" | "muted" {
   switch (status) {
-    case "running":
-    case "live":
+    case "success":
     case "active":
       return "ok";
-    case "building":
-    case "deploying":
-    case "queued":
-    case "sleeping":
-    case "pending":
+    case "in_progress":
+    case "invited":
       return "warn";
-    case "crashed":
     case "failed":
-    case "error":
+    case "revoked":
       return "err";
+    // "unknown" health and anything else stay muted
     default:
       return "muted";
   }
+}
+
+// Human labels for roles.
+export const ROLE_LABEL: Record<string, string> = {
+  company_admin: "Company admin",
+  project_admin: "Project admin",
+  viewer: "Viewer",
+};
+
+// Absolute date, e.g. "Aug 27, 2026".
+export function formatDate(iso: string | null): string {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }

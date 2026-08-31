@@ -1,82 +1,131 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { StatusPill } from "../components/console/StatusPill";
+import { useCallback, useEffect, useState } from "react";
 import { SkillDialog } from "../components/console/SkillDialog";
-import { relativeTime } from "../lib/format";
-import type { AppSummary } from "../lib/types";
+import { HnsError } from "../lib/client";
+import { companiesApi, projectsApi } from "../lib/hnsApi";
+import { formatDate, relativeTime } from "../lib/format";
+import { atLeast, useSession } from "../lib/session";
+import type { Project } from "../lib/types";
 
-export default function OverviewPage() {
-  const [apps, setApps] = useState<AppSummary[] | null>(null);
+export default function ProjectsPage() {
+  const { activeCompanyId, companies, role, reload } = useSession();
+  const [projects, setProjects] = useState<Project[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [skillOpen, setSkillOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const canWrite = atLeast(role, "project_admin");
+
+  const load = useCallback(async () => {
+    if (!activeCompanyId) {
+      setProjects([]);
+      return;
+    }
+    setProjects(null);
+    setError(null);
+    try {
+      const data = await projectsApi.list(activeCompanyId);
+      setProjects(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn’t load your projects.");
+    }
+  }, [activeCompanyId]);
 
   useEffect(() => {
-    let live = true;
-    fetch("/api/apps")
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Couldn’t load your apps."))))
-      .then((d) => live && setApps(d.apps))
-      .catch((e) => live && setError(e.message));
-    return () => {
-      live = false;
-    };
-  }, []);
+    load();
+  }, [load]);
+
+  async function createProject(e: React.FormEvent) {
+    e.preventDefault();
+    if (!activeCompanyId) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const project = await projectsApi.create(activeCompanyId, name.trim());
+      setProjects((p) => [project, ...(p ?? [])]);
+      setName("");
+      setCreating(false);
+    } catch (e) {
+      setError(e instanceof HnsError ? e.message : "Couldn’t create the project.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // No company yet — offer to create one.
+  if (companies.length === 0) {
+    return <NoCompany onCreated={reload} />;
+  }
 
   return (
     <div className="con-page">
       <div className="con-head">
         <div>
-          <h1 className="con-h1">Your apps</h1>
-          <p className="con-sub">Everything you’ve deployed to this workspace.</p>
+          <h1 className="con-h1">Projects</h1>
+          <p className="con-sub">Every app deployed under this company.</p>
         </div>
-        <button type="button" className="con-btn" onClick={() => setSkillOpen(true)}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
-          Deploy an app
-        </button>
+        <div className="detail-actions">
+          <button type="button" className="con-btn ghost" onClick={() => setSkillOpen(true)}>How to deploy</button>
+          {canWrite && (
+            <button type="button" className="con-btn" onClick={() => setCreating((v) => !v)}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+              New project
+            </button>
+          )}
+        </div>
       </div>
 
       <SkillDialog open={skillOpen} onClose={() => setSkillOpen(false)} />
 
-      <OnboardingStrip />
+      {creating && canWrite && (
+        <form className="token-create" onSubmit={createProject}>
+          <input
+            className="con-input"
+            placeholder="Project name — e.g. Invoice Portal"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={60}
+            autoFocus
+          />
+          <button className="con-btn" type="submit" disabled={busy || !name.trim()}>
+            {busy ? "Creating…" : "Create"}
+          </button>
+        </form>
+      )}
 
       {error && <div className="con-alert err">{error}</div>}
 
-      {!apps && !error && (
+      {!projects && !error && (
         <div className="app-grid">
-          {[0, 1, 2].map((i) => (
-            <div className="app-card skeleton" key={i} aria-hidden="true" />
-          ))}
+          {[0, 1, 2].map((i) => <div className="app-card skeleton" key={i} aria-hidden="true" />)}
         </div>
       )}
 
-      {apps && apps.length === 0 && (
+      {projects && projects.length === 0 && (
         <div className="con-empty">
-          <h3>No apps yet</h3>
-          <p>Deploy your first app with the steps above and it’ll show up here — live URL and all.</p>
+          <h3>No projects yet</h3>
+          <p>{canWrite ? "Create a project above, then deploy to its subdomain." : "Ask a project admin to create the first project."}</p>
         </div>
       )}
 
-      {apps && apps.length > 0 && (
+      {projects && projects.length > 0 && (
         <div className="app-grid">
-          {apps.map((app) => (
-            <Link key={app.id} href={`/app/apps/${app.id}`} className="app-card">
+          {projects.map((p) => (
+            <Link key={p.id} href={`/app/projects/${p.id}`} className="app-card">
               <div className="app-card-top">
-                <span className="app-name">{app.name}</span>
-                <StatusPill status={app.status} />
+                <span className="app-name">{p.name}</span>
               </div>
-              <div className="app-url">
-                {app.url ? app.url.replace(/^https?:\/\//, "") : "Not deployed yet"}
-              </div>
+              <div className="app-url">{p.slug}.app.hostnsoft.com</div>
               <div className="app-meta">
-                <span>{app.stack ?? "—"}</span>
+                <span className="mono">{p.memoryMb} MB</span>
                 <span className="dot-sep" />
-                <span>{app.hasDatabase ? "Database" : "No DB"}</span>
-                <span className="dot-sep" />
-                <span>{app.currentVersion ?? "—"}</span>
+                <span>Created {formatDate(p.createdAt)}</span>
               </div>
               <div className="app-foot">
-                <span className="mono-faint">Deployed {relativeTime(app.lastDeployAt)}</span>
+                <span className="mono-faint">Added {relativeTime(p.createdAt)}</span>
                 <svg className="app-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
               </div>
             </Link>
@@ -87,36 +136,37 @@ export default function OverviewPage() {
   );
 }
 
-function OnboardingStrip() {
+function NoCompany({ onCreated }: { onCreated: () => Promise<void> }) {
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function create(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      await companiesApi.create(name.trim());
+      await onCreated();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn’t create the company.");
+      setBusy(false);
+    }
+  }
+
   return (
-    <details className="onboard">
-      <summary>
-        <span className="onboard-badge">New</span>
-        Deploy an app in three steps
-        <span className="onboard-chev" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
-        </span>
-      </summary>
-      <div className="onboard-body">
-        <ol className="onboard-steps">
-          <li>
-            <b>Get a deploy token.</b> Create one on the{" "}
-            <Link href="/app/tokens">Deploy tokens</Link> page and export it:
-            <pre className="con-pre">export HOSTNSOFT_TOKEN=&quot;hns_live_…&quot;</pre>
-          </li>
-          <li>
-            <b>Install the skill</b> in Claude Code / Cowork, or use the CLI. Make sure your app
-            reads <code>PORT</code> and binds to <code>0.0.0.0</code> — no Dockerfile needed.
-          </li>
-          <li>
-            <b>Ship it.</b> Tell your agent “deploy this,” and the app appears here with its URL.
-            <pre className="con-pre">curl -X POST https://ship.hostnsoft.com/apps \
-  -H &quot;Authorization: Bearer $HOSTNSOFT_TOKEN&quot; \
-  -H &quot;X-App-Name: my-app&quot; -H &quot;X-App-Version: v1&quot; \
-  -F &quot;source=@/tmp/my-app.tar.gz&quot;</pre>
-          </li>
-        </ol>
+    <div className="con-page">
+      <div className="con-head">
+        <div>
+          <h1 className="con-h1">Welcome to hostnsoft</h1>
+          <p className="con-sub">Create a company to hold your projects and team.</p>
+        </div>
       </div>
-    </details>
+      {error && <div className="con-alert err">{error}</div>}
+      <form className="token-create" onSubmit={create}>
+        <input className="con-input" placeholder="Company name — e.g. Acme Robotics" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} autoFocus />
+        <button className="con-btn" type="submit" disabled={busy || !name.trim()}>{busy ? "Creating…" : "Create company"}</button>
+      </form>
+    </div>
   );
 }

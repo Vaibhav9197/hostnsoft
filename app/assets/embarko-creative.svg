@@ -1,0 +1,90 @@
+<svg width="960" height="540" viewBox="0 0 960 540" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Embarko">
+  <title>Embarko</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0a0a0a"/>
+      <stop offset="1" stop-color="#151515"/>
+    </linearGradient>
+    <linearGradient id="flame" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff7a00"/>
+      <stop offset="1" stop-color="#ff4d00"/>
+    </linearGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff4d00"/>
+      <stop offset="1" stop-color="#ff8a3d"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.55">
+      <stop offset="0" stop-color="#ff4d00" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#ff4d00" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- backdrop -->
+  <rect width="960" height="540" fill="url(#bg)"/>
+  <circle cx="300" cy="215" r="230" fill="url(#glow)"/>
+
+  <!-- ================= EMBLEM ================= -->
+  <g transform="translate(300 230)">
+
+    <!-- circular badge ring -->
+    <circle r="150" fill="none" stroke="#ff4d00" stroke-width="3" opacity="0.35"/>
+    <circle r="140" fill="none" stroke="#ff4d00" stroke-width="8"/>
+
+    <!-- compass ticks -->
+    <g stroke="#ff4d00" stroke-width="3" stroke-linecap="round" opacity="0.55">
+      <line x1="0" y1="-140" x2="0" y2="-124"/>
+      <line x1="0" y1="140" x2="0" y2="124"/>
+      <line x1="-140" y1="0" x2="-124" y2="0"/>
+      <line x1="140" y1="0" x2="124" y2="0"/>
+    </g>
+
+    <!-- clip the scene inside the ring -->
+    <clipPath id="ring"><circle r="128"/></clipPath>
+    <g clip-path="url(#ring)">
+      <rect x="-140" y="-140" width="280" height="280" fill="#0f0f0f"/>
+
+      <!-- mast -->
+      <rect x="-3" y="-118" width="6" height="150" rx="3" fill="#e9e4dc"/>
+      <circle cx="0" cy="-118" r="6" fill="#ff4d00"/>
+
+      <!-- main sail shaped like an E, billowing -->
+      <path d="M6 -104
+               C 78 -96 96 -70 92 -44
+               L 34 -44 L 34 -30 L 84 -30
+               C 86 -14 84 -2 72 8
+               L 34 8 L 34 24 L 90 24
+               C 88 44 62 54 6 44 Z"
+            fill="url(#flame)"/>
+      <!-- sail fold shading -->
+      <path d="M6 -104 C 40 -98 54 -60 50 -20 C 48 8 40 32 6 44 Z"
+            fill="#000000" opacity="0.12"/>
+
+      <!-- small jib sail (left) -->
+      <path d="M-8 -100 C -60 -66 -68 -14 -20 22 L -8 22 Z"
+            fill="#e9e4dc" opacity="0.92"/>
+
+      <!-- hull -->
+      <path d="M-96 40 L 96 40 C 84 78 44 96 0 96 C -44 96 -84 78 -96 40 Z"
+            fill="#1c1c1c" stroke="#ff4d00" stroke-width="4"/>
+      <rect x="-96" y="34" width="192" height="10" rx="5" fill="#ff4d00"/>
+
+      <!-- waves -->
+      <path d="M-140 92 q22 -18 44 0 t44 0 t44 0 t44 0 t44 0"
+            fill="none" stroke="url(#sea)" stroke-width="9" stroke-linecap="round"/>
+      <path d="M-160 116 q22 -16 44 0 t44 0 t44 0 t44 0 t44 0 t44 0"
+            fill="none" stroke="#ff4d00" stroke-width="7" stroke-linecap="round" opacity="0.5"/>
+    </g>
+  </g>
+
+  <!-- ================= WORDMARK ================= -->
+  <g transform="translate(520 0)">
+    <text x="0" y="252"
+          font-family="'Poppins','Segoe UI',Arial,sans-serif"
+          font-size="96" font-weight="800" letter-spacing="-3"
+          fill="#f4f1ec">Embark<tspan fill="#ff4d00">o</tspan></text>
+    <text x="4" y="300"
+          font-family="'Poppins','Segoe UI',Arial,sans-serif"
+          font-size="25" font-weight="500" letter-spacing="10"
+          fill="#ff4d00">SET SAIL · SHIP FAST</text>
+  </g>
+</svg>

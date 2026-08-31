@@ -1,90 +1,128 @@
 // Control-plane types for the hostnsoft console.
-// These mirror the data model in the MVP PRD (§07). For now the API routes
-// serve dummy data shaped exactly like this, so screens won't change when a
-// real backend replaces the dummy source.
+// These mirror the hostnsoft-api data model exactly (see the API reference).
+// The console talks to that API through the Next.js BFF proxy under /api/hns/*,
+// so these shapes are the wire shapes the proxy passes through untouched.
 
-export type AppStatus = "running" | "building" | "crashed" | "sleeping" | "failed";
+export type Role = "company_admin" | "project_admin" | "viewer";
+export type MemberStatus = "invited" | "active";
 
-export type DeploymentStatus =
-  | "queued"
-  | "building"
-  | "deploying"
-  | "live"
-  | "failed"
-  | "crashed"
-  | "superseded"
-  | "rolled_back";
+// hostnsoft-api deployment status. Only these three exist server-side.
+export type DeploymentStatus = "success" | "failed" | "in_progress";
 
-export type DeployTrigger = "skill" | "api" | "cli" | "redeploy" | "rollback";
+// Project health is always "unknown" today (no live Nomad status wired up).
+export type ProjectHealth = "unknown";
 
-export type EventPhase = "package" | "build" | "deploy" | "verify";
-export type EventLevel = "info" | "warn" | "error";
+// The logged-in user plus the companies they belong to. From GET /auth/me and
+// the /auth/msg91/exchange response.
+export interface CompanyMembershipSummary {
+  companyId: string;
+  companyName: string;
+  role: Role;
+  status?: MemberStatus;
+}
 
-export interface AppSummary {
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string | null;
+}
+
+export interface MeResponse extends AuthUser {
+  companies: CompanyMembershipSummary[];
+  // false when identity came from the MSG91 proxy because hostnsoft-api
+  // (the data backend) was unreachable — the user is logged in, but company/
+  // project data can't be loaded until the backend is up.
+  apiConnected?: boolean;
+}
+
+export interface Company {
   id: string;
   name: string;
-  status: AppStatus;
-  url: string | null;
-  stack: string | null;
-  hasDatabase: boolean;
-  memoryMb: number | null;
-  currentVersion: string | null;
-  lastDeployAt: string | null;
+  createdAt: string;
+  msg91Id: string | null;
+}
+
+// A row from GET /companies — company plus the caller's role/status in it.
+export interface CompanyWithRole extends Company {
+  role: Role;
+  status: MemberStatus;
+}
+
+// GET /companies/:id — detail with counts.
+export interface CompanyDetail extends Company {
+  role: Role;
+  memberCount: number;
+  projectCount: number;
+}
+
+export interface Member {
+  userId: string;
+  email: string;
+  role: Role;
+  status: MemberStatus;
+}
+
+export interface Project {
+  id: string;
+  companyId: string;
+  slug: string;
+  name: string;
+  memoryMb: number;
   createdAt: string;
 }
 
-export interface DeploymentEvent {
+// GET one project adds a health field (always "unknown" for now).
+export interface ProjectDetail extends Project {
+  health: ProjectHealth;
+}
+
+export interface EnvVar {
   id: string;
-  deploymentId: string;
-  phase: EventPhase;
-  level: EventLevel;
-  message: string;
+  projectId: string;
+  key: string;
+  value: string;
+  updatedAt: string;
+  updatedBy: string | null;
+}
+
+// List view of a deploy token — the raw secret is never included here.
+export interface DeployToken {
+  id: string;
+  label: string;
+  tokenPrefix: string;
   createdAt: string;
+  revokedAt: string | null;
+  lastUsedAt: string | null;
+}
+
+// Create/rotate response — the one time the raw token is returned.
+export interface DeployTokenSecret {
+  id: string;
+  label: string;
+  prefix: string;
+  createdAt: string;
+  token: string;
+  // Only present on rotate: how long the old token keeps working.
+  oldTokenValidUntil?: string;
 }
 
 export interface Deployment {
   id: string;
-  appId: string;
-  version: string;
+  projectId: string;
+  version: string; // "v1", "v2", ... — unique per project, use as the row key
+  appVersion: string; // not unique, may repeat
+  imageTag: string | null;
+  memoryMb: number | null;
   status: DeploymentStatus;
-  url: string | null;
-  detectedStack: string | null;
-  sourceBytes: number | null;
-  trigger: DeployTrigger;
-  createdBy: string | null;
-  errorMessage: string | null;
+  errorDetail: string | null;
+  triggeredBy: string | null;
   createdAt: string;
   finishedAt: string | null;
 }
 
-export interface AppDetail extends AppSummary {
-  deployments: Deployment[];
-  events: DeploymentEvent[];
-}
-
-export interface ApiToken {
-  id: string;
-  name: string;
-  tokenPrefix: string;
-  lastUsedAt: string | null;
-  createdAt: string;
-  revokedAt: string | null;
-}
-
-export interface EnvVar {
-  key: string;
-  value: string;
-  secret: boolean;
-  updatedAt: string;
-}
-
-export type DomainStatus = "active" | "pending" | "error";
-
-export interface Domain {
-  id: string;
-  hostname: string;
-  primary: boolean;
-  status: DomainStatus;
-  cnameTarget: string;
-  createdAt: string;
+// Normalized error shape the BFF returns for every failure.
+export interface ApiError {
+  error: string;
+  details?: { path: string; message: string }[];
+  status: number;
 }
