@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { authExchange, markExchanged, wasExchanged } from "../../lib/client";
+import { Alert } from "./kit";
 import { useSession } from "../../lib/session";
 
 // MSG91 proxy-auth login.
@@ -102,33 +103,33 @@ export function LoginScreen() {
   const configured = Boolean(REFERENCE_ID);
 
   return (
-    <div className="login-shell">
-      <div className="login-card">
-        <div className="login-brand">
-          <span className="con-ws-mark" aria-hidden="true">H</span>
+    <div className="grid min-h-screen place-items-center bg-background p-6">
+      <div className="w-full max-w-[420px] border border-border bg-card p-7">
+        <div className="flex items-center gap-3">
+          <span className="grid size-8 shrink-0 place-items-center bg-primary text-base font-extrabold text-primary-foreground" aria-hidden="true">H</span>
           <div>
-            <div className="login-title">Sign in to hostnsoft</div>
-            <div className="login-tag">Deploy console</div>
+            <div className="text-[1.15rem] font-extrabold tracking-tight text-foreground">Sign in to hostnsoft</div>
+            <div className="mt-0.5 font-mono text-[0.66rem] uppercase tracking-[0.12em] text-primary">Deploy console</div>
           </div>
         </div>
 
         {(error || authError) && (
-          <div className="con-alert err" style={{ marginTop: 16 }}>{error ?? authError}</div>
+          <Alert variant="err" className="mt-4">{error ?? authError}</Alert>
         )}
 
         {!configured ? (
-          <div className="con-alert err" style={{ marginTop: 16 }}>
+          <Alert variant="err" className="mt-4">
             Login isn’t configured yet. Set <code>NEXT_PUBLIC_MSG91_REFERENCE_ID</code> (from the
             MSG91 proxy-auth dashboard) to enable sign-in.
-          </div>
+          </Alert>
         ) : (
           <>
-            <p className="con-sub" style={{ marginTop: 12 }}>
+            <p className="mt-3 text-[0.92rem] text-muted-foreground">
               Verify your email to continue. You’ll land in your workspace once you’re in.
             </p>
             {/* MSG91 renders the widget into the element whose id === referenceId */}
-            <div id={REFERENCE_ID} ref={containerRef} className="login-widget" />
-            {busy && <div className="con-alert info" style={{ marginTop: 14 }}>Signing you in…</div>}
+            <div id={REFERENCE_ID} ref={containerRef} className="login-widget mt-3" />
+            {busy && <Alert variant="info" className="mt-3.5">Signing you in…</Alert>}
           </>
         )}
       </div>

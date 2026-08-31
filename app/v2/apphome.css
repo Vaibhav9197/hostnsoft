@@ -1,5 +1,9 @@
 /* AppHome landing — scoped styles. Everything lives under .apphome so it
-   never inherits from or leaks into the rest of the site's global CSS. */
+   never inherits from or leaks into the rest of the site's global CSS.
+   The one thing .apphome can't scope away is the browser's default 8px
+   <body> margin (it lived off app/globals.css's shared `*{margin:0}` reset
+   before); this line makes the file fully self-contained. */
+html,body{margin:0;padding:0}
 
 .apphome{
   --page:#f5f4f0;         /* warm cream page — revalvo-inspired */

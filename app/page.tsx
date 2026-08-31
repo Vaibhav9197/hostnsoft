@@ -1,3 +1,4 @@
+import "./globals.css";
 import { AppsMarquee } from "./components/AppsMarquee";
 import { EarlyAccessProvider, GetAccessButton } from "./components/EarlyAccess";
 import { Header } from "./components/Header";

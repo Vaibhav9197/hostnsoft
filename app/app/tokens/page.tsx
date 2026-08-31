@@ -1,9 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { X } from "lucide-react";
+import { Alert, LinkButton, Page, PageHeader, Panel, Skeleton, Tag } from "../../components/console/kit";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { tokensApi } from "../../lib/hnsApi";
 import { formatDate, relativeTime } from "../../lib/format";
 import { atLeast, useSession } from "../../lib/session";
+import { cn } from "../../lib/utils";
 import type { DeployToken, DeployTokenSecret } from "../../lib/types";
 
 export default function TokensPage() {
@@ -86,84 +92,95 @@ export default function TokensPage() {
 
   if (!isAdmin) {
     return (
-      <div className="con-page">
-        <div className="con-head"><div><h1 className="con-h1">Deploy tokens</h1></div></div>
-        <div className="con-empty"><h3>Company admins only</h3><p>Deploy tokens are managed by company admins. Ask one to create a token for your CI pipeline.</p></div>
-      </div>
+      <Page>
+        <PageHeader title="Deploy tokens" />
+        <div className="border border-dashed border-input bg-card px-6 py-12 text-center">
+          <h3 className="text-[1.1rem] font-bold text-foreground">Company admins only</h3>
+          <p className="mx-auto mt-1.5 max-w-[42ch] text-[0.92rem] text-muted-foreground">Deploy tokens are managed by company admins. Ask one to create a token for your CI pipeline.</p>
+        </div>
+      </Page>
     );
   }
 
   return (
-    <div className="con-page">
-      <div className="con-head">
-        <div>
-          <h1 className="con-h1">Deploy tokens</h1>
-          <p className="con-sub">Credentials <code>hostnsoft-deploy</code> checks on every deploy. Not used to sign in here.</p>
-        </div>
-      </div>
+    <Page>
+      <PageHeader
+        title="Deploy tokens"
+        subtitle={
+          <>Credentials <code className="border border-border bg-elevated px-1 py-0.5 font-mono text-[0.85em] text-foreground">hostnsoft-deploy</code> checks on every deploy. Not used to sign in here.</>
+        }
+      />
 
-      <form className="token-create" onSubmit={createToken}>
-        <input className="con-input" placeholder="Label — e.g. CI pipeline" value={label} onChange={(e) => setLabel(e.target.value)} maxLength={40} />
-        <button className="con-btn" type="submit" disabled={creating || !label.trim()}>{creating ? "Creating…" : "Create token"}</button>
+      <form className="flex flex-wrap gap-2.5" onSubmit={createToken}>
+        <Input className="min-w-[220px] flex-1" placeholder="Label — e.g. CI pipeline" value={label} onChange={(e) => setLabel(e.target.value)} maxLength={40} />
+        <Button type="submit" disabled={creating || !label.trim()}>{creating ? "Creating…" : "Create token"}</Button>
       </form>
 
-      {error && <div className="con-alert err">{error}</div>}
+      {error && <Alert>{error}</Alert>}
 
       {secret && (
-        <div className="secret-box">
-          <div className="secret-head">
-            <span className="secret-title">Copy your token now — it won’t be shown again.</span>
-            <button className="secret-dismiss" onClick={() => setSecret(null)} aria-label="Dismiss">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+        <div className="border border-primary/30 bg-primary/10">
+          <div className="flex items-center justify-between border-b border-primary/30 px-4 py-3">
+            <span className="text-[0.86rem] font-bold text-foreground">Copy your token now — it won’t be shown again.</span>
+            <button className="grid place-items-center text-muted-foreground hover:text-foreground" onClick={() => setSecret(null)} aria-label="Dismiss">
+              <X className="size-4" />
             </button>
           </div>
-          <div className="secret-row">
-            <code className="secret-val">{secret.token}</code>
-            <button className="con-btn ghost sm" onClick={copySecret}>{copied ? "Copied" : "Copy"}</button>
+          <div className="flex items-center gap-3 p-4">
+            <code className="flex-1 break-all font-mono text-[0.88rem] text-foreground">{secret.token}</code>
+            <Button variant="outline" size="sm" onClick={copySecret}>{copied ? "Copied" : "Copy"}</Button>
           </div>
           {secret.oldTokenValidUntil && (
-            <div className="secret-foot mono-faint">The previous token keeps working until {new Date(secret.oldTokenValidUntil).toLocaleString()}.</div>
+            <div className="px-4 pb-3.5 font-mono text-[0.78rem] text-faint">The previous token keeps working until {new Date(secret.oldTokenValidUntil).toLocaleString()}.</div>
           )}
         </div>
       )}
 
-      {!tokens && !error && <div className="app-card skeleton" style={{ height: 120 }} aria-hidden="true" />}
+      {!tokens && !error && <Skeleton className="h-[120px]" aria-hidden="true" />}
 
       {tokens && tokens.length === 0 && (
-        <div className="con-empty"><h3>No tokens</h3><p>Create one above to let a CI pipeline deploy.</p></div>
+        <div className="border border-dashed border-input bg-card px-6 py-12 text-center">
+          <h3 className="text-[1.1rem] font-bold text-foreground">No tokens</h3>
+          <p className="mx-auto mt-1.5 max-w-[42ch] text-[0.92rem] text-muted-foreground">Create one above to let a CI pipeline deploy.</p>
+        </div>
       )}
 
       {tokens && tokens.length > 0 && (
-        <div className="con-scroll panel">
-          <table className="con-table">
-            <thead><tr><th>Label</th><th>Token</th><th>Last used</th><th>Created</th><th></th></tr></thead>
-            <tbody>
+        <Panel>
+          <Table>
+            <TableHeader>
+              <TableRow><TableHead>Label</TableHead><TableHead>Token</TableHead><TableHead>Last used</TableHead><TableHead>Created</TableHead><TableHead /></TableRow>
+            </TableHeader>
+            <TableBody>
               {tokens.map((t) => {
                 const revoked = t.revokedAt != null && new Date(t.revokedAt).getTime() <= Date.now();
                 const rotating = t.revokedAt != null && !revoked;
                 return (
-                  <tr key={t.id} className={revoked ? "row-dim" : ""}>
-                    <td>{t.label}</td>
-                    <td className="mono">{t.tokenPrefix}…{rotating && <span className="tag-grace">rotating · valid until {new Date(t.revokedAt!).toLocaleTimeString()}</span>}</td>
-                    <td className="mono-faint">{relativeTime(t.lastUsedAt)}</td>
-                    <td className="mono-faint">{formatDate(t.createdAt)}</td>
-                    <td className="row-action">
+                  <TableRow key={t.id} className={cn(revoked && "opacity-50")}>
+                    <TableCell>{t.label}</TableCell>
+                    <TableCell className="font-mono">
+                      {t.tokenPrefix}…
+                      {rotating && <Tag tone="warn">rotating · valid until {new Date(t.revokedAt!).toLocaleTimeString()}</Tag>}
+                    </TableCell>
+                    <TableCell className="font-mono text-[0.78rem] text-faint">{relativeTime(t.lastUsedAt)}</TableCell>
+                    <TableCell className="font-mono text-[0.78rem] text-faint">{formatDate(t.createdAt)}</TableCell>
+                    <TableCell className="whitespace-nowrap text-right">
                       {!revoked && (
                         <>
-                          <button className="con-linkbtn" onClick={() => rotate(t.id)}>Rotate</button>
-                          <button className="con-linkbtn danger" style={{ marginLeft: 14 }} onClick={() => revoke(t.id)}>Revoke</button>
+                          <LinkButton onClick={() => rotate(t.id)}>Rotate</LinkButton>
+                          <LinkButton danger className="ml-3.5" onClick={() => revoke(t.id)}>Revoke</LinkButton>
                         </>
                       )}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </Panel>
       )}
 
-      <p className="con-sub"><b>Rotate</b> for routine hygiene — the old token keeps working for an hour. <b>Revoke</b> immediately if a token leaked.</p>
-    </div>
+      <p className="text-[0.92rem] text-muted-foreground"><b className="text-foreground">Rotate</b> for routine hygiene — the old token keeps working for an hour. <b className="text-foreground">Revoke</b> immediately if a token leaked.</p>
+    </Page>
   );
 }

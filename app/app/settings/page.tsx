@@ -1,6 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Alert, Fact, FactGrid, Page, PageHeader, Panel, PanelTitle, Skeleton } from "../../components/console/kit";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
 import { companiesApi } from "../../lib/hnsApi";
 import { formatDate, ROLE_LABEL } from "../../lib/format";
 import { atLeast, useSession } from "../../lib/session";
@@ -67,63 +70,58 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="con-page">
-      <div className="con-head">
-        <div>
-          <h1 className="con-h1">Settings</h1>
-          <p className="con-sub">Your account and this company.</p>
-        </div>
-      </div>
+    <Page>
+      <PageHeader title="Settings" subtitle="Your account and this company." />
 
-      {error && <div className="con-alert err">{error}</div>}
+      {error && <Alert>{error}</Alert>}
 
-      <section className="panel pad">
-        <h2 className="panel-t">Account</h2>
-        <div className="detail-facts flush">
-          <div className="fact"><div className="fact-k">Name</div><div className="fact-v">{user?.name || "—"}</div></div>
-          <div className="fact"><div className="fact-k">Email</div><div className="fact-v">{user?.email}</div></div>
-          <div className="fact"><div className="fact-k">Your role</div><div className="fact-v">{role ? ROLE_LABEL[role] : "—"}</div></div>
-        </div>
-      </section>
+      <Panel padded>
+        <PanelTitle>Account</PanelTitle>
+        <FactGrid flush>
+          <Fact flush k="Name" v={user?.name || "—"} />
+          <Fact flush k="Email" v={user?.email} />
+          <Fact flush k="Your role" v={role ? ROLE_LABEL[role] : "—"} />
+        </FactGrid>
+      </Panel>
 
-      <section className="panel pad">
-        <h2 className="panel-t">Company</h2>
+      <Panel padded>
+        <PanelTitle>Company</PanelTitle>
         {!company ? (
-          <div className="skeleton" style={{ height: 80, marginTop: 12 }} aria-hidden="true" />
+          <Skeleton className="mt-3 h-20" aria-hidden="true" />
         ) : (
           <>
-            <div className="detail-facts flush">
-              <div className="fact"><div className="fact-k">Members</div><div className="fact-v mono">{company.memberCount}</div></div>
-              <div className="fact"><div className="fact-k">Projects</div><div className="fact-v mono">{company.projectCount}</div></div>
-              <div className="fact"><div className="fact-k">Created</div><div className="fact-v">{formatDate(company.createdAt)}</div></div>
-            </div>
+            <FactGrid flush>
+              <Fact flush k="Members" v={company.memberCount} mono />
+              <Fact flush k="Projects" v={company.projectCount} mono />
+              <Fact flush k="Created" v={formatDate(company.createdAt)} />
+            </FactGrid>
             {isAdmin ? (
-              <form className="token-create" style={{ marginTop: 16 }} onSubmit={rename}>
-                <input className="con-input" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} />
-                <button className="con-btn" type="submit" disabled={savingName || !name.trim() || name.trim() === company.name}>{savingName ? "Saving…" : "Rename"}</button>
+              <form className="mt-4 flex flex-wrap gap-2.5" onSubmit={rename}>
+                <Input className="min-w-[220px] flex-1" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} />
+                <Button type="submit" disabled={savingName || !name.trim() || name.trim() === company.name}>{savingName ? "Saving…" : "Rename"}</Button>
               </form>
             ) : (
-              <p className="con-sub" style={{ marginTop: 12 }}>Company name: <b>{company.name}</b></p>
+              <p className="mt-3 text-[0.92rem] text-muted-foreground">Company name: <b className="text-foreground">{company.name}</b></p>
             )}
-            {notice && <div className="con-alert info" style={{ marginTop: 12 }}>{notice}</div>}
+            {notice && <Alert variant="info" className="mt-3">{notice}</Alert>}
           </>
         )}
-      </section>
+      </Panel>
 
       {isAdmin && company && (
-        <section className="panel pad danger">
-          <h2 className="panel-t">Danger zone</h2>
-          <p className="con-sub" style={{ marginTop: 4 }}>
-            Deleting <b>{company.name}</b> can’t be undone. It’s blocked while the company still has any
+        <Panel padded tone="danger">
+          <PanelTitle tone="danger">Danger zone</PanelTitle>
+          <p className="mt-1 text-[0.92rem] text-muted-foreground">
+            Deleting <b className="text-foreground">{company.name}</b> can’t be undone. It’s blocked while the company still has any
             projects — delete or transfer them first.
           </p>
-          {delErr && <div className="con-alert err" style={{ marginTop: 12 }}>{delErr}</div>}
-          <div className="danger-row">
-            <input className="con-input" placeholder={`Type “${company.name}” to confirm`} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
-            <button className="con-btn danger" disabled={deleting || confirm !== company.name} onClick={del}>{deleting ? "Deleting…" : "Delete company"}</button>
+          {delErr && <Alert className="mt-3">{delErr}</Alert>}
+          <div className="mt-3.5 flex flex-wrap gap-2.5">
+            <Input className="min-w-[220px] flex-1" placeholder={`Type “${company.name}” to confirm`} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+            <Button variant="destructive" disabled={deleting || confirm !== company.name} onClick={del}>{deleting ? "Deleting…" : "Delete company"}</Button>
           </div>
-        </section>
+        </Panel>
       )}
-    </div>
+    </Page>
   );
 }

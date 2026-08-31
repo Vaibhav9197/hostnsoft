@@ -2,6 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
+import { Alert, Fact, FactGrid, Page, PageHeader, Panel, PanelTitle, Skeleton } from "../../../../components/console/kit";
+import { Button } from "../../../../components/ui/button";
+import { Input } from "../../../../components/ui/input";
 import { projectsApi } from "../../../../lib/hnsApi";
 import { formatDate } from "../../../../lib/format";
 import { atLeast, useSession } from "../../../../lib/session";
@@ -83,58 +86,53 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
     }
   }
 
-  if (error) return <div className="con-page"><div className="con-alert err">{error}</div></div>;
-  if (!project) return <div className="con-page"><div className="skeleton" style={{ height: 160 }} aria-hidden="true" /></div>;
+  if (error) return <Page><Alert>{error}</Alert></Page>;
+  if (!project) return <Page><Skeleton className="h-40" aria-hidden="true" /></Page>;
 
   return (
-    <div className="con-page">
-      <div className="con-head">
-        <div>
-          <h1 className="con-h1">Settings</h1>
-          <p className="con-sub">Configuration for {project.name}.</p>
-        </div>
-      </div>
+    <Page>
+      <PageHeader title="Settings" subtitle={`Configuration for ${project.name}.`} />
 
-      {notice && <div className="con-alert info">{notice}</div>}
-      {formErr && <div className="con-alert err">{formErr}</div>}
+      {notice && <Alert variant="info">{notice}</Alert>}
+      {formErr && <Alert>{formErr}</Alert>}
 
-      <section className="panel pad">
-        <h2 className="panel-t">Project</h2>
-        <div className="detail-facts flush">
-          <div className="fact"><div className="fact-k">Slug (immutable)</div><div className="fact-v mono">{project.slug}</div></div>
-          <div className="fact"><div className="fact-k">Project ID</div><div className="fact-v mono">{project.id}</div></div>
-          <div className="fact"><div className="fact-k">Created</div><div className="fact-v">{formatDate(project.createdAt)}</div></div>
-        </div>
+      <Panel padded>
+        <PanelTitle>Project</PanelTitle>
+        <FactGrid flush>
+          <Fact flush k="Slug (immutable)" v={project.slug} mono />
+          <Fact flush k="Project ID" v={project.id} mono />
+          <Fact flush k="Created" v={formatDate(project.createdAt)} />
+        </FactGrid>
 
         {canWrite && (
           <>
-            <form className="token-create" style={{ marginTop: 16 }} onSubmit={rename}>
-              <input className="con-input" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} aria-label="Display name" />
-              <button className="con-btn" type="submit" disabled={savingName || !name.trim() || name.trim() === project.name}>{savingName ? "Saving…" : "Rename"}</button>
+            <form className="mt-4 flex flex-wrap gap-2.5" onSubmit={rename}>
+              <Input className="min-w-[220px] flex-1" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} aria-label="Display name" />
+              <Button type="submit" disabled={savingName || !name.trim() || name.trim() === project.name}>{savingName ? "Saving…" : "Rename"}</Button>
             </form>
-            <form className="token-create" style={{ marginTop: 10 }} onSubmit={saveMemory}>
-              <input className="con-input mono" type="number" min={1} value={memory} onChange={(e) => setMemory(e.target.value)} aria-label="Requested memory (MB)" />
-              <button className="con-btn ghost" type="submit" disabled={savingMem || memory === String(project.memoryMb)}>{savingMem ? "Saving…" : "Set memory (MB)"}</button>
+            <form className="mt-2.5 flex flex-wrap gap-2.5" onSubmit={saveMemory}>
+              <Input className="min-w-[220px] flex-1 font-mono" type="number" min={1} value={memory} onChange={(e) => setMemory(e.target.value)} aria-label="Requested memory (MB)" />
+              <Button type="submit" variant="outline" disabled={savingMem || memory === String(project.memoryMb)}>{savingMem ? "Saving…" : "Set memory (MB)"}</Button>
             </form>
           </>
         )}
-        <p className="con-sub" style={{ marginTop: 12 }}>Renaming changes the display name only — the slug <code>{project.slug}</code>, and therefore the live URL, never changes.</p>
-      </section>
+        <p className="mt-3 text-[0.92rem] text-muted-foreground">Renaming changes the display name only — the slug <code className="border border-border bg-elevated px-1 py-0.5 font-mono text-[0.85em] text-foreground">{project.slug}</code>, and therefore the live URL, never changes.</p>
+      </Panel>
 
       {canWrite && (
-        <section className="panel pad danger">
-          <h2 className="panel-t">Danger zone</h2>
-          <p className="con-sub" style={{ marginTop: 4 }}>
-            Deleting <b>{project.name}</b> removes it from the console. Note: this <b>doesn’t stop the running app</b> yet —
+        <Panel padded tone="danger">
+          <PanelTitle tone="danger">Danger zone</PanelTitle>
+          <p className="mt-1 text-[0.92rem] text-muted-foreground">
+            Deleting <b className="text-foreground">{project.name}</b> removes it from the console. Note: this <b className="text-foreground">doesn’t stop the running app</b> yet —
             the deployed container keeps running until the backend adds a teardown step.
           </p>
-          {delErr && <div className="con-alert err" style={{ marginTop: 12 }}>{delErr}</div>}
-          <div className="danger-row">
-            <input className="con-input" placeholder={`Type “${project.name}” to confirm`} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
-            <button className="con-btn danger" disabled={deleting || confirm !== project.name} onClick={del}>{deleting ? "Deleting…" : "Delete project"}</button>
+          {delErr && <Alert className="mt-3">{delErr}</Alert>}
+          <div className="mt-3.5 flex flex-wrap gap-2.5">
+            <Input className="min-w-[220px] flex-1" placeholder={`Type “${project.name}” to confirm`} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+            <Button variant="destructive" disabled={deleting || confirm !== project.name} onClick={del}>{deleting ? "Deleting…" : "Delete project"}</Button>
           </div>
-        </section>
+        </Panel>
       )}
-    </div>
+    </Page>
   );
 }

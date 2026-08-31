@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { StatusPill } from "../../components/console/StatusPill";
+import { Alert, LinkButton, NativeSelect, Page, PageHeader, Panel, Skeleton, Tag } from "../../components/console/kit";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { membersApi } from "../../lib/hnsApi";
 import { ROLE_LABEL } from "../../lib/format";
 import { atLeast, useSession } from "../../lib/session";
@@ -82,69 +86,69 @@ export default function MembersPage() {
   }
 
   return (
-    <div className="con-page">
-      <div className="con-head">
-        <div>
-          <h1 className="con-h1">Members</h1>
-          <p className="con-sub">People in this company and what they can do.</p>
-        </div>
-      </div>
+    <Page>
+      <PageHeader title="Members" subtitle="People in this company and what they can do." />
 
       {isAdmin && (
-        <form className="member-invite" onSubmit={invite}>
-          <input
-            className="con-input"
+        <form className="flex flex-wrap gap-2.5" onSubmit={invite}>
+          <Input
+            className="min-w-[220px] flex-1"
             type="email"
             placeholder="teammate@company.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <select className="con-select" value={inviteRole} onChange={(e) => setInviteRole(e.target.value as Role)} aria-label="Role">
+          <NativeSelect value={inviteRole} onChange={(e) => setInviteRole(e.target.value as Role)} aria-label="Role">
             {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
-          </select>
-          <button className="con-btn" type="submit" disabled={busy || !email.trim()}>{busy ? "Inviting…" : "Invite"}</button>
+          </NativeSelect>
+          <Button type="submit" disabled={busy || !email.trim()}>{busy ? "Inviting…" : "Invite"}</Button>
         </form>
       )}
 
-      {error && <div className="con-alert err">{error}</div>}
-      {notice && <div className="con-alert info">{notice}</div>}
+      {error && <Alert>{error}</Alert>}
+      {notice && <Alert variant="info">{notice}</Alert>}
 
-      {!members && !error && <div className="skeleton" style={{ height: 140 }} aria-hidden="true" />}
+      {!members && !error && <Skeleton className="h-[140px]" aria-hidden="true" />}
 
       {members && members.length > 0 && (
-        <section className="panel">
-          <div className="con-scroll">
-            <table className="con-table">
-              <thead><tr><th>Email</th><th>Role</th><th>Status</th>{isAdmin && <th></th>}</tr></thead>
-              <tbody>
-                {members.map((m) => {
-                  const isSelf = m.userId === user?.id;
-                  return (
-                    <tr key={m.userId}>
-                      <td>{m.email}{isSelf && <span className="tag-you">you</span>}</td>
-                      <td>
-                        {isAdmin ? (
-                          <select className="con-select sm" value={m.role} onChange={(e) => changeRole(m.userId, e.target.value as Role)}>
-                            {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
-                          </select>
-                        ) : ROLE_LABEL[m.role]}
-                      </td>
-                      <td><StatusPill status={m.status} /></td>
-                      {isAdmin && (
-                        <td className="row-action">
-                          <button className="con-linkbtn danger" onClick={() => remove(m.userId, m.email)}>Remove</button>
-                        </td>
-                      )}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <Panel>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                {isAdmin && <TableHead />}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {members.map((m) => {
+                const isSelf = m.userId === user?.id;
+                return (
+                  <TableRow key={m.userId}>
+                    <TableCell>{m.email}{isSelf && <Tag>you</Tag>}</TableCell>
+                    <TableCell>
+                      {isAdmin ? (
+                        <NativeSelect className="py-1 text-[0.82rem]" value={m.role} onChange={(e) => changeRole(m.userId, e.target.value as Role)}>
+                          {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+                        </NativeSelect>
+                      ) : ROLE_LABEL[m.role]}
+                    </TableCell>
+                    <TableCell><StatusPill status={m.status} /></TableCell>
+                    {isAdmin && (
+                      <TableCell className="whitespace-nowrap text-right">
+                        <LinkButton danger onClick={() => remove(m.userId, m.email)}>Remove</LinkButton>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </Panel>
       )}
 
-      <p className="con-sub">A company must always keep at least one company admin — changes that would remove the last one are rejected.</p>
-    </div>
+      <p className="text-[0.92rem] text-muted-foreground">A company must always keep at least one company admin — changes that would remove the last one are rejected.</p>
+    </Page>
   );
 }

@@ -2,9 +2,12 @@
 
 import { use, useCallback, useEffect, useState } from "react";
 import { StatusPill } from "../../../../components/console/StatusPill";
+import { Alert, EmptyState, Fact, FactGrid, Page, PageHeader, Panel, PanelTitle, Skeleton } from "../../../../components/console/kit";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../../components/ui/table";
 import { deploymentsApi } from "../../../../lib/hnsApi";
 import { relativeTime } from "../../../../lib/format";
 import { useSession } from "../../../../lib/session";
+import { cn } from "../../../../lib/utils";
 import type { Deployment } from "../../../../lib/types";
 
 export default function DeploymentsPage({ params }: { params: Promise<{ projectId: string }> }) {
@@ -29,65 +32,67 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
     load();
   }, [load]);
 
-  if (error) return <div className="con-page"><div className="con-alert err">{error}</div></div>;
-  if (!deps) return <div className="con-page"><div className="skeleton" style={{ height: 200 }} aria-hidden="true" /></div>;
+  if (error) return <Page><Alert>{error}</Alert></Page>;
+  if (!deps) return <Page><Skeleton className="h-[200px]" aria-hidden="true" /></Page>;
 
   const active = deps.find((d) => d.id === selected) ?? null;
 
   return (
-    <div className="con-page">
-      <div className="con-head">
-        <div>
-          <h1 className="con-h1">Deployments</h1>
-          <p className="con-sub">Every deploy attempt, newest first.</p>
-        </div>
-      </div>
+    <Page>
+      <PageHeader title="Deployments" subtitle="Every deploy attempt, newest first." />
 
       {deps.length === 0 && (
-        <div className="con-empty"><h3>No deployments yet</h3><p>Deploys triggered by <code>hostnsoft-deploy</code> show up here.</p></div>
+        <EmptyState title="No deployments yet">
+          Deploys triggered by <code className="border border-border bg-elevated px-1 py-0.5 font-mono text-[0.85em] text-foreground">hostnsoft-deploy</code> show up here.
+        </EmptyState>
       )}
 
       {deps.length > 0 && (
-        <section className="panel">
-          <div className="con-scroll">
-            <table className="con-table">
-              <thead>
-                <tr><th>Deploy</th><th>Status</th><th>App version</th><th>Memory</th><th>By</th><th>When</th></tr>
-              </thead>
-              <tbody>
-                {deps.map((d) => (
-                  <tr key={d.version} className={`selectable${active?.id === d.id ? " sel" : ""}`} onClick={() => setSelected(active?.id === d.id ? null : d.id)}>
-                    <td className="mono">{d.version}</td>
-                    <td><StatusPill status={d.status} /></td>
-                    <td className="mono-faint">{d.appVersion}</td>
-                    <td className="mono-faint">{d.memoryMb != null ? `${d.memoryMb} MB` : "—"}</td>
-                    <td>{d.triggeredBy ?? "—"}</td>
-                    <td className="mono-faint">{relativeTime(d.createdAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <Panel>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Deploy</TableHead><TableHead>Status</TableHead><TableHead>App version</TableHead>
+                <TableHead>Memory</TableHead><TableHead>By</TableHead><TableHead>When</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {deps.map((d) => (
+                <TableRow
+                  key={d.version}
+                  className={cn("cursor-pointer", active?.id === d.id && "bg-primary/10 shadow-[inset_3px_0_0_var(--accent)]")}
+                  onClick={() => setSelected(active?.id === d.id ? null : d.id)}
+                >
+                  <TableCell className="font-mono">{d.version}</TableCell>
+                  <TableCell><StatusPill status={d.status} /></TableCell>
+                  <TableCell className="font-mono text-[0.78rem] text-faint">{d.appVersion}</TableCell>
+                  <TableCell className="font-mono text-[0.78rem] text-faint">{d.memoryMb != null ? `${d.memoryMb} MB` : "—"}</TableCell>
+                  <TableCell>{d.triggeredBy ?? "—"}</TableCell>
+                  <TableCell className="font-mono text-[0.78rem] text-faint">{relativeTime(d.createdAt)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Panel>
       )}
 
       {active && (
-        <section className="panel pad">
-          <div className="panel-h" style={{ padding: 0, border: 0, marginBottom: 12 }}>
-            <h2 className="panel-t">Deploy {active.version}</h2>
+        <Panel padded>
+          <div className="mb-3 flex items-center gap-2.5">
+            <PanelTitle>Deploy {active.version}</PanelTitle>
             <StatusPill status={active.status} />
           </div>
-          {active.errorDetail && <div className="con-alert err in-panel" style={{ margin: "0 0 12px" }}>{active.errorDetail}</div>}
-          <div className="detail-facts flush">
-            <div className="fact"><div className="fact-k">App version</div><div className="fact-v mono">{active.appVersion}</div></div>
-            <div className="fact"><div className="fact-k">Image tag</div><div className="fact-v mono">{active.imageTag ?? "—"}</div></div>
-            <div className="fact"><div className="fact-k">Memory</div><div className="fact-v mono">{active.memoryMb != null ? `${active.memoryMb} MB` : "—"}</div></div>
-            <div className="fact"><div className="fact-k">Triggered by</div><div className="fact-v">{active.triggeredBy ?? "—"}</div></div>
-            <div className="fact"><div className="fact-k">Started</div><div className="fact-v">{relativeTime(active.createdAt)}</div></div>
-            <div className="fact"><div className="fact-k">Finished</div><div className="fact-v">{active.finishedAt ? relativeTime(active.finishedAt) : "—"}</div></div>
-          </div>
-        </section>
+          {active.errorDetail && <Alert className="mb-3">{active.errorDetail}</Alert>}
+          <FactGrid flush>
+            <Fact flush k="App version" v={active.appVersion} mono />
+            <Fact flush k="Image tag" v={active.imageTag ?? "—"} mono />
+            <Fact flush k="Memory" v={active.memoryMb != null ? `${active.memoryMb} MB` : "—"} mono />
+            <Fact flush k="Triggered by" v={active.triggeredBy ?? "—"} />
+            <Fact flush k="Started" v={relativeTime(active.createdAt)} />
+            <Fact flush k="Finished" v={active.finishedAt ? relativeTime(active.finishedAt) : "—"} />
+          </FactGrid>
+        </Panel>
       )}
-    </div>
+    </Page>
   );
 }

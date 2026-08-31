@@ -1,0 +1,114 @@
+/* Project base stylesheet — the app-wide Tailwind + shadcn setup, imported once
+   by the root layout (app/layout.tsx) so every route gets Tailwind's theme +
+   utilities, the shadcn/ui token bridge, and a foundational reset.
+
+   This is deliberately NOT the marketing site's hand-rolled CSS. The landing
+   page at / imports app/globals.css itself (its `.site` design system); the
+   /v1–/v4 landing variants each import their own dedicated apphome.css. Those
+   files stay scoped to their own routes — this base carries no page design,
+   only the Tailwind/shadcn foundation shared across the whole project. */
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "tw-animate-css";
+
+/* Design tokens — dark + mint palette. Softer / modern: gentler surfaces,
+   low-contrast borders, subtle rounding (see @theme --radius-* below). */
+:root{
+  --bg:#0A0C0B;           /* slightly deeper page for more surface lift */
+  --surface:#141716;      /* charcoal card */
+  --surface-2:#1B1F1D;    /* raised surface / hover */
+  --surface-3:#232826;    /* highest surface / inputs */
+  --ink:#F3F5F4;          /* near-white text */
+  --ink-soft:#A2ABA6;     /* muted gray (a touch brighter for legibility) */
+  --ink-faint:#727A76;    /* faint gray */
+  --accent:#86F09B;       /* bright mint green */
+  --accent-2:#6BE888;     /* deeper green (hover) */
+  --accent-soft:rgba(134,240,155,.10);
+  --accent-line:rgba(134,240,155,.32);
+  --on-accent:#07130B;    /* dark text on green */
+  --line:rgba(255,255,255,.07);   /* soft, translucent hairline border */
+  --line-strong:rgba(255,255,255,.13);
+  --ok:#86F09B;
+  --ok-soft:rgba(134,240,155,.12);
+  --warn:#F0C86E;
+  --warn-soft:rgba(240,200,110,.14);
+  --info:#93BDF2;
+  --info-soft:rgba(147,189,242,.14);
+  --danger:#F0797F;
+  --danger-soft:rgba(240,121,127,.12);
+  /* Soft elevation shadows — modern, low-contrast depth on a dark ground. */
+  --elev-1:0 1px 2px rgba(0,0,0,.30);
+  --elev-2:0 4px 16px -6px rgba(0,0,0,.45);
+  --elev-3:0 18px 40px -20px rgba(0,0,0,.65);
+  --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+
+/* Bridge shadcn/ui + Tailwind tokens onto the palette above. Softer / modern:
+   real (subtle) radii, semantic status colors as first-class utilities, and
+   elevation shadow utilities — so pages compose from tokens, not raw var(). */
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--ink);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--ink);
+  --color-elevated: var(--surface-2);
+  --color-elevated-2: var(--surface-3);
+  --color-popover: var(--surface-2);
+  --color-popover-foreground: var(--ink);
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--on-accent);
+  --color-secondary: var(--surface-2);
+  --color-secondary-foreground: var(--ink);
+  --color-muted: var(--surface-2);
+  --color-muted-foreground: var(--ink-soft);
+  --color-faint: var(--ink-faint);
+  --color-accent: var(--surface-2);
+  --color-accent-foreground: var(--ink);
+  --color-destructive: var(--danger);
+  --color-destructive-foreground: #1A0808;
+  --color-success: var(--ok);
+  --color-warning: var(--warn);
+  --color-info: var(--info);
+  --color-border: var(--line);
+  --color-input: var(--line-strong);
+  --color-ring: var(--accent);
+  /* Subtle rounding — not pill-round, just softened corners throughout. */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --shadow-sm: var(--elev-1);
+  --shadow-md: var(--elev-2);
+  --shadow-lg: var(--elev-3);
+  --font-sans: var(--font);
+  --font-mono: var(--mono);
+}
+
+/* Base UI (the Dialog component) marks open/closed state via boolean
+   data-open / data-closed attributes. These variants let Tailwind utilities
+   like `data-open:animate-in` target them. */
+@custom-variant data-open {
+  &:where([data-state="open"]),
+  &:where([data-open]:not([data-open="false"])) {
+    @slot;
+  }
+}
+@custom-variant data-closed {
+  &:where([data-state="closed"]),
+  &:where([data-closed]:not([data-closed="false"])) {
+    @slot;
+  }
+}
+
+/* Foundational normalization only — the same box-sizing/margin/padding and
+   form-control resets Tailwind's own preflight.css provides. Written by hand
+   instead of importing preflight so it can coexist cleanly with the marketing
+   site's own layered CSS (app/globals.css) on the landing route without two
+   competing @layer base resets fighting each other. */
+*{box-sizing:border-box;margin:0;padding:0;border-color:var(--line)}
+button,input,select,optgroup,textarea{font:inherit;color:inherit;background-color:transparent;opacity:1}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--accent-soft);color:var(--ink)}

@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { Download } from "lucide-react";
+import { Button } from "../ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 
 type Tool = {
   id: string;
@@ -22,63 +24,57 @@ const TOOLS: Tool[] = [
 ];
 
 export function SkillDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [open, onClose]);
-
   return (
-    <div
-      className={`overlay${open ? " open" : ""}`}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="modal skill-modal" role="dialog" aria-modal="true" aria-label="Get the deploy skill">
-        <button className="close" onClick={onClose} aria-label="Close">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <path d="M18 6 6 18M6 6l12 12" />
-          </svg>
-        </button>
+    <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="max-w-[580px]">
+        <DialogHeader>
+          <DialogTitle>Deploy an app</DialogTitle>
+          <DialogDescription>
+            Add the hostnsoft deploy skill to your AI tool, then just say “deploy this.” Pick your tool:
+          </DialogDescription>
+        </DialogHeader>
 
-        <h3>Deploy an app</h3>
-        <p className="sub">
-          Add the hostnsoft deploy skill to your AI tool, then just say “deploy this.” Pick your tool:
-        </p>
-
-        <div className="skill-list">
+        <div className="flex flex-col gap-2">
           {TOOLS.map((t) => (
-            <div className="skill-row" key={t.id}>
-              <span className="skill-mark" aria-hidden="true">{t.mark}</span>
-              <div className="skill-meta">
-                <div className="skill-name">
+            <div
+              key={t.id}
+              className="flex items-center gap-3.5 border border-border bg-background p-3 transition-colors hover:border-input"
+            >
+              <span className="grid size-[38px] shrink-0 place-items-center border border-input bg-elevated font-mono text-[1.05rem] font-bold text-primary">
+                {t.mark}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 text-[0.95rem] font-bold text-foreground">
                   {t.name}
-                  {t.recommended && <span className="skill-rec">Recommended</span>}
+                  {t.recommended && (
+                    <span className="font-mono text-[0.58rem] uppercase tracking-[0.1em] text-primary-foreground bg-primary px-1.5 py-0.5">
+                      Recommended
+                    </span>
+                  )}
                 </div>
-                <div className="skill-sub">{t.sub}</div>
+                <div className="mt-0.5 text-[0.8rem] text-faint">{t.sub}</div>
               </div>
-              <span className="skill-fmt">{t.format}</span>
-              <a className="con-btn ghost sm" href={t.href} download>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14" /></svg>
-                Download
-              </a>
+              <span className="whitespace-nowrap border border-border bg-elevated px-1.5 py-0.5 font-mono text-[0.74rem] text-faint">
+                {t.format}
+              </span>
+              <Button variant="outline" size="sm" asChild>
+                <a href={t.href} download>
+                  <Download />
+                  Download
+                </a>
+              </Button>
             </div>
           ))}
         </div>
 
-        <div className="skill-foot">
-          Then <Link href="/app/tokens" onClick={onClose}>create a deploy token</Link> and export it as{" "}
-          <code>HOSTNSOFT_TOKEN</code>.
+        <div className="border-t border-border pt-4 text-[0.86rem] text-muted-foreground">
+          Then{" "}
+          <Link href="/app/tokens" onClick={onClose} className="text-primary underline underline-offset-2">
+            create a deploy token
+          </Link>{" "}
+          and export it as <code className="border border-border bg-elevated px-1 py-0.5 font-mono text-[0.85em] text-foreground">HOSTNSOFT_TOKEN</code>.
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

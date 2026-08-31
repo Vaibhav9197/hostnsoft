@@ -106,6 +106,9 @@ export function EarlyAccessProvider({ children }: { children: ReactNode }) {
 
   return (
     <EarlyAccessContext.Provider value={{ open }}>
+      {/* Scopes all of app/globals.css's marketing-site CSS (see the .site
+          note there) to this subtree, so it can never reach the console. */}
+      <div className="site">
       {children}
 
       <div
@@ -173,6 +176,7 @@ export function EarlyAccessProvider({ children }: { children: ReactNode }) {
             </div>
           )}
         </div>
+      </div>
       </div>
     </EarlyAccessContext.Provider>
   );

@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { Plus } from "lucide-react";
 import { SkillDialog } from "../components/console/SkillDialog";
+import { Alert, EmptyState, Page, PageHeader, Skeleton } from "../components/console/kit";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 import { HnsError } from "../lib/client";
 import { companiesApi, projectsApi } from "../lib/hnsApi";
 import { formatDate, relativeTime } from "../lib/format";
@@ -61,78 +65,81 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="con-page">
-      <div className="con-head">
-        <div>
-          <h1 className="con-h1">Projects</h1>
-          <p className="con-sub">Every app deployed under this company.</p>
-        </div>
-        <div className="detail-actions">
-          <button type="button" className="con-btn ghost" onClick={() => setSkillOpen(true)}>How to deploy</button>
-          {canWrite && (
-            <button type="button" className="con-btn" onClick={() => setCreating((v) => !v)}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
-              New project
-            </button>
-          )}
-        </div>
-      </div>
+    <Page>
+      <PageHeader
+        title="Projects"
+        subtitle="Every app deployed under this company."
+        actions={
+          <>
+            <Button variant="outline" onClick={() => setSkillOpen(true)}>How to deploy</Button>
+            {canWrite && (
+              <Button onClick={() => setCreating((v) => !v)}>
+                <Plus />
+                New project
+              </Button>
+            )}
+          </>
+        }
+      />
 
       <SkillDialog open={skillOpen} onClose={() => setSkillOpen(false)} />
 
       {creating && canWrite && (
-        <form className="token-create" onSubmit={createProject}>
-          <input
-            className="con-input"
+        <form className="flex flex-wrap gap-2.5" onSubmit={createProject}>
+          <Input
+            className="min-w-[220px] flex-1"
             placeholder="Project name — e.g. Invoice Portal"
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={60}
             autoFocus
           />
-          <button className="con-btn" type="submit" disabled={busy || !name.trim()}>
+          <Button type="submit" disabled={busy || !name.trim()}>
             {busy ? "Creating…" : "Create"}
-          </button>
+          </Button>
         </form>
       )}
 
-      {error && <div className="con-alert err">{error}</div>}
+      {error && <Alert>{error}</Alert>}
 
       {!projects && !error && (
-        <div className="app-grid">
-          {[0, 1, 2].map((i) => <div className="app-card skeleton" key={i} aria-hidden="true" />)}
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3.5">
+          {[0, 1, 2].map((i) => <Skeleton className="min-h-[150px]" key={i} aria-hidden="true" />)}
         </div>
       )}
 
       {projects && projects.length === 0 && (
-        <div className="con-empty">
-          <h3>No projects yet</h3>
-          <p>{canWrite ? "Create a project above, then deploy to its subdomain." : "Ask a project admin to create the first project."}</p>
-        </div>
+        <EmptyState title="No projects yet">
+          {canWrite ? "Create a project above, then deploy to its subdomain." : "Ask a project admin to create the first project."}
+        </EmptyState>
       )}
 
       {projects && projects.length > 0 && (
-        <div className="app-grid">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3.5">
           {projects.map((p) => (
-            <Link key={p.id} href={`/app/projects/${p.id}`} className="app-card">
-              <div className="app-card-top">
-                <span className="app-name">{p.name}</span>
+            <Link
+              key={p.id}
+              href={`/app/projects/${p.id}`}
+              className="group flex min-h-[150px] flex-col gap-2.5 border border-border bg-card p-4.5 transition-all hover:-translate-y-0.5 hover:border-input"
+            >
+              <div className="flex items-center justify-between gap-2.5">
+                <span className="font-mono text-[1.02rem] font-bold text-foreground">{p.name}</span>
               </div>
-              <div className="app-url">{p.slug}.app.hostnsoft.com</div>
-              <div className="app-meta">
-                <span className="mono">{p.memoryMb} MB</span>
-                <span className="dot-sep" />
+              <div className="truncate font-mono text-[0.85rem] text-muted-foreground">{p.slug}.app.hostnsoft.com</div>
+              <div className="mt-auto flex items-center gap-2 text-[0.8rem] text-faint">
+                <span className="font-mono">{p.memoryMb} MB</span>
+                <span className="size-[3px] rounded-full bg-faint/60" />
                 <span>Created {formatDate(p.createdAt)}</span>
               </div>
-              <div className="app-foot">
-                <span className="mono-faint">Added {relativeTime(p.createdAt)}</span>
-                <svg className="app-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+              <div className="flex items-center justify-between border-t border-border pt-2.5">
+                <span className="font-mono text-[0.78rem] text-faint">Added {relativeTime(p.createdAt)}</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4 text-faint transition-all group-hover:translate-x-0.5 group-hover:text-primary"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
               </div>
             </Link>
           ))}
         </div>
       )}
-    </div>
+    </Page>
   );
 }
 
@@ -155,18 +162,20 @@ function NoCompany({ onCreated }: { onCreated: () => Promise<void> }) {
   }
 
   return (
-    <div className="con-page">
-      <div className="con-head">
-        <div>
-          <h1 className="con-h1">Welcome to hostnsoft</h1>
-          <p className="con-sub">Create a company to hold your projects and team.</p>
-        </div>
-      </div>
-      {error && <div className="con-alert err">{error}</div>}
-      <form className="token-create" onSubmit={create}>
-        <input className="con-input" placeholder="Company name — e.g. Acme Robotics" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} autoFocus />
-        <button className="con-btn" type="submit" disabled={busy || !name.trim()}>{busy ? "Creating…" : "Create company"}</button>
+    <Page>
+      <PageHeader title="Welcome to hostnsoft" subtitle="Create a company to hold your projects and team." />
+      {error && <Alert>{error}</Alert>}
+      <form className="flex flex-wrap gap-2.5" onSubmit={create}>
+        <Input
+          className="min-w-[220px] flex-1"
+          placeholder="Company name — e.g. Acme Robotics"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={60}
+          autoFocus
+        />
+        <Button type="submit" disabled={busy || !name.trim()}>{busy ? "Creating…" : "Create company"}</Button>
       </form>
-    </div>
+    </Page>
   );
 }

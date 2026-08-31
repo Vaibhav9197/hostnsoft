@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ChevronsUpDown, ExternalLink, LogOut } from "lucide-react";
 import { LoginScreen } from "../components/console/LoginScreen";
+import { Alert } from "../components/console/kit";
 import { atLeast, SessionProvider, useSession } from "../lib/session";
 import { ROLE_LABEL } from "../lib/format";
+import { cn } from "../lib/utils";
 import { useProject } from "../lib/useProject";
 
 const ICONS = {
@@ -32,9 +35,9 @@ function Shell({ children }: { children: React.ReactNode }) {
 
   if (status === "loading") {
     return (
-      <div className="console-loading" role="status" aria-live="polite">
-        <span className="spinner" aria-hidden="true" />
-        <span className="mono-faint">Loading your workspace…</span>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3.5 bg-background" role="status" aria-live="polite">
+        <span className="size-6 animate-spin rounded-full border-2 border-input border-t-primary" aria-hidden="true" />
+        <span className="font-mono text-[0.78rem] text-faint">Loading your workspace…</span>
       </div>
     );
   }
@@ -42,19 +45,19 @@ function Shell({ children }: { children: React.ReactNode }) {
   if (status === "anon") return <LoginScreen />;
 
   return (
-    <div className="console">
+    <div className="grid min-h-screen grid-cols-[250px_1fr] bg-background">
       {projectId ? (
         <ProjectSidebar projectId={projectId} pathname={pathname} />
       ) : (
         <WorkspaceSidebar pathname={pathname} />
       )}
-      <div className="con-main">
-        <main className="con-content">
+      <div className="flex min-w-0 flex-col">
+        <main className="mx-auto w-full max-w-5xl px-8 py-8">
           {!apiConnected && (
-            <div className="con-alert warn api-banner">
+            <Alert variant="warn" className="mb-6">
               You’re signed in, but the hostnsoft-api service is unreachable right now — company and
               project data can’t be loaded until it’s back.
-            </div>
+            </Alert>
           )}
           {children}
         </main>
@@ -67,51 +70,73 @@ function SidebarUser() {
   const { user, signOut } = useSession();
   const label = user?.name || user?.email || "";
   return (
-    <div className="con-user-block">
-      <span className="con-avatar" aria-hidden="true">{label.charAt(0).toUpperCase() || "?"}</span>
-      <div className="con-user-meta">
-        <div className="con-user-name">{user?.name || "—"}</div>
-        <div className="con-user-mail">{user?.email}</div>
+    <div className="flex items-center gap-2.5 px-1 py-1.5">
+      <span className="grid size-[34px] shrink-0 place-items-center rounded-md border border-input bg-secondary text-sm font-bold text-foreground" aria-hidden="true">
+        {label.charAt(0).toUpperCase() || "?"}
+      </span>
+      <div className="min-w-0 flex-1 text-left leading-tight">
+        <div className="truncate text-[0.85rem] font-semibold text-foreground">{user?.name || "—"}</div>
+        <div className="truncate text-[0.73rem] text-faint">{user?.email}</div>
       </div>
-      <button type="button" className="con-logout" onClick={() => signOut()} aria-label="Log out" title="Log out">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>
+      <button
+        type="button"
+        onClick={() => signOut()}
+        aria-label="Log out"
+        title="Log out"
+        className="grid size-[34px] shrink-0 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-input hover:bg-elevated hover:text-foreground"
+      >
+        <LogOut className="size-[17px]" />
       </button>
     </div>
   );
 }
 
+// The sidebar company control is a single "Switch Company" option — it shows the
+// active company and links to the dedicated /app/switch-company page, where
+// switching and company management (new / rename / delete) live.
 function CompanySwitcher() {
-  const { companies, activeCompanyId, setActiveCompanyId } = useSession();
-  const active = companies.find((c) => c.companyId === activeCompanyId);
+  const { activeCompany } = useSession();
+  const pathname = usePathname();
+  const active = activeCompany;
+  const onSwitchPage = pathname === "/app/switch-company";
 
   return (
-    <div className="con-ws">
-      <span className="con-ws-mark" aria-hidden="true">{(active?.companyName ?? "?").charAt(0).toUpperCase()}</span>
-      <div className="con-ws-meta con-ws-switch">
-        {companies.length > 1 ? (
-          <select
-            className="con-ws-select"
-            value={activeCompanyId ?? ""}
-            onChange={(e) => setActiveCompanyId(e.target.value)}
-            aria-label="Switch company"
-          >
-            {companies.map((c) => (
-              <option key={c.companyId} value={c.companyId}>{c.companyName}</option>
-            ))}
-          </select>
-        ) : (
-          <div className="con-ws-name">{active?.companyName ?? "—"}</div>
-        )}
-        <div className="con-ws-plan">{active ? ROLE_LABEL[active.role] : ""}</div>
+    <Link
+      href="/app/switch-company"
+      aria-label="Switch company"
+      title="Switch company"
+      className={cn(
+        "flex items-center gap-2.5 rounded-lg border border-border bg-elevated/40 p-2.5 transition-colors hover:border-input hover:bg-elevated",
+        onSwitchPage && "border-primary/40 bg-primary/5",
+      )}
+    >
+      <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary text-sm font-extrabold text-primary-foreground" aria-hidden="true">
+        {(active?.companyName ?? "?").charAt(0).toUpperCase()}
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-[0.9rem] font-bold text-foreground">{active?.companyName ?? "—"}</div>
+        <div className="mt-0.5 font-mono text-[0.64rem] uppercase tracking-[0.12em] text-primary">
+          {active ? ROLE_LABEL[active.role] : "Switch company"}
+        </div>
       </div>
-    </div>
+      <ChevronsUpDown className="size-4 shrink-0 text-faint" />
+    </Link>
   );
 }
 
 function NavLink({ href, label, icon, active }: { href: string; label: string; icon: string; active: boolean }) {
   return (
-    <Link href={href} className={`con-link${active ? " active" : ""}`} aria-current={active ? "page" : undefined}>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={icon} /></svg>
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "flex items-center gap-2.5 rounded-lg border border-transparent px-3 py-2.5 text-[0.92rem] font-medium text-muted-foreground transition-colors",
+        "hover:bg-elevated hover:text-foreground",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+        active && "border-primary/25 bg-primary/10 text-foreground [&_svg]:text-primary",
+      )}
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-[18px] shrink-0"><path d={icon} /></svg>
       {label}
     </Link>
   );
@@ -123,9 +148,9 @@ function WorkspaceSidebar({ pathname }: { pathname: string }) {
     exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
 
   return (
-    <aside className="con-side">
+    <aside className="sticky top-0 flex h-screen flex-col gap-1.5 border-r border-border bg-card p-5">
       <CompanySwitcher />
-      <nav className="con-nav" aria-label="Console">
+      <nav className="mt-3.5 flex flex-col gap-0.5" aria-label="Console">
         <NavLink href="/app" label="Projects" icon={ICONS.grid} active={isActive("/app", true)} />
         <NavLink href="/app/members" label="Members" icon={ICONS.members} active={isActive("/app/members")} />
         {atLeast(role, "company_admin") && (
@@ -133,7 +158,7 @@ function WorkspaceSidebar({ pathname }: { pathname: string }) {
         )}
         <NavLink href="/app/settings" label="Settings" icon={ICONS.gear} active={isActive("/app/settings")} />
       </nav>
-      <div className="con-side-foot">
+      <div className="mt-auto border-t border-border pt-3">
         <SidebarUser />
       </div>
     </aside>
@@ -155,21 +180,23 @@ function ProjectSidebar({ projectId, pathname }: { projectId: string; pathname: 
   const liveUrl = project ? `https://${project.slug}.app.hostnsoft.com` : null;
 
   return (
-    <aside className="con-side">
-      <Link href="/app" className="con-back app-back">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M11 18l-6-6 6-6" /></svg>
+    <aside className="sticky top-0 flex h-screen flex-col gap-1.5 border-r border-border bg-card p-5">
+      <Link href="/app" className="mb-1 flex w-fit items-center gap-1.5 text-[0.85rem] text-faint hover:text-foreground">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-[15px]"><path d="M19 12H5M11 18l-6-6 6-6" /></svg>
         All projects
       </Link>
 
-      <div className="con-ws app-ident">
-        <span className="con-ws-mark" aria-hidden="true">{(project?.name ?? projectId).charAt(0).toUpperCase()}</span>
-        <div className="con-ws-meta">
-          <div className="con-ws-name">{project?.name ?? "…"}</div>
-          <div className="con-ws-plan mono">{project?.slug ?? "loading…"}</div>
+      <div className="mb-0.5 flex items-center gap-2.5 rounded-lg border border-border bg-elevated/40 p-2.5">
+        <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary text-sm font-extrabold text-primary-foreground" aria-hidden="true">
+          {(project?.name ?? projectId).charAt(0).toUpperCase()}
+        </span>
+        <div className="flex min-w-0 flex-col items-start gap-1">
+          <div className="truncate text-[0.9rem] font-bold text-foreground">{project?.name ?? "…"}</div>
+          <div className="truncate font-mono text-[0.64rem] uppercase tracking-[0.12em] text-primary">{project?.slug ?? "loading…"}</div>
         </div>
       </div>
 
-      <nav className="con-nav" aria-label="Project">
+      <nav className="mt-3.5 flex flex-col gap-0.5" aria-label="Project">
         {nav.map((item) => (
           <NavLink
             key={item.label}
@@ -181,10 +208,15 @@ function ProjectSidebar({ projectId, pathname }: { projectId: string; pathname: 
         ))}
       </nav>
 
-      <div className="con-side-foot">
+      <div className="mt-auto flex flex-col gap-2 border-t border-border pt-3">
         {liveUrl && (
-          <a className="con-doclink" href={liveUrl} target="_blank" rel="noreferrer">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17 17 7M9 7h8v8" /></svg>
+          <a
+            className="flex items-center gap-2 px-3 py-2 text-[0.85rem] text-faint hover:text-foreground"
+            href={liveUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <ExternalLink className="size-4" />
             Open live URL
           </a>
         )}

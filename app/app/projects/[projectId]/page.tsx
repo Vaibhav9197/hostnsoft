@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { use, useCallback, useEffect, useState } from "react";
+import { ExternalLink } from "lucide-react";
 import { StatusPill } from "../../../components/console/StatusPill";
+import { Alert, Fact, FactGrid, Page, PageHeader, Panel, Skeleton } from "../../../components/console/kit";
+import { Button } from "../../../components/ui/button";
 import { deploymentsApi } from "../../../lib/hnsApi";
 import { formatDate, relativeTime } from "../../../lib/format";
 import { useSession } from "../../../lib/session";
@@ -29,72 +32,65 @@ export default function ProjectOverviewPage({ params }: { params: Promise<{ proj
     loadLatest();
   }, [loadLatest]);
 
-  if (error) return <div className="con-page"><div className="con-alert err">{error}</div></div>;
-  if (!project) return <div className="con-page"><div className="skeleton" style={{ height: 120 }} aria-hidden="true" /></div>;
+  if (error) return <Page><Alert>{error}</Alert></Page>;
+  if (!project) return <Page><Skeleton className="h-[120px]" aria-hidden="true" /></Page>;
 
   const liveUrl = `https://${project.slug}.app.hostnsoft.com`;
 
   return (
-    <div className="con-page">
-      <div className="con-head">
-        <div>
-          <h1 className="con-h1">Overview</h1>
-          <p className="con-sub">Details for {project.name}.</p>
-        </div>
-        <div className="detail-actions">
-          <a className="con-btn" href={liveUrl} target="_blank" rel="noreferrer">
-            Open live URL
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17 17 7M9 7h8v8" /></svg>
-          </a>
-        </div>
-      </div>
+    <Page>
+      <PageHeader
+        title="Overview"
+        subtitle={`Details for ${project.name}.`}
+        actions={
+          <Button asChild>
+            <a href={liveUrl} target="_blank" rel="noreferrer">
+              Open live URL
+              <ExternalLink />
+            </a>
+          </Button>
+        }
+      />
 
-      <div className="detail-facts">
-        <Fact k="Live URL" v={<a href={liveUrl} target="_blank" rel="noreferrer">{project.slug}.app.hostnsoft.com</a>} />
+      <FactGrid>
+        <Fact k="Live URL" v={<a className="text-primary hover:underline" href={liveUrl} target="_blank" rel="noreferrer">{project.slug}.app.hostnsoft.com</a>} />
         <Fact k="Slug" v={project.slug} mono />
         <Fact k="Memory (requested)" v={`${project.memoryMb} MB`} mono />
         <Fact k="Health" v={<StatusPill status={project.health} />} />
         <Fact k="Created" v={formatDate(project.createdAt)} />
-      </div>
+      </FactGrid>
 
-      <section className="panel pad">
-        <div className="latest-dep">
+      <Panel padded>
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="fact-k">Latest deployment</div>
+            <div className="font-mono text-[0.66rem] uppercase tracking-[0.1em] text-faint">Latest deployment</div>
             {latest === undefined ? (
-              <div className="skeleton" style={{ height: 40, width: 240, marginTop: 8 }} aria-hidden="true" />
+              <Skeleton className="mt-2 h-10 w-60" aria-hidden="true" />
             ) : latest ? (
               <>
-                <div className="latest-ver">
-                  <span className="mono">{latest.version}</span>
+                <div className="mt-1.5 mb-1 flex items-center gap-2.5 text-[1.05rem]">
+                  <span className="font-mono">{latest.version}</span>
                   <StatusPill status={latest.status} />
                 </div>
-                <div className="mono-faint">
+                <div className="font-mono text-[0.78rem] text-faint">
                   {latest.appVersion} · {relativeTime(latest.createdAt)}
                   {latest.triggeredBy ? ` · ${latest.triggeredBy}` : ""}
                 </div>
               </>
             ) : (
-              <p className="con-sub" style={{ marginTop: 6 }}>No deployments yet.</p>
+              <p className="mt-1.5 text-[0.92rem] text-muted-foreground">No deployments yet.</p>
             )}
           </div>
-          <div className="latest-links">
-            <Link className="con-btn ghost sm" href={`/app/projects/${projectId}/deployments`}>Deploy history</Link>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/app/projects/${projectId}/deployments`}>Deploy history</Link>
+            </Button>
           </div>
         </div>
-        {latest?.errorDetail && <div className="con-alert err in-panel" style={{ marginTop: 14 }}>{latest.errorDetail}</div>}
-      </section>
+        {latest?.errorDetail && <Alert className="mt-3.5">{latest.errorDetail}</Alert>}
+      </Panel>
 
-      <p className="con-sub">Health is reported by the platform and currently shows <b>unknown</b> until live status is wired up.</p>
-    </div>
-  );
-}
-
-function Fact({ k, v, mono }: { k: string; v: React.ReactNode; mono?: boolean }) {
-  return (
-    <div className="fact">
-      <div className="fact-k">{k}</div>
-      <div className={`fact-v${mono ? " mono" : ""}`}>{v}</div>
-    </div>
+      <p className="text-[0.92rem] text-muted-foreground">Health is reported by the platform and currently shows <b className="text-foreground">unknown</b> until live status is wired up.</p>
+    </Page>
   );
 }
