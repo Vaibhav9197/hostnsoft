@@ -12,16 +12,8 @@
    old pages that never load a conflicting Tailwind utility render unchanged,
    and new Tailwind/shadcn components finally get real padding/margin. */
 @layer legacy;
-/* Import only Tailwind's theme + utilities layers — deliberately skipping its
-   preflight (normally @layer base). Preflight duplicates the legacy reset
-   below (`*{margin:0;padding:0;box-sizing:border-box}`) almost verbatim, and
-   because preflight is a real Tailwind layer it would sit ABOVE @layer legacy
-   in priority — meaning it would zero out the legacy pages' own real
-   padding/margin the same way the old unlayered reset used to zero out
-   Tailwind's. Skipping it avoids two competing universal resets entirely; the
-   legacy reset already does that job for the whole app. */
-@import "tailwindcss/theme.css" layer(theme);
-@import "tailwindcss/utilities.css" layer(utilities);
+/* Tailwind utilities only — skipping base layer since legacy layer handles resets */
+@tailwind utilities;
 
 @layer legacy {
 
