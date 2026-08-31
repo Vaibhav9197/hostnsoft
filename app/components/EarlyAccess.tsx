@@ -172,7 +172,7 @@ export function EarlyAccessProvider({ children }: { children: ReactNode }) {
               </span>
               <h3>You&apos;re on the list.</h3>
               <p>We&apos;ll be in touch soon.</p>
-              <button className="btn" onClick={close} style={{ marginTop: "1.5rem" }}>Done</button>
+              <button className="btn mt-6" onClick={close}>Done</button>
             </div>
           )}
         </div>

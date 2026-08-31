@@ -70,22 +70,22 @@ function SidebarUser() {
   const { user, signOut } = useSession();
   const label = user?.name || user?.email || "";
   return (
-    <div className="flex items-center gap-2.5 px-1 py-1.5">
-      <span className="grid size-[34px] shrink-0 place-items-center rounded-md border border-input bg-secondary text-sm font-bold text-foreground" aria-hidden="true">
+    <div className="flex items-center gap-3 rounded-lg border border-border/50 bg-elevated/30 px-2 py-2.5">
+      <span className="grid size-9 shrink-0 place-items-center rounded-md bg-primary/20 text-sm font-bold text-primary" aria-hidden="true">
         {label.charAt(0).toUpperCase() || "?"}
       </span>
-      <div className="min-w-0 flex-1 text-left leading-tight">
+      <div className="min-w-0 flex-1 text-left leading-snug">
         <div className="truncate text-[0.85rem] font-semibold text-foreground">{user?.name || "—"}</div>
-        <div className="truncate text-[0.73rem] text-faint">{user?.email}</div>
+        <div className="truncate text-[0.75rem] text-foreground/70">{user?.email}</div>
       </div>
       <button
         type="button"
         onClick={() => signOut()}
         aria-label="Log out"
         title="Log out"
-        className="grid size-[34px] shrink-0 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-input hover:bg-elevated hover:text-foreground"
+        className="grid size-8 shrink-0 place-items-center rounded-md border border-border/50 text-foreground/60 transition-all hover:bg-elevated hover:text-foreground hover:border-border"
       >
-        <LogOut className="size-[17px]" />
+        <LogOut className="size-[16px]" />
       </button>
     </div>
   );
@@ -130,10 +130,11 @@ function NavLink({ href, label, icon, active }: { href: string; label: string; i
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "flex items-center gap-2.5 rounded-lg border border-transparent px-3 py-2.5 text-[0.92rem] font-medium text-muted-foreground transition-colors",
-        "hover:bg-elevated hover:text-foreground",
+        "flex items-center gap-3 rounded-lg px-3 py-3 text-[0.93rem] font-semibold transition-all duration-150",
+        active
+          ? "border border-primary/40 bg-primary/15 text-foreground [&_svg]:text-primary shadow-sm"
+          : "text-foreground/80 [&_svg]:text-foreground/60 hover:bg-elevated hover:text-foreground hover:[&_svg]:text-foreground/80",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
-        active && "border-primary/25 bg-primary/10 text-foreground [&_svg]:text-primary",
       )}
     >
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-[18px] shrink-0"><path d={icon} /></svg>

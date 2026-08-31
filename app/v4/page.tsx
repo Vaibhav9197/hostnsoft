@@ -66,7 +66,7 @@ const PEOPLE = [
   { nm: "Sam", role: "Viewer" },
   { nm: "Nina", role: "Viewer" },
 ];
-const ROLE_BG: Record<string, string> = { Admin: "#ff4d00", Editor: "#404040", Viewer: "#a3a3a3" };
+const ROLE_BG: Record<string, string> = { Admin: "var(--accent)", Editor: "var(--surface-2)", Viewer: "var(--surface-3)" };
 
 const PROB = [
   { ic: "server", t: "Provision a server", c: "Pick a VPS, size it, SSH in, patch the OS. Before a single line runs." },
@@ -322,7 +322,7 @@ export default function AppHomePage() {
                 </div>
               ))}
             </div>
-            <div style={{ textAlign: "center" }}>
+            <div className="text-center">
               <p className="ah-note" data-reveal>Everything else — Postgres, backups, HTTPS, custom domains, roles, audit — is on by default.</p>
             </div>
           </div>
@@ -483,7 +483,7 @@ export default function AppHomePage() {
                 </div>
               ))}
             </div>
-            <div style={{ textAlign: "center" }}>
+            <div className="text-center">
               <p className="ah-note" data-reveal>SSO (Google, Microsoft) on Team. SAML on Business. EU or US hosting. SOC 2 in progress.</p>
             </div>
           </div>
@@ -502,7 +502,7 @@ export default function AppHomePage() {
                 <div className={`ah-plan${p.pop ? " pop" : ""}`} key={p.nm} data-reveal style={delay(i)}>
                   {p.pop && <span className="ah-plan-badge">Most popular</span>}
                   <div className="ah-plan-nm">{p.nm}</div>
-                  <div className="ah-plan-price">{p.price}<span style={{ fontSize: ".8rem", fontWeight: 400, color: "var(--faint)", fontFamily: "var(--sans)" }}> {p.per}</span></div>
+                  <div className="ah-plan-price">{p.price}<span className="text-xs font-normal text-faint"> {p.per}</span></div>
                   <div className="ah-plan-for">{p.who}</div>
                   <ul className="ah-plan-inc">
                     {p.inc.map((it) => (
