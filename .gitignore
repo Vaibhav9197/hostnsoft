@@ -59,3 +59,5 @@ pnpm-debug.log*
 .wrangler
 cloudflare-env.d.ts
 .claude/launch.json
+# local A/B test store
+/.data/
