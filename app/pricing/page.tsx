@@ -220,42 +220,6 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Philosophy Section */}
-      <section className="px-6 py-20 bg-elevated">
-        <div className="mx-auto max-w-[74rem]">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-              You don't need to know how it works.
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Just tell your AI what you want to build. When you're ready, tell it to deploy to Embarko. Your app goes live and we take care of everything behind the scenes.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div>
-              <div className="text-sm font-semibold text-primary mb-3 uppercase tracking-wide">Step 1</div>
-              <div className="text-lg text-foreground font-medium">Your idea</div>
-            </div>
-            <div className="hidden md:flex items-center justify-center text-2xl text-primary">→</div>
-            <div className="col-span-2 md:col-span-1">
-              <div className="text-sm font-semibold text-primary mb-3 uppercase tracking-wide">Step 2</div>
-              <div className="text-lg text-foreground font-medium">AI builds it</div>
-            </div>
-            <div className="hidden md:flex items-center justify-center text-2xl text-primary">→</div>
-            <div className="col-span-2 md:col-span-1">
-              <div className="text-sm font-semibold text-primary mb-3 uppercase tracking-wide">Step 3</div>
-              <div className="text-lg text-foreground font-medium">Embarko makes it real</div>
-            </div>
-            <div className="hidden md:flex items-center justify-center text-2xl text-primary">→</div>
-            <div className="col-span-2 md:col-span-1">
-              <div className="text-sm font-semibold text-primary mb-3 uppercase tracking-wide">Step 4</div>
-              <div className="text-lg text-foreground font-medium">People use your app</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* AI Compatibility Section */}
       <section className="px-6 py-20 bg-elevated">
         <div className="mx-auto max-w-[74rem]">
