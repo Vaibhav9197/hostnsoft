@@ -107,58 +107,8 @@ export default function PricingPage() {
             </div>
           </div>
 
-          {/* Enhanced flow visualization with step numbers */}
-          <div className="mt-20 mb-24">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
-              {/* Step 1: Idea */}
-              <div className="group flex flex-col items-start md:items-center">
-                <div className="mb-3 inline-flex items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-primary">Step 1</span>
-                  <span className="text-primary">•</span>
-                </div>
-                <div className="mb-6 p-5 bg-primary/8 border border-primary/25 group-hover:border-primary group-hover:bg-primary/12 transition-all duration-300">
-                  <Lightbulb className="w-7 h-7 text-primary" strokeWidth={1.5} />
-                </div>
-                <h3 className="text-lg font-bold text-foreground mb-3 md:text-center">Your idea</h3>
-                <p className="text-sm text-muted-foreground md:text-center leading-relaxed">
-                  Tell your AI exactly what app you want to build. Any idea, any size.
-                </p>
-              </div>
-
-              {/* Step 2: AI Builds */}
-              <div className="group flex flex-col items-start md:items-center">
-                <div className="mb-3 inline-flex items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-primary">Step 2</span>
-                  <span className="text-primary">•</span>
-                </div>
-                <div className="mb-6 p-5 bg-primary/8 border border-primary/25 group-hover:border-primary group-hover:bg-primary/12 transition-all duration-300">
-                  <Cpu className="w-7 h-7 text-primary" strokeWidth={1.5} />
-                </div>
-                <h3 className="text-lg font-bold text-foreground mb-3 md:text-center">AI builds it</h3>
-                <p className="text-sm text-muted-foreground md:text-center leading-relaxed">
-                  Your AI writes all the code. Claude, Cursor, Bolt — any tool works.
-                </p>
-              </div>
-
-              {/* Step 3: Goes Live */}
-              <div className="group flex flex-col items-start md:items-center">
-                <div className="mb-3 inline-flex items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-primary">Step 3</span>
-                  <span className="text-primary">•</span>
-                </div>
-                <div className="mb-6 p-5 bg-primary/8 border border-primary/25 group-hover:border-primary group-hover:bg-primary/12 transition-all duration-300">
-                  <Zap className="w-7 h-7 text-primary" strokeWidth={1.5} />
-                </div>
-                <h3 className="text-lg font-bold text-foreground mb-3 md:text-center">Embarko makes it real</h3>
-                <p className="text-sm text-muted-foreground md:text-center leading-relaxed">
-                  Deploy to Embarko. Your app goes live with a real URL, database, and login.
-                </p>
-              </div>
-            </div>
-          </div>
-
           {/* Pricing Cards */}
-          <div className="mb-8">
+          <div className="mb-24">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-12 text-center">Choose your plan</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
             {plans.map((plan) => (
@@ -216,6 +166,57 @@ export default function PricingPage() {
             ))}
             </div>
           </div>
+
+          {/* Enhanced flow visualization with step numbers */}
+          <div className="mt-20 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
+              {/* Step 1: Idea */}
+              <div className="group flex flex-col items-start md:items-center">
+                <div className="mb-3 inline-flex items-center gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-primary">Step 1</span>
+                  <span className="text-primary">•</span>
+                </div>
+                <div className="mb-6 p-5 bg-primary/8 border border-primary/25 group-hover:border-primary group-hover:bg-primary/12 transition-all duration-300">
+                  <Lightbulb className="w-7 h-7 text-primary" strokeWidth={1.5} />
+                </div>
+                <h3 className="text-lg font-bold text-foreground mb-3 md:text-center">Your idea</h3>
+                <p className="text-sm text-muted-foreground md:text-center leading-relaxed">
+                  Tell your AI exactly what app you want to build. Any idea, any size.
+                </p>
+              </div>
+
+              {/* Step 2: AI Builds */}
+              <div className="group flex flex-col items-start md:items-center">
+                <div className="mb-3 inline-flex items-center gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-primary">Step 2</span>
+                  <span className="text-primary">•</span>
+                </div>
+                <div className="mb-6 p-5 bg-primary/8 border border-primary/25 group-hover:border-primary group-hover:bg-primary/12 transition-all duration-300">
+                  <Cpu className="w-7 h-7 text-primary" strokeWidth={1.5} />
+                </div>
+                <h3 className="text-lg font-bold text-foreground mb-3 md:text-center">AI builds it</h3>
+                <p className="text-sm text-muted-foreground md:text-center leading-relaxed">
+                  Your AI writes all the code. Claude, Cursor, Bolt — any tool works.
+                </p>
+              </div>
+
+              {/* Step 3: Goes Live */}
+              <div className="group flex flex-col items-start md:items-center">
+                <div className="mb-3 inline-flex items-center gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-primary">Step 3</span>
+                  <span className="text-primary">•</span>
+                </div>
+                <div className="mb-6 p-5 bg-primary/8 border border-primary/25 group-hover:border-primary group-hover:bg-primary/12 transition-all duration-300">
+                  <Zap className="w-7 h-7 text-primary" strokeWidth={1.5} />
+                </div>
+                <h3 className="text-lg font-bold text-foreground mb-3 md:text-center">Embarko makes it real</h3>
+                <p className="text-sm text-muted-foreground md:text-center leading-relaxed">
+                  Deploy to Embarko. Your app goes live with a real URL, database, and login.
+                </p>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 
