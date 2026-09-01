@@ -28,10 +28,11 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
-  const { status, apiConnected } = useSession();
+  const { status, apiConnected, companies } = useSession();
   const pathname = usePathname();
   const projectMatch = pathname.match(/^\/app\/projects\/([^/]+)/);
   const projectId = projectMatch?.[1] ?? null;
+  const hasNoCompanies = companies.length === 0;
 
   if (status === "loading") {
     return (
@@ -43,6 +44,28 @@ function Shell({ children }: { children: React.ReactNode }) {
   }
 
   if (status === "anon") return <LoginScreen />;
+
+  // When there are no companies, show a minimal layout with only logout
+  if (hasNoCompanies) {
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <div className="ml-auto p-5">
+          <SidebarUser />
+        </div>
+        <div className="flex flex-1 items-center justify-center">
+          <main className="w-full max-w-5xl px-8 py-8">
+            {!apiConnected && (
+              <Alert variant="warn" className="mb-6">
+                You’re signed in, but the hostnsoft-api service is unreachable right now — company and
+                project data can’t be loaded until it’s back.
+              </Alert>
+            )}
+            {children}
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid min-h-screen grid-cols-[250px_1fr] bg-background">

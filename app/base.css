@@ -13,35 +13,34 @@
 @tailwind utilities;
 @import "tw-animate-css";
 
-/* Design tokens — dark + mint palette. Softer / modern: gentler surfaces,
-   low-contrast borders, subtle rounding. */
+/* Design tokens — light + orange palette. AppHome v4 inspired. */
 :root{
-  --bg:#0A0C0B;           /* slightly deeper page for more surface lift */
-  --surface:#141716;      /* charcoal card */
-  --surface-2:#1B1F1D;    /* raised surface / hover */
-  --surface-3:#232826;    /* highest surface / inputs */
-  --ink:#F3F5F4;          /* near-white text */
-  --ink-soft:#A2ABA6;     /* muted gray (a touch brighter for legibility) */
-  --ink-faint:#727A76;    /* faint gray */
-  --accent:#86F09B;       /* bright mint green */
-  --accent-2:#6BE888;     /* deeper green (hover) */
-  --accent-soft:rgba(134,240,155,.10);
-  --accent-line:rgba(134,240,155,.32);
-  --on-accent:#07130B;    /* dark text on green */
-  --line:rgba(255,255,255,.07);   /* soft, translucent hairline border */
-  --line-strong:rgba(255,255,255,.13);
-  --ok:#86F09B;
-  --ok-soft:rgba(134,240,155,.12);
+  --bg:#f5f4f0;           /* warm cream page */
+  --surface:#fdfdfb;      /* near-white card */
+  --surface-2:#eceae3;    /* deeper cream for chips/inputs */
+  --surface-3:#ddd7cc;    /* even deeper cream for elevated-2 */
+  --ink:#1a1916;          /* warm ink/dark text */
+  --ink-soft:#6f6a62;     /* muted gray */
+  --ink-faint:#9a938a;    /* faint gray */
+  --accent:#ff4d00;       /* bright orange */
+  --accent-2:#d63e00;     /* deeper orange (hover) */
+  --accent-soft:rgba(255,77,0,.09);
+  --accent-line:rgba(255,77,0,.32);
+  --on-accent:#ffffff;    /* white text on orange */
+  --line:#e5e1d8;         /* subtle border */
+  --line-strong:#d4cec3;  /* stronger border */
+  --ok:#16a34a;           /* green success */
+  --ok-soft:rgba(22,163,74,.12);
   --warn:#F0C86E;
   --warn-soft:rgba(240,200,110,.14);
   --info:#93BDF2;
   --info-soft:rgba(147,189,242,.14);
   --danger:#F0797F;
   --danger-soft:rgba(240,121,127,.12);
-  /* Soft elevation shadows — modern, low-contrast depth on a dark ground. */
-  --elev-1:0 1px 2px rgba(0,0,0,.30);
-  --elev-2:0 4px 16px -6px rgba(0,0,0,.45);
-  --elev-3:0 18px 40px -20px rgba(0,0,0,.65);
+  /* Soft elevation shadows — warm tone for light ground. */
+  --elev-1:0 1px 3px -1px rgba(20,18,16,.06),0 1px 2px -1px rgba(20,18,16,.04);
+  --elev-2:0 4px 6px -1px rgba(20,18,16,.08),0 2px 4px -2px rgba(20,18,16,.06);
+  --elev-3:0 10px 15px -3px rgba(20,18,16,.1),0 4px 6px -4px rgba(20,18,16,.05);
   --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
 }

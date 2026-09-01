@@ -57,12 +57,19 @@ export function SkillDialog({ open, onClose }: { open: boolean; onClose: () => v
               <span className="whitespace-nowrap border border-border bg-elevated px-1.5 py-0.5 font-mono text-[0.74rem] text-faint">
                 {t.format}
               </span>
-              <Button variant="outline" size="sm" asChild>
-                <a href={t.href} download>
+              {t.id === "claude" ? (
+                <Button variant="outline" size="sm" asChild>
+                  <a href={t.href} download>
+                    <Download />
+                    Download
+                  </a>
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" disabled>
                   <Download />
                   Download
-                </a>
-              </Button>
+                </Button>
+              )}
             </div>
           ))}
         </div>

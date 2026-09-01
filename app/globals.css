@@ -19,31 +19,35 @@
 
 /* ============ Design tokens ============ */
 :root{
-  --bg:#0B0D0C;            /* near-black page */
-  --surface:#151817;      /* charcoal card */
-  --surface-2:#1D211F;    /* raised surface */
-  --ink:#F2F5F3;          /* near-white text */
-  --ink-soft:#9AA39E;     /* muted gray */
-  --ink-faint:#69716D;    /* faint gray */
-  --accent:#86F09B;       /* bright mint green */
-  --accent-2:#6BE888;     /* deeper green (hover) */
-  --accent-soft:rgba(134,240,155,.10);
-  --accent-line:rgba(134,240,155,.32);
-  --on-accent:#07130B;    /* dark text on green */
-  --line:#282D2A;         /* subtle border */
-  --line-strong:#333A36;
-  --ok:#86F09B;
-  --ok-soft:rgba(134,240,155,.12);
+  --bg:#f5f4f0;            /* warm cream page — AppHome inspired */
+  --surface:#fdfdfb;       /* near-white card */
+  --surface-2:#eceae3;     /* deeper cream for chips/inputs */
+  --surface-3:#ddd7cc;     /* even deeper cream for elevated-2 */
+  --ink:#1a1916;           /* warm ink/dark text */
+  --ink-soft:#6f6a62;      /* muted gray */
+  --ink-faint:#9a938a;     /* faint gray */
+  --accent:#ff4d00;        /* bright orange */
+  --accent-2:#d63e00;      /* deeper orange (hover) */
+  --accent-soft:rgba(255,77,0,.09);
+  --accent-line:rgba(255,77,0,.32);
+  --on-accent:#ffffff;     /* white text on orange */
+  --line:#e5e1d8;          /* subtle border */
+  --line-strong:#d4cec3;   /* stronger border */
+  --ok:#16a34a;            /* green success */
+  --ok-soft:rgba(22,163,74,.12);
   --warn:#F0C86E;
   --warn-soft:rgba(240,200,110,.14);
   --info:#93BDF2;
   --info-soft:rgba(147,189,242,.14);
   --danger:#F0797F;
   --danger-soft:rgba(240,121,127,.12);
-  --radius:0px;           /* sharp — insforge style */
+  --radius:0px;            /* sharp — insforge style */
   --radius-sm:0px;
-  --shadow:0 24px 48px -28px rgba(0,0,0,.75);
-  --shadow-soft:0 12px 28px -18px rgba(0,0,0,.65);
+  --shadow:0 2px 6px -2px rgba(20,18,16,.08),0 10px 28px -12px rgba(20,18,16,.14);
+  --shadow-soft:0 1px 2px rgba(20,18,16,.05),0 1px 1px rgba(20,18,16,.03);
+  --elev-1:0 1px 3px -1px rgba(20,18,16,.06),0 1px 2px -1px rgba(20,18,16,.04);
+  --elev-2:0 4px 6px -1px rgba(20,18,16,.08),0 2px 4px -2px rgba(20,18,16,.06);
+  --elev-3:0 10px 15px -3px rgba(20,18,16,.1),0 4px 6px -4px rgba(20,18,16,.05);
   --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
 }
@@ -109,7 +113,7 @@ kbd{font-family:var(--mono);font-size:.8em;background:var(--surface-2);border:1p
 .cta-sub{font-size:.9rem;color:var(--ink-faint);margin-top:.85rem}
 
 /* ============ Header ============ */
-header{position:sticky;top:0;z-index:40;background:rgba(11,13,12,.78);backdrop-filter:blur(12px);border-bottom:1px solid transparent;transition:border-color .2s}
+header{position:sticky;top:0;z-index:40;background:rgba(245,244,240,.95);backdrop-filter:blur(12px);border-bottom:1px solid transparent;transition:border-color .2s}
 header.scrolled{border-color:var(--line)}
 .nav{display:flex;align-items:center;justify-content:space-between;height:74px}
 .brand{display:inline-flex;align-items:center;gap:.6rem}
@@ -137,7 +141,7 @@ section{padding:18px 0}
 
 /* ============ 1. Hero ============ */
 .hero{padding:clamp(2.8rem,6vw,4.5rem) 0 clamp(2.2rem,4vw,3.2rem);position:relative;overflow:hidden}
-.hero::before{content:"";position:absolute;left:50%;top:-12%;width:min(1000px,98%);height:600px;transform:translateX(-50%);background:radial-gradient(50% 55% at 50% 0%,rgba(134,240,155,.14),transparent 70%);pointer-events:none;z-index:0}
+.hero::before{content:"";position:absolute;left:50%;top:-12%;width:min(1000px,98%);height:600px;transform:translateX(-50%);background:radial-gradient(50% 55% at 50% 0%,rgba(255,77,0,.08),transparent 70%);pointer-events:none;z-index:0}
 .hero .wrap{position:relative;z-index:1}
 .hero-head{max-width:54rem;margin:0 auto;text-align:center}
 .hero-head .eyebrow{margin-bottom:1.5rem}

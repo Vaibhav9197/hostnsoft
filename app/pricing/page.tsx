@@ -1,8 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { Check, ArrowRight, Lightbulb, Cpu, Zap } from "lucide-react";
+import { Check, ArrowRight, Lightbulb, Cpu, Zap, Code2, Lock, Share2 } from "lucide-react";
 import { Button } from "../components/ui/button";
+
+function Ico({ children }: { children: React.ReactNode }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+      {children}
+    </svg>
+  );
+}
 
 export default function PricingPage() {
   const plans = [
@@ -99,50 +107,53 @@ export default function PricingPage() {
             </div>
           </div>
 
-          {/* Beautiful flow visualization */}
-          <div className="mt-16">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+          {/* Enhanced flow visualization with step numbers */}
+          <div className="mt-20">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
               {/* Step 1: Idea */}
-              <div className="group flex flex-col items-center">
-                <div className="mb-4 p-4 bg-primary/10 rounded-none border border-primary/20 group-hover:border-primary group-hover:bg-primary/15 transition-all duration-300">
-                  <Lightbulb className="w-8 h-8 text-primary" strokeWidth={1.5} />
+              <div className="group flex flex-col items-start md:items-center">
+                <div className="mb-3 inline-flex items-center gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-primary">Step 1</span>
+                  <span className="text-primary">•</span>
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">Your idea</h3>
-                <p className="text-sm text-muted-foreground text-center">
-                  Describe what you want to build
+                <div className="mb-6 p-5 bg-primary/8 border border-primary/25 group-hover:border-primary group-hover:bg-primary/12 transition-all duration-300">
+                  <Lightbulb className="w-7 h-7 text-primary" strokeWidth={1.5} />
+                </div>
+                <h3 className="text-lg font-bold text-foreground mb-3 md:text-center">Your idea</h3>
+                <p className="text-sm text-muted-foreground md:text-center leading-relaxed">
+                  Tell your AI exactly what app you want to build. Any idea, any size.
                 </p>
               </div>
 
               {/* Step 2: AI Builds */}
-              <div className="group flex flex-col items-center">
-                <div className="mb-4 p-4 bg-primary/10 rounded-none border border-primary/20 group-hover:border-primary group-hover:bg-primary/15 transition-all duration-300">
-                  <Cpu className="w-8 h-8 text-primary" strokeWidth={1.5} />
+              <div className="group flex flex-col items-start md:items-center">
+                <div className="mb-3 inline-flex items-center gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-primary">Step 2</span>
+                  <span className="text-primary">•</span>
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">AI builds it</h3>
-                <p className="text-sm text-muted-foreground text-center">
-                  Your AI writes the code
+                <div className="mb-6 p-5 bg-primary/8 border border-primary/25 group-hover:border-primary group-hover:bg-primary/12 transition-all duration-300">
+                  <Cpu className="w-7 h-7 text-primary" strokeWidth={1.5} />
+                </div>
+                <h3 className="text-lg font-bold text-foreground mb-3 md:text-center">AI builds it</h3>
+                <p className="text-sm text-muted-foreground md:text-center leading-relaxed">
+                  Your AI writes all the code. Claude, Cursor, Bolt — any tool works.
                 </p>
               </div>
 
               {/* Step 3: Goes Live */}
-              <div className="group flex flex-col items-center">
-                <div className="mb-4 p-4 bg-primary/10 rounded-none border border-primary/20 group-hover:border-primary group-hover:bg-primary/15 transition-all duration-300">
-                  <Zap className="w-8 h-8 text-primary" strokeWidth={1.5} />
+              <div className="group flex flex-col items-start md:items-center">
+                <div className="mb-3 inline-flex items-center gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-primary">Step 3</span>
+                  <span className="text-primary">•</span>
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">Embarko makes it real</h3>
-                <p className="text-sm text-muted-foreground text-center">
-                  Your app is live instantly
+                <div className="mb-6 p-5 bg-primary/8 border border-primary/25 group-hover:border-primary group-hover:bg-primary/12 transition-all duration-300">
+                  <Zap className="w-7 h-7 text-primary" strokeWidth={1.5} />
+                </div>
+                <h3 className="text-lg font-bold text-foreground mb-3 md:text-center">Embarko makes it real</h3>
+                <p className="text-sm text-muted-foreground md:text-center leading-relaxed">
+                  Deploy to Embarko. Your app goes live with a real URL, database, and login.
                 </p>
               </div>
-            </div>
-
-            {/* Mobile connectors */}
-            <div className="md:hidden flex justify-center gap-2 mt-6">
-              <div className="flex-1 h-0.5 bg-primary/20"></div>
-              <span className="text-primary/40">→</span>
-              <div className="flex-1 h-0.5 bg-primary/20"></div>
-              <span className="text-primary/40">→</span>
-              <div className="flex-1 h-0.5 bg-primary/20"></div>
             </div>
           </div>
         </div>
@@ -246,24 +257,38 @@ export default function PricingPage() {
       </section>
 
       {/* AI Compatibility Section */}
-      <section className="px-6 py-20">
+      <section className="px-6 py-20 bg-elevated">
         <div className="mx-auto max-w-[74rem]">
-          <div className="text-center">
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-              Built with AI?<br />
-              <span className="text-primary">It can live on Embarko.</span>
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-12 leading-relaxed">
-              Whatever AI you build with, Embarko can be where your app lives.
-            </p>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {aiTools.map((tool) => (
-                <div key={tool} className="px-6 py-4 border border-border bg-card">
-                  <div className="text-sm font-medium text-foreground">{tool}</div>
-                </div>
-              ))}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 mb-4">
+              <span className="text-xs font-bold uppercase tracking-wider text-primary">Compatible with</span>
+              <span className="text-primary/40">•</span>
             </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+              Built with any AI tool.
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto mb-2 leading-relaxed">
+              Claude Code, Cursor, Bolt, Lovable, v0, Replit, GPT, or even Codex — if an AI tool built it, Embarko can host it.
+            </p>
+            <p className="text-sm text-muted-foreground max-w-3xl mx-auto">Deploy the same way from any editor. No special setup. No vendor lock-in.</p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { name: "Claude Code", detail: "Skill file" },
+              { name: "Cursor", detail: "Rules file" },
+              { name: "Bolt", detail: "Export & deploy" },
+              { name: "Lovable", detail: "One-click" },
+              { name: "Replit", detail: "Direct deploy" },
+              { name: "v0", detail: "Export & deploy" },
+              { name: "GPT", detail: "Export code" },
+              { name: "Codex", detail: "Export code" },
+            ].map((tool) => (
+              <div key={tool.name} className="p-4 border border-border/50 bg-card hover:border-primary/40 hover:bg-primary/5 transition-all duration-300">
+                <div className="text-sm font-semibold text-foreground mb-1">{tool.name}</div>
+                <div className="text-xs text-muted-foreground">{tool.detail}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
