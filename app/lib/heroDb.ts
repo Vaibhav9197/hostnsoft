@@ -37,9 +37,13 @@ function isLocalStoreEnabled(): boolean {
 }
 
 /* The dev server re-evaluates modules on hot reload, which would otherwise leak
-   a new database handle each time. */
+   a new database handle each time. `__heroDbFile` remembers which file that
+   handle points at, so `rm -rf .data` in dev (or a rename) is detected — the
+   process kept the file handle to the unlinked inode and writes would fail
+   with "attempt to write a readonly database". */
 const globalForDb = globalThis as typeof globalThis & {
   __heroDb?: HeroDatabase | null;
+  __heroDbFile?: string;
 };
 
 type HeroDatabase = {
@@ -52,16 +56,22 @@ type HeroDatabase = {
 
 async function getDb(): Promise<HeroDatabase | null> {
   if (!isLocalStoreEnabled()) return null;
-  if (globalForDb.__heroDb !== undefined) return globalForDb.__heroDb;
+
+  const [{ DatabaseSync }, fs, path] = await Promise.all([
+    import(/* webpackIgnore: true */ "node:sqlite"),
+    import(/* webpackIgnore: true */ "node:fs"),
+    import(/* webpackIgnore: true */ "node:path"),
+  ]);
+  const file = path.join(process.cwd(), DB_RELATIVE_PATH);
+
+  /* Reuse the cached handle only when the file it points at still exists on
+     disk. If it doesn't, we're holding a handle to an unlinked inode; SQLite
+     would fail every write with "readonly". Reopen instead. */
+  if (globalForDb.__heroDb !== undefined && globalForDb.__heroDbFile === file && fs.existsSync(file)) {
+    return globalForDb.__heroDb;
+  }
 
   try {
-    const [{ DatabaseSync }, fs, path] = await Promise.all([
-      import(/* webpackIgnore: true */ "node:sqlite"),
-      import(/* webpackIgnore: true */ "node:fs"),
-      import(/* webpackIgnore: true */ "node:path"),
-    ]);
-
-    const file = path.join(process.cwd(), DB_RELATIVE_PATH);
     fs.mkdirSync(path.dirname(file), { recursive: true });
 
     const db = new DatabaseSync(file) as unknown as HeroDatabase;
@@ -88,11 +98,13 @@ async function getDb(): Promise<HeroDatabase | null> {
     `);
 
     globalForDb.__heroDb = db;
+    globalForDb.__heroDbFile = file;
     return db;
   } catch (error) {
     // Older Node without node:sqlite, a read-only FS, etc. Never fatal.
     console.warn("[Hero A/B] SQLite unavailable, falling back to logs:", error);
     globalForDb.__heroDb = null;
+    globalForDb.__heroDbFile = file;
     return null;
   }
 }

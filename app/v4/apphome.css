@@ -107,6 +107,8 @@ html,body{margin:0;padding:0}
 .apphome .ah-btn-ghost:hover{background:var(--surface-2)}
 .apphome .ah-btn-outline{background:transparent;color:var(--text);border-color:var(--border-strong)}
 .apphome .ah-btn-outline:hover{border-color:var(--text);background:var(--surface)}
+.apphome .ah-btn-outline-dark{background:transparent;color:var(--text);border-color:var(--text)}
+.apphome .ah-btn-outline-dark:hover{background:var(--text);color:var(--bg)}
 
 /* ---- Nav ---- */
 .ah-nav{position:sticky;top:0;z-index:50;height:62px;border-bottom:1px solid transparent;background:color-mix(in srgb,var(--page) 78%,transparent);backdrop-filter:saturate(180%) blur(12px);transition:border-color .25s,box-shadow .25s,background .25s}
@@ -172,6 +174,64 @@ html,body{margin:0;padding:0}
 .ah-cta-cap::before{content:"";width:1.1rem;height:1.5px;background:var(--accent)}
 .ah-tool-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.7rem;margin-bottom:3rem}
 @media(min-width:640px){.ah-tool-grid{grid-template-columns:repeat(3,1fr)}}
+
+/* ===== Hero variant C (here.now-style, full-width dark) =====
+   The rest of the page is light-themed; :has() flips the hero to dark only
+   when variant C is rendered, so A/B/D are unaffected. */
+.apphome .ah-hero:has(.ah-hero-c){background:#0b0a09;color:#faf8f6;padding:4.5rem 0 5rem}
+@media(min-width:768px){.apphome .ah-hero:has(.ah-hero-c){padding:6rem 0 6.5rem}}
+.apphome .ah-hero:has(.ah-hero-c) .ah-hero-bg,
+.apphome .ah-hero:has(.ah-hero-c) .ah-hero-glow{display:none}
+/* .apphome h1/h3 (two classes) beats a single-class rule on the C content,
+   so scope the color overrides through the section :has() for specificity. */
+.apphome .ah-hero:has(.ah-hero-c) h1,
+.apphome .ah-hero:has(.ah-hero-c) h3{color:#faf8f6}
+
+.ah-hero-c{color:#faf8f6}
+.ah-hero-c-title{font-family:var(--sans);font-weight:800;font-size:clamp(2.6rem,6.4vw,4.5rem);line-height:1.05;letter-spacing:-.035em;margin:0 0 2.2rem;max-width:22ch;color:#faf8f6}
+.ah-hero-c-chip{display:inline-block;padding:.05em .28em;margin:0 .04em;background:#2a2622;border-radius:.35rem;line-height:1}
+.ah-hero-c-cta{display:inline-flex;align-items:center;gap:.6rem;padding:.85rem 1.5rem;border-radius:999px;background:#faf8f6;color:#0b0a09;border:0;font-size:1rem;font-weight:600;cursor:pointer;transition:background .15s,transform .12s;font-family:inherit}
+.ah-hero-c-cta:hover{background:#fff}
+.ah-hero-c-cta:active{transform:translateY(1px)}
+.ah-hero-c-cta svg{width:18px;height:18px}
+.ah-hero-c-cta[data-copied="true"]{background:#3a352f;color:#faf8f6}
+
+/* Agent logo strip */
+.ah-hero-c-strip{margin-top:5rem;position:relative}
+.ah-hero-c-strip-cap{font-size:.72rem;font-weight:700;letter-spacing:.14em;color:#7a746c;margin-bottom:1.6rem;text-transform:uppercase}
+.ah-hero-c-logos-wrap{position:relative;overflow:hidden}
+.ah-hero-c-logos-wrap::before,
+.ah-hero-c-logos-wrap::after{content:"";position:absolute;top:0;bottom:0;width:6rem;z-index:1;pointer-events:none}
+.ah-hero-c-logos-wrap::before{left:0;background:linear-gradient(to right,#0b0a09,transparent)}
+.ah-hero-c-logos-wrap::after{right:0;background:linear-gradient(to left,#0b0a09,transparent)}
+.ah-hero-c-logos{display:flex;align-items:center;gap:3.2rem;color:#b3aca4}
+.ah-hero-c-logos svg{width:32px;height:32px;flex-shrink:0}
+
+/* Center divider with brand mark */
+.ah-hero-c-divider{position:relative;height:1px;background:#2a2622;margin:3rem 0}
+.ah-hero-c-divider-mark{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#0b0a09;padding:0 .8rem;color:#7a746c;font-size:.9rem}
+
+/* Two-panel demo */
+.ah-hero-c-demo{display:grid;grid-template-columns:1fr;gap:2rem;align-items:start}
+@media(min-width:900px){.ah-hero-c-demo{grid-template-columns:1fr auto 1fr;gap:2.5rem}}
+.ah-hero-c-demo-title{font-family:var(--sans);font-size:1.45rem;font-weight:700;line-height:1.25;letter-spacing:-.015em;margin:0 0 1.2rem;color:#faf8f6}
+.ah-hero-c-demo-title code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#b3aca4;font-weight:400;font-size:.88em;display:inline-block}
+.ah-hero-c-demo-arrow{color:#7a746c;font-size:1.6rem;align-self:center;justify-self:center;padding-top:3rem}
+@media(max-width:899px){.ah-hero-c-demo-arrow{padding-top:0;transform:rotate(90deg)}}
+.ah-hero-c-panel{border-radius:.9rem;border:1px solid #2a2622;background:#141210;overflow:hidden;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85rem}
+.ah-hero-c-panel-h{display:flex;align-items:center;gap:.4rem;padding:.65rem .9rem;border-bottom:1px solid #2a2622}
+.ah-hero-c-dot{width:.55rem;height:.55rem;border-radius:50%;background:#3a352f;flex-shrink:0}
+.ah-hero-c-panel-tab{margin-left:.9rem;padding:.15rem .55rem;border-radius:.3rem;background:#0b0a09;color:#b3aca4;font-size:.72rem}
+.ah-hero-c-panel-b{padding:1.2rem 1.1rem;min-height:8.5rem;color:#b3aca4;line-height:1.9}
+.ah-hero-c-panel-b .prompt{color:#faf8f6}
+.ah-hero-c-panel-b .prompt::before{content:"> ";color:#7a746c}
+.ah-hero-c-panel-b .ok{color:#7a746c}
+.ah-hero-c-panel-b .url{color:#faf8f6}
+.ah-hero-c-preview{display:grid;place-items:center;padding:1.5rem;min-height:8.5rem}
+.ah-hero-c-preview-logo{width:2.2rem;height:2.2rem;border-radius:50%;background:#faf8f6;color:#0b0a09;display:grid;place-items:center;font-weight:800;margin-bottom:1rem}
+.ah-hero-c-preview-lines{display:flex;flex-direction:column;gap:.5rem;align-items:center;width:60%}
+.ah-hero-c-preview-lines span{display:block;height:.5rem;background:#3a352f;border-radius:.2rem;width:100%}
+.ah-hero-c-preview-lines span:last-child{width:60%}
 
 /* ===== Skill panel styled as a server rack ===== */
 .ah-skill-panel{align-self:start;position:relative;padding:1.35rem 1.5rem 1.2rem;
@@ -471,6 +531,13 @@ html,body{margin:0;padding:0}
 .ah-overlay.open{opacity:1;pointer-events:auto}
 .ah-modal{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);max-width:31rem;width:100%;padding:1.7rem;box-shadow:var(--shadow-lg);position:relative;transform:translateY(14px) scale(.98);opacity:0;transition:transform .24s cubic-bezier(.16,1,.3,1),opacity .24s;max-height:90vh;overflow:auto}
 .ah-overlay.open .ah-modal{transform:none;opacity:1}
+/* Modal content mounts already in view, so it is never scroll-revealed. Without
+   this, [data-reveal] children added after the observer ran stay at opacity 0. */
+.apphome .ah-overlay [data-reveal]{opacity:1;transform:none}
+.ah-modal-wide{max-width:45rem}
+/* Two columns, not the default three — the file names need the room. */
+.ah-modal-wide .ah-tool-grid{grid-template-columns:1fr;margin-bottom:1.2rem}
+@media(min-width:560px){.ah-modal-wide .ah-tool-grid{grid-template-columns:repeat(2,1fr)}}
 .ah-modal-close{position:absolute;top:1rem;right:1rem;width:1.9rem;height:1.9rem;border:0;background:var(--surface-2);border-radius:0;color:var(--muted);display:grid;place-items:center;cursor:pointer;transition:background .15s,color .15s}
 .ah-modal-close:hover{color:var(--text);background:var(--border)}
 .ah-modal-ic{width:2.7rem;height:2.7rem;border-radius:0;background:var(--accent-soft);border:1px solid var(--accent-tint);display:grid;place-items:center;color:var(--accent-2);margin-bottom:1rem}

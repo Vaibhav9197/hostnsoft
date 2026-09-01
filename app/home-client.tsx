@@ -163,6 +163,7 @@ function Mark({ v }: { v: Mk }) {
 
 export default function EmbarkoPage({ heroVariant }: { heroVariant: HeroVariant }) {
   const [tool, setTool] = useState<Tool | null>(null);
+  const [skillDialog, setSkillDialog] = useState(false);
   const [copied, setCopied] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -212,17 +213,27 @@ export default function EmbarkoPage({ heroVariant }: { heroVariant: HeroVariant 
     };
   }, []);
 
-  /* Modal open/close side-effects */
+  /* Modal open/close side-effects — shared by the tool modal and the skill dialog.
+     Escape closes the topmost one, so picking a tool from the skill dialog and
+     hitting Escape returns you to the dialog rather than dismissing everything. */
+  const anyModalOpen = Boolean(tool) || skillDialog;
+
   useEffect(() => {
-    document.body.style.overflow = tool ? "hidden" : "";
-    if (!tool) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setTool(null);
+    document.body.style.overflow = anyModalOpen ? "hidden" : "";
+    if (!anyModalOpen) return;
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (tool) setTool(null);
+      else setSkillDialog(false);
+    };
+
     window.addEventListener("keydown", onKey);
     return () => {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [tool]);
+  }, [anyModalOpen, tool]);
 
   const copy = (text: string) => {
     navigator.clipboard?.writeText(text).then(() => {
@@ -245,14 +256,18 @@ export default function EmbarkoPage({ heroVariant }: { heroVariant: HeroVariant 
           </div>
           <div className="ah-nav-right">
             <a className="ah-btn ah-btn-ghost ah-nav-login" href="#">Log in</a>
-            <a className="ah-btn ah-btn-primary" href="#cta">Start hosting <Ico n="arrow" /></a>
+            <a className="ah-btn ah-btn-outline-dark" href="#cta">Sign up <Ico n="arrow" /></a>
           </div>
         </div>
       </nav>
 
       <main id="top">
         {/* ===== Hero ===== */}
-        <HeroSection variant={heroVariant} toolGrid={<ToolGrid onPick={setTool} />} />
+        <HeroSection
+          variant={heroVariant}
+          toolGrid={<ToolGrid onPick={setTool} />}
+          onCtaClick={() => setSkillDialog(true)}
+        />
         <div id="cta" />
 
         {/* ===== Problem ===== */}
@@ -535,6 +550,23 @@ export default function EmbarkoPage({ heroVariant }: { heroVariant: HeroVariant 
           <span><a href="#">Terms</a> · <a href="#">Privacy</a> · <a href="#">Security</a></span>
         </div>
       </footer>
+
+      {/* ===== Skill-picker dialog (hero CTA) ===== */}
+      <div
+        className={`ah-overlay${skillDialog ? " open" : ""}`}
+        onClick={(e) => e.target === e.currentTarget && setSkillDialog(false)}
+      >
+        {skillDialog && (
+          <div className="ah-modal ah-modal-wide" role="dialog" aria-modal="true" aria-labelledby="ah-skill-dialog-title">
+            <button className="ah-modal-close" onClick={() => setSkillDialog(false)} aria-label="Close"><Ico n="x" sw={2} /></button>
+            <h3 id="ah-skill-dialog-title">Download the skill file for your favourite tool</h3>
+            <p>Pick the tool you already build in. Your AI learns Embarko once, then ships whenever you ask.</p>
+            {/* Picking a tool hands off to the tool modal. */}
+            <ToolGrid onPick={(t) => { setSkillDialog(false); setTool(t); }} />
+            <p className="ah-modal-sec">no AWS · no credit card to start · export anytime</p>
+          </div>
+        )}
+      </div>
 
       {/* ===== Tool modal ===== */}
       <div className={`ah-overlay${tool ? " open" : ""}`} onClick={(e) => e.target === e.currentTarget && setTool(null)}>

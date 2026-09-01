@@ -1,8 +1,68 @@
 "use client";
 
-import { ReactNode } from "react";
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
 import { trackHeroCTA } from "@/app/hooks/useHeroVariant";
 import type { HeroVariant } from "@/app/lib/heroVariants";
+
+/* Prompt copied to the clipboard by variant C's CTA. Kept as a constant so it
+   can be reviewed and iterated without touching the component. */
+const HERO_C_PROMPT =
+  "Deploy this app to my Embarko workspace using the apphome-skill.md skill file. Set up hosting, a Postgres database, and team login, and give me a live URL.";
+
+/* Inline SVG icons used only inside variant C, so the component stays
+   independent of the ICONS map in home-client.tsx. */
+const CopyIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="9" y="9" width="13" height="13" rx="2" />
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+  </svg>
+);
+const CheckIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M20 6 9 17l-5-5" />
+  </svg>
+);
+const ClaudeMark = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M12 2 9 10l-8 2 8 2 3 8 3-8 8-2-8-2Z" />
+  </svg>
+);
+const CursorMark = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="m16 18 6-6-6-6-1.4 1.4L18.2 11H2v2h16.2l-3.6 3.6Z" />
+  </svg>
+);
+const LovableMark = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M12 20s-8-4.7-8-11a5 5 0 0 1 8-4 5 5 0 0 1 8 4c0 6.3-8 11-8 11Z" />
+  </svg>
+);
+const V0Mark = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <circle cx="12" cy="12" r="4" />
+  </svg>
+);
+const BoltMark = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M13 2 3 14h7l-1 8 11-13h-8l1-7Z" />
+  </svg>
+);
+const ReplitMark = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M4 4h6v6H4Zm10 0h6v6h-6Zm-10 10h6v6H4Zm10 0h6v6h-6Z" />
+  </svg>
+);
+const OpenAIMark = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
+    <circle cx="12" cy="12" r="9" />
+    <circle cx="12" cy="12" r="4" />
+  </svg>
+);
+const GeminiMark = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M12 2c1 5 5 9 10 10-5 1-9 5-10 10-1-5-5-9-10-10 5-1 9-5 10-10Z" />
+  </svg>
+);
 
 // Right section component (same for all variants)
 interface HeroRightProps {
@@ -32,12 +92,17 @@ interface HeroLeftProps {
   heading: string;
   subheading: string;
   cta: string;
-  variant: 'A' | 'B' | 'C' | 'D';
+  variant: HeroVariant;
+  onCtaClick: () => void;
 }
 
-function HeroLeft({ heading, subheading, cta, variant }: HeroLeftProps) {
-  const handleCTAClick = () => {
+function HeroLeft({ heading, subheading, cta, variant, onCtaClick }: HeroLeftProps) {
+  /* The href stays as a no-JS fallback that scrolls to the panel; with JS the
+     dialog opens instead. */
+  const handleCTAClick = (event: ReactMouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
     trackHeroCTA(variant);
+    onCtaClick();
   };
 
   return (
@@ -68,14 +133,16 @@ function HeroLeft({ heading, subheading, cta, variant }: HeroLeftProps) {
 
 interface HeroVariantProps {
   toolGrid: ReactNode;
+  onCtaClick: () => void;
 }
 
 // Variant A: "Make the pain disappear"
-export function HeroVariantA({ toolGrid }: HeroVariantProps) {
+export function HeroVariantA({ toolGrid, onCtaClick }: HeroVariantProps) {
   return (
     <div className="ah-hero-grid">
       <HeroLeft
         variant="A"
+        onCtaClick={onCtaClick}
         heading="Hosting is the hard part. / We make it disappear."
         subheading="Build your app with AI. Give your AI the Embarko skill once, then just tell it to deploy. Your app goes live — with a real login, database, and URL — in 5 minutes."
         cta="Teach your AI to ship →"
@@ -86,11 +153,12 @@ export function HeroVariantA({ toolGrid }: HeroVariantProps) {
 }
 
 // Variant B: "AI-native"
-export function HeroVariantB({ toolGrid }: HeroVariantProps) {
+export function HeroVariantB({ toolGrid, onCtaClick }: HeroVariantProps) {
   return (
     <div className="ah-hero-grid">
       <HeroLeft
         variant="B"
+        onCtaClick={onCtaClick}
         heading="Teach your AI to ship. / It learns once, deploys forever."
         subheading="Give your AI Embarko once. From then on, it can take your app from code to live without making you learn hosting, setup, or infrastructure."
         cta="Give your AI Embarko →"
@@ -100,27 +168,142 @@ export function HeroVariantB({ toolGrid }: HeroVariantProps) {
   );
 }
 
-// Variant C: "Strongest emotional angle"
-export function HeroVariantC({ toolGrid }: HeroVariantProps) {
+/* Variant C: here.now-inspired layout.
+   Full-width dark hero (styled at the section level via :has(.ah-hero-c)),
+   headline + single copy-prompt CTA, agent logo strip, then a two-panel demo.
+   Ignores toolGrid / onCtaClick — its CTA is a clipboard copy, not the
+   skill-picker dialog. */
+export function HeroVariantC(_props: HeroVariantProps) {
+  const [copied, setCopied] = useState(false);
+  const copyTimer = useRef<number | null>(null);
+
+  useEffect(() => () => {
+    if (copyTimer.current !== null) window.clearTimeout(copyTimer.current);
+  }, []);
+
+  const handleCopy = async () => {
+    trackHeroCTA("C");
+
+    let ok = false;
+    try {
+      await navigator.clipboard.writeText(HERO_C_PROMPT);
+      ok = true;
+    } catch {
+      /* Clipboard API blocked (insecure origin, old Safari, unfocused window).
+         Fall back to execCommand via a hidden textarea. */
+      const holder = document.createElement("textarea");
+      holder.value = HERO_C_PROMPT;
+      holder.style.position = "fixed";
+      holder.style.opacity = "0";
+      document.body.appendChild(holder);
+      holder.select();
+      try { ok = document.execCommand("copy"); } catch { /* nothing more we can do */ }
+      document.body.removeChild(holder);
+    }
+
+    if (!ok) return;
+    setCopied(true);
+    if (copyTimer.current !== null) window.clearTimeout(copyTimer.current);
+    copyTimer.current = window.setTimeout(() => setCopied(false), 2200);
+  };
+
   return (
-    <div className="ah-hero-grid">
-      <HeroLeft
-        variant="C"
-        heading="Don't become a hosting engineer. / You already built the hard part."
-        subheading="AI can build your app in hours. You shouldn't have to spend another day figuring out how to get it online. Tell your AI to deploy to Embarko. Get a live app. That's it."
-        cta="Build with AI. Ship with Embarko →"
-      />
-      <HeroRight toolGrid={toolGrid} />
+    <div className="ah-hero-c">
+      <div className="ah-hero-c-top">
+        <h1 className="ah-hero-c-title">
+          Instant hosting for every <span className="ah-hero-c-chip">app</span> you ship with your AI.
+        </h1>
+        <button
+          type="button"
+          className="ah-hero-c-cta"
+          data-copied={copied || undefined}
+          onClick={handleCopy}
+          aria-live="polite"
+        >
+          {copied ? "Copied to clipboard" : "Copy prompt for agent"}
+          {copied ? <CheckIcon /> : <CopyIcon />}
+        </button>
+      </div>
+
+      <div className="ah-hero-c-strip" aria-label="Supported AI agents">
+        <div className="ah-hero-c-strip-cap">Works with every agent</div>
+        <div className="ah-hero-c-logos-wrap">
+          <div className="ah-hero-c-logos">
+            <ClaudeMark />
+            <OpenAIMark />
+            <CursorMark />
+            <GeminiMark />
+            <LovableMark />
+            <V0Mark />
+            <BoltMark />
+            <ReplitMark />
+            {/* Repeated so the strip fills wider viewports without gaps. */}
+            <ClaudeMark />
+            <OpenAIMark />
+            <CursorMark />
+            <GeminiMark />
+          </div>
+        </div>
+      </div>
+
+      <div className="ah-hero-c-divider" aria-hidden="true">
+        <span className="ah-hero-c-divider-mark">◐</span>
+      </div>
+
+      <div className="ah-hero-c-demo">
+        <div>
+          <h3 className="ah-hero-c-demo-title">
+            Tell your agent to<br />deploy to Embarko
+          </h3>
+          <div className="ah-hero-c-panel">
+            <div className="ah-hero-c-panel-h">
+              <span className="ah-hero-c-dot" />
+              <span className="ah-hero-c-dot" />
+              <span className="ah-hero-c-dot" />
+            </div>
+            <div className="ah-hero-c-panel-b">
+              <div className="prompt">deploy this app to embarko</div>
+              <div className="ok">Provisioned in 3.8s</div>
+              <div className="url">https://your-app.embarko.dev</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="ah-hero-c-demo-arrow" aria-hidden="true">→</div>
+
+        <div>
+          <h3 className="ah-hero-c-demo-title">
+            It&apos;s live at<br /><code>your-app.embarko.dev</code>
+          </h3>
+          <div className="ah-hero-c-panel">
+            <div className="ah-hero-c-panel-h">
+              <span className="ah-hero-c-dot" />
+              <span className="ah-hero-c-dot" />
+              <span className="ah-hero-c-dot" />
+              <span className="ah-hero-c-panel-tab">your-app.embarko.dev</span>
+            </div>
+            <div className="ah-hero-c-preview">
+              <div>
+                <div className="ah-hero-c-preview-logo">E</div>
+                <div className="ah-hero-c-preview-lines">
+                  <span /><span />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
 // Variant D: "The magic"
-export function HeroVariantD({ toolGrid }: HeroVariantProps) {
+export function HeroVariantD({ toolGrid, onCtaClick }: HeroVariantProps) {
   return (
     <div className="ah-hero-grid">
       <HeroLeft
         variant="D"
+        onCtaClick={onCtaClick}
         heading="Your AI built the app. / Now let it launch it."
         subheading="Give your AI Embarko once. Say 'deploy it' whenever you're ready. Your app goes live, without the hosting rabbit hole."
         cta="Deploy my app →"
@@ -132,16 +315,17 @@ export function HeroVariantD({ toolGrid }: HeroVariantProps) {
 
 // Main component that renders based on variant prop
 interface HeroSectionProps {
-  variant: 'A' | 'B' | 'C' | 'D';
+  variant: HeroVariant;
   toolGrid: ReactNode;
+  onCtaClick: () => void;
 }
 
-export function HeroSection({ variant, toolGrid }: HeroSectionProps) {
+export function HeroSection({ variant, toolGrid, onCtaClick }: HeroSectionProps) {
   const variants = {
-    A: <HeroVariantA toolGrid={toolGrid} />,
-    B: <HeroVariantB toolGrid={toolGrid} />,
-    C: <HeroVariantC toolGrid={toolGrid} />,
-    D: <HeroVariantD toolGrid={toolGrid} />,
+    A: <HeroVariantA toolGrid={toolGrid} onCtaClick={onCtaClick} />,
+    B: <HeroVariantB toolGrid={toolGrid} onCtaClick={onCtaClick} />,
+    C: <HeroVariantC toolGrid={toolGrid} onCtaClick={onCtaClick} />,
+    D: <HeroVariantD toolGrid={toolGrid} onCtaClick={onCtaClick} />,
   };
 
   return (
