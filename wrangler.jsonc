@@ -14,5 +14,15 @@
   // EARLY_ACCESS_WEBHOOK_URL is set manually in the Cloudflare dashboard,
   // so it's intentionally NOT defined here. keep_vars preserves dashboard
   // vars/secrets across deploys instead of wiping them.
-  "keep_vars": true
+  "keep_vars": true,
+  "routes": [
+    {
+      "pattern": "hostnsoft.com/*",
+      "zone_name": "hostnsoft.com"
+    },
+    {
+      "pattern": "www.hostnsoft.com/*",
+      "zone_name": "hostnsoft.com"
+    }
+  ]
 }
