@@ -9,8 +9,7 @@ import type { HeroVariant } from "@/app/lib/heroVariants";
 const HERO_C_PROMPT =
   "Deploy this app to my Embarko workspace using the apphome-skill.md skill file. Set up hosting, a Postgres database, and team login, and give me a live URL.";
 
-/* Inline SVG icons used only inside variant C, so the component stays
-   independent of the ICONS map in home-client.tsx. */
+/* Icon components used only inside variant C */
 const CopyIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <rect x="9" y="9" width="13" height="13" rx="2" />
@@ -22,46 +21,20 @@ const CheckIcon = () => (
     <path d="M20 6 9 17l-5-5" />
   </svg>
 );
-const ClaudeMark = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M12 2 9 10l-8 2 8 2 3 8 3-8 8-2-8-2Z" />
-  </svg>
-);
-const CursorMark = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="m16 18 6-6-6-6-1.4 1.4L18.2 11H2v2h16.2l-3.6 3.6Z" />
-  </svg>
-);
-const LovableMark = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M12 20s-8-4.7-8-11a5 5 0 0 1 8-4 5 5 0 0 1 8 4c0 6.3-8 11-8 11Z" />
-  </svg>
-);
-const V0Mark = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <circle cx="12" cy="12" r="4" />
-  </svg>
-);
-const BoltMark = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M13 2 3 14h7l-1 8 11-13h-8l1-7Z" />
-  </svg>
-);
-const ReplitMark = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M4 4h6v6H4Zm10 0h6v6h-6Zm-10 10h6v6H4Zm10 0h6v6h-6Z" />
-  </svg>
-);
-const OpenAIMark = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
-    <circle cx="12" cy="12" r="9" />
-    <circle cx="12" cy="12" r="4" />
-  </svg>
-);
-const GeminiMark = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M12 2c1 5 5 9 10 10-5 1-9 5-10 10-1-5-5-9-10-10 5-1 9-5 10-10Z" />
-  </svg>
+
+/* Agent icons from public/agenticons, repeated to fill the strip */
+const AGENT_ICONS = [
+  'antigravity', 'claudecode', 'cline', 'codex', 'cursor', 'gemini',
+  'githubcopilot', 'grokbot', 'hermes', 'lovable', 'openclaw', 'opencode',
+  'perplexity', 'pi'
+];
+const AgentIcon = ({ name }: { name: string }) => (
+  <img
+    src={`/agenticons/agenticon-${name}.svg`}
+    alt={name}
+    aria-hidden="true"
+    style={{ width: '32px', height: '32px' }}
+  />
 );
 
 // Right section component (same for all variants)
@@ -229,19 +202,10 @@ export function HeroVariantC(_props: HeroVariantProps) {
         <div className="ah-hero-c-strip-cap">Works with every agent</div>
         <div className="ah-hero-c-logos-wrap">
           <div className="ah-hero-c-logos">
-            <ClaudeMark />
-            <OpenAIMark />
-            <CursorMark />
-            <GeminiMark />
-            <LovableMark />
-            <V0Mark />
-            <BoltMark />
-            <ReplitMark />
-            {/* Repeated so the strip fills wider viewports without gaps. */}
-            <ClaudeMark />
-            <OpenAIMark />
-            <CursorMark />
-            <GeminiMark />
+            {/* Render all 14 agent icons, repeated to fill wider viewports */}
+            {[...AGENT_ICONS, ...AGENT_ICONS.slice(0, 4)].map((name, i) => (
+              <AgentIcon key={`${name}-${i}`} name={name} />
+            ))}
           </div>
         </div>
       </div>

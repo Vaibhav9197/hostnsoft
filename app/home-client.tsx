@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState, type ReactNode, type CSSProperties } from "react";
 import { useHeroImpression, type HeroVariant } from "./hooks/useHeroVariant";
 import { HeroSection } from "./components/HeroVariants";
+import { LoginModal } from "./components/LoginModal";
 import "./v4/apphome.css";
 
 /* ---------------- Icons (lucide-style, inline) ---------------- */
@@ -164,6 +165,7 @@ function Mark({ v }: { v: Mk }) {
 export default function EmbarkoPage({ heroVariant }: { heroVariant: HeroVariant }) {
   const [tool, setTool] = useState<Tool | null>(null);
   const [skillDialog, setSkillDialog] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -255,8 +257,20 @@ export default function EmbarkoPage({ heroVariant }: { heroVariant: HeroVariant 
             <a href="#">Blog</a>
           </div>
           <div className="ah-nav-right">
-            <a className="ah-btn ah-btn-ghost ah-nav-login" href="#">Log in</a>
-            <a className="ah-btn ah-btn-outline-dark" href="#cta">Sign up <Ico n="arrow" /></a>
+            <button
+              type="button"
+              className="ah-btn ah-btn-ghost ah-nav-login"
+              onClick={() => setLoginOpen(true)}
+            >
+              Log in
+            </button>
+            <button
+              type="button"
+              className="ah-btn ah-btn-outline-dark"
+              onClick={() => setLoginOpen(true)}
+            >
+              Sign up <Ico n="arrow" />
+            </button>
           </div>
         </div>
       </nav>
@@ -550,6 +564,9 @@ export default function EmbarkoPage({ heroVariant }: { heroVariant: HeroVariant 
           <span><a href="#">Terms</a> · <a href="#">Privacy</a> · <a href="#">Security</a></span>
         </div>
       </footer>
+
+      {/* ===== Login dialog (MSG91 proxy-auth) ===== */}
+      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
 
       {/* ===== Skill-picker dialog (hero CTA) ===== */}
       <div

@@ -1,0 +1,74 @@
+/*
+  Styles for LoginModal.
+
+  Scoped under .login-modal-root so they cannot clash with .overlay / .modal
+  classes used elsewhere in the app (e.g. globals.css's tool modal). Ships
+  with the component so pages that don't import globals.css still render the
+  dialog correctly — the landing page (v4/apphome.css) is the current example.
+*/
+.login-modal-root .lm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.68);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity 0.22s;
+}
+.login-modal-root .lm-overlay.open {
+  display: flex;
+  opacity: 1;
+}
+.login-modal-root .lm-modal {
+  position: relative;
+  width: 100%;
+  max-width: 26rem;
+  background: #fff;
+  color: #1a1916;
+  border-radius: 1rem;
+  padding: 2rem 1.75rem 1.75rem;
+  box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.45);
+  transform: translateY(10px);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.login-modal-root .lm-overlay.open .lm-modal {
+  transform: none;
+}
+.login-modal-root .lm-close {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  background: transparent;
+  color: #6b665f;
+  border-radius: 0.5rem;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.login-modal-root .lm-close:hover {
+  background: #f0eeea;
+  color: #1a1916;
+}
+.login-modal-root .lm-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.login-modal-root .lm-sub {
+  margin: 0 0 1.4rem;
+  font-size: 0.92rem;
+  color: #6b665f;
+  line-height: 1.55;
+}
+.login-modal-root .lm-widget {
+  min-height: 8rem;
+}
