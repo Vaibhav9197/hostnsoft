@@ -108,7 +108,7 @@ export default function PricingPage() {
           </div>
 
           {/* Enhanced flow visualization with step numbers */}
-          <div className="mt-20">
+          <div className="mt-20 mb-24">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
               {/* Step 1: Idea */}
               <div className="group flex flex-col items-start md:items-center">
@@ -156,13 +156,11 @@ export default function PricingPage() {
               </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Pricing Cards */}
-      <section className="px-6 py-20">
-        <div className="mx-auto max-w-[74rem]">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+          {/* Pricing Cards */}
+          <div className="mb-8">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-12 text-center">Choose your plan</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
             {plans.map((plan) => (
               <div
                 key={plan.name}
@@ -216,6 +214,7 @@ export default function PricingPage() {
                 </div>
               </div>
             ))}
+            </div>
           </div>
         </div>
       </section>
