@@ -168,7 +168,7 @@ export default function PricingPage() {
           </div>
 
           {/* Enhanced flow visualization with step numbers */}
-          <div className="mt-20 mb-8">
+          <div className="mt-16 mb-0">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
               {/* Step 1: Idea */}
               <div className="group flex flex-col items-start md:items-center">
@@ -221,7 +221,7 @@ export default function PricingPage() {
       </section>
 
       {/* AI Compatibility Section */}
-      <section className="px-6 py-20 bg-elevated">
+      <section className="px-6 py-16 bg-elevated">
         <div className="mx-auto max-w-[74rem]">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 mb-4">
