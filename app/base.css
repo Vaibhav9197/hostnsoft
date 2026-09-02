@@ -1,12 +1,7 @@
 /* Project base stylesheet — the app-wide Tailwind + shadcn setup, imported once
    by the root layout (app/layout.tsx) so every route gets Tailwind's theme +
-   utilities, the shadcn/ui token bridge, and a foundational reset.
-
-   This is deliberately NOT the marketing site's hand-rolled CSS. The landing
-   page at / imports app/globals.css itself (its `.site` design system); the
-   /v1–/v4 landing variants each import their own dedicated apphome.css. Those
-   files stay scoped to their own routes — this base carries no page design,
-   only the Tailwind/shadcn foundation shared across the whole project. */
+   utilities, the shadcn/ui token bridge, and a foundational reset. The landing
+   page at / is built directly with Tailwind utilities, no separate page CSS. */
 
 @tailwind base;
 @tailwind components;
@@ -51,6 +46,9 @@
   * {
     @apply box-border m-0 p-0;
     border-color: var(--line);
+  }
+  html {
+    font-family: var(--font);
   }
   button, input, select, optgroup, textarea {
     font: inherit;

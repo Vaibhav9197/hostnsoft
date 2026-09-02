@@ -50,6 +50,15 @@ export default {
         sans: "var(--font)",
         mono: "var(--mono)",
       },
+      keyframes: {
+        "fade-up": {
+          "0%": { opacity: "0", transform: "translateY(12px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+      },
+      animation: {
+        "fade-up": "fade-up 0.6s cubic-bezier(0.16,1,0.3,1) both",
+      },
     },
   },
   plugins: [],

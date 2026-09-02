@@ -1,8 +1,10 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import { Check, ArrowRight, Lightbulb, Cpu, Zap, Code2, Lock, Share2 } from "lucide-react";
 import { Button } from "../components/ui/button";
+import { Header } from "../components/Header";
+import { LoginModal } from "../components/LoginModal";
 
 function Ico({ children }: { children: React.ReactNode }) {
   return (
@@ -69,42 +71,47 @@ export default function PricingPage() {
 
   const aiTools = ["Claude", "Cursor", "Bolt", "Lovable", "Replit", "GPT", "v0", "Codex"];
 
+  const [loginOpen, setLoginOpen] = useState(false);
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 h-[62px] border-b border-transparent bg-background/78 backdrop-blur-lg">
-        <div className="mx-auto max-w-[74rem] px-6 h-full flex items-center justify-between gap-4">
-          <Link href="/" className="inline-flex items-center gap-2 font-bold text-lg text-foreground">
-            <span className="w-2 h-2 bg-primary"></span>
-            Embarko
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-              Home
-            </Link>
-          </div>
-        </div>
-      </nav>
+    <div
+      className="min-h-screen bg-background text-foreground"
+      style={{
+        // Scoped black-and-white override: the shared Tailwind color utilities
+        // (bg-primary, text-primary, bg-elevated, border-border, ...) all read
+        // these CSS custom properties, so overriding them here restyles the
+        // pricing page to grayscale without touching the shared theme used by
+        // the rest of the app (app/base.css :root).
+        "--bg": "#ffffff",
+        "--surface": "#ffffff",
+        "--surface-2": "#f2f2f2",
+        "--surface-3": "#e5e5e5",
+        "--ink": "#111111",
+        "--ink-soft": "#555555",
+        "--ink-faint": "#8a8a8a",
+        "--accent": "#111111",
+        "--accent-2": "#000000",
+        "--accent-soft": "rgba(17,17,17,.08)",
+        "--accent-line": "rgba(17,17,17,.28)",
+        "--on-accent": "#ffffff",
+        "--line": "#e5e5e5",
+        "--line-strong": "#cccccc",
+      } as React.CSSProperties}
+    >
+      <Header onAuthClick={() => setLoginOpen(true)} />
+      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
 
       {/* Hero Section */}
       <section className="relative py-20 md:py-28 px-6">
         <div className="mx-auto max-w-[74rem]">
           <div className="text-center mb-16">
             <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
-              You build it.<br />
-              <span className="text-primary">Embarko makes it real.</span>
+              You build it<br />
+              <span className="text-primary">Embarko makes it real</span>
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               Build apps with AI. Tell your AI to deploy to Embarko, and we'll take care of the rest.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button className="bg-primary text-white hover:bg-[color:var(--accent-2)] px-8 h-12 text-base font-semibold">
-                Start for free <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-              <Button variant="outline" className="px-8 h-12 text-base font-semibold border-border">
-                See how it works
-              </Button>
-            </div>
           </div>
 
           {/* Pricing Cards */}
@@ -144,9 +151,10 @@ export default function PricingPage() {
                 </div>
 
                 <Button
+                  onClick={() => setLoginOpen(true)}
                   className={`w-full mb-8 h-11 font-semibold ${
                     plan.highlighted
-                      ? "bg-primary text-white hover:bg-[color:var(--accent-2)]"
+                      ? "bg-blue-600 text-white hover:bg-blue-700"
                       : "border-border hover:bg-elevated"
                   }`}
                   variant={plan.highlighted ? "default" : "outline"}
@@ -267,7 +275,10 @@ export default function PricingPage() {
           <p className="text-xl text-muted-foreground mb-12 max-w-xl mx-auto leading-relaxed">
             Build it with AI. Ship it with Embarko.
           </p>
-          <Button className="bg-primary text-white hover:bg-[color:var(--accent-2)] px-8 h-12 text-base font-semibold">
+          <Button
+            onClick={() => setLoginOpen(true)}
+            className="bg-blue-600 text-white hover:bg-blue-700 px-8 h-12 text-base font-semibold"
+          >
             Start for free <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
