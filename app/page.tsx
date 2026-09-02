@@ -33,8 +33,8 @@ const TABS = [
 type TabId = (typeof TABS)[number]["id"];
 
 const ACCESS_OPTIONS = [
-  { id: "anyone", label: "Anyone with link" },
-  { id: "password", label: "Password" },
+  { id: "anyone", label: "Anyone with link", note: undefined },
+  { id: "password", label: "Password", note: undefined },
   { id: "restricted", label: "Restricted", note: "invite-only" },
 ] as const;
 
