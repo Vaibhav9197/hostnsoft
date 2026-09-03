@@ -44,7 +44,7 @@ tar -czf /tmp/<app-name>.tar.gz \
 
 ## Step 3 — Deploy
 ```bash
-curl -X POST "https://ship.hostnsoft.com/apps" \
+curl -X POST "https://ship.embarko.ai/apps" \
   -H "Authorization: Bearer ${HOSTNSOFT_TOKEN}" \
   -H "X-App-Name: <app-name>" \
   -H "X-App-Version: <version>" \

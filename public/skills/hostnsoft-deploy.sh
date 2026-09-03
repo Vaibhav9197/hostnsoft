@@ -34,7 +34,7 @@ tar -czf "$ARCHIVE" \
   -C . .
 
 echo "› Deploying ${APP_NAME} @ ${VERSION}…"
-RESPONSE=$(curl -sS -X POST "https://ship.hostnsoft.com/apps" \
+RESPONSE=$(curl -sS -X POST "https://ship.embarko.ai/apps" \
   -H "Authorization: Bearer ${HOSTNSOFT_TOKEN}" \
   -H "X-App-Name: ${APP_NAME}" \
   -H "X-App-Version: ${VERSION}" \

@@ -193,7 +193,7 @@ export default function DocPage() {
               </P>
               <CodeBlock>{`tar -czf /tmp/my-app.tar.gz --exclude=node_modules --exclude=.git -C /path/to/app .
 
-curl -X POST "https://ship.hostnsoft.com/apps" \\
+curl -X POST "https://ship.embarko.ai/apps" \\
   -H "Authorization: Bearer $DEPLOY_TOKEN" \\
   -H "X-App-Name: my-app" \\
   -H "X-App-Version: $(git rev-parse --short HEAD)" \\
