@@ -32,6 +32,14 @@ interface LoginModalProps {
  */
 export function LoginModal({ open, onClose, redirectPath = "/app" }: LoginModalProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  // Callers often pass an inline `() => ...` for onClose, which gets a new
+  // identity on every render. Route through a ref so the effects below only
+  // re-run when `open`/`redirectPath` actually change, not on every parent
+  // re-render (the landing page re-renders continuously via its hero timer).
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   // When the dialog opens, render the MSG91 widget into the container.
   useEffect(() => {
@@ -50,27 +58,27 @@ export function LoginModal({ open, onClose, redirectPath = "/app" }: LoginModalP
       addInfo: { redirect_path: redirectPath },
       success: (data: unknown) => {
         console.log("success response", data);
-        onClose();
+        onCloseRef.current();
       },
       failure: (error: unknown) => {
         console.log("failure reason", error);
       },
     });
-  }, [open, onClose, redirectPath]);
+  }, [open, redirectPath]);
 
   // Lock scroll + Escape to close.
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") onCloseRef.current();
     };
     window.addEventListener("keydown", onKey);
     return () => {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [open, onClose]);
+  }, [open]);
 
   return (
     <>

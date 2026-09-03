@@ -53,7 +53,7 @@ export default function SwitchCompanyPage() {
                 className={cn(
                   "group relative flex flex-col gap-4 overflow-hidden rounded-xl border p-5 transition-all duration-150",
                   isActive
-                    ? "border-primary/40 bg-primary/[0.07] shadow-sm"
+                    ? "border-border bg-elevated shadow-sm"
                     : "border-border bg-card hover:-translate-y-0.5 hover:border-input hover:bg-elevated hover:shadow-md",
                 )}
               >
@@ -62,8 +62,8 @@ export default function SwitchCompanyPage() {
                     className={cn(
                       "grid size-11 shrink-0 place-items-center rounded-lg text-lg font-extrabold transition-transform duration-150",
                       isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "border border-primary/25 bg-primary/10 text-primary group-hover:scale-105",
+                        ? "bg-foreground text-background"
+                        : "border border-input bg-elevated text-foreground group-hover:scale-105",
                     )}
                   >
                     {c.companyName.charAt(0).toUpperCase()}
@@ -75,7 +75,7 @@ export default function SwitchCompanyPage() {
                     </div>
                   </div>
                   {isActive && (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 font-mono text-[0.55rem] uppercase tracking-[0.12em] text-primary">
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-elevated px-2 py-0.5 font-mono text-[0.55rem] uppercase tracking-[0.12em] text-foreground">
                       <Check className="size-3" />
                       Current
                     </span>
@@ -90,7 +90,7 @@ export default function SwitchCompanyPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => choose(c.companyId)}
-                      className="gap-1.5 group-hover:border-primary/50 group-hover:text-foreground"
+                      className="gap-1.5 group-hover:border-input group-hover:text-foreground"
                       aria-label={`Switch to ${c.companyName}`}
                     >
                       Switch
