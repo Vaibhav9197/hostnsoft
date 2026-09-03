@@ -15,14 +15,19 @@
   // so it's intentionally NOT defined here. keep_vars preserves dashboard
   // vars/secrets across deploys instead of wiping them.
   "keep_vars": true,
+  // Custom domains, not route patterns. The embarko.ai zone has no DNS records
+  // at all, and a bare route pattern does not create one -- it would attach and
+  // then serve nothing. custom_domain lets Wrangler create the DNS record and
+  // bind the hostname in one step. Patterns are bare hostnames here: custom
+  // domains cover the whole host, so no "/*" and no zone_name.
   "routes": [
     {
-      "pattern": "hostnsoft.com/*",
-      "zone_name": "hostnsoft.com"
+      "pattern": "embarko.ai",
+      "custom_domain": true
     },
     {
-      "pattern": "www.hostnsoft.com/*",
-      "zone_name": "hostnsoft.com"
+      "pattern": "www.embarko.ai",
+      "custom_domain": true
     }
   ]
 }
