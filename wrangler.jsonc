@@ -15,6 +15,12 @@
   // so it's intentionally NOT defined here. keep_vars preserves dashboard
   // vars/secrets across deploys instead of wiping them.
   "keep_vars": true,
+  // Control-plane base the BFF proxy forwards to. Pinned here rather than left
+  // to the dashboard so the API host is version-controlled and reviewable. The
+  // backend mounts its routes under /api, so the base MUST include /api.
+  "vars": {
+    "HOSTNSOFT_API_URL": "https://ship.embarko.ai/api"
+  },
   // Custom domains, not route patterns. The embarko.ai zone has no DNS records
   // at all, and a bare route pattern does not create one -- it would attach and
   // then serve nothing. custom_domain lets Wrangler create the DNS record and
