@@ -429,3 +429,16 @@ section{padding:18px 0}
 --color-sidebar-border:var(--sidebar-border);
 --color-sidebar-ring:var(--sidebar-ring);
 }
+
+/* The reduced-motion rule above lives inside `.site`, so it never reaches pages
+   that opt out of that wrapper (e.g. /v1). This one is unscoped. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
