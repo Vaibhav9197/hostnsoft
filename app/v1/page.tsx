@@ -1,4 +1,9 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { MapPin, Plane } from 'lucide-react';
+import barcelonaMorning from '../v4/barcelona-morning.png';
+import { SectionSnap } from './SectionSnap';
+import { SiteHeader } from './SiteHeader';
+import { CopyPromptButton, COPIED_LABEL } from '../components/CopyPromptButton';
 
 /**
  * Atmospheric backdrop.
@@ -75,7 +80,11 @@ function AppWindow({
 
 // Modest rounding, not rounded-full: square-ish elements (calculator keys, chart
 // bars) turn into circles at full rounding and stop reading as UI.
-const bar = 'rounded bg-black/[0.07]';
+//
+// The colour comes from --sk, set per card so each sketch picks up its app's
+// tint. The fallback keeps the untinted sketches (the drifting sky windows)
+// looking as they did.
+const bar = 'rounded-[4px] bg-[var(--sk,rgba(0,0,0,0.07))]';
 
 /** Abstract UI sketches — enough shape to read as a real app, not enough to become a feature card. */
 function Sketch({ variant }: { variant: string }) {
@@ -133,8 +142,9 @@ function Sketch({ variant }: { variant: string }) {
           {Array.from({ length: 21 }).map((_, i) => (
             <div
               key={i}
-              className="aspect-square rounded-[3px]"
-              style={{ background: i % 3 === 0 ? 'rgba(0,0,0,0.16)' : 'rgba(0,0,0,0.05)' }}
+              className={`aspect-square rounded-[3px] bg-[var(--sk,rgba(0,0,0,0.16))] ${
+                i % 3 === 0 ? 'opacity-100' : 'opacity-30'
+              }`}
             />
           ))}
         </div>
@@ -168,8 +178,9 @@ function Sketch({ variant }: { variant: string }) {
           {Array.from({ length: 9 }).map((_, i) => (
             <div
               key={i}
-              className="aspect-square rounded-[3px]"
-              style={{ background: [0, 4, 8, 2].includes(i) ? 'rgba(0,0,0,0.14)' : 'rgba(0,0,0,0.04)' }}
+              className={`aspect-square rounded-[3px] bg-[var(--sk,rgba(0,0,0,0.14))] ${
+                [0, 4, 8, 2].includes(i) ? 'opacity-100' : 'opacity-25'
+              }`}
             />
           ))}
         </div>
@@ -179,6 +190,34 @@ function Sketch({ variant }: { variant: string }) {
   }
 }
 
+/* Every sketch variant's colour, in one table: `panel` is the wash behind the
+   sketch, `ink` the shapes on it (fed to the sketches as --sk). Shared by the
+   example cards and the floating windows so the two can't drift apart. */
+const TINTS: Record<string, { panel: string; ink: string }> = {
+  portfolio: { panel: '#f7eee1', ink: '#d8b489' },
+  site: { panel: '#eaf5ee', ink: '#a3c9b1' },
+  cv: { panel: '#f3f2ee', ink: '#bcc4b6' },
+  ai: { panel: '#ecf2fa', ink: '#a6bde0' },
+  expense: { panel: '#faeae3', ink: '#e0ab96' },
+  habit: { panel: '#eaf5ee', ink: '#8fc3a6' },
+  quiz: { panel: '#f1eff8', ink: '#b6b1da' },
+  calc: { panel: '#f3f2ee', ink: '#c0c0b8' },
+  game: { panel: '#e9f0f4', ink: '#93aebd' },
+};
+
+/** The tinted panel a sketch sits on — the look the example cards established. */
+function SketchPanel({ variant, className = '' }: { variant: string; className?: string }) {
+  const tint = TINTS[variant] ?? TINTS.portfolio;
+  return (
+    <div
+      className={`flex flex-col justify-center overflow-hidden rounded-[12px] ${className}`}
+      style={{ backgroundColor: tint.panel, '--sk': tint.ink } as CSSProperties}
+    >
+      <Sketch variant={variant} />
+    </div>
+  );
+}
+
 const APPS = [
   { title: 'Portfolio', desc: 'Show your work.', variant: 'portfolio' },
   { title: 'Personal website', desc: 'Your own corner of the internet.', variant: 'site' },
@@ -186,9 +225,6 @@ const APPS = [
   { title: 'AI tool', desc: 'Turn an idea into something people can use.', variant: 'ai' },
   { title: 'Expense tracker', desc: 'Your money. Your app.', variant: 'expense' },
   { title: 'Habit planner', desc: 'Build the tool you wish existed.', variant: 'habit' },
-  { title: 'Quiz / flashcards', desc: 'Learn your way.', variant: 'quiz' },
-  { title: 'Calculator', desc: 'Simple idea. Real app.', variant: 'calc' },
-  { title: 'Game', desc: 'Make something fun.', variant: 'game' },
 ];
 
 const SKY_APPS = [
@@ -200,9 +236,148 @@ const SKY_APPS = [
   { label: 'streaks', variant: 'habit', top: '62%', left: '10%', w: 'w-40', delay: '2.8s' },
 ];
 
+/* Keyboard-shortcut chip for the copy button. `leading-none` matters: without
+   it the span inherits the button's 28px line-height and renders as a tall box
+   around a small glyph. Sized against the button's 18px label. */
+/* The three-beat "how it works" line under the hero CTA, ported from v4's
+   hero. Step 1 is the current one because the CTA above it is the copy. */
+/**
+ * The Weekend trip planner — the one "real app" screen this page shows, drawn
+ * in v1's lighter idiom (the /v4 showcase runs the same app off its own CSS).
+ *
+ * Lives on its own so the scenes that need a finished-looking screen share one
+ * definition: a grey skeleton never reads as a real app, and two copies of this
+ * markup would drift the moment either scene is touched.
+ */
+function WeekendApp() {
+  return (
+    <>
+
+      <div className="relative overflow-hidden rounded-md">
+        <img
+          src={barcelonaMorning.src}
+          alt="Sagrada Família in Barcelona"
+          className="h-36 w-full object-cover"
+        />
+        <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-white/85 px-2 py-1 text-[10px] font-light tracking-wide text-gray-700 backdrop-blur">
+          <MapPin className="h-3 w-3" aria-hidden="true" /> Barcelona, Spain
+        </span>
+      </div>
+      <div className="space-y-4 pt-4">
+        <div className="space-y-1">
+          <p className="text-[10px] font-light uppercase tracking-[0.2em] text-gray-400">Eight sunlit days</p>
+          <h3 className="text-xl font-light">Barcelona</h3>
+          <p className="flex items-center gap-1.5 text-xs font-light text-gray-500">
+            <Plane className="h-3 w-3" aria-hidden="true" /> 8 – 15 June 2026
+          </p>
+        </div>
+        <div className="grid grid-cols-3 gap-2 border-y border-gray-100 py-3">
+          {[
+            { value: '12', label: 'places saved' },
+            { value: '4', label: 'stays & tables' },
+            { value: '1', label: 'slow afternoon' },
+          ].map((stat) => (
+            <div key={stat.label} className="space-y-0.5">
+              <div className="text-base font-light">{stat.value}</div>
+              <div className="text-[10px] font-light leading-tight text-gray-400">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+        <div className="space-y-2.5">
+          <div className="flex items-baseline justify-between text-[10px] font-light uppercase tracking-[0.2em] text-gray-400">
+            <span>Monday</span>
+            <span>8 June</span>
+          </div>
+          {[
+            { time: '10:00', dot: 'bg-amber-300', title: 'Sagrada Família', note: 'Morning architecture walk' },
+            { time: '13:30', dot: 'bg-rose-300', title: 'Can Culleretes', note: 'Lunch in the Gothic Quarter' },
+          ].map((item) => (
+            <div key={item.time} className="flex items-start gap-2.5">
+              <span className="w-9 shrink-0 pt-0.5 text-[10px] font-light text-gray-400">{item.time}</span>
+              <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${item.dot}`} />
+              <p className="space-y-0.5">
+                <span className="block text-xs font-normal">{item.title}</span>
+                <span className="block text-[10px] font-light text-gray-400">{item.note}</span>
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* The page's primary call to action. Defined once so the hero and the closing
+   frame stay the same button — same label, same shape, same copy behaviour. */
+function CopyPromptCta() {
+  return (
+    <CopyPromptButton
+      className="inline-flex items-center justify-center gap-2.5 rounded-[15px] bg-black px-8 py-4 text-lg font-medium text-white transition hover:bg-gray-900"
+      copiedChildren={
+        <>
+          {COPIED_LABEL}
+          <KeyChip />
+        </>
+      }
+    >
+      Copy the Embarko prompt
+      <KeyChip />
+    </CopyPromptButton>
+  );
+}
+
+function Steps() {
+  const steps = ['Copy', 'Paste into your AI agent', 'Ask it to deploy'];
+  return (
+    <ol
+      aria-label="How it works"
+      className="flex flex-wrap items-center justify-center gap-x-[18px] gap-y-2 text-sm font-medium text-gray-400"
+    >
+      {steps.map((label, i) => (
+        <li
+          key={label}
+          className={`inline-flex items-center gap-1.5 whitespace-nowrap ${
+            i === 0 ? 'text-black' : ''
+          }`}
+        >
+          <span
+            /* leading-none is load-bearing: without it the numeral inherits the
+               list's 20px line-height inside an 18px circle, so the line box
+               overflows and place-items-center centres the wrong box. */
+            className={`grid h-[18px] w-[18px] place-items-center rounded-full border text-[10px] font-bold leading-none ${
+              i === 0 ? 'border-black bg-gray-100 text-black' : 'border-gray-300 text-gray-400'
+            }`}
+          >
+            {i + 1}
+          </span>
+          {label}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function KeyChip() {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-md border border-white/25 bg-white/10 px-2 py-1.5 font-mono text-xs leading-none tracking-wide text-white/75">
+      <span className="text-[13px] leading-none">⌘</span>
+      C
+    </span>
+  );
+}
+
 export default function EmbarkoV1() {
   return (
-    <div className="overflow-x-hidden bg-white text-black">
+    /* The header sits OUTSIDE #v1-scenes on purpose: that wrapper has
+       overflow-x-hidden, and an overflow ancestor becomes the containing block
+       for position:sticky, which stops the header sticking at all. */
+    <>
+      <SiteHeader />
+
+      <div id="v1-scenes" className="overflow-x-hidden bg-white text-black">
+        {/* One scroll gesture = one scene. Renders nothing; see SectionSnap.tsx. */}
+        <SectionSnap containerSelector="#v1-scenes" offsetSelector="nav" />
+
       {/* SCENE 01: THE OPENING */}
       <section className="relative flex min-h-screen flex-col items-center justify-center px-6 py-20">
         {/* Light gathers at the top and clears to white behind the type, so the
@@ -223,13 +398,9 @@ export default function EmbarkoV1() {
           <p className="text-xl font-light text-gray-600 md:text-2xl">
             The easiest way to put your AI-built app online.
           </p>
-          <div className="flex flex-col justify-center gap-4 pt-8 sm:flex-row">
-            <button className="bg-black px-8 py-4 text-lg font-medium text-white transition hover:bg-gray-900">
-              Teach your AI to ship →
-            </button>
-            <button className="border border-black px-8 py-4 text-lg font-medium text-black transition hover:bg-black hover:text-white">
-              See how it works ↓
-            </button>
+          <div className="flex flex-col items-center justify-center gap-5 pt-8">
+            <CopyPromptCta />
+            <Steps />
           </div>
         </div>
       </section>
@@ -240,23 +411,16 @@ export default function EmbarkoV1() {
           <div className="space-y-6">
             <div className="space-y-4">
               <div className="text-gray-600">You:</div>
-              <div className="text-2xl font-light">Build me a personal portfolio.</div>
+              <div className="text-2xl font-light">Build me a weekend trip planner.</div>
             </div>
             <div className="space-y-4 border-t border-gray-200 pt-8">
               <div className="text-gray-600">AI:</div>
-              <div className="text-2xl font-light">Creating your portfolio now...</div>
+              <div className="text-2xl font-light">Creating Weekend now...</div>
             </div>
           </div>
-          <AppWindow label="portfolio — local">
-            <div className="space-y-3">
-              <div className={`${bar} h-20 w-full`} />
-              <div className={`${bar} h-2 w-1/2`} />
-              <div className="grid grid-cols-3 gap-2 pt-1">
-                <div className={`${bar} h-12`} />
-                <div className={`${bar} h-12`} />
-                <div className={`${bar} h-12`} />
-              </div>
-            </div>
+          {/* A real screen reads as a finished app in a way a skeleton never did. */}
+          <AppWindow label="weekend — local">
+            <WeekendApp />
             <p className="pt-4 text-xs font-light uppercase tracking-[0.2em] text-gray-400">Built</p>
           </AppWindow>
         </div>
@@ -288,25 +452,17 @@ export default function EmbarkoV1() {
           fade="from-white via-white/35 to-white"
         />
         <div className="relative z-10 w-full max-w-3xl space-y-12 text-center">
-          <AppWindow label="portfolio.embarko.app" className="mx-auto max-w-md -translate-y-2">
-            <div className="space-y-3">
-              <div className={`${bar} h-16 w-full`} />
-              <div className="grid grid-cols-3 gap-2">
-                <div className={`${bar} h-10`} />
-                <div className={`${bar} h-10`} />
-                <div className={`${bar} h-10`} />
-              </div>
-            </div>
+          {/* Same screen as scene 02 — the app they watched get built is the app
+              that goes live, so it has to be recognisably the same one. */}
+          <AppWindow label="weekend.embarko.app" className="mx-auto max-w-md -translate-y-2 text-left">
+            <WeekendApp />
           </AppWindow>
           <div className="space-y-6">
             <h3 className="text-4xl font-bold sm:text-5xl md:text-7xl">It&apos;s live.</h3>
             <div className="space-y-2 text-2xl font-light text-gray-600">
-              <p>portfolio.embarko.app</p>
+              <p>weekend.embarko.app</p>
               <p className="font-medium text-green-600">● Live</p>
             </div>
-            <button className="bg-black px-8 py-4 text-lg font-medium text-white transition hover:bg-gray-900">
-              Open app →
-            </button>
           </div>
         </div>
       </section>
@@ -323,7 +479,12 @@ export default function EmbarkoV1() {
             <div className="space-y-4">
               <div className="text-6xl font-bold text-gray-300">02</div>
               <h3 className="text-2xl font-light">Teach it Embarko.</h3>
-              <button className="font-medium text-black underline hover:no-underline">Copy prompt →</button>
+              <CopyPromptButton
+                className="font-medium text-black underline hover:no-underline"
+                copiedChildren={COPIED_LABEL}
+              >
+                Copy prompt →
+              </CopyPromptButton>
             </div>
             <div className="space-y-4">
               <div className="text-6xl font-bold text-gray-300">03</div>
@@ -363,17 +524,20 @@ export default function EmbarkoV1() {
           <h2 className="text-center text-4xl font-bold sm:text-5xl md:text-6xl">What are you building?</h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {APPS.map((app) => (
-              <div key={app.title} className="space-y-3">
-                <AppWindow className="transition hover:shadow-[0_16px_40px_rgba(0,0,0,0.10)]">
-                  {/* Fixed height so every window in the grid lines up and the
-                      captions below sit on a shared baseline. */}
-                  <div className="flex h-28 flex-col justify-center">
-                    <Sketch variant={app.variant} />
-                  </div>
-                </AppWindow>
-                <div className="px-1">
-                  <h3 className="text-lg font-bold">{app.title}</h3>
-                  <p className="font-light text-gray-600">{app.desc}</p>
+              <div
+                key={app.title}
+                className="group rounded-[16px] border border-black/[0.06] bg-white p-2.5 shadow-[0_10px_30px_rgba(0,0,0,0.05)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_44px_rgba(0,0,0,0.10)]"
+              >
+                {/* Fixed height so every panel in the grid lines up and the
+                    captions below sit on a shared baseline. */}
+                <SketchPanel variant={app.variant} className="h-36 p-5" />
+                <div className="space-y-1 px-1.5 pb-1 pt-3.5">
+                  <h3 className="text-base font-bold">{app.title}</h3>
+                  <p className="text-sm font-light text-gray-600">{app.desc}</p>
+                  <p className="flex items-center gap-1.5 pt-1 text-xs font-light text-gray-500">
+                    <span className="h-1.5 w-1.5 rounded-full bg-black" />
+                    Live on Embarko
+                  </p>
                 </div>
               </div>
             ))}
@@ -404,36 +568,16 @@ export default function EmbarkoV1() {
                 className={`absolute ${app.w} animate-[float_9s_ease-in-out_infinite] backdrop-blur-sm`}
                 style={{ top: app.top, left: app.left, animationDelay: app.delay }}
               >
-                <Sketch variant={app.variant} />
+                <SketchPanel variant={app.variant} className="p-3" />
               </AppWindow>
             ))}
           </div>
           <div className="grid grid-cols-2 gap-4 md:hidden">
             {SKY_APPS.slice(0, 4).map((app) => (
               <AppWindow key={app.label} label={app.label}>
-                <Sketch variant={app.variant} />
+                <SketchPanel variant={app.variant} className="p-3" />
               </AppWindow>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SCENE 09: THE REALIZATION */}
-      <section className="flex min-h-screen items-center justify-center px-6 py-20">
-        <div className="w-full max-w-3xl space-y-12">
-          <AppWindow label="portfolio.embarko.app" className="mx-auto">
-            <div className="divide-y divide-black/5">
-              {['Sign in', 'It remembers', 'Upload', 'Live'].map((step) => (
-                <div key={step} className="flex items-center justify-between py-3">
-                  <span className="text-lg font-light text-gray-700">{step}</span>
-                  <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                </div>
-              ))}
-            </div>
-          </AppWindow>
-          <div className="space-y-4 text-center">
-            <h3 className="text-3xl font-bold sm:text-4xl md:text-5xl">This isn&apos;t just a page.</h3>
-            <p className="text-2xl font-light text-gray-600">It&apos;s a real application.</p>
           </div>
         </div>
       </section>
@@ -443,9 +587,25 @@ export default function EmbarkoV1() {
         <div className="w-full max-w-4xl space-y-12 text-center">
           <h2 className="text-4xl font-bold sm:text-5xl md:text-6xl">Build your way.</h2>
           <div className="flex flex-wrap justify-center gap-4">
-            {['Claude', 'Codex', 'Cursor', 'Lovable', 'Replit'].map((ai) => (
-              <div key={ai} className="rounded-full border border-gray-200 bg-white px-6 py-3 font-light">
-                {ai}
+            {[
+              { slug: 'claudecode', name: 'Claude' },
+              { slug: 'codex', name: 'Codex' },
+              { slug: 'cursor', name: 'Cursor' },
+              { slug: 'lovable', name: 'Lovable' },
+              { slug: 'gemini', name: 'Gemini' },
+            ].map((ai) => (
+              <div
+                key={ai.slug}
+                className="flex items-center gap-2.5 rounded-full border border-gray-200 bg-white px-6 py-3 font-light"
+              >
+                {/* Monochrome marks from public/agenticons, as used on v2. */}
+                <img
+                  src={`/agenticons/agenticon-${ai.slug}.svg`}
+                  alt=""
+                  aria-hidden="true"
+                  className="h-4 w-4 shrink-0 object-contain"
+                />
+                {ai.name}
               </div>
             ))}
             <div className="rounded-full border border-gray-200 bg-white px-6 py-3 font-light text-gray-600">
@@ -453,34 +613,6 @@ export default function EmbarkoV1() {
             </div>
           </div>
           <p className="text-xl font-light text-gray-600">Embarko works with the AI you already use.</p>
-        </div>
-      </section>
-
-      {/* SCENE 11: THE POSSIBILITIES */}
-      <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-20">
-        <SkyBackdrop
-          src="/atmosphere/sky-drift.jpg"
-          position="center 70%"
-          blur={26}
-          opacity={0.6}
-          saturate={1.15}
-          fade="from-white via-transparent to-white"
-        />
-        <div className="relative z-10 w-full max-w-5xl space-y-12">
-          <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
-            {APPS.slice(0, 8).map((app, i) => (
-              <AppWindow
-                key={app.title}
-                className="animate-[float_11s_ease-in-out_infinite]"
-                style={{ animationDelay: `${i * 0.45}s` }}
-              >
-                <Sketch variant={app.variant} />
-              </AppWindow>
-            ))}
-          </div>
-          <div className="border-t border-gray-200 pt-12 text-center">
-            <h2 className="text-4xl font-bold sm:text-5xl md:text-6xl">What will you build?</h2>
-          </div>
         </div>
       </section>
 
@@ -513,12 +645,14 @@ export default function EmbarkoV1() {
           <h3 className="text-3xl font-light text-gray-600 sm:text-4xl md:text-6xl">Let it ship it.</h3>
           <div className="space-y-6 border-t border-gray-200 pt-12">
             <p className="text-xl font-light text-gray-600">Teach your AI to ship with Embarko.</p>
-            <button className="bg-black px-8 py-4 text-lg font-medium text-white transition hover:bg-gray-900">
-              Teach your AI to ship →
-            </button>
+            <div className="flex flex-col items-center gap-5">
+              <CopyPromptCta />
+              <Steps />
+            </div>
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }

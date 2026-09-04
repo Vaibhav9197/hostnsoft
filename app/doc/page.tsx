@@ -6,6 +6,7 @@ import { Copy, Check } from "lucide-react";
 import { Header } from "../components/Header";
 import { LoginModal } from "../components/LoginModal";
 import { DEPLOY_PROMPT } from "../lib/deployPrompt";
+import { CopyPromptButton, COPIED_LABEL } from "../components/CopyPromptButton";
 
 const TOC = [
   { id: "overview", label: "Overview" },
@@ -67,17 +68,6 @@ function P({ children }: { children: React.ReactNode }) {
 
 export default function DocPage() {
   const [loginOpen, setLoginOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const copyPrompt = async () => {
-    try {
-      await navigator.clipboard.writeText(DEPLOY_PROMPT);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    } catch {
-      // Clipboard blocked — nothing more we can do.
-    }
-  };
 
   return (
     <div className="min-h-screen bg-white text-neutral-950">
@@ -146,14 +136,18 @@ export default function DocPage() {
                   <span className="text-xs font-medium text-neutral-500">
                     Copy prompt for agent · Paste in your agent
                   </span>
-                  <button
-                    type="button"
-                    onClick={copyPrompt}
+                  <CopyPromptButton
                     className="inline-flex items-center gap-1.5 rounded-full bg-neutral-950 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-black"
+                    copiedChildren={
+                      <>
+                        {COPIED_LABEL}
+                        <Check className="h-3 w-3" />
+                      </>
+                    }
                   >
-                    {copied ? "Copied" : "Copy"}
-                    {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                  </button>
+                    Copy
+                    <Copy className="h-3 w-3" />
+                  </CopyPromptButton>
                 </div>
                 <pre className="overflow-x-auto p-4 font-mono text-xs leading-relaxed text-neutral-700">
                   {DEPLOY_PROMPT}

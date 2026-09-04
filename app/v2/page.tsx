@@ -1,33 +1,29 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
+import { ArrowRight, Copy, Bot, Globe } from 'lucide-react';
+import { CopyPromptButton, COPIED_LABEL } from '../components/CopyPromptButton';
 
-const AGENT_PROMPT = `Deploy this project to Embarko.
-
-Run \`npx embarko deploy\` from the project root.
-Embarko detects the build automatically — no Dockerfile,
-no config. It prints a live URL when it's done.`;
-
-/* What the agent reports back, one line at a time, inside the chat. */
-const AGENT_STEPS = [
-  'Reading your project',
-  'Detected framework: Next.js',
-  'Building your app',
-  'Provisioning database and file storage',
-  'Assigning your URL',
+/* Looping "watch it deploy" timeline shown on step 1. A single elapsed-ms
+   counter drives every derived phase, rather than nested timers, so the whole
+   sequence stays deterministic and easy to re-time. Disabled under
+   prefers-reduced-motion — see the effect in DeployTimeline. */
+const CYCLE_MS = 7000;
+const STEP2_START = 1400;
+const LIVE_COUNT_START = 3900;
+const STEP3_START = 4300;
+const STEP3_TYPE_MS = 1000;
+const SITE_URL = 'your-app.embarko.ai';
+const LOGS = [
+  { t: 1400, text: '> deploy this app to embarko' },
+  { t: 2100, text: 'Installing dependencies...' },
+  { t: 2800, text: 'Building...' },
+  { t: 3500, text: 'Provisioning database...' },
 ];
 
-const STEPS = ['Start', 'Copy', 'Paste', 'Live'];
+const STEPS = ['Start', 'Copy', 'Paste'];
 
 /* ── shared bits ───────────────────────────────────────── */
-
-function Eyebrow({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="text-[12px] font-medium uppercase tracking-[0.22em] text-black/35 md:text-[13px]">
-      {children}
-    </div>
-  );
-}
 
 function Heading({ children }: { children: React.ReactNode }) {
   return (
@@ -96,8 +92,7 @@ export default function EmbarkoV2() {
         <div key={step} className="eb-in w-full max-w-[1000px]">
           {step === 0 && <Hero onNext={() => setStep(1)} />}
           {step === 1 && <CopyStep onNext={() => setStep(2)} />}
-          {step === 2 && <ChatStep onNext={() => setStep(3)} />}
-          {step === 3 && <LiveStep onRestart={() => setStep(0)} />}
+          {step === 2 && <ChatStep />}
         </div>
       </div>
 
@@ -146,13 +141,195 @@ function Hero({ onNext }: { onNext: () => void }) {
         onClick={onNext}
         className="group mt-10 inline-flex items-center gap-2.5 rounded-full bg-black px-8 py-4 text-[16px] font-medium text-white transition hover:bg-black/85"
       >
-        See how it works
+        Start now
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
           <path d="M5 12h14M12 5l7 7-7 7" />
         </svg>
       </button>
 
-      <div className="mt-5 text-[14px] text-black/35">Takes 30 seconds</div>
+      <div className="mt-5 text-[14px] text-black/35">It takes minutes to live</div>
+    </div>
+  );
+}
+
+/* ── deploy timeline (step 1's visual) ─────────────────── */
+
+function DeployTimeline() {
+  const [elapsed, setElapsed] = useState(STEP3_START + 100);
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const id = window.setInterval(() => {
+      setElapsed((e) => (e + 100) % CYCLE_MS);
+    }, 100);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const step2Active = elapsed >= STEP2_START && elapsed < STEP3_START;
+  const step3Active = elapsed >= STEP3_START;
+  const step1Active = !step2Active && !step3Active;
+
+  /* The final log line counts up live ("Live in 0.0s" -> "4.1s") instead of
+     appearing as static text, timed to land exactly as step 3 takes over. */
+  const visibleLogs = LOGS.filter((l) => elapsed >= l.t && elapsed < STEP3_START);
+  const liveCounterActive = elapsed >= LIVE_COUNT_START && elapsed < STEP3_START;
+  const liveSeconds = (
+    ((Math.min(elapsed, STEP3_START) - LIVE_COUNT_START) / (STEP3_START - LIVE_COUNT_START)) * 4.1
+  ).toFixed(1);
+  const displayLines = liveCounterActive
+    ? [...visibleLogs, { t: LIVE_COUNT_START, text: `Live in ${liveSeconds}s` }]
+    : visibleLogs;
+
+  /* Step 3's URL types in character by character once it takes over, and the
+     "it's live" line only appears once typing finishes — the reveal is the
+     payoff, not an instant swap. */
+  const typeProgress = step3Active ? Math.min(1, (elapsed - STEP3_START) / STEP3_TYPE_MS) : 0;
+  const typedUrl = SITE_URL.slice(0, Math.round(typeProgress * SITE_URL.length));
+  const urlTypingDone = typeProgress >= 1;
+  const liveLineVisible = step3Active && urlTypingDone;
+
+  return (
+    <div className="mx-auto mt-10 grid max-w-5xl grid-cols-1 items-stretch gap-4 text-left md:grid-cols-[1fr_auto_1fr_auto_1fr]">
+      {/* Step 1 — Copy prompt */}
+      <div
+        className={`flex flex-col overflow-hidden rounded-xl border transition-colors duration-300 ${
+          step1Active ? 'border-neutral-950' : 'border-neutral-200'
+        }`}
+      >
+        <div className="flex items-center gap-1.5 border-b border-neutral-200 px-4 py-3">
+          <TrafficLights />
+          <span className="ml-2 truncate rounded bg-neutral-100 px-2 py-0.5 font-mono text-xs text-neutral-500">
+            embarko.ai
+          </span>
+        </div>
+        <div className="flex flex-1 flex-col p-6">
+          <span
+            className={`text-xs font-semibold transition-colors duration-300 ${
+              step1Active ? 'text-neutral-950' : 'text-neutral-400'
+            }`}
+          >
+            01
+          </span>
+          <div className="mt-3 flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-100">
+            <Copy className="h-5 w-5" strokeWidth={1.75} />
+          </div>
+          <h3 className="mt-4 text-sm font-semibold">Copy the prompt</h3>
+          <p className="mt-1 text-xs leading-relaxed text-neutral-500">
+            One click on the button above.
+          </p>
+        </div>
+      </div>
+
+      <ArrowRight
+        className={`mx-auto hidden h-5 w-5 self-center transition-colors duration-300 md:block ${
+          step2Active || step3Active ? 'text-neutral-950' : 'text-neutral-300'
+        }`}
+      />
+      <ArrowRight
+        className={`mx-auto h-5 w-5 rotate-90 transition-colors duration-300 md:hidden ${
+          step2Active || step3Active ? 'text-neutral-950' : 'text-neutral-300'
+        }`}
+      />
+
+      {/* Step 2 — Give it to your agent */}
+      <div
+        className={`flex flex-col overflow-hidden rounded-xl border transition-colors duration-300 ${
+          step2Active ? 'border-neutral-950' : 'border-neutral-200'
+        }`}
+      >
+        <div className="flex items-center gap-1.5 border-b border-neutral-200 px-4 py-3">
+          <TrafficLights />
+          <span className="ml-2 truncate rounded bg-neutral-100 px-2 py-0.5 font-mono text-xs text-neutral-500">
+            your agent
+          </span>
+        </div>
+        <div className="flex flex-1 flex-col p-6">
+          <span
+            className={`text-xs font-semibold transition-colors duration-300 ${
+              step2Active ? 'text-neutral-950' : 'text-neutral-400'
+            }`}
+          >
+            02
+          </span>
+          <div className="mt-3 flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-100">
+            <Bot className="h-5 w-5" strokeWidth={1.75} />
+          </div>
+          <h3 className="mt-4 text-sm font-semibold">Give it to your agent</h3>
+          <div className="mt-1 h-11 space-y-1 overflow-hidden font-mono text-xs leading-relaxed">
+            {displayLines.length === 0 ? (
+              <p className="text-neutral-400">
+                <span className="text-neutral-300">{'>'}</span> waiting for prompt...
+              </p>
+            ) : (
+              displayLines.slice(-2).map((log, i, arr) => (
+                <p
+                  key={log.text}
+                  className={`eb-in tabular-nums ${
+                    i === arr.length - 1 ? 'font-semibold text-neutral-950' : 'text-neutral-400'
+                  }`}
+                >
+                  {log.text.startsWith('>') ? (
+                    <>
+                      <span className="text-neutral-400">{'>'}</span> {log.text.slice(2)}
+                    </>
+                  ) : (
+                    log.text
+                  )}
+                </p>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      <ArrowRight
+        className={`mx-auto hidden h-5 w-5 self-center transition-colors duration-300 md:block ${
+          step3Active ? 'text-neutral-950' : 'text-neutral-300'
+        }`}
+      />
+      <ArrowRight
+        className={`mx-auto h-5 w-5 rotate-90 transition-colors duration-300 md:hidden ${
+          step3Active ? 'text-neutral-950' : 'text-neutral-300'
+        }`}
+      />
+
+      {/* Step 3 — Your app is live */}
+      <div
+        className={`flex flex-col overflow-hidden rounded-xl border transition-colors duration-300 ${
+          step3Active ? 'border-neutral-950' : 'border-neutral-200'
+        }`}
+      >
+        <div className="flex items-center gap-2 border-b border-neutral-200 px-4 py-3">
+          <TrafficLights />
+          <span className="ml-2 truncate rounded bg-neutral-100 px-2 py-0.5 font-mono text-xs text-neutral-500">
+            {step3Active ? typedUrl : SITE_URL}
+            {step3Active && !urlTypingDone && <span className="eb-caret">▍</span>}
+          </span>
+        </div>
+        <div className="flex flex-1 flex-col p-6">
+          <span
+            className={`text-xs font-semibold transition-colors duration-300 ${
+              step3Active ? 'text-neutral-950' : 'text-neutral-400'
+            }`}
+          >
+            03
+          </span>
+          <div className="mt-3 flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-100">
+            <Globe className="h-5 w-5" strokeWidth={1.75} />
+          </div>
+          <h3 className="mt-4 text-sm font-semibold">Your app is live</h3>
+          {liveLineVisible ? (
+            <p className="eb-in mt-1 inline-flex w-fit items-center gap-1.5 text-xs font-semibold text-[#16a34a]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#16a34a]" />
+              Real login, real database, real URL.
+            </p>
+          ) : (
+            <p className="mt-1 text-xs leading-relaxed text-neutral-400">
+              {step3Active ? 'Deploying...' : 'Waiting for deploy...'}
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -160,257 +337,92 @@ function Hero({ onNext }: { onNext: () => void }) {
 /* ── step 1 · copy the prompt ──────────────────────────── */
 
 function CopyStep({ onNext }: { onNext: () => void }) {
-  const [copied, setCopied] = useState(false);
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(AGENT_PROMPT);
-    } catch {
-      /* clipboard blocked — the demo continues regardless */
-    }
-    setCopied(true);
-    setTimeout(onNext, 850);
-  };
-
   return (
     <div>
       <div className="text-center">
-        <Eyebrow>Step 1 of 3</Eyebrow>
         <Heading>Copy the prompt</Heading>
         <Sub>This is all your agent needs to know. One prompt, any agent.</Sub>
       </div>
 
-      <div className="mx-auto mt-10 max-w-[680px] overflow-hidden rounded-[14px] border border-black/10 bg-black/[0.02]">
-        <div className="flex items-center justify-between border-b border-black/[0.07] px-4 py-2.5">
-          <span className="font-mono text-[11px] uppercase tracking-wider text-black/35">
-            embarko.prompt
-          </span>
-          <TrafficLights />
-        </div>
-        <pre className="whitespace-pre-wrap px-5 py-5 font-mono text-[13px] leading-relaxed text-black/70">
-          {AGENT_PROMPT}
-        </pre>
+      <div className="mt-8 text-center">
+        <CopyPromptButton
+          /* The demo must reach step 2 even where the clipboard is blocked. */
+          onClicked={() => setTimeout(onNext, 850)}
+          className="inline-flex items-center gap-2.5 rounded-full bg-black px-8 py-4 text-[16px] font-medium text-white transition hover:bg-black/85"
+          copiedClassName="inline-flex items-center gap-2.5 rounded-full bg-[#16a34a] px-8 py-4 text-[16px] font-medium text-white transition"
+          copiedChildren={
+            <>
+              {COPIED_LABEL}
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-75">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </>
+          }
+        >
+          Copy prompt
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-75">
+            <rect x="9" y="9" width="13" height="13" rx="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+        </CopyPromptButton>
       </div>
 
-      <div className="mt-8 text-center">
-        <button
-          onClick={copy}
-          className={`inline-flex items-center gap-2.5 rounded-full px-8 py-4 text-[16px] font-medium transition ${
-            copied ? 'bg-[#16a34a] text-white' : 'bg-black text-white hover:bg-black/85'
-          }`}
-        >
-          {copied ? 'Copied' : 'Copy prompt'}
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-75">
-            {copied ? (
-              <polyline points="20 6 9 17 4 12" />
-            ) : (
-              <>
-                <rect x="9" y="9" width="13" height="13" rx="2" />
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-              </>
-            )}
-          </svg>
-        </button>
-      </div>
+      <DeployTimeline />
     </div>
   );
 }
 
-/* ── step 2 · the agent does everything ────────────────── */
+/* ── step 2 · hand it to whichever agent you use ───────── */
 
-type Phase = 'pasting' | 'ready' | 'working' | 'done';
+/* Display only — these name the agents the prompt is known to work with;
+   nothing here is clickable. Icons live in public/agenticons. */
+const AGENTS = [
+  { slug: 'claudecode', name: 'Claude Code' },
+  { slug: 'cursor', name: 'Cursor' },
+  { slug: 'githubcopilot', name: 'GitHub Copilot' },
+  { slug: 'codex', name: 'Codex' },
+  { slug: 'gemini', name: 'Gemini' },
+  { slug: 'antigravity', name: 'Antigravity' },
+  { slug: 'cline', name: 'Cline' },
+  { slug: 'opencode', name: 'OpenCode' },
+  { slug: 'openclaw', name: 'OpenClaw' },
+  { slug: 'lovable', name: 'Lovable' },
+  { slug: 'grokbot', name: 'Grok' },
+  { slug: 'perplexity', name: 'Perplexity' },
+  { slug: 'hermes', name: 'Hermes' },
+  { slug: 'pi', name: 'Pi' },
+];
 
-function ChatStep({ onNext }: { onNext: () => void }) {
-  const [phase, setPhase] = useState<Phase>('pasting');
-  const [visible, setVisible] = useState(0);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const cleanupRef = useRef<() => void>(() => {});
-  const onNextRef = useRef(onNext);
-  onNextRef.current = onNext;
-
-  // The prompt "drops in" on its own, so the gesture reads clearly.
-  useEffect(() => {
-    const id = setTimeout(() => setPhase('ready'), 600);
-    return () => clearTimeout(id);
-  }, []);
-
-  // Keep the newest agent line in view as they stack up.
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [visible, phase]);
-
-  const send = () => {
-    setPhase('working');
-    const timers: ReturnType<typeof setTimeout>[] = [];
-
-    AGENT_STEPS.forEach((_, i) => {
-      timers.push(setTimeout(() => setVisible(i + 1), 700 + i * 750));
-    });
-
-    const after = 700 + AGENT_STEPS.length * 750;
-    timers.push(setTimeout(() => setPhase('done'), after));
-    timers.push(setTimeout(() => onNextRef.current(), after + 1800));
-
-    // Cleared if the user steps back mid-run.
-    cleanupRef.current = () => timers.forEach(clearTimeout);
-  };
-
-  useEffect(() => () => cleanupRef.current(), []);
-
-  const started = phase === 'working' || phase === 'done';
-
+function ChatStep() {
   return (
     <div>
       <div className="text-center">
-        <Eyebrow>Step 2 of 3</Eyebrow>
         <Heading>Paste it into your AI</Heading>
         <Sub>Your agent runs the deploy itself. You just watch.</Sub>
       </div>
 
-      {/* mock agent chat — this is where the whole deploy happens */}
-      <div className="mx-auto mt-10 max-w-[680px] overflow-hidden rounded-[14px] border border-black/10 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
-        <div className="flex items-center gap-2.5 border-b border-black/[0.07] px-4 py-3">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black">
-            <span className="h-1.5 w-1.5 rounded-full bg-white" />
-          </span>
-          <span className="text-[13px] font-medium text-black/60">Your AI assistant</span>
-        </div>
-
-        <div ref={scrollRef} className="h-[300px] overflow-y-auto px-4 py-4">
-          {!started ? (
-            <div className="rounded-[12px] border border-black/10 bg-black/[0.02] px-4 py-3.5">
-              <pre
-                className={`whitespace-pre-wrap font-mono text-[12px] leading-relaxed transition-opacity duration-500 ${
-                  phase === 'ready' ? 'text-black/70 opacity-100' : 'opacity-0'
-                }`}
-              >
-                {AGENT_PROMPT}
-              </pre>
-              {phase === 'pasting' && (
-                <div className="font-mono text-[12px] text-black/30">
-                  <span className="eb-caret">▋</span> Paste here
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {/* what you sent */}
-              <div className="flex justify-end">
-                <div className="max-w-[85%] rounded-[12px] bg-black px-4 py-3 font-mono text-[12px] leading-relaxed text-white/90">
-                  Deploy this project to Embarko.
-                </div>
-              </div>
-
-              {/* what the agent does */}
-              <div className="space-y-2 pt-1">
-                {AGENT_STEPS.slice(0, visible).map((line, i) => {
-                  const finished = i < visible - 1 || phase === 'done';
-                  return (
-                    <div key={line} className="eb-in flex items-center gap-2.5 text-[13.5px]">
-                      {finished ? (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-[#16a34a]">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      ) : (
-                        <span className="eb-spin h-3.5 w-3.5 shrink-0 rounded-full border-[1.5px] border-black/15 border-t-black/60" />
-                      )}
-                      <span className={finished ? 'text-black/50' : 'text-black/75'}>{line}</span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {phase === 'done' && (
-                <div className="eb-in rounded-[12px] border border-[#16a34a]/25 bg-[#16a34a]/[0.07] px-4 py-3.5">
-                  <div className="text-[13.5px] font-medium text-[#16a34a]">
-                    Done — deployed in 3.2s
-                  </div>
-                  <div className="mt-1 font-mono text-[12.5px] text-black/60">
-                    https://yourapp.embarko.app
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between border-t border-black/[0.07] px-4 py-3">
-          <span className="text-[12.5px] text-black/30">
-            {phase === 'pasting' && 'Pasting…'}
-            {phase === 'ready' && 'Ready to send'}
-            {phase === 'working' && 'Your agent is deploying…'}
-            {phase === 'done' && 'Deployed'}
-          </span>
-          <button
-            onClick={send}
-            disabled={phase !== 'ready'}
-            className="inline-flex items-center gap-2 rounded-full bg-black px-5 py-2.5 text-[14px] font-medium text-white transition hover:bg-black/85 disabled:opacity-25"
+      <ul className="mx-auto mt-12 flex max-w-[820px] flex-wrap items-center justify-center gap-2.5">
+        {AGENTS.map((agent) => (
+          <li
+            key={agent.slug}
+            className="flex items-center gap-2.5 rounded-full border border-black/10 bg-white px-4 py-2.5"
           >
-            Send
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── step 3 · it's live ────────────────────────────────── */
-
-function LiveStep({ onRestart }: { onRestart: () => void }) {
-  return (
-    <div>
-      <div className="text-center">
-        <Eyebrow>Step 3 of 3</Eyebrow>
-        <Heading>It&rsquo;s live.</Heading>
-        <Sub>A real URL you can share, with a database and file storage already attached.</Sub>
-      </div>
-
-      <div className="mx-auto mt-10 max-w-[680px] overflow-hidden rounded-[14px] border border-black/10 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.09)]">
-        <div className="flex items-center gap-2.5 border-b border-black/10 px-3.5 py-2.5">
-          <TrafficLights />
-          <div className="ml-2 flex flex-1 items-center gap-2 truncate rounded-full bg-black/[0.05] px-3 py-1">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="shrink-0 text-[#16a34a]">
-              <rect x="3" y="11" width="18" height="11" rx="2" />
-              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-            </svg>
-            <span className="truncate font-mono text-[11.5px] text-black/50">
-              yourapp.embarko.app
+            <img
+              src={`/agenticons/agenticon-${agent.slug}.svg`}
+              alt=""
+              aria-hidden="true"
+              className="h-5 w-5 shrink-0 object-contain"
+            />
+            <span className="whitespace-nowrap text-[14px] font-medium text-black/70">
+              {agent.name}
             </span>
-          </div>
-        </div>
+          </li>
+        ))}
+      </ul>
 
-        <div className="flex h-[180px] flex-col items-center justify-center gap-3">
-          <div className="text-[16px] font-medium text-black/70">Your app</div>
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-[#16a34a]/10 px-3 py-1 text-[12px] font-medium text-[#16a34a]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#16a34a]" />
-            Live
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-9 text-center">
-        <a
-          href="/app"
-          className="group inline-flex items-center gap-2.5 rounded-full bg-black px-9 py-4 text-[16px] font-medium text-white transition hover:bg-black/85"
-        >
-          Start now
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
-        </a>
-        <div className="mt-5">
-          <button
-            onClick={onRestart}
-            className="text-[14px] text-black/35 transition hover:text-black/70"
-          >
-            Replay the demo
-          </button>
-        </div>
-      </div>
+      <p className="mt-10 text-center text-[15px] text-black/35">
+        One prompt, any agent — the deploy runs the same either way.
+      </p>
     </div>
   );
 }
