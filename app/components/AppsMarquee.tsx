@@ -197,8 +197,8 @@ export function AppsMarquee() {
   // duplicate the set so the -50% translate loops seamlessly
   const loop = [...APPS, ...APPS];
   return (
-    <section className="marquee-sec" aria-label="Apps running on hostnsoft">
-      <div className="marquee-kicker">Apps deployed and running on hostnsoft</div>
+    <section className="marquee-sec" aria-label="Apps running on Embarko">
+      <div className="marquee-kicker">Apps deployed and running on Embarko</div>
       <div className="marquee">
         <div className="marquee-track">
           {loop.map((app, i) => (

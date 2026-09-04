@@ -16,11 +16,11 @@ type Tool = {
 };
 
 const TOOLS: Tool[] = [
-  { id: "claude", name: "Claude", sub: "Claude Code · Cowork · Desktop", format: ".skill", href: "/skills/hostnsoft-deploy.skill", mark: "✻", recommended: true },
-  { id: "chatgpt", name: "ChatGPT", sub: "Custom GPT · Projects", format: ".md", href: "/skills/hostnsoft-deploy-chatgpt.md", mark: "◎" },
-  { id: "gemini", name: "Gemini", sub: "Gems", format: ".md", href: "/skills/hostnsoft-deploy-gemini.md", mark: "✦" },
-  { id: "cursor", name: "Cursor / Windsurf", sub: "Agent rule · AGENTS.md", format: ".md", href: "/skills/hostnsoft-deploy-cursor.md", mark: "❯" },
-  { id: "cli", name: "Any tool / CLI", sub: "Standalone bash script", format: ".sh", href: "/skills/hostnsoft-deploy.sh", mark: "$" },
+  { id: "claude", name: "Claude", sub: "Claude Code · Cowork · Desktop", format: ".skill", href: "/skills/embarko-deploy.skill", mark: "✻", recommended: true },
+  { id: "chatgpt", name: "ChatGPT", sub: "Custom GPT · Projects", format: ".md", href: "/skills/embarko-deploy-chatgpt.md", mark: "◎" },
+  { id: "gemini", name: "Gemini", sub: "Gems", format: ".md", href: "/skills/embarko-deploy-gemini.md", mark: "✦" },
+  { id: "cursor", name: "Cursor / Windsurf", sub: "Agent rule · AGENTS.md", format: ".md", href: "/skills/embarko-deploy-cursor.md", mark: "❯" },
+  { id: "cli", name: "Any tool / CLI", sub: "Standalone bash script", format: ".sh", href: "/skills/embarko-deploy.sh", mark: "$" },
 ];
 
 export function SkillDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -30,7 +30,7 @@ export function SkillDialog({ open, onClose }: { open: boolean; onClose: () => v
         <DialogHeader>
           <DialogTitle>Deploy an app</DialogTitle>
           <DialogDescription>
-            Add the hostnsoft deploy skill to your AI tool, then just say “deploy this.” Pick your tool:
+            Add the Embarko deploy skill to your AI tool, then just say “deploy this.” Pick your tool:
           </DialogDescription>
         </DialogHeader>
 
@@ -79,7 +79,7 @@ export function SkillDialog({ open, onClose }: { open: boolean; onClose: () => v
           <Link href="/app/tokens" onClick={onClose} className="text-primary underline underline-offset-2">
             create a deploy token
           </Link>{" "}
-          and export it as <code className="border border-border bg-elevated px-1 py-0.5 font-mono text-[0.85em] text-foreground">HOSTNSOFT_TOKEN</code>.
+          and export it as <code className="border border-border bg-elevated px-1 py-0.5 font-mono text-[0.85em] text-foreground">DEPLOY_TOKEN</code>.
         </div>
       </DialogContent>
     </Dialog>

@@ -4,7 +4,7 @@ import { exchange } from "../../../lib/api";
 
 export const runtime = "nodejs";
 
-// POST /api/auth/exchange — turn an MSG91 proxy_auth_token into a hostnsoft
+// POST /api/auth/exchange — turn an MSG91 proxy_auth_token into an Embarko
 // session. Sets the httpOnly session cookies and returns { user, companies }.
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));

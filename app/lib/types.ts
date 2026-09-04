@@ -1,4 +1,4 @@
-// Control-plane types for the hostnsoft console.
+// Control-plane types for the Embarko console.
 // These mirror the hostnsoft-api data model exactly (see the API reference).
 // The console talks to that API through the Next.js BFF proxy under /api/hns/*,
 // so these shapes are the wire shapes the proxy passes through untouched.

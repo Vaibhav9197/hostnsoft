@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ArrowRight, Copy, Bot, Globe } from 'lucide-react';
 import { CopyPromptButton, COPIED_LABEL } from '../components/CopyPromptButton';
+import { SiteHeader } from '../components/SiteHeader';
 
 /* Looping "watch it deploy" timeline shown on step 1. A single elapsed-ms
    counter drives every derived phase, rather than nested timers, so the whole
@@ -58,6 +59,8 @@ export default function EmbarkoV2() {
 
   return (
     <main className="relative flex h-[100dvh] flex-col overflow-hidden bg-white text-black antialiased">
+      <SiteHeader />
+
       <style>{`
         @keyframes eb-in {
           from { opacity: 0; transform: translateY(14px); }
@@ -79,7 +82,8 @@ export default function EmbarkoV2() {
         <button
           onClick={() => setStep((s) => s - 1)}
           aria-label="Previous step"
-          className="absolute left-6 top-6 z-20 flex h-9 w-9 items-center justify-center rounded-full text-black/35 transition hover:bg-black/[0.04] hover:text-black"
+          /* Clears the 64px header, which owns the top-left corner now. */
+          className="absolute left-6 top-20 z-20 flex h-9 w-9 items-center justify-center rounded-full text-black/35 transition hover:bg-black/[0.04] hover:text-black"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -124,10 +128,6 @@ export default function EmbarkoV2() {
 function Hero({ onNext }: { onNext: () => void }) {
   return (
     <div className="text-center">
-      <div className="mx-auto mb-8 flex h-12 w-12 items-center justify-center rounded-full bg-black">
-        <div className="h-3 w-3 rounded-full bg-white" />
-      </div>
-
       <h1 className="mx-auto max-w-[13ch] text-[52px] font-semibold leading-[0.94] tracking-[-0.045em] sm:text-[74px] md:text-[100px]">
         Your agent builds it. Embarko ships it.
       </h1>

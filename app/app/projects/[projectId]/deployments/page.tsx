@@ -43,7 +43,7 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
 
       {deps.length === 0 && (
         <EmptyState title="No deployments yet">
-          Deploys triggered by <code className="border border-border bg-elevated px-1 py-0.5 font-mono text-[0.85em] text-foreground">hostnsoft-deploy</code> show up here.
+          Deploys triggered by <code className="border border-border bg-elevated px-1 py-0.5 font-mono text-[0.85em] text-foreground">embarko-deploy</code> show up here.
         </EmptyState>
       )}
 

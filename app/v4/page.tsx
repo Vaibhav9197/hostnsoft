@@ -9,6 +9,7 @@ import {
 import { siClaude, siCursor, siGithubcopilot, siGooglegemini, siReplit } from 'simple-icons';
 import barcelonaMorning from './barcelona-morning.png';
 import { CopyPromptButton as SharedCopyPromptButton, COPIED_LABEL } from '../components/CopyPromptButton';
+import { SiteHeader } from '../components/SiteHeader';
 
 const showcases = [
   { id: 'weekend', name: 'Weekend', type: 'Travel planner', domain: 'weekend.embarko.app', mark: 'W', color: 'amber' },
@@ -152,7 +153,7 @@ export default function Home() {
   const structuredData = { '@context': 'https://schema.org', '@type': 'WebApplication', name: 'Embarko', applicationCategory: 'BusinessApplication', operatingSystem: 'Web', description: 'Instant hosting for every app you build with AI.' };
   return <main className="site-page">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
-    <header className="site-header"><Wordmark /><div className="header-actions"><a className="pricing-link" href="#pricing">Pricing</a><a className="signin-link" href="#signin">Sign in <ArrowUpRight aria-hidden="true" /></a></div></header>
+    <SiteHeader />
     <section id="top" className="hero" aria-labelledby="hero-title"><div className="hero-intro"><p className="eyebrow"><Sparkles aria-hidden="true" /> Hosting for apps already built by your agent</p><h1 id="hero-title">Instant hosting for every app you build with AI</h1><div className="hero-action"><CopyPromptButton /></div><Steps /></div><HeroApp activeApp={activeApp} /><div className="showcase-dots" aria-label="Choose a sample app">{showcases.map((app) => <button type="button" key={app.id} className={activeApp === app.id ? 'is-selected' : ''} onClick={() => setActiveApp(app.id)} aria-pressed={activeApp === app.id}><span className="sr-only">Show {app.name}</span></button>)}</div><p className="hero-note">Your agent builds it. Embarko hosts it.</p></section>
     <DeployScene /><LiveScene /><HostingScene /><RealAppScene /><AppGallery /><AgentScene /><WorldScene /><section className="benefit-scene"><p>Spend your time building.<br />Not hosting.</p><SceneCta>Copy the Embarko prompt</SceneCta></section><FinalScene />
     <footer className="site-footer"><Wordmark /><span>© 2026 Embarko</span><a href="#terms">Terms</a><a href="#privacy">Privacy</a></footer>

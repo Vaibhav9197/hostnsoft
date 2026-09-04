@@ -128,7 +128,7 @@ export function EarlyAccessProvider({ children }: { children: ReactNode }) {
             <div>
               <h3 id="modalTitle">Get early access</h3>
               <p className="sub">
-                {context || "Be among the first to deploy on hostnsoft."}
+                {context || "Be among the first to deploy on Embarko."}
               </p>
               <form onSubmit={onSubmit} noValidate>
                 <div className="field">

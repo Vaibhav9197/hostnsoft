@@ -1,28 +1,29 @@
-# hostnsoft Deploy — Gemini instructions
+# Embarko Deploy — Cursor / Windsurf / agent IDE rule
 
-Add these to a **Gemini Gem** (*Create a Gem → Instructions*), or paste them at
-the start of a Gemini chat where you want to deploy. Then ask Gemini to "deploy
-this to hostnsoft."
+Save this in your project as an agent rule so any AI IDE can deploy:
+- **Cursor:** `.cursor/rules/embarko-deploy.md`
+- **Windsurf / others:** `AGENTS.md` at the repo root.
+
+Then tell the agent to "deploy this to Embarko."
 
 ---
 
-You can deploy an application to **hostnsoft**, a managed hosting environment
+You can deploy this application to **Embarko**, a managed hosting environment
 that builds the app automatically (no Dockerfile) and serves it at a generated
-URL. Follow these steps whenever the user asks to deploy, redeploy, ship, or
-release an app.
+URL. Follow these steps whenever asked to deploy, redeploy, ship, or release.
 
 ## Required configuration
-- `HOSTNSOFT_TOKEN` — the API token, set as an environment variable.
+- `DEPLOY_TOKEN` — the API token, set as an environment variable.
 
 ## App requirements
 1. The app must read its port from the `PORT` environment variable.
 2. It must bind to `0.0.0.0`, not `127.0.0.1`/`localhost`.
-3. No Dockerfile — hostnsoft detects the language/framework and builds the image.
+3. No Dockerfile — Embarko detects the language/framework and builds the image.
 
 ## Optional embedded database
 Apps that need SQL can use an in-process database instead of a hosted one:
 1. Add `@electric-sql/pglite` as a dependency.
-2. Point it at `DATA_DIR` (provided by hostnsoft, persists across redeploys):
+2. Point it at `DATA_DIR` (provided by Embarko, persists across redeploys):
    ```js
    const { PGlite } = require('@electric-sql/pglite');
    const db = new PGlite(`${process.env.DATA_DIR}/pglite`);
@@ -44,7 +45,7 @@ tar -czf /tmp/<app-name>.tar.gz \
 ## Step 3 — Deploy
 ```bash
 curl -X POST "https://ship.embarko.ai/apps" \
-  -H "Authorization: Bearer ${HOSTNSOFT_TOKEN}" \
+  -H "Authorization: Bearer ${DEPLOY_TOKEN}" \
   -H "X-App-Name: <app-name>" \
   -H "X-App-Version: <version>" \
   -F "source=@/tmp/<app-name>.tar.gz"

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
-import { SkillDialog } from "../components/console/SkillDialog";
+import { CloudBackdrop } from "../components/console/CloudBackdrop";
 import { Alert, EmptyState, Page, PageHeader, Skeleton } from "../components/console/kit";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -18,7 +18,6 @@ export default function ProjectsPage() {
   const { activeCompanyId, companies, role, reload } = useSession();
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [skillOpen, setSkillOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
@@ -67,23 +66,21 @@ export default function ProjectsPage() {
 
   return (
     <Page>
+      {/* Only the projects list gets the sky — the rest of the console stays plain. */}
+      <CloudBackdrop />
+
       <PageHeader
         title="Projects"
         subtitle="Every app deployed under this company."
         actions={
-          <>
-            <Button variant="outline" onClick={() => setSkillOpen(true)}>How to deploy</Button>
-            {canWrite && (
-              <Button onClick={() => setCreating((v) => !v)}>
-                <Plus />
-                New project
-              </Button>
-            )}
-          </>
+          canWrite && (
+            <Button onClick={() => setCreating((v) => !v)}>
+              <Plus />
+              New project
+            </Button>
+          )
         }
       />
-
-      <SkillDialog open={skillOpen} onClose={() => setSkillOpen(false)} />
 
       <Dialog open={creating} onOpenChange={(o) => { if (!o) setCreating(false); }}>
         <DialogContent className="max-w-md">
@@ -138,7 +135,7 @@ export default function ProjectsPage() {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex flex-col gap-1 flex-1 min-w-0">
                   <h3 className="text-base font-bold text-foreground truncate">{p.name}</h3>
-                  <p className="text-sm text-muted-foreground truncate">{p.slug}.app.hostnsoft.com</p>
+                  <p className="text-sm text-muted-foreground truncate">{p.slug}.app.embarko.ai</p>
                 </div>
                 <div className="size-10 shrink-0 grid place-items-center rounded-md bg-primary/10 text-primary font-semibold text-sm">
                   {p.name.charAt(0).toUpperCase()}
@@ -185,7 +182,7 @@ function NoCompany({ onCreated }: { onCreated: () => Promise<void> }) {
 
   return (
     <Page>
-      <PageHeader title="Welcome to hostnsoft" subtitle="Create a company to hold your projects and team." />
+      <PageHeader title="Welcome to Embarko" subtitle="Create a company to hold your projects and team." />
       {error && <Alert>{error}</Alert>}
       <form className="flex flex-wrap gap-2.5" onSubmit={create}>
         <Input

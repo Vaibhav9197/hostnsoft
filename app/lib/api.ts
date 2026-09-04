@@ -22,8 +22,8 @@ export const API_BASE = (process.env.HOSTNSOFT_API_URL ?? "http://localhost:4100
 // hostnsoft-api being involved (getDetails needs no secret authkey).
 export const MSG91_BASE = (process.env.MSG91_ROUTES_BASE ?? "https://routes.msg91.com").replace(/\/$/, "");
 
-export const AT_COOKIE = "hns_at"; // hostnsoft access token (JWT), ~15 min
-export const RT_COOKIE = "hns_rt"; // hostnsoft refresh cookie pair(s), verbatim
+export const AT_COOKIE = "hns_at"; // Embarko access token (JWT), ~15 min
+export const RT_COOKIE = "hns_rt"; // Embarko refresh cookie pair(s), verbatim
 export const PAT_COOKIE = "hns_pat"; // MSG91 proxy_auth_token — the login session
 
 const AT_MAX_AGE = 15 * 60; // 15 minutes
@@ -141,7 +141,7 @@ async function upstream(path: string, init: UpstreamInit): Promise<Response> {
     // Network-level failure (backend down / unreachable). Surface as a clean
     // 502 the callers can pass through, instead of an unhandled 500.
     return new Response(
-      JSON.stringify({ error: "Can’t reach the hostnsoft-api service right now." }),
+      JSON.stringify({ error: "Can’t reach the Embarko API service right now." }),
       { status: 502, headers: { "Content-Type": "application/json" } },
     );
   }
@@ -160,7 +160,7 @@ async function refresh(refreshCookie: string): Promise<{ accessToken: string; re
 
 // Exchange an MSG91 proxy_auth_token with hostnsoft-api for a data session
 // (access token + refresh cookie), WITHOUT the identity/company payload. Used to
-// lazily establish a hostnsoft session when the user logged in via the proxy
+// lazily establish an Embarko session when the user logged in via the proxy
 // while the backend was down. Returns null if the backend is unreachable or the
 // token isn't accepted.
 async function hostnsoftExchangeTokens(
@@ -213,7 +213,7 @@ export async function proxy(
   let refreshCookie = tokens.refreshCookie;
   const proxyToken = tokens.proxyToken;
 
-  // Lazily mint a hostnsoft session from the proxy session if we don't have one
+  // Lazily mint an Embarko session from the proxy session if we don't have one
   // yet (e.g. the user logged in via the proxy while the backend was down).
   // `minted` cookies are written onto whatever response we return.
   let minted: { accessToken: string; refreshCookie: string } | null = null;
@@ -322,7 +322,7 @@ export async function me(): Promise<NextResponse> {
   let refreshCookie = tokens.refreshCookie;
   const proxyToken = tokens.proxyToken;
 
-  // If we have no hostnsoft session but do have a proxy session, mint one so we
+  // If we have no Embarko session but do have a proxy session, mint one so we
   // can load companies once the backend is reachable.
   let minted: { accessToken: string; refreshCookie: string } | null = null;
   if (!accessToken && !refreshCookie && proxyToken) {

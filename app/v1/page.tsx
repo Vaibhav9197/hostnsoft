@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { MapPin, Plane } from 'lucide-react';
 import barcelonaMorning from '../v4/barcelona-morning.png';
 import { SectionSnap } from './SectionSnap';
-import { SiteHeader } from './SiteHeader';
+import { SiteHeader } from '../components/SiteHeader';
 import { CopyPromptButton, COPIED_LABEL } from '../components/CopyPromptButton';
 
 /**

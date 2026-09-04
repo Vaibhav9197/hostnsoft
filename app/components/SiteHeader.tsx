@@ -2,16 +2,16 @@
 
 import { useState } from "react";
 
-import { Header } from "../components/Header";
-import { LoginModal } from "../components/LoginModal";
+import { Header } from "./Header";
+import { LoginModal } from "./LoginModal";
 
 /**
  * The shared site header plus its login modal, bundled into one client
- * component so app/v1/page.tsx can stay a server component — Header takes an
+ * component so a server-component page (app/v1) can render it — Header takes an
  * onAuthClick callback, and a function cannot cross the server/client boundary.
  *
  * Mirrors how v3 wires these two together: the page owns the modal instance and
- * hands the trigger to the header.
+ * hands the trigger to the header. Shared by the landing-page variants.
  */
 export function SiteHeader() {
   const [loginOpen, setLoginOpen] = useState(false);

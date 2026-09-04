@@ -1,27 +1,30 @@
 #!/usr/bin/env bash
-# hostnsoft Deploy — standalone CLI script
+# Embarko Deploy — standalone CLI script
 #
-# Packages the current directory and deploys it to hostnsoft. Works with any
+# Packages the current directory and deploys it to Embarko. Works with any
 # app that reads PORT and binds to 0.0.0.0 (no Dockerfile needed).
 #
 # Usage:
-#   export HOSTNSOFT_TOKEN="hns_live_..."
-#   ./hostnsoft-deploy.sh <app-name> [version]
+#   export DEPLOY_TOKEN="hns_live_..."
+#   ./embarko-deploy.sh <app-name> [version]
 #
 # Example:
-#   ./hostnsoft-deploy.sh order-tracker v1.0.0
+#   ./embarko-deploy.sh order-tracker v1.0.0
 
 set -euo pipefail
 
 APP_NAME="${1:-}"
 VERSION="${2:-$(date +%Y%m%d%H%M%S)}"   # unique version by default
 
-if [[ -z "${HOSTNSOFT_TOKEN:-}" ]]; then
-  echo "error: set HOSTNSOFT_TOKEN first (export HOSTNSOFT_TOKEN=\"hns_live_...\")" >&2
+# Accept the former variable name too, so setups that predate the rename
+# keep working.
+DEPLOY_TOKEN="${DEPLOY_TOKEN:-${HOSTNSOFT_TOKEN:-}}"
+if [[ -z "${DEPLOY_TOKEN}" ]]; then
+  echo "error: set DEPLOY_TOKEN first (export DEPLOY_TOKEN=\"hns_live_...\")" >&2
   exit 1
 fi
 if [[ -z "$APP_NAME" ]]; then
-  echo "usage: ./hostnsoft-deploy.sh <app-name> [version]" >&2
+  echo "usage: ./embarko-deploy.sh <app-name> [version]" >&2
   exit 1
 fi
 
@@ -35,7 +38,7 @@ tar -czf "$ARCHIVE" \
 
 echo "› Deploying ${APP_NAME} @ ${VERSION}…"
 RESPONSE=$(curl -sS -X POST "https://ship.embarko.ai/apps" \
-  -H "Authorization: Bearer ${HOSTNSOFT_TOKEN}" \
+  -H "Authorization: Bearer ${DEPLOY_TOKEN}" \
   -H "X-App-Name: ${APP_NAME}" \
   -H "X-App-Version: ${VERSION}" \
   -F "source=@${ARCHIVE}")

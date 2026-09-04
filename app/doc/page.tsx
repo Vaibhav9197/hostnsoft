@@ -104,7 +104,7 @@ export default function DocPage() {
               <H2 id="overview">Overview</H2>
               <P>Embarko lets agents deploy apps to a live URL.</P>
               <P>
-                Every deploy gets a live URL at <Code>{"<app-name>.app.hostnsoft.com"}</Code>. A deploy
+                Every deploy gets a live URL at <Code>{"<app-name>.app.embarko.ai"}</Code>. A deploy
                 token authenticates as a <strong className="text-neutral-950">company</strong> — no
                 separate company header is needed, the token itself identifies which company a deploy
                 belongs to.
@@ -226,11 +226,11 @@ curl -X POST "https://ship.embarko.ai/apps" \\
                 </P>
                 <ol className="list-decimal space-y-2 pl-5">
                   <li className="text-sm leading-relaxed text-neutral-600">
-                    Go to <Code>https://hostnsoft.com/login</Code> and sign in (or create an account).
+                    Go to <Code>https://embarko.ai/login</Code> and sign in (or create an account).
                   </li>
                   <li className="text-sm leading-relaxed text-neutral-600">
                     Open your company&apos;s <strong className="text-neutral-950">Deploy tokens</strong>{" "}
-                    page (<Code>https://hostnsoft.com/app/tokens</Code>).
+                    page (<Code>https://embarko.ai/app/tokens</Code>).
                   </li>
                   <li className="text-sm leading-relaxed text-neutral-600">
                     Enter a label (e.g. <Code>&quot;CI pipeline&quot;</Code>) and click{" "}
@@ -307,7 +307,7 @@ curl -X POST "https://ship.embarko.ai/apps" \\
   "version": "abc1234",
   "image": "my-app:abc1234",
   "memory": "256MB",
-  "url": "https://my-app.app.hostnsoft.com"
+  "url": "https://my-app.app.embarko.ai"
 }`}</CodeBlock>
             </section>
 
@@ -324,7 +324,7 @@ curl -X POST "https://ship.embarko.ai/apps" \\
   "code": "unsupported_storage_pattern",
   "detail": "This app calls window.storage, an API specific to Claude Artifacts' sandbox...",
   "filesDetected": ["src/app.jsx"],
-  "docs": "https://hostnsoft.com/docs#storage-requirements"
+  "docs": "https://embarko.ai/docs#storage-requirements"
 }`}</CodeBlock>
               <P>
                 Use SQLite (<Code>better-sqlite3</Code>) for simple key-value/document data, or PGlite (

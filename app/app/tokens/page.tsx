@@ -107,7 +107,7 @@ export default function TokensPage() {
       <PageHeader
         title="Deploy tokens"
         subtitle={
-          <>Credentials <code className="border border-border bg-elevated px-1 py-0.5 font-mono text-[0.85em] text-foreground">hostnsoft-deploy</code> checks on every deploy. Not used to sign in here.</>
+          <>Credentials <code className="border border-border bg-elevated px-1 py-0.5 font-mono text-[0.85em] text-foreground">embarko-deploy</code> checks on every deploy. Not used to sign in here.</>
         }
       />
 

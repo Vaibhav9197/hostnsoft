@@ -12,7 +12,7 @@ import { useSession } from "../../lib/session";
 // one). We take that token and hand it to hostnsoft-api's exchange endpoint via
 // the BFF (POST /auth/msg91/exchange), which verifies it with MSG91 server-side
 // — using the secret authkey and routes.msg91.com/generateAuthToken — and
-// returns a hostnsoft session (access token + httpOnly refresh cookie).
+// returns an Embarko session (access token + httpOnly refresh cookie).
 //
 // SessionProvider ALSO handles the redirect variant (token appended to the URL)
 // as a safety net, so login works whichever way the MSG91 feature is configured.
@@ -108,7 +108,7 @@ export function LoginScreen() {
         <div className="flex items-center gap-3">
           <span className="grid size-8 shrink-0 place-items-center bg-primary text-base font-extrabold text-primary-foreground" aria-hidden="true">H</span>
           <div>
-            <div className="text-[1.15rem] font-extrabold tracking-tight text-foreground">Sign in to hostnsoft</div>
+            <div className="text-[1.15rem] font-extrabold tracking-tight text-foreground">Sign in to Embarko</div>
             <div className="mt-0.5 font-mono text-[0.66rem] uppercase tracking-[0.12em] text-primary">Deploy console</div>
           </div>
         </div>

@@ -4,6 +4,6 @@
 export const DEPLOY_PROMPT = `Deploy this to Embarko: POST https://ship.embarko.ai/apps with
 header Authorization: Bearer $DEPLOY_TOKEN, header X-App-Name: <name>,
 and multipart field source=<tarball of the app>. Full docs:
-https://hostnsoft.com/docs. (A helper skill exists too —
+https://embarko.ai/docs. (A helper skill exists too —
 npx skills add embarko-ai/skill --skill embarko-deploy -g — but that's
 optional convenience, not required; the curl call above works standalone.)`;
