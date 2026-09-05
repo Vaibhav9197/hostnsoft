@@ -24,7 +24,7 @@ import { useSession } from "@/app/lib/session";
  * `does not equal logged_in` condition rather than testing for `logged_out`.
  */
 export function SessionSignals() {
-  const { status, user, activeCompanyId, role } = useSession();
+  const { status, user, activeCompanyId } = useSession();
 
   /* The session object is rebuilt on every provider render, so pushing on each
      one would flood the dataLayer with identical events. Only transitions get
@@ -36,7 +36,7 @@ export function SessionSignals() {
     if (status === "loading") return;
 
     const authed = status === "authed" && user !== null;
-    const signature = authed ? `in:${user.id}:${activeCompanyId ?? ""}:${role ?? ""}` : "out";
+    const signature = authed ? `in:${user.id}:${activeCompanyId ?? ""}` : "out";
     if (lastSignature.current === signature) return;
     lastSignature.current = signature;
 
@@ -47,7 +47,6 @@ export function SessionSignals() {
             user_state: "logged_in",
             user_id: user.id,
             company_id: activeCompanyId,
-            user_role: role,
           }
         : /* Null the previous values rather than omitting them. dataLayer
              variables persist for the life of the page, so after a sign-out
@@ -57,10 +56,9 @@ export function SessionSignals() {
             user_state: "logged_out",
             user_id: null,
             company_id: null,
-            user_role: null,
           },
     );
-  }, [status, user, activeCompanyId, role]);
+  }, [status, user, activeCompanyId]);
 
   return null;
 }

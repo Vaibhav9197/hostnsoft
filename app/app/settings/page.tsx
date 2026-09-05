@@ -5,13 +5,12 @@ import { Alert, Fact, FactGrid, Page, PageHeader, Panel, PanelTitle, Skeleton } 
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { companiesApi } from "../../lib/hnsApi";
-import { formatDate, ROLE_LABEL } from "../../lib/format";
-import { atLeast, useSession } from "../../lib/session";
+import { formatDate } from "../../lib/format";
+import { useSession } from "../../lib/session";
 import type { CompanyDetail } from "../../lib/types";
 
 export default function SettingsPage() {
-  const { activeCompanyId, user, role, reload } = useSession();
-  const isAdmin = atLeast(role, "company_admin");
+  const { activeCompanyId, user, reload } = useSession();
   const [company, setCompany] = useState<CompanyDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -80,7 +79,6 @@ export default function SettingsPage() {
         <FactGrid flush>
           <Fact flush k="Name" v={user?.name || "—"} />
           <Fact flush k="Email" v={user?.email} />
-          <Fact flush k="Your role" v={role ? ROLE_LABEL[role] : "—"} />
         </FactGrid>
       </Panel>
 
@@ -95,20 +93,16 @@ export default function SettingsPage() {
               <Fact flush k="Projects" v={company.projectCount} mono />
               <Fact flush k="Created" v={formatDate(company.createdAt)} />
             </FactGrid>
-            {isAdmin ? (
-              <form className="mt-4 flex flex-wrap gap-2.5" onSubmit={rename}>
-                <Input className="min-w-[220px] flex-1" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} />
-                <Button type="submit" disabled={savingName || !name.trim() || name.trim() === company.name}>{savingName ? "Saving…" : "Rename"}</Button>
-              </form>
-            ) : (
-              <p className="mt-3 text-[0.92rem] text-muted-foreground">Company name: <b className="text-foreground">{company.name}</b></p>
-            )}
+            <form className="mt-4 flex flex-wrap gap-2.5" onSubmit={rename}>
+              <Input className="min-w-[220px] flex-1" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} />
+              <Button type="submit" disabled={savingName || !name.trim() || name.trim() === company.name}>{savingName ? "Saving…" : "Rename"}</Button>
+            </form>
             {notice && <Alert variant="info" className="mt-3">{notice}</Alert>}
           </>
         )}
       </Panel>
 
-      {isAdmin && company && (
+      {company && (
         <Panel padded tone="danger">
           <PanelTitle tone="danger">Danger zone</PanelTitle>
           <p className="mt-1 text-[0.92rem] text-muted-foreground">

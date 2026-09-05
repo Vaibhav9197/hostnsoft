@@ -6,8 +6,7 @@ import { ArrowRight, Check, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { CompanyDialog, type CompanyDialogMode } from "../../components/console/CompanyDialog";
 import { EmptyState, PageHeader } from "../../components/console/kit";
-import { ROLE_LABEL } from "../../lib/format";
-import { atLeast, useSession } from "../../lib/session";
+import { useSession } from "../../lib/session";
 import { cn } from "../../lib/utils";
 import type { CompanyMembershipSummary } from "../../lib/types";
 
@@ -46,7 +45,6 @@ export default function SwitchCompanyPage() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {companies.map((c) => {
             const isActive = c.companyId === activeCompanyId;
-            const isAdmin = atLeast(c.role, "company_admin");
             return (
               <div
                 key={c.companyId}
@@ -70,9 +68,6 @@ export default function SwitchCompanyPage() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-[1.05rem] font-bold text-foreground">{c.companyName}</div>
-                    <div className="mt-1 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-faint">
-                      {ROLE_LABEL[c.role]}
-                    </div>
                   </div>
                   {isActive && (
                     <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-elevated px-2 py-0.5 font-mono text-[0.55rem] uppercase tracking-[0.12em] text-foreground">
@@ -97,28 +92,26 @@ export default function SwitchCompanyPage() {
                       <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
                     </Button>
                   )}
-                  {isAdmin && (
-                    <div className="flex items-center gap-0.5 opacity-60 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-9"
-                        aria-label={`Rename ${c.companyName}`}
-                        onClick={() => open("rename", c)}
-                      >
-                        <Pencil />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-9 hover:bg-destructive/12 hover:text-destructive"
-                        aria-label={`Delete ${c.companyName}`}
-                        onClick={() => open("delete", c)}
-                      >
-                        <Trash2 />
-                      </Button>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-0.5 opacity-60 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-9"
+                      aria-label={`Rename ${c.companyName}`}
+                      onClick={() => open("rename", c)}
+                    >
+                      <Pencil />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-9 hover:bg-destructive/12 hover:text-destructive"
+                      aria-label={`Delete ${c.companyName}`}
+                      onClick={() => open("delete", c)}
+                    >
+                      <Trash2 />
+                    </Button>
+                  </div>
                 </div>
               </div>
             );

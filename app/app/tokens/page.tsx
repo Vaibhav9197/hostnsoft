@@ -8,13 +8,12 @@ import { Input } from "../../components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { tokensApi } from "../../lib/hnsApi";
 import { formatDate, relativeTime } from "../../lib/format";
-import { atLeast, useSession } from "../../lib/session";
+import { useSession } from "../../lib/session";
 import { cn } from "../../lib/utils";
 import type { DeployToken, DeployTokenSecret } from "../../lib/types";
 
 export default function TokensPage() {
-  const { activeCompanyId, role } = useSession();
-  const isAdmin = atLeast(role, "company_admin");
+  const { activeCompanyId } = useSession();
   const [tokens, setTokens] = useState<DeployToken[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [label, setLabel] = useState("");
@@ -88,18 +87,6 @@ export default function TokensPage() {
     } catch {
       setCopied(false);
     }
-  }
-
-  if (!isAdmin) {
-    return (
-      <Page>
-        <PageHeader title="Deploy tokens" />
-        <div className="border border-dashed border-input bg-card px-6 py-12 text-center">
-          <h3 className="text-[1.1rem] font-bold text-foreground">Company admins only</h3>
-          <p className="mx-auto mt-1.5 max-w-[42ch] text-[0.92rem] text-muted-foreground">Deploy tokens are managed by company admins. Ask one to create a token for your CI pipeline.</p>
-        </div>
-      </Page>
-    );
   }
 
   return (

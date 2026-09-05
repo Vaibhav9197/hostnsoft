@@ -11,17 +11,16 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { HnsError } from "../lib/client";
 import { companiesApi, projectsApi } from "../lib/hnsApi";
 import { formatDate, relativeTime } from "../lib/format";
-import { atLeast, useSession } from "../lib/session";
+import { useSession } from "../lib/session";
 import type { Project } from "../lib/types";
 
 export default function ProjectsPage() {
-  const { activeCompanyId, companies, role, reload } = useSession();
+  const { activeCompanyId, companies, reload } = useSession();
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
-  const canWrite = atLeast(role, "project_admin");
 
   const load = useCallback(async () => {
     if (!activeCompanyId) {
@@ -73,12 +72,10 @@ export default function ProjectsPage() {
         title="Projects"
         subtitle="Every app deployed under this company."
         actions={
-          canWrite && (
-            <Button onClick={() => setCreating((v) => !v)}>
-              <Plus />
-              New project
-            </Button>
-          )
+          <Button onClick={() => setCreating((v) => !v)}>
+            <Plus />
+            New project
+          </Button>
         }
       />
 
@@ -120,7 +117,7 @@ export default function ProjectsPage() {
 
       {projects && projects.length === 0 && (
         <EmptyState title="No projects yet">
-          {canWrite ? "Create a project above, then deploy to its subdomain." : "Ask a project admin to create the first project."}
+          Create a project above, then deploy to its subdomain.
         </EmptyState>
       )}
 

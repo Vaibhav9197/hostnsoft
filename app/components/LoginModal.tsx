@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
+import { authMe } from "../lib/client";
 import "./LoginModal.css";
 
 /**
@@ -41,9 +42,35 @@ export function LoginModal({ open, onClose, redirectPath = "/app" }: LoginModalP
     onCloseRef.current = onClose;
   }, [onClose]);
 
-  // When the dialog opens, render the MSG91 widget into the container.
+  // "checking": asking the BFF whether a session already exists.
+  // "redirecting": it does — we're on our way to the console, skip the widget.
+  // "widget": no session — show the MSG91 login form.
+  const [phase, setPhase] = useState<"checking" | "redirecting" | "widget">("checking");
+
+  // When the dialog opens, first check for an existing session. A visitor who
+  // is already logged in (e.g. came back to the landing page) shouldn't be
+  // asked to log in again — send them straight to the console instead.
   useEffect(() => {
     if (!open) return;
+    let cancelled = false;
+    setPhase("checking");
+    authMe()
+      .then(() => {
+        if (cancelled) return;
+        setPhase("redirecting");
+        window.location.assign(redirectPath);
+      })
+      .catch(() => {
+        if (!cancelled) setPhase("widget");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, redirectPath]);
+
+  // Once we know there's no session, render the MSG91 widget into the container.
+  useEffect(() => {
+    if (!open || phase !== "widget") return;
     if (typeof window.initVerification !== "function") {
       console.warn("Auth widget is still loading — please try again in a moment.");
       return;
@@ -63,8 +90,9 @@ export function LoginModal({ open, onClose, redirectPath = "/app" }: LoginModalP
       failure: (error: unknown) => {
         console.log("failure reason", error);
       },
+      theme: "light"
     });
-  }, [open, redirectPath]);
+  }, [open, phase, redirectPath]);
 
   // Lock scroll + Escape to close.
   useEffect(() => {
@@ -99,9 +127,22 @@ export function LoginModal({ open, onClose, redirectPath = "/app" }: LoginModalP
                 <path d="M18 6 6 18M6 6l12 12" />
               </svg>
             </button>
-            <h3 className="lm-title">Log in</h3>
-            <p className="lm-sub">Sign in to your Embarko account to manage and deploy your apps.</p>
-            <div id={REFERENCE_ID} ref={containerRef} className="lm-widget" />
+            {phase === "widget" ? (
+              <>
+                <h3 className="lm-title">Log in</h3>
+                <p className="lm-sub">Sign in to your Embarko account to manage and deploy your apps.</p>
+              </>
+            ) : (
+              <>
+                <h3 className="lm-title">{phase === "redirecting" ? "Welcome back" : "One moment"}</h3>
+                <p className="lm-sub">
+                  {phase === "redirecting"
+                    ? "You’re already signed in — taking you to your console."
+                    : "Checking your session…"}
+                </p>
+              </>
+            )}
+            <div id={REFERENCE_ID} ref={containerRef} className="lm-widget" hidden={phase !== "widget"} />
           </div>
         </div>
       </div>

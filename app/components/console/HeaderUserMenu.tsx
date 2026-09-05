@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Building2, Check, ChevronsUpDown, KeyRound, LayoutGrid, LogOut, User, Users } from "lucide-react";
 
 import {
@@ -13,8 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
-import { ROLE_LABEL } from "@/app/lib/format";
-import { atLeast, useSession } from "@/app/lib/session";
+import { useSession } from "@/app/lib/session";
 
 /**
  * Account menu in the console header: who you're signed in as, which company
@@ -25,16 +24,23 @@ import { atLeast, useSession } from "@/app/lib/session";
  * the sidebar being mounted or expanded.
  */
 export function HeaderUserMenu() {
-  const { user, companies, activeCompanyId, activeCompany, role, setActiveCompanyId, signOut } = useSession();
+  const { user, companies, activeCompanyId, activeCompany, setActiveCompanyId, signOut } = useSession();
   const pathname = usePathname();
+  const router = useRouter();
 
-  /* Deploy tokens stays admin-only here, exactly as it is in the sidebar. */
+  // Every console page is scoped to the active company, so whatever's on
+  // screen (a project, its settings, deployments…) belongs to the company we're
+  // leaving. Land on the projects list of the new company instead of letting
+  // the old URL 404 against it.
+  function switchCompany(companyId: string) {
+    setActiveCompanyId(companyId);
+    router.push("/app");
+  }
+
   const workspace = [
     { href: "/app", label: "Projects", icon: LayoutGrid, exact: true },
     { href: "/app/members", label: "Members", icon: Users },
-    ...(atLeast(role, "company_admin")
-      ? [{ href: "/app/tokens", label: "Deploy tokens", icon: KeyRound }]
-      : []),
+    { href: "/app/tokens", label: "Deploy tokens", icon: KeyRound },
   ];
   const isCurrent = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
@@ -102,7 +108,7 @@ export function HeaderUserMenu() {
             return (
               <DropdownMenuItem
                 key={company.companyId}
-                onClick={() => !isActive && setActiveCompanyId(company.companyId)}
+                onClick={() => !isActive && switchCompany(company.companyId)}
                 className="gap-2.5"
               >
                 <span className="grid size-6 shrink-0 place-items-center rounded bg-foreground text-[0.65rem] font-bold text-background">
@@ -110,7 +116,6 @@ export function HeaderUserMenu() {
                 </span>
                 <span className="flex min-w-0 flex-col leading-tight">
                   <span className="truncate text-[0.8rem]">{company.companyName}</span>
-                  <span className="truncate text-[0.7rem] text-muted-foreground">{ROLE_LABEL[company.role]}</span>
                 </span>
                 {isActive && <Check className="ml-auto size-4 shrink-0" aria-label="Current company" />}
               </DropdownMenuItem>

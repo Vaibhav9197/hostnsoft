@@ -100,3 +100,14 @@ export async function authMe<T = unknown>(): Promise<T> {
 export async function authLogout(): Promise<void> {
   await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
 }
+
+// Switch the active company for the current session.
+export async function authSwitchCompany(companyId: string): Promise<void> {
+  const res = await fetch("/api/auth/switch-company", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ companyId }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new HnsError(data?.error ?? "Couldn’t switch company", res.status, data?.details);
+}

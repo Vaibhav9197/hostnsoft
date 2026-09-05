@@ -12,7 +12,7 @@ import { useSession } from "../../lib/session";
 // one). We take that token and hand it to hostnsoft-api's exchange endpoint via
 // the BFF (POST /auth/msg91/exchange), which verifies it with MSG91 server-side
 // — using the secret authkey and routes.msg91.com/generateAuthToken — and
-// returns an Embarko session (access token + httpOnly refresh cookie).
+// stores the verified token as the httpOnly session cookie (hns_pat).
 //
 // SessionProvider ALSO handles the redirect variant (token appended to the URL)
 // as a safety net, so login works whichever way the MSG91 feature is configured.
@@ -45,6 +45,7 @@ export function LoginScreen() {
       window.initVerification({
         referenceId: REFERENCE_ID,
         type: "authorization",
+        theme: "light",
         // Redirect variant: MSG91 lands back on /app with the token appended;
         // SessionProvider consumes it. Works alongside the success callback.
         addInfo: {
@@ -60,7 +61,7 @@ export function LoginScreen() {
             return;
           }
           // The token is single-use; if the redirect flow already spent it,
-          // just refresh the session rather than exchanging again.
+          // just reload the session rather than exchanging again.
           if (wasExchanged(token)) {
             await reload();
             return;

@@ -3,7 +3,6 @@
 // The console talks to that API through the Next.js BFF proxy under /api/hns/*,
 // so these shapes are the wire shapes the proxy passes through untouched.
 
-export type Role = "company_admin" | "project_admin" | "viewer";
 export type MemberStatus = "invited" | "active";
 
 // hostnsoft-api deployment status. Only these three exist server-side.
@@ -17,7 +16,6 @@ export type ProjectHealth = "unknown";
 export interface CompanyMembershipSummary {
   companyId: string;
   companyName: string;
-  role: Role;
   status?: MemberStatus;
 }
 
@@ -42,15 +40,13 @@ export interface Company {
   msg91Id: string | null;
 }
 
-// A row from GET /companies — company plus the caller's role/status in it.
-export interface CompanyWithRole extends Company {
-  role: Role;
+// A row from GET /companies — company plus the caller's status in it.
+export interface CompanyWithMembership extends Company {
   status: MemberStatus;
 }
 
 // GET /companies/:id — detail with counts.
 export interface CompanyDetail extends Company {
-  role: Role;
   memberCount: number;
   projectCount: number;
 }
@@ -58,7 +54,6 @@ export interface CompanyDetail extends Company {
 export interface Member {
   userId: string;
   email: string;
-  role: Role;
   status: MemberStatus;
 }
 

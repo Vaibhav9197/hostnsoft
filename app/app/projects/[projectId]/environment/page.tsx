@@ -8,13 +8,12 @@ import { Input } from "../../../../components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../../components/ui/table";
 import { envVarsApi } from "../../../../lib/hnsApi";
 import { relativeTime } from "../../../../lib/format";
-import { atLeast, useSession } from "../../../../lib/session";
+import { useSession } from "../../../../lib/session";
 import type { EnvVar } from "../../../../lib/types";
 
 export default function EnvironmentPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = use(params);
-  const { activeCompanyId, role } = useSession();
-  const canWrite = atLeast(role, "project_admin");
+  const { activeCompanyId } = useSession();
   const [vars, setVars] = useState<EnvVar[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -74,13 +73,11 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
     <Page>
       <PageHeader title="Environment" subtitle="Config and secrets stored for this project." />
 
-      {canWrite && (
-        <form className="flex flex-wrap items-center gap-2.5" onSubmit={upsert}>
-          <Input className="min-w-[140px] flex-1 font-mono" placeholder="KEY" value={key} onChange={(e) => setKey(e.target.value.toUpperCase())} />
-          <Input className="min-w-[140px] flex-1 font-mono" placeholder="value" value={value} onChange={(e) => setValue(e.target.value)} />
-          <Button type="submit" disabled={busy || !key.trim() || !value}>Save</Button>
-        </form>
-      )}
+      <form className="flex flex-wrap items-center gap-2.5" onSubmit={upsert}>
+        <Input className="min-w-[140px] flex-1 font-mono" placeholder="KEY" value={key} onChange={(e) => setKey(e.target.value.toUpperCase())} />
+        <Input className="min-w-[140px] flex-1 font-mono" placeholder="value" value={value} onChange={(e) => setValue(e.target.value)} />
+        <Button type="submit" disabled={busy || !key.trim() || !value}>Save</Button>
+      </form>
 
       {error && <Alert>{error}</Alert>}
       {notice && <Alert variant="info">{notice}</Alert>}
@@ -88,14 +85,14 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
       {!vars && !error && <Skeleton className="h-[140px]" aria-hidden="true" />}
 
       {vars && vars.length === 0 && (
-        <EmptyState title="No variables">{canWrite ? "Add config and secrets above." : "No variables set for this project."}</EmptyState>
+        <EmptyState title="No variables">Add config and secrets above.</EmptyState>
       )}
 
       {vars && vars.length > 0 && (
         <Panel>
           <Table>
             <TableHeader>
-              <TableRow><TableHead>Key</TableHead><TableHead>Value</TableHead><TableHead>Updated</TableHead>{canWrite && <TableHead />}</TableRow>
+              <TableRow><TableHead>Key</TableHead><TableHead>Value</TableHead><TableHead>Updated</TableHead><TableHead /></TableRow>
             </TableHeader>
             <TableBody>
               {vars.map((v) => (
@@ -116,11 +113,9 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
                     )}
                   </TableCell>
                   <TableCell className="font-mono text-[0.78rem] text-faint">{relativeTime(v.updatedAt)}</TableCell>
-                  {canWrite && (
-                    <TableCell className="whitespace-nowrap text-right">
-                      <LinkButton danger onClick={() => remove(v.key)}>Remove</LinkButton>
-                    </TableCell>
-                  )}
+                  <TableCell className="whitespace-nowrap text-right">
+                    <LinkButton danger onClick={() => remove(v.key)}>Remove</LinkButton>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

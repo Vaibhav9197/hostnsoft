@@ -1,8 +1,8 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { authExchange, authLogout, authMe, markExchanged, wasExchanged } from "./client";
-import type { CompanyMembershipSummary, MeResponse, Role } from "./types";
+import { authExchange, authLogout, authMe, authSwitchCompany, markExchanged, wasExchanged } from "./client";
+import type { CompanyMembershipSummary, MeResponse } from "./types";
 
 type Status = "loading" | "authed" | "anon";
 
@@ -12,7 +12,6 @@ interface SessionValue {
   companies: CompanyMembershipSummary[];
   activeCompanyId: string | null;
   activeCompany: CompanyMembershipSummary | null;
-  role: Role | null;
   authError: string | null;
   // false when logged in via the MSG91 proxy but hostnsoft-api is unreachable.
   apiConnected: boolean;
@@ -135,6 +134,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore storage failures — falls back to first company on next load
     }
+    // Best-effort: tell hostnsoft-api which company is active. The UI has
+    // already switched optimistically above.
+    authSwitchCompany(id).catch(() => {});
   }, []);
 
   const signOut = useCallback(async () => {
@@ -158,7 +160,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     companies,
     activeCompanyId,
     activeCompany,
-    role: activeCompany?.role ?? null,
     authError,
     apiConnected: me?.apiConnected ?? false,
     setActiveCompanyId,
@@ -173,11 +174,4 @@ export function useSession(): SessionValue {
   const ctx = useContext(SessionContext);
   if (!ctx) throw new Error("useSession must be used within SessionProvider");
   return ctx;
-}
-
-// Role helpers — higher roles inherit everything below them.
-const RANK: Record<Role, number> = { viewer: 0, project_admin: 1, company_admin: 2 };
-export function atLeast(role: Role | null, need: Role): boolean {
-  if (!role) return false;
-  return RANK[role] >= RANK[need];
 }

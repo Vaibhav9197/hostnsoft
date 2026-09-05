@@ -61,13 +61,6 @@ export function statusTone(status: string): "ok" | "warn" | "err" | "muted" {
   }
 }
 
-// Human labels for roles.
-export const ROLE_LABEL: Record<string, string> = {
-  company_admin: "Company admin",
-  project_admin: "Project admin",
-  viewer: "Viewer",
-};
-
 // Absolute date, e.g. "Aug 27, 2026".
 export function formatDate(iso: string | null): string {
   if (!iso) return "—";

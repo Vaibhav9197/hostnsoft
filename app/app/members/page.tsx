@@ -2,25 +2,20 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { StatusPill } from "../../components/console/StatusPill";
-import { Alert, LinkButton, NativeSelect, Page, PageHeader, Panel, Skeleton, Tag } from "../../components/console/kit";
+import { Alert, LinkButton, Page, PageHeader, Panel, Skeleton, Tag } from "../../components/console/kit";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { membersApi } from "../../lib/hnsApi";
-import { ROLE_LABEL } from "../../lib/format";
-import { atLeast, useSession } from "../../lib/session";
-import type { Member, Role } from "../../lib/types";
-
-const ROLES: Role[] = ["company_admin", "project_admin", "viewer"];
+import { useSession } from "../../lib/session";
+import type { Member } from "../../lib/types";
 
 export default function MembersPage() {
-  const { activeCompanyId, role: myRole, user } = useSession();
-  const isAdmin = atLeast(myRole, "company_admin");
+  const { activeCompanyId, user } = useSession();
   const [members, setMembers] = useState<Member[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [email, setEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<Role>("viewer");
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
@@ -45,28 +40,14 @@ export default function MembersPage() {
     setError(null);
     setNotice(null);
     try {
-      await membersApi.invite(activeCompanyId, email.trim(), inviteRole);
-      setNotice(`Invited ${email.trim()} as ${ROLE_LABEL[inviteRole]}.`);
+      await membersApi.invite(activeCompanyId, email.trim());
+      setNotice(`Invited ${email.trim()}.`);
       setEmail("");
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn’t send the invite.");
     } finally {
       setBusy(false);
-    }
-  }
-
-  async function changeRole(userId: string, role: Role) {
-    if (!activeCompanyId) return;
-    setError(null);
-    setNotice(null);
-    const prev = members;
-    setMembers((m) => (m ?? []).map((x) => (x.userId === userId ? { ...x, role } : x)));
-    try {
-      await membersApi.setRole(activeCompanyId, userId, role);
-    } catch (e) {
-      setMembers(prev ?? null); // roll back optimistic change
-      setError(e instanceof Error ? e.message : "Couldn’t change the role.");
     }
   }
 
@@ -87,23 +68,18 @@ export default function MembersPage() {
 
   return (
     <Page>
-      <PageHeader title="Members" subtitle="People in this company and what they can do." />
+      <PageHeader title="Members" subtitle="People in this company." />
 
-      {isAdmin && (
-        <form className="flex flex-wrap gap-2.5" onSubmit={invite}>
-          <Input
-            className="min-w-[220px] flex-1"
-            type="email"
-            placeholder="teammate@company.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <NativeSelect value={inviteRole} onChange={(e) => setInviteRole(e.target.value as Role)} aria-label="Role">
-            {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
-          </NativeSelect>
-          <Button type="submit" disabled={busy || !email.trim()}>{busy ? "Inviting…" : "Invite"}</Button>
-        </form>
-      )}
+      <form className="flex flex-wrap gap-2.5" onSubmit={invite}>
+        <Input
+          className="min-w-[220px] flex-1"
+          type="email"
+          placeholder="teammate@company.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <Button type="submit" disabled={busy || !email.trim()}>{busy ? "Inviting…" : "Invite"}</Button>
+      </form>
 
       {error && <Alert>{error}</Alert>}
       {notice && <Alert variant="info">{notice}</Alert>}
@@ -116,9 +92,8 @@ export default function MembersPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
-                {isAdmin && <TableHead />}
+                <TableHead />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -127,19 +102,10 @@ export default function MembersPage() {
                 return (
                   <TableRow key={m.userId}>
                     <TableCell>{m.email}{isSelf && <Tag>you</Tag>}</TableCell>
-                    <TableCell>
-                      {isAdmin ? (
-                        <NativeSelect className="py-1 text-[0.82rem]" value={m.role} onChange={(e) => changeRole(m.userId, e.target.value as Role)}>
-                          {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
-                        </NativeSelect>
-                      ) : ROLE_LABEL[m.role]}
-                    </TableCell>
                     <TableCell><StatusPill status={m.status} /></TableCell>
-                    {isAdmin && (
-                      <TableCell className="whitespace-nowrap text-right">
-                        <LinkButton danger onClick={() => remove(m.userId, m.email)}>Remove</LinkButton>
-                      </TableCell>
-                    )}
+                    <TableCell className="whitespace-nowrap text-right">
+                      <LinkButton danger onClick={() => remove(m.userId, m.email)}>Remove</LinkButton>
+                    </TableCell>
                   </TableRow>
                 );
               })}
@@ -147,8 +113,6 @@ export default function MembersPage() {
           </Table>
         </Panel>
       )}
-
-      <p className="text-[0.92rem] text-muted-foreground">A company must always keep at least one company admin — changes that would remove the last one are rejected.</p>
     </Page>
   );
 }

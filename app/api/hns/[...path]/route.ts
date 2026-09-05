@@ -3,7 +3,7 @@ import { proxy } from "../../../lib/api";
 
 // Generic authenticated proxy to hostnsoft-api.
 // Everything under /api/hns/<path> is forwarded to <API_BASE>/<path> with the
-// caller's session attached and a transparent refresh-on-401 retry.
+// caller's proxy_auth_token attached from the session cookie.
 //
 // e.g. GET  /api/hns/companies
 //      POST /api/hns/companies/:id/projects
