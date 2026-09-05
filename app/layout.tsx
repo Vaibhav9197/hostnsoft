@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./base.css";
+import { GoogleTagManager, GoogleTagManagerNoScript } from "./components/analytics/GoogleTagManager";
+import { PageViewTracker } from "./components/analytics/PageViewTracker";
 
 export const metadata: Metadata = {
   title: "Embarko — Deploy any app. Get a live URL.",
@@ -14,7 +16,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <head>
+        <GoogleTagManager />
+      </head>
+      <body>
+        <GoogleTagManagerNoScript />
+        <PageViewTracker />
+        {children}
+      </body>
     </html>
   );
 }

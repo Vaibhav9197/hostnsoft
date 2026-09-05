@@ -3,11 +3,13 @@
 import { LoginScreen } from "../components/console/LoginScreen";
 import { HeaderUserMenu } from "../components/console/HeaderUserMenu";
 import { Alert } from "../components/console/kit";
+import { SessionSignals } from "../components/analytics/SessionSignals";
 import { SessionProvider, useSession } from "../lib/session";
 
 export function ConsoleShell({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
+      <SessionSignals />
       <Shell>{children}</Shell>
     </SessionProvider>
   );
