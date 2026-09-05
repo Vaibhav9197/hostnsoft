@@ -28,7 +28,7 @@ export function PageHeader({
 }
 
 export function Page({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn("flex flex-col gap-6", className)}>{children}</div>;
+  return <div className={cn("relative isolate flex flex-col gap-6", className)}>{children}</div>;
 }
 
 export function Panel({

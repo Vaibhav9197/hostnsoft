@@ -27,7 +27,7 @@ export function CloudBackdrop() {
   }, []);
 
   return (
-    <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden">
+    <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
       <div
         className="absolute inset-0 bg-cover bg-top opacity-[0.22] transition-opacity duration-700"
         style={{

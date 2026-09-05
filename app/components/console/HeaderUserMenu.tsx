@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, Check, ChevronsUpDown, KeyRound, LayoutGrid, LogOut, Plus, User, Users } from "lucide-react";
+import { Building2, Check, ChevronsUpDown, KeyRound, LayoutGrid, LogOut, User, Users } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -52,13 +52,17 @@ export function HeaderUserMenu() {
         <span className="grid size-7 shrink-0 place-items-center rounded-md bg-foreground text-xs font-bold text-background">
           {initial}
         </span>
-        {/* The email is the identity people recognise, so it's the visible
-            label; the company sits under it as context. Hidden on narrow
+        {/* The company is the context every page is scoped to and the thing
+            people switch between, so it's the visible label; the signed-in
+            email sits under it. Before a company is picked there's nothing to
+            lead with, so the email moves up and stands alone. Hidden on narrow
             screens, where the avatar alone carries it. */}
         <span className="hidden min-w-0 flex-col leading-tight sm:flex">
-          <span className="truncate text-[0.8rem] font-medium text-foreground">{email || "—"}</span>
-          {activeCompany && (
-            <span className="truncate text-[0.7rem] text-muted-foreground">{activeCompany.companyName}</span>
+          <span className="truncate text-[0.8rem] font-medium text-foreground">
+            {activeCompany ? activeCompany.companyName : email || "—"}
+          </span>
+          {activeCompany && email && (
+            <span className="truncate text-[0.7rem] text-muted-foreground">{email}</span>
           )}
         </span>
         <ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -71,15 +75,6 @@ export function HeaderUserMenu() {
             <span className="truncate text-xs text-muted-foreground">{email}</span>
           </div>
         </DropdownMenuLabel>
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuItem asChild className="gap-2.5">
-          <Link href="/app/settings">
-            <User className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-            Profile
-          </Link>
-        </DropdownMenuItem>
 
         <DropdownMenuSeparator />
 
@@ -129,10 +124,13 @@ export function HeaderUserMenu() {
             Manage companies
           </Link>
         </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
         <DropdownMenuItem asChild className="gap-2.5">
-          <Link href="/app/switch-company">
-            <Plus className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-            New company
+          <Link href="/app/settings">
+            <User className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            Profile
           </Link>
         </DropdownMenuItem>
 

@@ -137,7 +137,7 @@ export default function ProjectsPage() {
                   <h3 className="text-base font-bold text-foreground truncate">{p.name}</h3>
                   <p className="text-sm text-muted-foreground truncate">{p.slug}.app.embarko.ai</p>
                 </div>
-                <div className="size-10 shrink-0 grid place-items-center rounded-md bg-primary/10 text-primary font-semibold text-sm">
+                <div className="size-10 shrink-0 grid place-items-center rounded-md bg-muted text-primary font-semibold text-sm">
                   {p.name.charAt(0).toUpperCase()}
                 </div>
               </div>
