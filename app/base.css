@@ -17,11 +17,11 @@
   --ink:#1a1916;          /* warm ink/dark text */
   --ink-soft:#6f6a62;     /* muted gray */
   --ink-faint:#9a938a;    /* faint gray */
-  --accent:#ff4d00;       /* bright orange */
-  --accent-2:#d63e00;     /* deeper orange (hover) */
-  --accent-soft:rgba(255,77,0,.09);
-  --accent-line:rgba(255,77,0,.32);
-  --on-accent:#ffffff;    /* white text on orange */
+  --accent:#000000;       /* black */
+  --accent-2:#2b2b2b;     /* soft black (hover) */
+  --accent-soft:rgba(0,0,0,.06);
+  --accent-line:rgba(0,0,0,.24);
+  --on-accent:#ffffff;    /* white text on black */
   --line:#e5e1d8;         /* subtle border */
   --line-strong:#d4cec3;  /* stronger border */
   --ok:#16a34a;           /* green success */

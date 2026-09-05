@@ -32,7 +32,7 @@ export default {
         input: "var(--line-strong)",
         ring: "var(--accent)",
         // Sidebar tokens, mapped onto the app's own surfaces so the console
-        // stays on the neutral black/white scale (never --accent, which is orange).
+        // stays on the neutral black/white scale (never --accent).
         sidebar: "var(--surface)",
         "sidebar-foreground": "var(--ink)",
         "sidebar-primary": "var(--ink)",
