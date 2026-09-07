@@ -6,11 +6,15 @@
 export class HnsError extends Error {
   status: number;
   details?: { path: string; message: string }[];
-  constructor(message: string, status: number, details?: { path: string; message: string }[]) {
+  // Machine-readable code some upstream errors carry (e.g. billing's
+  // BILLING_CUSTOMER_NOT_FOUND), so UI can branch on the cause, not the text.
+  code?: string;
+  constructor(message: string, status: number, details?: { path: string; message: string }[], code?: string) {
     super(message);
     this.name = "HnsError";
     this.status = status;
     this.details = details;
+    this.code = code;
   }
 }
 
@@ -38,7 +42,7 @@ export async function hns<T = unknown>(path: string, init: HnsInit = {}): Promis
     const message =
       (data && typeof data.error === "string" && data.error) ||
       messageForStatus(res.status);
-    throw new HnsError(message, res.status, data?.details);
+    throw new HnsError(message, res.status, data?.details, typeof data?.code === "string" ? data.code : undefined);
   }
   return data as T;
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, Check, ChevronsUpDown, KeyRound, LayoutGrid, LogOut, User, Users } from "lucide-react";
+import { Building2, Check, ChevronsUpDown, CreditCard, KeyRound, LayoutGrid, LogOut, User, Users } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -41,6 +41,7 @@ export function HeaderUserMenu() {
     { href: "/app", label: "Projects", icon: LayoutGrid, exact: true },
     { href: "/app/members", label: "Members", icon: Users },
     { href: "/app/tokens", label: "Deploy tokens", icon: KeyRound },
+    { href: "/app/billing", label: "Billing", icon: CreditCard },
   ];
   const isCurrent = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");

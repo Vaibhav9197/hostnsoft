@@ -121,3 +121,67 @@ export interface ApiError {
   details?: { path: string; message: string }[];
   status: number;
 }
+
+// ------------------------------------------------------------------ Billing
+// Billing lives in Lago (plans, customers, subscriptions) and Stripe (saved
+// cards). hostnsoft-api passes Lago objects through mostly untouched, so these
+// are Lago's snake_case wire shapes, trimmed to what the console renders.
+
+export interface BillingPlan {
+  lago_id: string;
+  name: string;
+  code: string;
+  description?: string | null;
+  interval: string; // "monthly" | "yearly" | "weekly" | "quarterly"
+  amount_cents: number;
+  amount_currency: string;
+  trial_period?: number | null;
+  pay_in_advance?: boolean;
+}
+
+// "active" is the plan in force; a "pending" one alongside it is a scheduled
+// downgrade that takes effect at the end of the current period.
+export type BillingSubscriptionStatus = "active" | "pending" | string;
+
+export interface BillingSubscription {
+  lago_id: string;
+  external_id: string;
+  external_customer_id: string;
+  plan_code: string;
+  status: BillingSubscriptionStatus;
+  name?: string | null;
+  started_at?: string | null;
+  ending_at?: string | null;
+  subscription_at?: string | null;
+  created_at?: string;
+  current_billing_period_started_at?: string | null;
+  current_billing_period_ending_at?: string | null;
+  // Present on status responses only: the full plan, or null if the code no
+  // longer exists in Lago.
+  plan?: BillingPlan | null;
+}
+
+// GET /companies/:id/billing. Empty list = billing not set up yet.
+export interface BillingStatus {
+  subscriptions: BillingSubscription[];
+}
+
+// GET /companies/:id/billing/payment-methods — trimmed Stripe payment method.
+export interface PaymentMethod {
+  id: string;
+  type: string;
+  isDefault: boolean;
+  created: number; // unix seconds
+  card?: {
+    brand: string;
+    last4: string;
+    expMonth: number;
+    expYear: number;
+    funding?: string;
+    country?: string | null;
+  };
+  billingDetails: {
+    name: string | null;
+    email: string | null;
+  };
+}

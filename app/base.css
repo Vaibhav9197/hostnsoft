@@ -26,12 +26,12 @@
   --line-strong:#d4cec3;  /* stronger border */
   --ok:#16a34a;           /* green success */
   --ok-soft:rgba(22,163,74,.12);
-  --warn:#F0C86E;
-  --warn-soft:rgba(240,200,110,.14);
-  --info:#93BDF2;
-  --info-soft:rgba(147,189,242,.14);
-  --danger:#F0797F;
-  --danger-soft:rgba(240,121,127,.12);
+  --warn:#b45309;
+  --warn-soft:rgba(180,83,9,.12);
+  --info:#2563eb;
+  --info-soft:rgba(37,99,235,.12);
+  --danger:#dc2626;
+  --danger-soft:rgba(220,38,38,.12);
   /* Soft elevation shadows — warm tone for light ground. */
   --elev-1:0 1px 3px -1px rgba(20,18,16,.06),0 1px 2px -1px rgba(20,18,16,.04);
   --elev-2:0 4px 6px -1px rgba(20,18,16,.08),0 2px 4px -2px rgba(20,18,16,.06);

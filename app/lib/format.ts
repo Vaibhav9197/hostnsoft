@@ -66,3 +66,36 @@ export function formatDate(iso: string | null): string {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
+
+// Money from minor units, e.g. formatMoney(1500, "USD") → "$15".
+// Whole amounts drop the decimals; anything else keeps two.
+export function formatMoney(cents: number, currency: string): string {
+  const amount = cents / 100;
+  const whole = Number.isInteger(amount);
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: whole ? 0 : 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    return `${amount.toFixed(whole ? 0 : 2)} ${currency}`;
+  }
+}
+
+// Lago plan interval → "/month" style suffix.
+export function intervalSuffix(interval: string): string {
+  switch (interval) {
+    case "monthly":
+      return "/month";
+    case "yearly":
+      return "/year";
+    case "weekly":
+      return "/week";
+    case "quarterly":
+      return "/quarter";
+    default:
+      return interval ? `/${interval}` : "";
+  }
+}

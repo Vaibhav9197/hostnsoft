@@ -1,16 +1,20 @@
 "use client";
 
 import { LoginScreen } from "../components/console/LoginScreen";
+import { HeaderPlanBadge } from "../components/console/HeaderPlanBadge";
 import { HeaderUserMenu } from "../components/console/HeaderUserMenu";
 import { Alert } from "../components/console/kit";
 import { SessionSignals } from "../components/analytics/SessionSignals";
+import { BillingProvider } from "../lib/billing";
 import { SessionProvider, useSession } from "../lib/session";
 
 export function ConsoleShell({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <SessionSignals />
-      <Shell>{children}</Shell>
+      <BillingProvider>
+        <Shell>{children}</Shell>
+      </BillingProvider>
     </SessionProvider>
   );
 }
@@ -56,6 +60,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-2 sm:px-4">
         {/* All navigation lives in this menu now — the left sidebar is gone. */}
         <HeaderUserMenu />
+        <HeaderPlanBadge />
       </header>
       <main className="flex-1">
         <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-8">

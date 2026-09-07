@@ -93,6 +93,49 @@ export function Alert({
   );
 }
 
+// Transient notification, bottom-right. Auto-dismisses; `onClose` is called
+// both on timeout and on the close button so the caller can clear its state.
+export function Toast({
+  message,
+  variant = "info",
+  onClose,
+  duration = 5000,
+}: {
+  message: string | null;
+  variant?: "err" | "info" | "warn";
+  onClose: () => void;
+  duration?: number;
+}) {
+  React.useEffect(() => {
+    if (!message) return;
+    const t = window.setTimeout(onClose, duration);
+    return () => window.clearTimeout(t);
+  }, [message, duration, onClose]);
+
+  if (!message) return null;
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className={cn(
+        "fixed right-5 bottom-5 z-50 flex max-w-[380px] items-start gap-3 rounded-lg border bg-card px-4 py-3 text-sm shadow-lg",
+        "animate-in fade-in slide-in-from-bottom-2",
+        ALERT_STYLES[variant],
+      )}
+    >
+      <span className="flex-1">{message}</span>
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Dismiss"
+        className="-mr-1 -mt-0.5 rounded p-0.5 leading-none opacity-70 hover:opacity-100"
+      >
+        ×
+      </button>
+    </div>
+  );
+}
+
 export function FactGrid({ children, flush }: { children: React.ReactNode; flush?: boolean }) {
   return (
     <div
@@ -155,12 +198,14 @@ export function LinkButton({
   );
 }
 
-export function Tag({ children, tone }: { children: React.ReactNode; tone?: "warn" }) {
+export function Tag({ children, tone }: { children: React.ReactNode; tone?: "warn" | "ok" | "scheduled" }) {
   return (
     <span
       className={cn(
-        "ml-2 rounded-full border border-border px-2 py-[0.1em] font-mono text-[0.62rem] uppercase tracking-[0.08em] text-faint",
+        "ml-2 shrink-0 rounded-full border border-border px-2 py-[0.1em] font-mono text-[0.62rem] uppercase tracking-[0.08em] text-faint",
         tone === "warn" && "border-transparent p-0 text-[0.7rem] normal-case tracking-normal text-warning",
+        tone === "ok" && "border-transparent bg-[var(--ok-soft)] text-success",
+        tone === "scheduled" && "border-amber-700/30 bg-amber-600/10 text-amber-700",
       )}
     >
       {children}

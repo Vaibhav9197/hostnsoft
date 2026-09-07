@@ -9,6 +9,9 @@
 
 import { hns } from "./client";
 import type {
+  BillingPlan,
+  BillingStatus,
+  BillingSubscription,
   Company,
   CompanyDetail,
   CompanyWithMembership,
@@ -17,6 +20,7 @@ import type {
   Deployment,
   EnvVar,
   Member,
+  PaymentMethod,
   Project,
   ProjectDetail,
 } from "./types";
@@ -125,4 +129,48 @@ export const deploymentsApi = {
   // GET .../deployments — deploy history, newest first.
   list: (companyId: string, projectId: string) =>
     hns<Deployment[]>(`/companies/${companyId}/projects/${projectId}/deployments`),
+};
+
+// ------------------------------------------------------------------ Billing
+// Lago + Stripe via hostnsoft-api (docs/billing.md there). Everything is
+// per company except the plan catalogue, which is org-wide.
+export const billingApi = {
+  // GET /billing/plans — the public plans, in display order.
+  plans: () => hns<BillingPlan[]>("/billing/plans"),
+
+  // GET /companies/:companyId/billing — live subscriptions with their plans.
+  // An empty list means billing hasn't been set up for the company yet.
+  status: (companyId: string) => hns<BillingStatus>(`/companies/${companyId}/billing`),
+
+  // POST /companies/:companyId/billing/customer — create the Lago customer
+  // (and, through it, the Stripe customer) and start on the free plan.
+  setup: (companyId: string, body: { name: string; email: string }) =>
+    hns<{ subscription: BillingSubscription }>(`/companies/${companyId}/billing/customer`, { method: "POST", body }),
+
+  // GET .../payment-methods — saved cards from Stripe. 404 = no customer,
+  // 409 BILLING_PROVIDER_NOT_LINKED = Stripe customer not created yet.
+  paymentMethods: (companyId: string) =>
+    hns<PaymentMethod[]>(`/companies/${companyId}/billing/payment-methods`),
+
+  // GET .../checkout-url — short-lived, single-use Stripe page to add a card.
+  checkoutUrl: (companyId: string) =>
+    hns<{ checkoutUrl: string }>(`/companies/${companyId}/billing/checkout-url`),
+
+  // DELETE .../payment-methods/:id — detach a saved card.
+  removePaymentMethod: (companyId: string, paymentMethodId: string) =>
+    hns<null>(`/companies/${companyId}/billing/payment-methods/${encodeURIComponent(paymentMethodId)}`, {
+      method: "DELETE",
+    }),
+
+  // PUT .../subscription — change plan. Upgrades apply now; downgrades at
+  // period end (shows as a "pending" subscription until then).
+  changePlan: (companyId: string, planCode: string) =>
+    hns<BillingSubscription>(`/companies/${companyId}/billing/subscription`, {
+      method: "PUT",
+      body: { plan_code: planCode },
+    }),
+
+  // DELETE .../subscription — cancel = move back to the free plan.
+  cancel: (companyId: string) =>
+    hns<BillingSubscription>(`/companies/${companyId}/billing/subscription`, { method: "DELETE" }),
 };
