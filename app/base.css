@@ -22,6 +22,14 @@
   --accent-soft:rgba(0,0,0,.06);
   --accent-line:rgba(0,0,0,.24);
   --on-accent:#ffffff;    /* white text on black */
+  /* Frosted-header tints, derived from --bg so they can't drift from the page
+     ground. Written as color-mix rather than a Tailwind alpha modifier
+     (bg-[var(--bg)]/70) because Tailwind cannot compute an alpha channel for an
+     arbitrary var() colour — it emits an invalid declaration that the browser
+     drops, leaving the bar blurred but untinted. The -solid variant is the
+     no-backdrop-filter fallback. */
+  --bg-glass:color-mix(in srgb, var(--bg) 70%, transparent);
+  --bg-glass-solid:color-mix(in srgb, var(--bg) 95%, transparent);
   --line:#e5e1d8;         /* subtle border */
   --line-strong:#d4cec3;  /* stronger border */
   --ok:#16a34a;           /* green success */

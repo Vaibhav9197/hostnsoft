@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, ArrowRight, Lightbulb, Cpu, Zap, Code2, Lock, Share2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Header } from "../components/Header";
+import { SiteFooter } from "../components/SiteFooter";
 import { LoginModal } from "../components/LoginModal";
 
 function Ico({ children }: { children: React.ReactNode }) {
@@ -283,6 +284,8 @@ export default function PricingPage() {
           </Button>
         </div>
       </section>
+
+      <SiteFooter />
     </div>
   );
 }

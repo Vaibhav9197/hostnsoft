@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { ArrowRight, Copy, Bot, Globe } from 'lucide-react';
+import { AGENTS, agentIconSrc } from '../lib/agents';
 import { CopyPromptButton, COPIED_LABEL } from '../components/CopyPromptButton';
 import { SiteHeader } from '../components/SiteHeader';
 
@@ -39,6 +40,16 @@ function Sub({ children }: { children: React.ReactNode }) {
     <p className="mx-auto mt-6 max-w-[46ch] text-[18px] leading-relaxed text-black/50 md:text-[22px]">
       {children}
     </p>
+  );
+}
+
+/* Headline highlight: a solid black chip behind a phrase. box-decoration-break
+   keeps the padding and radius on every fragment when a phrase wraps. */
+function Mark({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-block rounded-[0.09em] bg-black px-[0.11em] pb-[0.06em] pt-[0.02em] align-baseline text-white leading-[0.88] [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">
+      {children}
+    </span>
   );
 }
 
@@ -82,8 +93,8 @@ export default function EmbarkoV2() {
         <button
           onClick={() => setStep((s) => s - 1)}
           aria-label="Previous step"
-          /* Clears the 64px header, which owns the top-left corner now. */
-          className="absolute left-6 top-20 z-20 flex h-9 w-9 items-center justify-center rounded-full text-black/35 transition hover:bg-black/[0.04] hover:text-black"
+          /* Centred under the 64px header, which owns the top row. */
+          className="absolute left-1/2 top-20 z-20 flex h-9 w-9 -translate-x-1/2 items-center justify-center rounded-full text-black/35 transition hover:bg-black/[0.04] hover:text-black"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -93,7 +104,11 @@ export default function EmbarkoV2() {
 
       {/* the one section */}
       <div className="flex flex-1 items-center justify-center overflow-y-auto px-6 py-12">
-        <div key={step} className="eb-in w-full max-w-[1000px]">
+        <div
+          key={step}
+          /* Hero's headline needs a wider column than the demo steps to hold two lines. */
+          className={`eb-in w-full ${step === 0 ? 'max-w-[1180px]' : 'max-w-[1000px]'}`}
+        >
           {step === 0 && <Hero onNext={() => setStep(1)} />}
           {step === 1 && <CopyStep onNext={() => setStep(2)} />}
           {step === 2 && <ChatStep />}
@@ -128,20 +143,19 @@ export default function EmbarkoV2() {
 function Hero({ onNext }: { onNext: () => void }) {
   return (
     <div className="text-center">
-      <h1 className="mx-auto max-w-[13ch] text-[52px] font-semibold leading-[0.94] tracking-[-0.045em] sm:text-[74px] md:text-[100px]">
-        Your agent builds it. Embarko ships it.
+      <h1 className="mx-auto max-w-[18ch] text-[52px] font-semibold leading-[1.1] tracking-[-0.045em] sm:text-[74px] md:text-[100px]">
+        Instant <Mark>hosting</Mark> for anything you build with your AI agent
       </h1>
 
       <Sub>
-        Instant hosting for anything you build with your AI agent. No Dockerfile, no config, no
-        deploy pipeline — just a live URL.
+        No Dockerfile, no config, no deploy pipeline — just a live URL.
       </Sub>
 
       <button
         onClick={onNext}
         className="group mt-10 inline-flex items-center gap-2.5 rounded-full bg-black px-8 py-4 text-[16px] font-medium text-white transition hover:bg-black/85"
       >
-        Start now
+        Host now
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
           <path d="M5 12h14M12 5l7 7-7 7" />
         </svg>
@@ -374,25 +388,6 @@ function CopyStep({ onNext }: { onNext: () => void }) {
 
 /* ── step 2 · hand it to whichever agent you use ───────── */
 
-/* Display only — these name the agents the prompt is known to work with;
-   nothing here is clickable. Icons live in public/agenticons. */
-const AGENTS = [
-  { slug: 'claudecode', name: 'Claude Code' },
-  { slug: 'cursor', name: 'Cursor' },
-  { slug: 'githubcopilot', name: 'GitHub Copilot' },
-  { slug: 'codex', name: 'Codex' },
-  { slug: 'gemini', name: 'Gemini' },
-  { slug: 'antigravity', name: 'Antigravity' },
-  { slug: 'cline', name: 'Cline' },
-  { slug: 'opencode', name: 'OpenCode' },
-  { slug: 'openclaw', name: 'OpenClaw' },
-  { slug: 'lovable', name: 'Lovable' },
-  { slug: 'grokbot', name: 'Grok' },
-  { slug: 'perplexity', name: 'Perplexity' },
-  { slug: 'hermes', name: 'Hermes' },
-  { slug: 'pi', name: 'Pi' },
-];
-
 function ChatStep() {
   return (
     <div>
@@ -408,7 +403,7 @@ function ChatStep() {
             className="flex items-center gap-2.5 rounded-full border border-black/10 bg-white px-4 py-2.5"
           >
             <img
-              src={`/agenticons/agenticon-${agent.slug}.svg`}
+              src={agentIconSrc(agent.slug)}
               alt=""
               aria-hidden="true"
               className="h-5 w-5 shrink-0 object-contain"

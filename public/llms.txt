@@ -1,0 +1,135 @@
+# Embarko
+
+Embarko is hosting for apps built by AI agents. You send it the source of an app; it builds the app,
+runs it, and serves it at a live HTTPS URL.
+
+Agents use Embarko to put a finished app on the internet: a web app, a site, a dashboard, an
+internal tool, a demo. Every deploy lands at {app-name}.app.embarko.ai, or at a custom domain the
+owner has connected. Unlike a static file host, Embarko executes the app — so a server, a database,
+uploaded files, and login all keep working once deployed.
+
+## When to use Embarko
+
+- The user asks you to deploy, host, ship, publish, or "put online" an app you have built for them.
+- The user wants a link they can share with someone else, instead of a local dev server.
+- The app needs to keep running: it has a backend, stores data, or serves more than static HTML.
+- The user wants the app to keep its data across redeploys.
+
+Do not use Embarko to host content the user has no right to publish, or to run workloads that are
+not an app — mining, traffic proxying, or load generation are prohibited by the terms of service.
+
+## What you need first
+
+A deploy token, created by the user from the dashboard. Tokens cannot be minted through the API, so
+you cannot create one on the user's behalf:
+
+1. The user signs in at https://embarko.ai/login
+2. They open their company's Deploy tokens page: https://embarko.ai/app/tokens
+3. They create a token with a label. It is shown once and starts with `hns_`.
+4. They put it in your environment as DEPLOY_TOKEN.
+
+A token authenticates as a *company*, not as a person. Everything deployed with it belongs to that
+company, and no separate company header is needed. Tokens deploy only — they do not sign in to the
+dashboard.
+
+## Deploy
+
+    POST https://ship.embarko.ai/apps
+
+Headers:
+
+- `Authorization: Bearer $DEPLOY_TOKEN` — required. Identifies the caller and its company.
+- `X-App-Name` — required. Lowercase letters, numbers, and dashes only (`^[a-z0-9-]+$`). This is
+  also the app's subdomain, so it must be unique platform-wide, not just within the company.
+- `X-App-Version` — optional, defaults to a timestamp. Pass something unique (a git SHA, a semver
+  tag); a reused tag can serve a stale build.
+
+Body: multipart form, field `source`, containing a `.tar.gz` of the app's source.
+
+A new app name creates its project on first deploy. There is no dashboard step beforehand, and no
+anonymous mode — every request needs a token.
+
+    tar -czf /tmp/my-app.tar.gz --exclude=node_modules --exclude=.git -C /path/to/app .
+
+    curl -X POST "https://ship.embarko.ai/apps" \
+      -H "Authorization: Bearer $DEPLOY_TOKEN" \
+      -H "X-App-Name: my-app" \
+      -H "X-App-Version: $(git rev-parse --short HEAD)" \
+      -F "source=@/tmp/my-app.tar.gz"
+
+Success response:
+
+    {
+      "success": true,
+      "message": "Deployment successful!",
+      "version": "abc1234",
+      "image": "my-app:abc1234",
+      "memory": "256MB",
+      "url": "https://my-app.app.embarko.ai"
+    }
+
+Report the `url` back to the user. Redeploying the same app name ships a new version to the same URL.
+
+## Storage requirements
+
+Do not call `window.storage`. It is specific to Claude Artifacts' sandbox and does not exist on
+Embarko; an app that calls it is rejected at deploy time with `422 unsupported_storage_pattern`,
+before any build runs.
+
+Persist data instead with:
+
+- `better-sqlite3` — SQLite, for key-value and document-shaped data.
+- `@electric-sql/pglite` — Postgres, for relational data that needs joins.
+
+Either way, write to a path under the `DATA_DIR` environment variable. Data written anywhere else
+does not survive a redeploy.
+
+## Errors
+
+Every non-2xx response carries a machine-readable `code` alongside a human-readable `error`. Branch
+on `code` — the wording of `error` can change.
+
+| code | status | meaning |
+| --- | --- | --- |
+| `unauthorized` | 401 | DEPLOY_TOKEN missing, invalid, or revoked |
+| `invalid_app_name` | 400 | X-App-Name missing, or fails `^[a-z0-9-]+$` |
+| `app_name_taken` | 409 | Another company already holds this app name — pick a different one, do not retry |
+| `app_name_check_failed` | 502 | Name availability could not be verified — transient, safe to retry |
+| `invalid_app_version` | 400 | X-App-Version fails `^[a-zA-Z0-9._-]+$` |
+| `missing_source_file` | 400 | No `source` file in the multipart upload |
+| `unsupported_storage_pattern` | 422 | App calls `window.storage` — see Storage requirements |
+| `deploy_failed` | 500 | The build or deploy step failed — read `details` for the real cause |
+
+## Optional: the deploy skill
+
+For repeated use, install the skill rather than hand-rolling the request. It packages the tarball,
+runs the storage-pattern check locally, and interprets the error codes:
+
+    npx skills add embarko-ai/skill --skill embarko-deploy -g
+
+Drop `-g` for a repo-local install. The plain HTTP call above works standalone; the skill is
+convenience, not a requirement.
+
+## What a deployed app gets
+
+- A live HTTPS URL at `{app-name}.app.embarko.ai`, with certificates handled for you.
+- A custom domain, on the paid plans.
+- Persistent storage for a database and uploaded files, under `DATA_DIR`.
+- A login building block, so the app does not have to implement auth from scratch.
+- Automatic backups, from the Creator plan up.
+- Redeploys any time the agent rebuilds the app.
+
+Plan limits (how many apps run at once, how much usage is included) are published at
+https://embarko.ai/pricing.
+
+## Links
+
+- Docs: https://embarko.ai/docs
+- Pricing: https://embarko.ai/pricing
+- Status: https://embarko.ai/status
+- Terms: https://embarko.ai/terms
+- Privacy: https://embarko.ai/privacy
+- DPA: https://embarko.ai/dpa
+- Security: https://embarko.ai/security
+- Report abuse: abuse@embarko.ai
+- Contact: hello@embarko.ai

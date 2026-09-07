@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Header } from "./Header";
+import { Header, type HeaderLink } from "./Header";
 import { LoginModal } from "./LoginModal";
 
 /**
@@ -10,15 +10,18 @@ import { LoginModal } from "./LoginModal";
  * component so a server-component page (app/v1) can render it — Header takes an
  * onAuthClick callback, and a function cannot cross the server/client boundary.
  *
- * Mirrors how v3 wires these two together: the page owns the modal instance and
- * hands the trigger to the header. Shared by the landing-page variants.
+ * The page owns the modal instance and hands the trigger to the header. Shared
+ * by the landing-page variants.
+ *
+ * `links` is forwarded straight through for pages that want in-page section
+ * anchors in the header's centre slot.
  */
-export function SiteHeader() {
+export function SiteHeader({ links }: { links?: readonly HeaderLink[] }) {
   const [loginOpen, setLoginOpen] = useState(false);
 
   return (
     <>
-      <Header onAuthClick={() => setLoginOpen(true)} />
+      <Header onAuthClick={() => setLoginOpen(true)} links={links} />
       <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
     </>
   );

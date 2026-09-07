@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Copy, Check } from "lucide-react";
 import { Header } from "../components/Header";
+import { SiteFooter } from "../components/SiteFooter";
 import { LoginModal } from "../components/LoginModal";
 import { DEPLOY_PROMPT } from "../lib/deployPrompt";
 import { CopyPromptButton, COPIED_LABEL } from "../components/CopyPromptButton";
@@ -371,17 +372,7 @@ curl -X POST "https://ship.embarko.ai/apps" \\
         </div>
       </div>
 
-      {/* ===== Footer ===== */}
-      <footer className="border-t border-neutral-200 px-6 py-8">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 text-sm text-neutral-500 sm:flex-row">
-          <div className="flex items-center gap-2 font-semibold text-neutral-950">
-            <span className="h-1.5 w-1.5 rounded-full bg-neutral-950" />
-            Embarko
-          </div>
-          <span>© 2026 Embarko</span>
-          <Link href="/pricing" className="hover:text-neutral-950">Pricing</Link>
-        </div>
-      </footer>
+      <SiteFooter />
 
       <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
     </div>

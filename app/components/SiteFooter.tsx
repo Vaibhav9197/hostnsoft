@@ -1,0 +1,87 @@
+import Link from "next/link";
+
+/**
+ * The site-wide footer for the standalone pages (terms, privacy, DPA,
+ * security, abuse, status). Three link columns plus a bottom bar.
+ *
+ * `llms.txt` is a static file in /public, so it needs a plain anchor rather
+ * than next/link — Link would try to route it through the app router.
+ */
+
+const COLUMNS = [
+  {
+    heading: "Product",
+    links: [
+      { label: "Docs", href: "/doc" },
+      { label: "Pricing", href: "/pricing" },
+      { label: "Status", href: "/status" },
+      { label: "llms.txt", href: "/llms.txt", external: true },
+    ],
+  },
+  {
+    heading: "Legal",
+    links: [
+      { label: "Terms", href: "/terms" },
+      { label: "Privacy", href: "/privacy" },
+      { label: "DPA", href: "/dpa" },
+    ],
+  },
+  {
+    heading: "Company",
+    links: [
+      { label: "Security", href: "/security" },
+      { label: "Abuse", href: "/abuse" },
+      { label: "Contact", href: "mailto:hello@embarko.ai", external: true },
+    ],
+  },
+] as const;
+
+export function SiteFooter() {
+  return (
+    <footer className="border-t border-border py-16">
+      <div className="mx-auto w-full max-w-[860px] px-6">
+        <div className="grid gap-10 sm:grid-cols-[1fr_auto_auto_auto] sm:gap-16">
+          <div>
+            <span className="text-lg font-semibold tracking-tight text-foreground">embarko</span>
+            <p className="mt-3 max-w-[24ch] text-sm leading-relaxed text-muted-foreground">
+              Hosting for the apps your AI builds.
+            </p>
+          </div>
+
+          {COLUMNS.map((column) => (
+            <div key={column.heading}>
+              <p className="font-mono text-[11px] uppercase tracking-widest text-faint">
+                {column.heading}
+              </p>
+              <ul className="mt-3 space-y-2">
+                {column.links.map((link) => (
+                  <li key={link.label}>
+                    {"external" in link && link.external ? (
+                      <a
+                        href={link.href}
+                        className="text-sm text-muted-foreground transition hover:text-foreground"
+                      >
+                        {link.label}
+                      </a>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className="text-sm text-muted-foreground transition hover:text-foreground"
+                      >
+                        {link.label}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-10 border-t border-border pt-6 text-sm text-muted-foreground">
+          © {new Date().getFullYear()} Embarko — hosting for AI-built apps
+        </div>
+      </div>
+    </footer>
+  );
+}

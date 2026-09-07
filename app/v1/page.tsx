@@ -1,8 +1,13 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { MapPin, Plane } from 'lucide-react';
+import {
+  Activity, ArrowRight, Check, Copy, Database, FolderOpen, Globe, HardDrive,
+  KeyRound, MapPin, Plane, RefreshCw, ShieldCheck,
+} from 'lucide-react';
 import barcelonaMorning from '../v4/barcelona-morning.png';
 import { SectionSnap } from './SectionSnap';
+import { AGENTS, agentIconSrc } from '../lib/agents';
 import { SiteHeader } from '../components/SiteHeader';
+import { SiteFooter } from '../components/SiteFooter';
 import { CopyPromptButton, COPIED_LABEL } from '../components/CopyPromptButton';
 
 /**
@@ -48,16 +53,27 @@ function SkyBackdrop({
   );
 }
 
+/* The highlight on an app's address, wherever it appears — the local build and
+   the deployed URL both wear it, so one definition keeps the yellow identical
+   across all four places it shows up. */
+const URL_CHIP =
+  'rounded bg-yellow-300 px-1.5 py-0.5 text-[10px] font-light tracking-wide text-gray-800';
+
 /** A miniature application window. The product is the visual, so these are drawn, not photographed. */
 function AppWindow({
   label,
   children,
   className = '',
+  /* The colour lives in a prop rather than the base classes so a caller can
+     replace it outright — two competing text- utilities in one string are
+     resolved by CSS source order, not by the order they are written. */
+  labelClassName = 'text-gray-400',
   style,
 }: {
   label?: string;
   children: ReactNode;
   className?: string;
+  labelClassName?: string;
   style?: CSSProperties;
 }) {
   return (
@@ -70,7 +86,9 @@ function AppWindow({
         <span className="h-2 w-2 rounded-full bg-black/10" />
         <span className="h-2 w-2 rounded-full bg-black/10" />
         {label ? (
-          <span className="ml-2 truncate text-[10px] font-light tracking-wide text-gray-400">{label}</span>
+          <span className={`ml-2 truncate rounded text-[10px] font-light tracking-wide ${labelClassName}`}>
+            {label}
+          </span>
         ) : null}
       </div>
       <div className="p-4">{children}</div>
@@ -227,20 +245,132 @@ const APPS = [
   { title: 'Habit planner', desc: 'Build the tool you wish existed.', variant: 'habit' },
 ];
 
-const SKY_APPS = [
-  { label: 'portfolio', variant: 'portfolio', top: '4%', left: '2%', w: 'w-52', delay: '0s' },
-  { label: 'assistant', variant: 'ai', top: '30%', left: '20%', w: 'w-48', delay: '1.1s' },
-  { label: 'arcade', variant: 'game', top: '8%', left: '43%', w: 'w-44', delay: '2.2s' },
-  { label: 'insights', variant: 'expense', top: '46%', left: '58%', w: 'w-52', delay: '0.6s' },
-  { label: 'notes', variant: 'site', top: '18%', left: '76%', w: 'w-44', delay: '1.7s' },
-  { label: 'streaks', variant: 'habit', top: '62%', left: '10%', w: 'w-40', delay: '2.8s' },
+/**
+ * The scattered "world of apps" scene, ported from /v4.
+ *
+ * v4 draws this from v4.css, which its own layout imports precisely so it stays
+ * off the other variants — that file restyles bare `html`, `body` and `h1`, so
+ * it cannot simply be shared. The composition is reproduced here in v1's own
+ * Tailwind idiom instead: same cards, same scatter, same window sketches.
+ */
+const WORLD_THEMES: Record<string, { bg: string; art: ReactNode }> = {
+  sunrise: {
+    bg: '#f4e8d7',
+    art: (
+      <>
+        <i className="absolute right-[15px] top-[15px] h-[26px] w-[26px] rounded-full bg-[#e2a14a]" />
+        <i className="absolute bottom-[18px] left-3 h-[5px] w-[78px] rounded-[4px] bg-[#5b5044]" />
+        <i className="absolute bottom-[9px] left-3 h-1 w-[55px] rounded-[4px] bg-[#a28b75]" />
+      </>
+    ),
+  },
+  mint: {
+    bg: '#e6f4eb',
+    art: (
+      <>
+        <i className="absolute left-[17px] top-[19px] h-[7px] w-[73px] rounded-[5px] bg-[#91c2a1]" />
+        <i className="absolute left-[17px] top-[38px] h-[25px] w-[112px] rounded-[5px] bg-[#c5dfcc]" />
+        <i className="absolute bottom-[13px] left-[17px] h-[6px] w-[41px] rounded-[5px] bg-[#91c2a1]" />
+      </>
+    ),
+  },
+  paper: {
+    bg: '#f1f0ec',
+    art: (
+      <>
+        <i className="absolute left-[26px] top-[17px] h-[52px] w-[5px] rounded-[4px] bg-[#91a88f]" />
+        <i className="absolute left-[52px] top-[17px] h-[36px] w-[5px] rounded-[4px] bg-[#91a88f]" />
+        <i className="absolute left-[78px] top-[17px] h-[58px] w-[5px] rounded-[4px] bg-[#91a88f]" />
+      </>
+    ),
+  },
+  peach: {
+    bg: '#f8e5dc',
+    art: (
+      <>
+        <i className="absolute left-[17px] top-[21px] h-[11px] w-[81px] rounded-[5px] bg-[#ae725f]" />
+        <i className="absolute left-[17px] top-[42px] h-[28px] w-[112px] rounded-[6px] bg-[#edc2ae]" />
+      </>
+    ),
+  },
+  blue: {
+    bg: '#e8f0f9',
+    art: (
+      <>
+        <i className="absolute left-[19px] top-[18px] h-[7px] w-[69px] rounded-[4px] bg-[#768fb5]" />
+        <i className="absolute left-[19px] top-[39px] h-[33px] w-[43px] rounded-full border-[7px] border-[#91b4ce]" />
+      </>
+    ),
+  },
+  ink: {
+    bg: '#283842',
+    art: (
+      <>
+        <i className="absolute left-[17px] top-[18px] h-[6px] w-[79px] rounded-[4px] bg-[#a7cad2]" />
+        <i className="absolute bottom-[15px] left-[17px] h-[20px] w-[34px] rounded-[4px] bg-[#e2a851]" />
+      </>
+    ),
+  },
+};
+
+/** Scatter positions inside the 1080x520 stage, matching v4's arrangement. */
+const WORLD_APPS: { name: string; theme: string; style: CSSProperties }[] = [
+  { name: 'Portfolio', theme: 'sunrise', style: { top: 54, left: '3%', transform: 'rotate(-4deg)' } },
+  { name: 'Little tools', theme: 'mint', style: { top: 22, left: '34%', transform: 'rotate(3deg)' } },
+  { name: 'Project board', theme: 'paper', style: { top: 66, right: '7%', transform: 'rotate(-2deg)' } },
+  { name: 'Bookings', theme: 'peach', style: { bottom: 78, left: '14%', transform: 'rotate(5deg)' } },
+  { name: 'Study tracker', theme: 'blue', style: { bottom: 26, left: '43%', transform: 'rotate(-2deg)' } },
+  { name: 'Game night', theme: 'ink', style: { right: '12%', bottom: 77, transform: 'rotate(3deg)' } },
 ];
 
-/* Keyboard-shortcut chip for the copy button. `leading-none` matters: without
-   it the span inherits the button's 28px line-height and renders as a tall box
-   around a small glyph. Sized against the button's 18px label. */
+function WorldApp({ name, theme, className = '', style }: { name: string; theme: string; className?: string; style?: CSSProperties }) {
+  const { bg, art } = WORLD_THEMES[theme];
+  return (
+    <div
+      className={`flex w-fit flex-col gap-[7px] rounded-[13px] border border-black/[0.06] bg-white/85 p-2.5 shadow-[0_20px_38px_rgba(0,0,0,0.09)] backdrop-blur-[7px] ${className}`}
+      style={style}
+    >
+      <div className="relative h-[91px] w-[146px] overflow-hidden rounded-[8px]" style={{ background: bg }} aria-hidden="true">
+        {art}
+      </div>
+      <strong className="text-[12px] font-semibold text-neutral-800">{name}</strong>
+      <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[11px] font-semibold text-neutral-600">
+        <i className="h-1.5 w-1.5 rounded-full bg-[#222] shadow-[0_0_0_3px_rgba(0,0,0,0.08)]" />
+        Live on Embarko
+      </span>
+    </div>
+  );
+}
+
 /* The three-beat "how it works" line under the hero CTA, ported from v4's
    hero. Step 1 is the current one because the CTA above it is the copy. */
+/* The marks of every agent the prompt is known to work with, under the hero
+   CTA. Icons only and dimmed by default: fourteen full-strength logos would
+   compete with the headline, and the step above already says an agent is what
+   receives the prompt. Names are carried by alt text rather than visible
+   labels, which would not fit on one line. */
+function AgentStrip() {
+  return (
+    <div className="flex flex-col items-center gap-3 pt-7">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.09em] text-gray-400">
+        Works with every agent
+      </p>
+      <ul className="flex max-w-2xl flex-wrap items-center justify-center gap-x-7 gap-y-4">
+        {AGENTS.map((agent) => (
+          <li key={agent.slug}>
+            <img
+              src={agentIconSrc(agent.slug)}
+              alt={agent.name}
+              title={agent.name}
+              className="h-5 w-5 object-contain opacity-55 transition hover:opacity-100"
+            />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 /**
  * The Weekend trip planner — the one "real app" screen this page shows, drawn
  * in v1's lighter idiom (the /v4 showcase runs the same app off its own CSS).
@@ -315,15 +445,37 @@ function CopyPromptCta() {
       className="inline-flex items-center justify-center gap-2.5 rounded-[15px] bg-black px-8 py-4 text-lg font-medium text-white transition hover:bg-gray-900"
       copiedChildren={
         <>
+          <Check className="h-[18px] w-[18px]" aria-hidden="true" />
           {COPIED_LABEL}
-          <KeyChip />
         </>
       }
     >
-      Copy the Embarko prompt
-      <KeyChip />
+      <Copy className="h-[18px] w-[18px]" aria-hidden="true" />
+      Copy the deploy prompt
     </CopyPromptButton>
   );
+}
+
+/* The story scenes carry the same numerals as the "How?" recap further down, so
+   a reader arriving at that summary recognises it as a recap of what they just
+   watched rather than new material. Styled to match those numerals exactly. */
+/* What Embarko handles for a deployed app — ported from /v3's "Already
+   handled" grid. v3 draws it from the shared design tokens; v1 uses its own
+   neutral greys, so the block sits in this page's palette rather than arriving
+   in v3's warmer one. */
+const INCLUDED = [
+  { Icon: Globe, title: 'Domain', body: 'Get a live URL the moment your app deploys.' },
+  { Icon: Database, title: 'Database', body: 'Your app can save and load data right away.' },
+  { Icon: KeyRound, title: 'Login', body: 'Let people sign in without building auth yourself.' },
+  { Icon: FolderOpen, title: 'Files', body: 'Upload and store files without extra setup.' },
+  { Icon: ShieldCheck, title: 'HTTPS', body: 'Every app is secure by default.' },
+  { Icon: HardDrive, title: 'Backups', body: 'Your data is backed up automatically.' },
+  { Icon: RefreshCw, title: 'Updates', body: 'Ship changes any time your agent rebuilds.' },
+  { Icon: Activity, title: 'Uptime', body: 'Your app stays online without you watching it.' },
+];
+
+function SceneStep({ n }: { n: string }) {
+  return <div className="text-6xl font-bold text-gray-300">{n}</div>;
 }
 
 function Steps() {
@@ -331,22 +483,15 @@ function Steps() {
   return (
     <ol
       aria-label="How it works"
-      className="flex flex-wrap items-center justify-center gap-x-[18px] gap-y-2 text-sm font-medium text-gray-400"
+      className="flex flex-wrap items-center justify-center gap-x-[18px] gap-y-2 text-sm font-medium text-black"
     >
       {steps.map((label, i) => (
-        <li
-          key={label}
-          className={`inline-flex items-center gap-1.5 whitespace-nowrap ${
-            i === 0 ? 'text-black' : ''
-          }`}
-        >
+        <li key={label} className="inline-flex items-center gap-1.5 whitespace-nowrap">
           <span
             /* leading-none is load-bearing: without it the numeral inherits the
                list's 20px line-height inside an 18px circle, so the line box
                overflows and place-items-center centres the wrong box. */
-            className={`grid h-[18px] w-[18px] place-items-center rounded-full border text-[10px] font-bold leading-none ${
-              i === 0 ? 'border-black bg-gray-100 text-black' : 'border-gray-300 text-gray-400'
-            }`}
+            className="grid h-[18px] w-[18px] place-items-center rounded-full border border-black text-[10px] font-bold leading-none text-black"
           >
             {i + 1}
           </span>
@@ -354,15 +499,6 @@ function Steps() {
         </li>
       ))}
     </ol>
-  );
-}
-
-function KeyChip() {
-  return (
-    <span className="inline-flex items-center gap-1 rounded-md border border-white/25 bg-white/10 px-2 py-1.5 font-mono text-xs leading-none tracking-wide text-white/75">
-      <span className="text-[13px] leading-none">⌘</span>
-      C
-    </span>
   );
 }
 
@@ -390,17 +526,19 @@ export default function EmbarkoV1() {
           fade="from-white/10 via-white/60 to-white"
         />
         <div className="relative z-10 max-w-4xl space-y-8 text-center">
-          <h1 className="text-5xl font-bold leading-tight tracking-tight sm:text-6xl md:text-8xl">
-            Your AI builds it.
-            <br />
-            Embarko runs it.
+          {/* 80px, not text-8xl: at 96px this headline wraps to three lines in the
+              896px column. 84px is the largest that still fits two, so 80 leaves a
+              little room for font-metric differences. */}
+          <h1 className="text-5xl font-bold leading-tight tracking-tight sm:text-6xl md:text-[80px]">
+            The easiest way to put your AI-built app online
           </h1>
           <p className="text-xl font-light text-gray-600 md:text-2xl">
-            The easiest way to put your AI-built app online.
+            Your AI builds it. Embarko runs it.
           </p>
           <div className="flex flex-col items-center justify-center gap-5 pt-8">
             <CopyPromptCta />
             <Steps />
+            <AgentStrip />
           </div>
         </div>
       </section>
@@ -409,6 +547,8 @@ export default function EmbarkoV1() {
       <section className="flex min-h-screen items-center justify-center px-6 py-20">
         <div className="grid w-full max-w-6xl items-center gap-8 md:grid-cols-2">
           <div className="space-y-6">
+            <SceneStep n="01" />
+            <h2 className="text-4xl font-bold sm:text-5xl md:text-6xl">Build with your AI</h2>
             <div className="space-y-4">
               <div className="text-gray-600">You:</div>
               <div className="text-2xl font-light">Build me a weekend trip planner.</div>
@@ -416,10 +556,11 @@ export default function EmbarkoV1() {
             <div className="space-y-4 border-t border-gray-200 pt-8">
               <div className="text-gray-600">AI:</div>
               <div className="text-2xl font-light">Creating Weekend now...</div>
+              <span className={`inline-block ${URL_CHIP}`}>weekend — local</span>
             </div>
           </div>
           {/* A real screen reads as a finished app in a way a skeleton never did. */}
-          <AppWindow label="weekend — local">
+          <AppWindow label="weekend — local" labelClassName={URL_CHIP}>
             <WeekendApp />
             <p className="pt-4 text-xs font-light uppercase tracking-[0.2em] text-gray-400">Built</p>
           </AppWindow>
@@ -430,12 +571,13 @@ export default function EmbarkoV1() {
       <section className="flex min-h-screen items-center justify-center px-6 py-20">
         <div className="w-full max-w-4xl space-y-12">
           <div className="space-y-4 text-center">
+            <SceneStep n="02" />
             <div className="text-xl text-gray-600">You:</div>
             <h2 className="text-4xl font-bold sm:text-5xl md:text-7xl">Now what?</h2>
           </div>
           <div className="space-y-4 border-t border-gray-200 pt-12 text-center">
             <div className="text-xl text-gray-600">Embarko:</div>
-            <p className="text-4xl font-light md:text-5xl">Deploy it to Embarko.</p>
+            <p className="text-4xl font-light md:text-5xl">Give it the prompt.</p>
           </div>
         </div>
       </section>
@@ -454,13 +596,16 @@ export default function EmbarkoV1() {
         <div className="relative z-10 w-full max-w-3xl space-y-12 text-center">
           {/* Same screen as scene 02 — the app they watched get built is the app
               that goes live, so it has to be recognisably the same one. */}
-          <AppWindow label="weekend.embarko.app" className="mx-auto max-w-md -translate-y-2 text-left">
+          <AppWindow label="weekend.embarko.app" labelClassName={URL_CHIP} className="mx-auto max-w-md -translate-y-2 text-left">
             <WeekendApp />
           </AppWindow>
           <div className="space-y-6">
+            <SceneStep n="03" />
             <h3 className="text-4xl font-bold sm:text-5xl md:text-7xl">It&apos;s live.</h3>
             <div className="space-y-2 text-2xl font-light text-gray-600">
-              <p>weekend.embarko.app</p>
+              <p>
+                <span className="rounded bg-yellow-300 px-2 py-0.5 text-gray-800">weekend.embarko.app</span>
+              </p>
               <p className="font-medium text-green-600">● Live</p>
             </div>
           </div>
@@ -478,7 +623,7 @@ export default function EmbarkoV1() {
             </div>
             <div className="space-y-4">
               <div className="text-6xl font-bold text-gray-300">02</div>
-              <h3 className="text-2xl font-light">Teach it Embarko.</h3>
+              <h3 className="text-2xl font-light">Give it the prompt.</h3>
               <CopyPromptButton
                 className="font-medium text-black underline hover:no-underline"
                 copiedChildren={COPIED_LABEL}
@@ -492,28 +637,37 @@ export default function EmbarkoV1() {
               <p className="italic text-gray-600">Deploy this to Embarko.</p>
             </div>
           </div>
+          {/* The three steps say what you do; this says what you get, so the
+              recap resolves instead of stopping on a single word. */}
           <div className="border-t border-gray-200 pt-12 text-center">
             <h3 className="text-4xl font-bold sm:text-5xl md:text-6xl">Live.</h3>
+            <p className="mx-auto mt-5 max-w-xl text-xl font-light text-gray-600 md:text-2xl">
+              A real URL, a database, and HTTPS. You set up none of it.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* SCENE 06: THE PAIN REMOVED */}
+      {/* SCENE 06: THE PAIN REMOVED (ported from /v3) */}
       <section className="flex min-h-screen items-center justify-center bg-gray-50 px-6 py-20">
-        <div className="w-full max-w-4xl space-y-12">
-          <h2 className="text-center text-3xl font-light sm:text-4xl md:text-5xl">Your app is ready.</h2>
-          <div className="grid grid-cols-2 gap-4 text-center md:grid-cols-3">
-            {['Hosting', 'Domains', 'Login', 'Data', 'Files', 'Security', 'Deployments', 'Backups', 'CDN'].map(
-              (item) => (
-                <div key={item} className="rounded border border-gray-200 bg-white p-4 font-light text-gray-600">
-                  {item}
-                </div>
-              ),
-            )}
+        <div className="w-full max-w-5xl">
+          <div className="mb-12 max-w-xl">
+            <h2 className="text-3xl font-bold sm:text-4xl md:text-5xl">Everything your app needs. Already handled.</h2>
+            <p className="mt-4 text-lg font-light leading-relaxed text-gray-600">
+              Your AI builds the app. Embarko takes care of everything needed to keep it running — you
+              don&apos;t have to set any of this up yourself.
+            </p>
           </div>
-          <div className="space-y-8 border-t border-gray-300 pt-12 text-center">
-            <h3 className="text-4xl font-bold sm:text-5xl md:text-7xl">Embarko</h3>
-            <p className="text-2xl font-light md:text-3xl">Your app is live.</p>
+          {/* A 1px grid gap over a grey ground draws the cell rules, so the block
+              reads as one table rather than eight detached boxes. */}
+          <div className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-gray-200 bg-gray-200 sm:grid-cols-2 lg:grid-cols-4">
+            {INCLUDED.map(({ Icon, title, body }) => (
+              <div key={title} className="bg-white px-6 py-7">
+                <Icon aria-hidden="true" strokeWidth={1.5} className="mb-3.5 h-[22px] w-[22px]" />
+                <h3 className="mb-1.5 text-base font-bold">{title}</h3>
+                <p className="text-sm font-light leading-relaxed text-gray-600">{body}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -549,34 +703,36 @@ export default function EmbarkoV1() {
         </div>
       </section>
 
-      {/* SCENE 08: THE SKY */}
-      <section className="relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-20">
-        <SkyBackdrop
-          src="/atmosphere/sky-open.jpg"
-          position="center 35%"
-          blur={22}
-          opacity={0.7}
-          fade="from-white via-transparent to-white"
-        />
-        <div className="relative z-10 w-full max-w-6xl space-y-12">
-          <h2 className="text-center text-4xl font-bold sm:text-5xl md:text-6xl">A world of things you&apos;ve built.</h2>
-          <div className="relative hidden h-[26rem] md:block">
-            {SKY_APPS.map((app) => (
-              <AppWindow
-                key={app.label}
-                label={app.label}
-                className={`absolute ${app.w} animate-[float_9s_ease-in-out_infinite] backdrop-blur-sm`}
-                style={{ top: app.top, left: app.left, animationDelay: app.delay }}
-              >
-                <SketchPanel variant={app.variant} className="p-3" />
-              </AppWindow>
+      {/* SCENE 08: THE WORLD OF APPS (ported from /v4) */}
+      <section
+        className="relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-20"
+        style={{ background: 'radial-gradient(circle at 50% 77%, #ededed 0, rgba(255,255,255,0) 56%), #fff' }}
+      >
+        <div className="relative z-10 w-full max-w-6xl">
+          <div className="mx-auto w-full max-w-[580px] text-center">
+            <h2 className="text-4xl font-bold sm:text-5xl md:text-6xl">Everything you build can have a home online.</h2>
+            <p className="mt-4 text-[17px] leading-relaxed text-neutral-500">
+              Your agents keep creating. Embarko keeps it all live.
+            </p>
+            <a
+              href="#ready"
+              className="group mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-neutral-900"
+            >
+              Bring your next app online
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-[3px]" />
+            </a>
+          </div>
+
+          {/* The scatter needs room to spread, so below md the cards stack into a
+              plain grid rather than overlapping each other. */}
+          <div className="relative mx-auto mt-8 hidden h-[520px] w-full max-w-[1080px] md:block" aria-label="A calm world of applications hosted on Embarko">
+            {WORLD_APPS.map((app) => (
+              <WorldApp key={app.name} name={app.name} theme={app.theme} className="absolute" style={app.style} />
             ))}
           </div>
-          <div className="grid grid-cols-2 gap-4 md:hidden">
-            {SKY_APPS.slice(0, 4).map((app) => (
-              <AppWindow key={app.label} label={app.label}>
-                <SketchPanel variant={app.variant} className="p-3" />
-              </AppWindow>
+          <div className="mt-10 grid grid-cols-2 justify-items-center gap-4 md:hidden">
+            {WORLD_APPS.slice(0, 4).map((app) => (
+              <WorldApp key={app.name} name={app.name} theme={app.theme} />
             ))}
           </div>
         </div>
@@ -652,6 +808,7 @@ export default function EmbarkoV1() {
           </div>
         </div>
       </section>
+        <SiteFooter />
       </div>
     </>
   );
