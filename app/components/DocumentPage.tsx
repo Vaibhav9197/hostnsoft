@@ -39,7 +39,7 @@ export function DocumentPage({
         <div className="mt-12 space-y-12">{children}</div>
       </div>
 
-      <SiteFooter />
+      <SiteFooter measure={MEASURE} />
     </main>
   );
 }

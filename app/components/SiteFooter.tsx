@@ -6,7 +6,14 @@ import Link from "next/link";
  *
  * `llms.txt` is a static file in /public, so it needs a plain anchor rather
  * than next/link — Link would try to route it through the app router.
+ *
+ * `measure` defaults to the marketing pages' content column so the footer
+ * lines up with the sections above it. Pages on a different column — the
+ * narrow text pages, say — pass their own.
  */
+
+/** Same column as the landing pages' WRAP (app/v3/page.tsx). */
+const MARKETING_MEASURE = "mx-auto w-full max-w-[1120px] px-8 max-[640px]:px-5";
 
 const COLUMNS = [
   {
@@ -36,10 +43,10 @@ const COLUMNS = [
   },
 ] as const;
 
-export function SiteFooter() {
+export function SiteFooter({ measure = MARKETING_MEASURE }: { measure?: string }) {
   return (
     <footer className="border-t border-border py-16">
-      <div className="mx-auto w-full max-w-[860px] px-6">
+      <div className={measure}>
         <div className="grid gap-10 sm:grid-cols-[1fr_auto_auto_auto] sm:gap-16">
           <div>
             <span className="text-lg font-semibold tracking-tight text-foreground">embarko</span>
