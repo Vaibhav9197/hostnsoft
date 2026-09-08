@@ -18,6 +18,7 @@ import { useProject } from "@/app/lib/useProject";
 const SECTIONS = [
   { seg: "", label: "Overview" },
   { seg: "deployments", label: "Deployments" },
+  { seg: "domain", label: "Domain" },
   { seg: "environment", label: "Environment" },
   { seg: "settings", label: "Settings" },
 ];

@@ -115,6 +115,28 @@ export interface Deployment {
   finishedAt: string | null;
 }
 
+// ------------------------------------------------------------- Custom domains
+// A client-owned domain attached to a project. `domain` is unique platform-wide.
+
+export type DomainStatus = "pending_dns" | "active" | "failed";
+
+// The DNS record the user has to create at their own registrar. The API picks
+// the type from the domain's shape: CNAME for a subdomain, A for an apex.
+export interface DomainInstructions {
+  type: "CNAME" | "A";
+  name: string;
+  value: string;
+}
+
+export interface Domain {
+  domain: string;
+  status: DomainStatus;
+  // Present while the domain isn't live yet (register, and a failed verify).
+  instructions?: DomainInstructions;
+  // Why the last verify didn't resolve — only on a failed verify.
+  error?: string;
+}
+
 // Normalized error shape the BFF returns for every failure.
 export interface ApiError {
   error: string;

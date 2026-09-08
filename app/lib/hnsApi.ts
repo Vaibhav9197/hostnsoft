@@ -7,7 +7,7 @@
 // Auth/session endpoints (exchange, logout, me) are handled separately
 // in client.ts + session.tsx because they manage the session cookie.
 
-import { hns } from "./client";
+import { HnsError, hns } from "./client";
 import type {
   BillingPlan,
   BillingStatus,
@@ -18,6 +18,7 @@ import type {
   DeployToken,
   DeployTokenSecret,
   Deployment,
+  Domain,
   EnvVar,
   Member,
   PaymentMethod,
@@ -130,6 +131,48 @@ export const deploymentsApi = {
   list: (companyId: string, projectId: string) =>
     hns<Deployment[]>(`/companies/${companyId}/projects/${projectId}/deployments`),
 };
+
+// ------------------------------------------------------------- Custom domains
+// Registering a domain only records it and hands back the DNS record to create;
+// nothing is live until a verify resolves that record.
+export const domainsApi = {
+  // GET .../domains — every custom domain attached to this project.
+  list: (companyId: string, projectId: string) =>
+    hns<Domain[]>(`/companies/${companyId}/projects/${projectId}/domains`),
+
+  // POST .../domains — register in pending_dns and return the record to add.
+  // Nothing is verified or activated here.
+  register: (companyId: string, projectId: string, domain: string) =>
+    hns<Domain>(`/companies/${companyId}/projects/${projectId}/domains`, { method: "POST", body: { domain } }),
+
+  // POST .../domains/:domain/verify — check DNS live and, if it resolves,
+  // activate routing immediately (no rebuild). Safe to call repeatedly while
+  // DNS propagates.
+  //
+  // A 422 here is the expected "not ready yet" answer, not a transport failure:
+  // its body is the same domain shape, carrying the record to try again with.
+  // Hand it back so the caller renders one flow instead of two.
+  verify: async (companyId: string, projectId: string, domain: string): Promise<Domain> => {
+    const path = `/companies/${companyId}/projects/${projectId}/domains/${encodeURIComponent(domain)}/verify`;
+    try {
+      return await hns<Domain>(path, { method: "POST" });
+    } catch (e) {
+      if (e instanceof HnsError && e.status === 422 && isDomain(e.payload)) return e.payload;
+      throw e;
+    }
+  },
+
+  // DELETE .../domains/:domain — tear down this domain's router and cert. The
+  // project's default platform subdomain is never touched.
+  remove: (companyId: string, projectId: string, domain: string) =>
+    hns<null>(`/companies/${companyId}/projects/${projectId}/domains/${encodeURIComponent(domain)}`, {
+      method: "DELETE",
+    }),
+};
+
+function isDomain(v: unknown): v is Domain {
+  return typeof v === "object" && v !== null && typeof (v as Domain).domain === "string" && typeof (v as Domain).status === "string";
+}
 
 // ------------------------------------------------------------------ Billing
 // Lago + Stripe via hostnsoft-api (docs/billing.md there). Everything is

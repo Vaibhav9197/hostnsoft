@@ -9,12 +9,23 @@ export class HnsError extends Error {
   // Machine-readable code some upstream errors carry (e.g. billing's
   // BILLING_CUSTOMER_NOT_FOUND), so UI can branch on the cause, not the text.
   code?: string;
-  constructor(message: string, status: number, details?: { path: string; message: string }[], code?: string) {
+  // The parsed error body, untouched. Some endpoints answer a non-2xx with a
+  // payload the UI still needs — e.g. a domain verify that hasn't resolved yet
+  // returns 422 carrying the DNS record to try again with.
+  payload?: unknown;
+  constructor(
+    message: string,
+    status: number,
+    details?: { path: string; message: string }[],
+    code?: string,
+    payload?: unknown,
+  ) {
     super(message);
     this.name = "HnsError";
     this.status = status;
     this.details = details;
     this.code = code;
+    this.payload = payload;
   }
 }
 
@@ -42,7 +53,7 @@ export async function hns<T = unknown>(path: string, init: HnsInit = {}): Promis
     const message =
       (data && typeof data.error === "string" && data.error) ||
       messageForStatus(res.status);
-    throw new HnsError(message, res.status, data?.details, typeof data?.code === "string" ? data.code : undefined);
+    throw new HnsError(message, res.status, data?.details, typeof data?.code === "string" ? data.code : undefined, data);
   }
   return data as T;
 }

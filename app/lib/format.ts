@@ -41,6 +41,8 @@ export const STATUS_LABEL: Record<string, string> = {
   invited: "Invited",
   // token status (UI-derived)
   revoked: "Revoked",
+  // custom domain statuses
+  pending_dns: "Pending DNS",
 };
 
 // Maps a status to a semantic tone used by the status pill styles.
@@ -51,6 +53,7 @@ export function statusTone(status: string): "ok" | "warn" | "err" | "muted" {
       return "ok";
     case "in_progress":
     case "invited":
+    case "pending_dns":
       return "warn";
     case "failed":
     case "revoked":
