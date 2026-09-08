@@ -15,8 +15,22 @@ const DOT_STYLES = {
   muted: "bg-faint",
 };
 
-export function StatusPill({ status }: { status: string }) {
-  const tone = statusTone(status) as keyof typeof TONE_STYLES;
+/**
+ * `label` and `tone` override the shared status vocabulary for callers where
+ * the same wire value means something different. Custom domains are the case:
+ * the API reports `failed` for "DNS hasn't propagated yet", which is a wait,
+ * not the failure it means on a deployment.
+ */
+export function StatusPill({
+  status,
+  label,
+  tone: toneOverride,
+}: {
+  status: string;
+  label?: string;
+  tone?: keyof typeof TONE_STYLES;
+}) {
+  const tone = (toneOverride ?? statusTone(status)) as keyof typeof TONE_STYLES;
   const pulse = status === "in_progress";
   return (
     <span
@@ -29,7 +43,7 @@ export function StatusPill({ status }: { status: string }) {
         className={cn("size-1.5 shrink-0 rounded-full", DOT_STYLES[tone], pulse && "animate-pulse")}
         aria-hidden="true"
       />
-      {STATUS_LABEL[status] ?? status}
+      {label ?? STATUS_LABEL[status] ?? status}
     </span>
   );
 }

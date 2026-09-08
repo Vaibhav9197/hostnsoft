@@ -17,16 +17,8 @@ import {
   Tag,
   Toast,
 } from "../../components/console/kit";
+import { ConfirmDialog } from "../../components/console/ConfirmDialog";
 import { Button } from "../../components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../../components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { useBilling } from "../../lib/billing";
 import { HnsError } from "../../lib/client";
@@ -479,17 +471,18 @@ export default function BillingPage() {
       )}
 
       <ConfirmDialog
-        action={confirm}
-        currentPlan={currentPlan}
+        request={
+          confirm && {
+            ...describe(confirm, currentPlan),
+            onConfirm: () => {
+              if (confirm.kind === "change") changePlan(confirm.plan);
+              else if (confirm.kind === "needCard") addCard();
+              else if (confirm.kind === "cancel") cancelPlan();
+              else if (confirm.kind === "removeCard") removeCard(confirm.card);
+            },
+          }
+        }
         onClose={() => setConfirm(null)}
-        onConfirm={() => {
-          const a = confirm;
-          setConfirm(null);
-          if (a?.kind === "change") changePlan(a.plan);
-          else if (a?.kind === "needCard") addCard();
-          else if (a?.kind === "cancel") cancelPlan();
-          else if (a?.kind === "removeCard") removeCard(a.card);
-        }}
       />
     </Page>
   );
@@ -550,32 +543,4 @@ function describe(action: NonNullable<PendingAction>, currentPlan: BillingPlan |
       };
     }
   }
-}
-
-function ConfirmDialog({
-  action,
-  currentPlan,
-  onClose,
-  onConfirm,
-}: {
-  action: PendingAction;
-  currentPlan: BillingPlan | null;
-  onClose: () => void;
-  onConfirm: () => void;
-}) {
-  const d = action ? describe(action, currentPlan) : null;
-  return (
-    <Dialog open={action != null} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{d?.title}</DialogTitle>
-          <DialogDescription>{d?.body}</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <DialogClose render={<Button variant="outline" />}>Keep as is</DialogClose>
-          <Button variant={d?.destructive ? "destructive" : "default"} onClick={onConfirm}>{d?.cta}</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
 }

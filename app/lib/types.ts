@@ -8,8 +8,16 @@ export type MemberStatus = "invited" | "active";
 // hostnsoft-api deployment status. Only these three exist server-side.
 export type DeploymentStatus = "success" | "failed" | "in_progress";
 
-// Project health is always "unknown" today (no live Nomad status wired up).
-export type ProjectHealth = "unknown";
+// Live health, resolved per-request from hostnsoft-deploy's Nomad allocation
+// status. Only GET-one carries it — it isn't a stored column, and the list
+// endpoint leaves it out deliberately to stay cheap.
+export type ProjectHealth =
+  | "running" // healthy, actively serving traffic
+  | "starting" // just deployed / redeploying, allocation not placed yet
+  | "crashed" // allocation failed or was lost — needs attention
+  | "stopped" // job exists but isn't running (rare in normal use)
+  | "not_deployed" // no Nomad job for this slug yet — normal before the first deploy
+  | "unknown"; // couldn't reach hostnsoft-deploy; never blocks the request
 
 // The logged-in user plus the companies they belong to. From GET /auth/me and
 // the /auth/msg91/exchange response.
@@ -59,14 +67,19 @@ export interface Member {
 
 export interface Project {
   id: string;
-  companyId: string;
+  // null only for an unclaimed orphan (anonymous) deploy.
+  companyId: string | null;
   slug: string;
   name: string;
   memoryMb: number;
+  // Anonymous-deploy state: a deploy nobody has claimed yet, and when that
+  // window runs out.
+  isOrphan: boolean;
+  orphanExpiresAt: string | null;
   createdAt: string;
 }
 
-// GET one project adds a health field (always "unknown" for now).
+// GET one project adds live health on top of the stored row.
 export interface ProjectDetail extends Project {
   health: ProjectHealth;
 }
@@ -120,6 +133,10 @@ export interface Deployment {
 
 export type DomainStatus = "pending_dns" | "active" | "failed";
 
+// Which shape the API classified the domain as, and therefore which record it
+// asks for: an apex takes an A record, a subdomain takes a CNAME.
+export type DomainKind = "apex" | "subdomain";
+
 // The DNS record the user has to create at their own registrar. The API picks
 // the type from the domain's shape: CNAME for a subdomain, A for an apex.
 export interface DomainInstructions {
@@ -131,10 +148,20 @@ export interface DomainInstructions {
 export interface Domain {
   domain: string;
   status: DomainStatus;
-  // Present while the domain isn't live yet (register, and a failed verify).
+  // ONLY returned by register (201) and by a verify that didn't resolve (422).
+  // The list endpoint omits it, so rows read back on a later visit arrive with
+  // no record attached — see how the Domain page recovers it.
   instructions?: DomainInstructions;
   // Why the last verify didn't resolve — only on a failed verify.
   error?: string;
+
+  // Present on rows from the list endpoint, absent from register/verify.
+  id?: string;
+  projectId?: string;
+  type?: DomainKind;
+  lastVerifiedAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Normalized error shape the BFF returns for every failure.

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { ConfirmDialog, type ConfirmRequest } from "../../components/console/ConfirmDialog";
 import { Alert, LinkButton, Page, PageHeader, Panel, Skeleton, Tag } from "../../components/console/kit";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -20,6 +21,7 @@ export default function TokensPage() {
   const [creating, setCreating] = useState(false);
   const [secret, setSecret] = useState<DeployTokenSecret | null>(null);
   const [copied, setCopied] = useState(false);
+  const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
 
   const load = useCallback(async () => {
     if (!activeCompanyId) return;
@@ -63,6 +65,28 @@ export default function TokensPage() {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn’t rotate the token.");
     }
+  }
+
+  /**
+   * Revoking is instant and permanent — every deploy using this token starts
+   * failing and there's no way back. Say so, and point at Rotate, which is what
+   * most people reaching for this actually want.
+   */
+  function askRevoke(t: DeployToken) {
+    setConfirm({
+      title: `Revoke “${t.label}”?`,
+      body: (
+        <>
+          Any deploy still using <b>{t.tokenPrefix}…</b> starts failing immediately, and the token can&rsquo;t be
+          brought back. If you only want a fresh secret, <b>Rotate</b> instead — the old token keeps working for an
+          hour while you roll it out.
+        </>
+      ),
+      cta: "Revoke token",
+      destructive: true,
+      dismiss: "Keep it",
+      onConfirm: () => revoke(t.id),
+    });
   }
 
   async function revoke(id: string) {
@@ -155,7 +179,7 @@ export default function TokensPage() {
                       {!revoked && (
                         <>
                           <LinkButton onClick={() => rotate(t.id)}>Rotate</LinkButton>
-                          <LinkButton danger className="ml-3.5" onClick={() => revoke(t.id)}>Revoke</LinkButton>
+                          <LinkButton danger className="ml-3.5" onClick={() => askRevoke(t)}>Revoke</LinkButton>
                         </>
                       )}
                     </TableCell>
@@ -168,6 +192,8 @@ export default function TokensPage() {
       )}
 
       <p className="text-[0.92rem] text-muted-foreground"><b className="text-foreground">Rotate</b> for routine hygiene — the old token keeps working for an hour. <b className="text-foreground">Revoke</b> immediately if a token leaked.</p>
+
+      <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
     </Page>
   );
 }

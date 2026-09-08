@@ -90,7 +90,7 @@ export default function SettingsPage() {
           <>
             <FactGrid flush>
               <Fact flush k="Members" v={company.memberCount} mono />
-              <Fact flush k="Projects" v={company.projectCount} mono />
+              <Fact flush k="Apps" v={company.projectCount} mono />
               <Fact flush k="Created" v={formatDate(company.createdAt)} />
             </FactGrid>
             <form className="mt-4 flex flex-wrap gap-2.5" onSubmit={rename}>
@@ -107,7 +107,7 @@ export default function SettingsPage() {
           <PanelTitle tone="danger">Danger zone</PanelTitle>
           <p className="mt-1 text-[0.92rem] text-muted-foreground">
             Deleting <b className="text-foreground">{company.name}</b> can’t be undone. It’s blocked while the company still has any
-            projects — delete or transfer them first.
+            apps — delete or transfer them first.
           </p>
           {delErr && <Alert className="mt-3">{delErr}</Alert>}
           <div className="mt-3.5 flex flex-wrap gap-2.5">

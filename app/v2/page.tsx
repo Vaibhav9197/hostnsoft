@@ -144,7 +144,7 @@ function Hero({ onNext }: { onNext: () => void }) {
   return (
     <div className="text-center">
       <h1 className="mx-auto max-w-[18ch] text-[52px] font-semibold leading-[1.1] tracking-[-0.045em] sm:text-[74px] md:text-[100px]">
-        Instant <Mark>hosting</Mark> for anything you build with your AI agent
+        Instant <Mark>hosting</Mark> for every app you build with AI
       </h1>
 
       <Sub>
@@ -396,24 +396,25 @@ function ChatStep() {
         <Sub>Your agent runs the deploy itself. You just watch.</Sub>
       </div>
 
-      <ul className="mx-auto mt-12 flex max-w-[820px] flex-wrap items-center justify-center gap-2.5">
-        {AGENTS.map((agent) => (
-          <li
-            key={agent.slug}
-            className="flex items-center gap-2.5 rounded-full border border-black/10 bg-white px-4 py-2.5"
-          >
-            <img
-              src={agentIconSrc(agent.slug)}
-              alt=""
-              aria-hidden="true"
-              className="h-5 w-5 shrink-0 object-contain"
-            />
-            <span className="whitespace-nowrap text-[14px] font-medium text-black/70">
-              {agent.name}
-            </span>
-          </li>
-        ))}
-      </ul>
+      {/* Same treatment as v1's strip: one row of bare marks under a small
+          eyebrow, names carried by alt/title rather than visible labels. */}
+      <div className="mt-12 flex flex-col items-center gap-3">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.09em] text-black/35">
+          Works with every agent
+        </p>
+        <ul className="flex max-w-2xl flex-wrap items-center justify-center gap-x-7 gap-y-4">
+          {AGENTS.map((agent) => (
+            <li key={agent.slug}>
+              <img
+                src={agentIconSrc(agent.slug)}
+                alt={agent.name}
+                title={agent.name}
+                className="h-5 w-5 object-contain opacity-55 transition hover:opacity-100"
+              />
+            </li>
+          ))}
+        </ul>
+      </div>
 
       <p className="mt-10 text-center text-[15px] text-black/35">
         One prompt, any agent — the deploy runs the same either way.

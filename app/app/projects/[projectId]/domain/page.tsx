@@ -1,7 +1,8 @@
 "use client";
 
-import { use, useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Check, Copy } from "lucide-react";
+import { ConfirmDialog, type ConfirmRequest } from "../../../../components/console/ConfirmDialog";
 import { Alert, EmptyState, LinkButton, Page, PageHeader, Panel, Skeleton } from "../../../../components/console/kit";
 import { StatusPill } from "../../../../components/console/StatusPill";
 import { Button } from "../../../../components/ui/button";
@@ -20,11 +21,17 @@ export default function DomainPage({ params }: { params: Promise<{ projectId: st
   const [adding, setAdding] = useState(false);
   // Keyed by domain so several rows can be verified without blocking each other.
   const [verifying, setVerifying] = useState<Record<string, boolean>>({});
+  const [recovering, setRecovering] = useState<Record<string, boolean>>({});
+  const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
+  // Domains we've already tried to recover a record for this mount. Without
+  // this the effect below would re-fire on the state it just wrote.
+  const recovered = useRef<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     if (!activeCompanyId) return;
     setDomains(null);
     setError(null);
+    recovered.current.clear();
     try {
       setDomains(await domainsApi.list(activeCompanyId, projectId));
     } catch (e) {
@@ -35,6 +42,62 @@ export default function DomainPage({ params }: { params: Promise<{ projectId: st
   useEffect(() => {
     load();
   }, [load]);
+
+  /**
+   * Put the DNS record back on rows that came from the list.
+   *
+   * `instructions` is only returned by register and by a verify that didn't
+   * resolve — the list omits it. So anyone returning to this page after the
+   * first visit would find a domain still waiting on DNS and nothing to act on,
+   * which is the one thing they came back for.
+   *
+   * Verify is a plain DNS lookup the API says is safe to repeat, and its
+   * "not ready" answer carries the same record register handed out, so it's the
+   * way to get one back without inventing it client-side (the A record's target
+   * IP is the server's to decide, not ours to hardcode).
+   */
+  useEffect(() => {
+    if (!activeCompanyId || !domains) return;
+    const missing = domains.filter(
+      (d) => d.status !== "active" && !d.instructions && !recovered.current.has(d.domain),
+    );
+    if (missing.length === 0) return;
+
+    missing.forEach((d) => recovered.current.add(d.domain));
+    setRecovering((r) => ({ ...r, ...Object.fromEntries(missing.map((d) => [d.domain, true])) }));
+
+    (async () => {
+      for (const d of missing) {
+        let checked: Domain | null = null;
+        try {
+          checked = await domainsApi.verify(activeCompanyId, projectId, d.domain);
+        } catch {
+          /* Leave the row exactly as the list gave it. */
+        }
+        setRecovering((r) => ({ ...r, [d.domain]: false }));
+        if (!checked) continue;
+        const result = checked;
+        setDomains((list) =>
+          (list ?? []).map((x) => {
+            if (x.domain !== result.domain) return x;
+            // Good news is worth showing: DNS may well have gone live while
+            // they were away. A "not ready yet" answer is not — nobody asked
+            // for this check, so take only the record and leave the status
+            // alone rather than greeting them with a failure they didn't cause.
+            return result.status === "active"
+              ? { ...x, ...result }
+              : { ...x, instructions: result.instructions };
+          }),
+        );
+      }
+    })();
+
+    /* Deliberately no cleanup that discards the result. StrictMode invokes this
+       effect twice in dev; the `recovered` ref survives that, so the second run
+       correctly finds nothing to do — and cancelling the first would throw away
+       the only fetch anyone made. Settling into unmounted state is a no-op in
+       React 18+, so letting it land costs nothing. */
+  }, [activeCompanyId, projectId, domains]);
 
   // Replace one row in place, so a verify result doesn't cost a full reload.
   function merge(next: Domain) {
@@ -76,6 +139,34 @@ export default function DomainPage({ params }: { params: Promise<{ projectId: st
     }
   }
 
+  /**
+   * Removing is one click with no undo, and for a live domain it takes the site
+   * off the air. Worse, adding it back doesn't restore it — the domain returns
+   * as pending and has to clear a DNS check again, so a misclick costs a
+   * propagation wait rather than a second click.
+   */
+  function askRemove(d: Domain) {
+    setConfirm({
+      title: `Remove ${d.domain}?`,
+      body:
+        d.status === "active" ? (
+          <>
+            <b>{d.domain}</b> stops being served right away. The DNS record at your provider is left alone, but
+            adding the domain back here means verifying DNS all over again.
+          </>
+        ) : (
+          <>
+            <b>{d.domain}</b> and its DNS record disappear from this page. You can add it back later, but it will
+            have to verify DNS again from scratch.
+          </>
+        ),
+      cta: "Remove domain",
+      destructive: true,
+      dismiss: "Keep it",
+      onConfirm: () => remove(d.domain),
+    });
+  }
+
   async function remove(domain: string) {
     if (!activeCompanyId) return;
     const prev = domains;
@@ -90,7 +181,7 @@ export default function DomainPage({ params }: { params: Promise<{ projectId: st
 
   return (
     <Page>
-      <PageHeader title="Domain" subtitle="Serve this project on a domain you own." />
+      <PageHeader title="Domain" subtitle="Serve this app on a domain you own." />
 
       <div className="flex flex-col gap-2">
         <form className="flex flex-wrap items-center gap-2.5" onSubmit={add}>
@@ -131,8 +222,9 @@ export default function DomainPage({ params }: { params: Promise<{ projectId: st
           key={d.domain}
           domain={d}
           verifying={!!verifying[d.domain]}
+          recovering={!!recovering[d.domain]}
           onVerify={() => verify(d.domain)}
-          onRemove={() => remove(d.domain)}
+          onRemove={() => askRemove(d)}
         />
       ))}
 
@@ -140,6 +232,8 @@ export default function DomainPage({ params }: { params: Promise<{ projectId: st
         DNS changes can take anywhere from a few minutes to a few hours to reach us. Verifying is just a live
         lookup — nothing is rebuilt or redeployed, and it’s safe to press as often as you like.
       </p>
+
+      <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
     </Page>
   );
 }
@@ -153,11 +247,13 @@ function Ex({ children }: { children: React.ReactNode }) {
 function DomainCard({
   domain,
   verifying,
+  recovering,
   onVerify,
   onRemove,
 }: {
   domain: Domain;
   verifying: boolean;
+  recovering: boolean;
   onVerify: () => void;
   onRemove: () => void;
 }) {
@@ -168,7 +264,13 @@ function DomainCard({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <span className="truncate font-mono text-[0.95rem] font-semibold text-foreground">{domain.domain}</span>
-          <StatusPill status={domain.status} />
+          {/* The API's `failed` here means "DNS doesn't point at us yet" — a
+              wait, not a fault. Reading it as a red failure is alarming and
+              wrong, especially now that simply opening the page runs a check. */}
+          <StatusPill
+            status={domain.status}
+            {...(domain.status === "failed" ? { label: "Not resolving yet", tone: "warn" as const } : {})}
+          />
         </div>
         <LinkButton danger onClick={onRemove}>
           Remove
@@ -189,10 +291,20 @@ function DomainCard({
         <>
           {domain.error && <Alert variant="warn">{domain.error}</Alert>}
 
-          {domain.instructions && <DnsRecord record={domain.instructions} />}
+          {domain.instructions ? (
+            <DnsRecord record={domain.instructions} />
+          ) : recovering ? (
+            <Skeleton className="h-[104px]" aria-label="Loading the DNS record" />
+          ) : (
+            /* Neither the list nor a recovery gave us a record — say so instead
+               of showing a card with nothing on it. */
+            <Alert variant="warn">
+              Couldn’t load the DNS record for this domain. Press Verify to fetch it again.
+            </Alert>
+          )}
 
           <div className="flex flex-wrap items-center gap-3">
-            <Button onClick={onVerify} disabled={verifying}>
+            <Button onClick={onVerify} disabled={verifying || recovering}>
               {verifying ? "Checking DNS…" : "Verify"}
             </Button>
             <span className="text-[0.85rem] text-muted-foreground">
@@ -213,28 +325,38 @@ function DomainCard({
  * each one rather than describing where to paste it.
  */
 function DnsRecord({ record }: { record: DomainInstructions }) {
+  const proxied = record.type === "CNAME";
+
   return (
     <div>
       <p className="mb-3 text-[0.92rem] text-muted-foreground">
         Add this record at whoever manages DNS for this domain — your registrar, or Cloudflare, or wherever the
         nameservers point.
+        {proxied && " On Cloudflare, leave proxying on — the orange cloud, not “DNS only”."}
       </p>
-      <dl className="grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-[auto_1fr_1fr]">
+      <dl
+        className={`grid gap-px overflow-hidden rounded-lg border border-border bg-border ${
+          proxied ? "sm:grid-cols-[auto_1fr_1fr_auto]" : "sm:grid-cols-[auto_1fr_1fr]"
+        }`}
+      >
         <Field label="Type" value={record.type} />
         <Field label="Name" value={record.name} />
         <Field label="Value" value={record.value} />
+        {/* A required setting rather than a value to paste, so no copy button —
+            copying the word "Enabled" into a DNS form would be nonsense. */}
+        {proxied && <Field label="Proxy" value="Enabled" copyable={false} />}
       </dl>
     </div>
   );
 }
 
-function Field({ label, value }: { label: string; value: string }) {
+function Field({ label, value, copyable = true }: { label: string; value: string; copyable?: boolean }) {
   return (
     <div className="bg-card px-4 py-3">
       <dt className="font-mono text-[0.68rem] uppercase tracking-[0.1em] text-faint">{label}</dt>
       <dd className="mt-1 flex items-center gap-2">
         <span className="min-w-0 break-all font-mono text-[0.88rem] text-foreground">{value}</span>
-        <CopyButton value={value} label={label} />
+        {copyable && <CopyButton value={value} label={label} />}
       </dd>
     </div>
   );

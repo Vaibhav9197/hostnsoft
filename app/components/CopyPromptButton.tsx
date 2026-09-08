@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { DEPLOY_PROMPT } from "@/app/lib/deployPrompt";
+import { currentDeployPrompt } from "@/app/lib/deployPrompt";
 
 /**
  * The one button that puts the Embarko deploy prompt on the clipboard.
@@ -39,6 +39,9 @@ type Props = Omit<React.ComponentProps<"button">, "onClick"> & {
   onClicked?: () => void;
   /** How long the copied state shows before reverting. */
   resetMs?: number;
+  /** What to put on the clipboard. Defaults to the prompt for the page the
+      visitor is on; pass CONSOLE_DEPLOY_PROMPT for the signed-in console. */
+  text?: string;
 };
 
 export function CopyPromptButton({
@@ -49,6 +52,7 @@ export function CopyPromptButton({
   onCopied,
   onClicked,
   resetMs = RESET_MS,
+  text,
   ...props
 }: Props) {
   const [copied, setCopied] = useState(false);
@@ -59,7 +63,10 @@ export function CopyPromptButton({
   const copy = useCallback(async () => {
     let ok = true;
     try {
-      await navigator.clipboard.writeText(DEPLOY_PROMPT);
+      /* Resolved at click time, not module load: the arm comes from a cookie,
+         so reading it any earlier would bake in whatever was true during the
+         server render. */
+      await navigator.clipboard.writeText(text ?? currentDeployPrompt());
     } catch {
       /* Blocked clipboard (insecure origin, denied permission). Don't claim a
          copy that did not happen — but still let onClicked run. */
@@ -72,7 +79,7 @@ export function CopyPromptButton({
       timerRef.current = window.setTimeout(() => setCopied(false), resetMs);
     }
     onClicked?.();
-  }, [onCopied, onClicked, resetMs]);
+  }, [onCopied, onClicked, resetMs, text]);
 
   return (
     <>

@@ -19,7 +19,7 @@ const NAV_LINKS = [
   { href: "#agents", label: "Agents" },
 ] as const;
 
-/* Landing-page variant C — a rebuild of the "light prototype" layout on this
+/* Landing-page variant Gamma — a rebuild of the "light prototype" layout on this
    site's own palette. The prototype's geometry, copy and rhythm are kept as-is;
    every colour comes from the tokens in base.css via the semantic Tailwind
    names in tailwind.config.js (background/foreground/card/elevated/border/
@@ -397,7 +397,7 @@ function Hero() {
           </div>
 
           <h1 className="mb-8 max-w-[560px] text-[52px] font-semibold leading-[1.08] tracking-[-0.02em] max-[900px]:text-[38px] max-[420px]:text-[32px]">
-            The easiest way to put your AI-built app online
+            Instant hosting for every app you build with AI
           </h1>
 
           <div className="flex flex-wrap items-center gap-[18px]">

@@ -44,7 +44,7 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
       setNotice("Display name updated. The slug and live URL never change.");
       await reload();
     } catch (e) {
-      setFormErr(e instanceof Error ? e.message : "Couldn’t rename the project.");
+      setFormErr(e instanceof Error ? e.message : "Couldn’t rename the app.");
     } finally {
       setSavingName(false);
     }
@@ -80,7 +80,7 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
       await projectsApi.remove(activeCompanyId, projectId);
       router.push("/app");
     } catch (e) {
-      setDelErr(e instanceof Error ? e.message : "Couldn’t delete the project.");
+      setDelErr(e instanceof Error ? e.message : "Couldn’t delete the app.");
       setDeleting(false);
     }
   }
@@ -96,10 +96,10 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
       {formErr && <Alert>{formErr}</Alert>}
 
       <Panel padded>
-        <PanelTitle>Project</PanelTitle>
+        <PanelTitle>App</PanelTitle>
         <FactGrid flush>
           <Fact flush k="Slug (immutable)" v={project.slug} mono />
-          <Fact flush k="Project ID" v={project.id} mono />
+          <Fact flush k="App ID" v={project.id} mono />
           <Fact flush k="Created" v={formatDate(project.createdAt)} />
         </FactGrid>
 
@@ -117,13 +117,13 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
       <Panel padded tone="danger">
         <PanelTitle tone="danger">Danger zone</PanelTitle>
         <p className="mt-1 text-[0.92rem] text-muted-foreground">
-          Deleting <b className="text-foreground">{project.name}</b> removes it from the console. Note: this <b className="text-foreground">doesn’t stop the running app</b> yet —
+          Deleting <b className="text-foreground">{project.name}</b> removes it from the console. Note: this <b className="text-foreground">doesn’t stop what’s running</b> yet —
           the deployed container keeps running until the backend adds a teardown step.
         </p>
         {delErr && <Alert className="mt-3">{delErr}</Alert>}
         <div className="mt-3.5 flex flex-wrap gap-2.5">
           <Input className="min-w-[220px] flex-1" placeholder={`Type “${project.name}” to confirm`} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
-          <Button variant="destructive" disabled={deleting || confirm !== project.name} onClick={del}>{deleting ? "Deleting…" : "Delete project"}</Button>
+          <Button variant="destructive" disabled={deleting || confirm !== project.name} onClick={del}>{deleting ? "Deleting…" : "Delete app"}</Button>
         </div>
       </Panel>
     </Page>

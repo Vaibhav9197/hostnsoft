@@ -530,7 +530,7 @@ export default function EmbarkoV1() {
               896px column. 84px is the largest that still fits two, so 80 leaves a
               little room for font-metric differences. */}
           <h1 className="text-5xl font-bold leading-tight tracking-tight sm:text-6xl md:text-[80px]">
-            The easiest way to put your AI-built app online
+            Instant hosting for every app you build with AI
           </h1>
           <p className="text-xl font-light text-gray-600 md:text-2xl">
             Your AI builds it. Embarko runs it.

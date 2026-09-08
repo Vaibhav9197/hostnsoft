@@ -38,7 +38,7 @@ export function HeaderUserMenu() {
   }
 
   const workspace = [
-    { href: "/app", label: "Projects", icon: LayoutGrid, exact: true },
+    { href: "/app", label: "Apps", icon: LayoutGrid, exact: true },
     { href: "/app/members", label: "Members", icon: Users },
     { href: "/app/tokens", label: "Deploy tokens", icon: KeyRound },
     { href: "/app/billing", label: "Billing", icon: CreditCard },

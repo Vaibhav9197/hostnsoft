@@ -40,7 +40,7 @@ export default function SwitchCompanyPage() {
       />
 
       {companies.length === 0 ? (
-        <EmptyState title="No companies yet">Create your first company to start deploying projects.</EmptyState>
+        <EmptyState title="No companies yet">Create your first company to start deploying apps.</EmptyState>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {companies.map((c) => {

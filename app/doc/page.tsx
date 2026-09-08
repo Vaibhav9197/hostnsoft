@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Copy, Check } from "lucide-react";
 import { Header } from "../components/Header";
 import { SiteFooter } from "../components/SiteFooter";
 import { LoginModal } from "../components/LoginModal";
-import { DEPLOY_PROMPT } from "../lib/deployPrompt";
+import { DEPLOY_PROMPT, currentDeployPrompt } from "../lib/deployPrompt";
 import { CopyPromptButton, COPIED_LABEL } from "../components/CopyPromptButton";
 
 const TOC = [
@@ -69,6 +69,13 @@ function P({ children }: { children: React.ReactNode }) {
 
 export default function DocPage() {
   const [loginOpen, setLoginOpen] = useState(false);
+
+  /* Show exactly what the Copy button will put on the clipboard. The visitor's
+     landing-page arm lives in a cookie, which only exists on the client, so
+     start from the placeholder form the server rendered and swap after mount —
+     resolving it during render would be a hydration mismatch. */
+  const [prompt, setPrompt] = useState(DEPLOY_PROMPT);
+  useEffect(() => setPrompt(currentDeployPrompt()), []);
 
   return (
     <div className="min-h-screen bg-white text-neutral-950">
@@ -151,7 +158,7 @@ export default function DocPage() {
                   </CopyPromptButton>
                 </div>
                 <pre className="overflow-x-auto p-4 font-mono text-xs leading-relaxed text-neutral-700">
-                  {DEPLOY_PROMPT}
+                  {prompt}
                 </pre>
               </div>
 

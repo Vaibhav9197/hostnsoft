@@ -34,7 +34,12 @@ export const STATUS_LABEL: Record<string, string> = {
   success: "Success",
   failed: "Failed",
   in_progress: "In progress",
-  // project health
+  // project health (live, from the deploy service)
+  running: "Running",
+  starting: "Starting",
+  crashed: "Crashed",
+  stopped: "Stopped",
+  not_deployed: "Not deployed",
   unknown: "Unknown",
   // membership status
   active: "Active",
@@ -50,15 +55,20 @@ export function statusTone(status: string): "ok" | "warn" | "err" | "muted" {
   switch (status) {
     case "success":
     case "active":
+    case "running":
       return "ok";
     case "in_progress":
     case "invited":
     case "pending_dns":
+    case "starting":
       return "warn";
     case "failed":
     case "revoked":
+    case "crashed":
       return "err";
-    // "unknown" health and anything else stay muted
+    // "stopped" and "not_deployed" are resting states, not faults, and
+    // "unknown" means we couldn't check — all three stay muted, as does
+    // anything else we don't recognise.
     default:
       return "muted";
   }

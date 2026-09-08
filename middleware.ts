@@ -1,23 +1,25 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-/* Landing-page A/B/C test. `/` is rewritten — never redirected — to one of
-   these routes, so the visitor stays on embarko.ai while a different page
-   renders. A visitor's bucket is sticky via cookie, so they don't see the
-   layout change between visits (which would poison the results). */
-const VARIANTS = ["v1", "v2", "v3", "v4"] as const;
-type Variant = (typeof VARIANTS)[number];
+import { VARIANTS, VARIANT_NAMES, isVariant } from "@/app/lib/variants";
+
+/* Landing-page split test across four arms — Alpha, Beta, Gamma, Delta. `/` is
+   rewritten — never redirected — to one of these routes, so the visitor stays
+   on embarko.ai while a different page renders. A visitor's bucket is sticky
+   via cookie, so they don't see the layout change between visits (which would
+   poison the results).
+
+   The arm name is deliberately not the route it renders: the name is what gets
+   reported in analytics and should stay stable, while /v1../v4 are just where
+   the pages happen to live. Swapping which page an arm serves is a change to
+   the map in app/lib/variants.ts alone. */
 
 const COOKIE = "lp_variant";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 90; // 90 days
 
-function isVariant(value: string | undefined): value is Variant {
-  return VARIANTS.includes(value as Variant);
-}
-
 export function middleware(request: NextRequest) {
-  const { pathname, searchParams } = request.nextUrl;
+  const { pathname } = request.nextUrl;
 
-  /* Direct hits on /v1, /v2, /v3 stay reachable for QA and for sharing a
+  /* Direct hits on /v1../v4 stay reachable for QA and for sharing a
      specific version, but must not be indexed — otherwise they compete with
      embarko.ai as duplicate content. The rewritten `/` response never passes
      through here, so the homepage itself stays indexable. */
@@ -27,18 +29,16 @@ export function middleware(request: NextRequest) {
     return response;
   }
 
-  /* ?lp=v2 forces a variant and re-buckets the visitor — how you preview one
-     without clearing cookies by hand. */
-  const override = searchParams.get("lp") ?? undefined;
+  /* The cookie is the only source of a visitor's arm — nothing on the URL can
+     set or change it. To look at a specific landing page, hit /v1../v4
+     directly; that renders the page without touching anyone's bucket. */
   const existing = request.cookies.get(COOKIE)?.value;
 
-  const assigned = isVariant(override)
-    ? override
-    : isVariant(existing)
-      ? existing
-      : VARIANTS[Math.floor(Math.random() * VARIANTS.length)];
+  const assigned = isVariant(existing)
+    ? existing
+    : VARIANT_NAMES[Math.floor(Math.random() * VARIANT_NAMES.length)];
 
-  const response = NextResponse.rewrite(new URL(`/${assigned}`, request.url));
+  const response = NextResponse.rewrite(new URL(VARIANTS[assigned], request.url));
 
   /* Readable from client JS on purpose: whatever analytics gets added later
      needs to tag events with the variant that produced them. */

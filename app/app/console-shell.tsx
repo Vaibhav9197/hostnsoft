@@ -1,7 +1,9 @@
 "use client";
 
 import { LoginScreen } from "../components/console/LoginScreen";
+import { HeaderHomeButton } from "../components/console/HeaderHomeButton";
 import { HeaderPlanBadge } from "../components/console/HeaderPlanBadge";
+import { HeaderTokenButton } from "../components/console/HeaderTokenButton";
 import { HeaderUserMenu } from "../components/console/HeaderUserMenu";
 import { Alert } from "../components/console/kit";
 import { SessionSignals } from "../components/analytics/SessionSignals";
@@ -45,7 +47,7 @@ function Shell({ children }: { children: React.ReactNode }) {
             {!apiConnected && (
               <Alert variant="warn" className="mb-6">
                 You're signed in, but the Embarko API service is unreachable right now — company and
-                project data can't be loaded until it's back.
+                app data can't be loaded until it's back.
               </Alert>
             )}
             {children}
@@ -60,14 +62,18 @@ function Shell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-2 sm:px-4">
         {/* All navigation lives in this menu now — the left sidebar is gone. */}
         <HeaderUserMenu />
-        <HeaderPlanBadge />
+        <div className="ml-auto flex items-center gap-2">
+          <HeaderHomeButton />
+          <HeaderTokenButton />
+          <HeaderPlanBadge />
+        </div>
       </header>
       <main className="flex-1">
         <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-8">
           {!apiConnected && (
             <Alert variant="warn" className="mb-6">
               You're signed in, but the Embarko API service is unreachable right now — company and
-              project data can't be loaded until it's back.
+              app data can't be loaded until it's back.
             </Alert>
           )}
           {children}

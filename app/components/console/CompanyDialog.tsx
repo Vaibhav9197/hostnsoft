@@ -87,12 +87,12 @@ export function CompanyDialog({
             {mode === "delete" ? (
               <>
                 Deleting <b className="text-foreground">{company?.companyName}</b> can’t be undone. This is
-                blocked while the company still has any projects — delete or transfer them first.
+                blocked while the company still has any apps — delete or transfer them first.
               </>
             ) : mode === "new" ? (
-              "Create a company to hold its own projects, members and deploy tokens."
+              "Create a company to hold its own apps, members and deploy tokens."
             ) : (
-              "Rename this company. Projects and members are unaffected."
+              "Rename this company. Apps and members are unaffected."
             )}
           </DialogDescription>
         </DialogHeader>

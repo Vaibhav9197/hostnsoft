@@ -7,8 +7,8 @@ import { CloudBackdrop } from "../components/console/CloudBackdrop";
 import { Alert, EmptyState, Page, PageHeader, Skeleton } from "../components/console/kit";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../components/ui/dialog";
-import { HnsError } from "../lib/client";
+import { DeployPromptDialog } from "../components/console/DeployPromptDialog";
+import { HnsError } from "../lib/client"; // used by the parked createProject below
 import { companiesApi, projectsApi } from "../lib/hnsApi";
 import { formatDate, relativeTime } from "../lib/format";
 import { useSession } from "../lib/session";
@@ -19,8 +19,9 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
-  const [name, setName] = useState("");
-  const [busy, setBusy] = useState(false);
+  // Parked with the name field and createProject below.
+  // const [name, setName] = useState("");
+  // const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
     if (!activeCompanyId) {
@@ -33,13 +34,17 @@ export default function ProjectsPage() {
       const data = await projectsApi.list(activeCompanyId);
       setProjects(data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn’t load your projects.");
+      setError(e instanceof Error ? e.message : "Couldn’t load your apps.");
     }
   }, [activeCompanyId]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  /* Parked, not deleted: apps are created by deploying to them, so the dialog
+     hands over the prompt instead of a name field. Restore this together with
+     the input and its state above if naming-up-front comes back.
 
   async function createProject(e: React.FormEvent) {
     e.preventDefault();
@@ -52,11 +57,12 @@ export default function ProjectsPage() {
       setName("");
       setCreating(false);
     } catch (e) {
-      setError(e instanceof HnsError ? e.message : "Couldn’t create the project.");
+      setError(e instanceof HnsError ? e.message : "Couldn’t create the app.");
     } finally {
       setBusy(false);
     }
   }
+  */
 
   // No company yet — offer to create one.
   if (companies.length === 0) {
@@ -69,43 +75,34 @@ export default function ProjectsPage() {
       <CloudBackdrop />
 
       <PageHeader
-        title="Projects"
+        title="Apps"
         subtitle="Every app deployed under this company."
         actions={
           <Button onClick={() => setCreating((v) => !v)}>
             <Plus />
-            New project
+            New app
           </Button>
         }
       />
 
-      <Dialog open={creating} onOpenChange={(o) => { if (!o) setCreating(false); }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>New project</DialogTitle>
-            <DialogDescription>
-              Create a new project to deploy your app. Each project gets its own subdomain.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={createProject} className="flex flex-col gap-4">
-            <Input
-              placeholder="Project name — e.g. Invoice Portal"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              maxLength={60}
-              autoFocus
-            />
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" type="button" onClick={() => setCreating(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={busy || !name.trim()}>
-                {busy ? "Creating…" : "Create"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* Parked with createProject: naming an app up front is gone for now,
+          because the deploy is what creates it.
+
+      <Input
+        placeholder="App name — e.g. Invoice Portal"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        maxLength={60}
+        autoFocus
+      />
+      */}
+
+      <DeployPromptDialog
+        open={creating}
+        onClose={() => setCreating(false)}
+        title="New app"
+        description="Copy this and paste it into your AI agent. It deploys your app, and the app shows up here on its own subdomain — nothing to fill in first."
+      />
 
       {error && <Alert>{error}</Alert>}
 
@@ -116,8 +113,8 @@ export default function ProjectsPage() {
       )}
 
       {projects && projects.length === 0 && (
-        <EmptyState title="No projects yet">
-          Create a project above, then deploy to its subdomain.
+        <EmptyState title="No apps yet">
+          Create an app above, then deploy to its subdomain.
         </EmptyState>
       )}
 
@@ -179,7 +176,7 @@ function NoCompany({ onCreated }: { onCreated: () => Promise<void> }) {
 
   return (
     <Page>
-      <PageHeader title="Welcome to Embarko" subtitle="Create a company to hold your projects and team." />
+      <PageHeader title="Welcome to Embarko" subtitle="Create a company to hold your apps and team." />
       {error && <Alert>{error}</Alert>}
       <form className="flex flex-wrap gap-2.5" onSubmit={create}>
         <Input

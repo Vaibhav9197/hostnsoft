@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { StatusPill } from "../../components/console/StatusPill";
+import { ConfirmDialog, type ConfirmRequest } from "../../components/console/ConfirmDialog";
 import { Alert, LinkButton, Page, PageHeader, Panel, Skeleton, Tag } from "../../components/console/kit";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -17,6 +18,7 @@ export default function MembersPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
+  const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
 
   const load = useCallback(async () => {
     if (!activeCompanyId) return;
@@ -49,6 +51,31 @@ export default function MembersPage() {
     } finally {
       setBusy(false);
     }
+  }
+
+  /**
+   * Removing cuts someone's access mid-session, and removing yourself locks you
+   * out of the company you're standing in — worth a beat either way.
+   */
+  function askRemove(m: Member, isSelf: boolean) {
+    setConfirm({
+      title: isSelf ? "Remove your own access?" : `Remove ${m.email}?`,
+      body: isSelf ? (
+        <>
+          You&rsquo;ll lose access to this company&rsquo;s apps and deploy tokens straight away, and only someone
+          still in it can invite you back.
+        </>
+      ) : (
+        <>
+          <b>{m.email}</b> loses access to this company&rsquo;s apps and deploy tokens straight away. You can invite
+          them again later.
+        </>
+      ),
+      cta: isSelf ? "Remove me" : "Remove member",
+      destructive: true,
+      dismiss: "Keep access",
+      onConfirm: () => remove(m.userId, m.email),
+    });
   }
 
   async function remove(userId: string, label: string) {
@@ -104,7 +131,7 @@ export default function MembersPage() {
                     <TableCell>{m.email}{isSelf && <Tag>you</Tag>}</TableCell>
                     <TableCell><StatusPill status={m.status} /></TableCell>
                     <TableCell className="whitespace-nowrap text-right">
-                      <LinkButton danger onClick={() => remove(m.userId, m.email)}>Remove</LinkButton>
+                      <LinkButton danger onClick={() => askRemove(m, isSelf)}>Remove</LinkButton>
                     </TableCell>
                   </TableRow>
                 );
@@ -113,6 +140,8 @@ export default function MembersPage() {
           </Table>
         </Panel>
       )}
+
+      <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
     </Page>
   );
 }
