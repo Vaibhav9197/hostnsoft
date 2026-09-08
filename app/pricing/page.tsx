@@ -53,7 +53,7 @@ export default function PricingPage() {
       highlighted: true,
     },
     {
-      name: "Pro",
+      name: "Team",
       price: "$39",
       period: "/month",
       headline: "For serious builders.",
@@ -65,7 +65,7 @@ export default function PricingPage() {
         "Multiple versions of your apps",
         "Priority support",
       ],
-      cta: "Go Pro",
+      cta: "Get Team",
       highlighted: false,
     },
   ];
