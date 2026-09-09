@@ -35,6 +35,9 @@ export interface AuthUser {
 
 export interface MeResponse extends AuthUser {
   companies: CompanyMembershipSummary[];
+  // Platform-wide admin flag from the identity backend. Gates the /admin
+  // surfaces; absent for ordinary users, so treat a missing value as false.
+  isSuperAdmin?: boolean;
   // false when identity came from the MSG91 proxy because hostnsoft-api
   // (the data backend) was unreachable — the user is logged in, but company/
   // project data can't be loaded until the backend is up.

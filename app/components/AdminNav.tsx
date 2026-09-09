@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Mail, ExternalLink } from 'lucide-react';
+import { BarChart3, Boxes, Mail, MessageSquare, Globe, ExternalLink } from 'lucide-react';
 
 export function AdminNav() {
   const pathname = usePathname();
@@ -31,6 +31,20 @@ export function AdminNav() {
           </Link>
 
           <Link
+            href="/admin/apps"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+              isActive('/admin/apps')
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-300 hover:bg-gray-800'
+            }`}
+          >
+            <Boxes className="w-5 h-5" />
+            <span>All Apps</span>
+          </Link>
+
+          {/* Contact Queries — parked for now. The page and /api/contact/list
+              still exist; this only hides the way in. Restore by uncommenting.
+          <Link
             href="/admin/contact"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
               isActive('/admin/contact')
@@ -40,6 +54,31 @@ export function AdminNav() {
           >
             <Mail className="w-5 h-5" />
             <span>Contact Queries</span>
+          </Link>
+          */}
+
+          <Link
+            href="/admin/customer-query"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+              isActive('/admin/customer-query')
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-300 hover:bg-gray-800'
+            }`}
+          >
+            <MessageSquare className="w-5 h-5" />
+            <span>Dashboard Queries</span>
+          </Link>
+
+          <Link
+            href="/admin/customer-query/public"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+              isActive('/admin/customer-query/public')
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-300 hover:bg-gray-800'
+            }`}
+          >
+            <Globe className="w-5 h-5" />
+            <span>Public Queries</span>
           </Link>
         </div>
       </div>

@@ -32,6 +32,12 @@
   --bg-glass-solid:color-mix(in srgb, var(--bg) 95%, transparent);
   --line:#e5e1d8;         /* subtle border */
   --line-strong:#d4cec3;  /* stronger border */
+  /* Border for interactive controls (secondary buttons, inputs). --line and
+     --line-strong are decorative dividers: against the cream ground they come
+     out at roughly 1.4:1 and 1.6:1, which is fine for separating regions but
+     leaves a button with no visible edge. This clears 3:1, the contrast a UI
+     component boundary needs to be seen at all. */
+  --line-control:#8f887e;
   --ok:#16a34a;           /* green success */
   --ok-soft:rgba(22,163,74,.12);
   --warn:#b45309;

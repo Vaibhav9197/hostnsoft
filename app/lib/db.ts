@@ -37,6 +37,16 @@ function migrate(handle: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_hero_events_variant ON hero_events(variant);
     CREATE INDEX IF NOT EXISTS idx_hero_events_event   ON hero_events(event);
 
+    -- Legacy: the contact form now posts to hostnsoft-api's
+    -- /public/customer-query instead. Kept so /api/contact/list can still read
+    -- the rows written before that switch.
+    CREATE TABLE IF NOT EXISTS contact_messages (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      email      TEXT NOT NULL,
+      query      TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS variant_metrics (
       variant             TEXT PRIMARY KEY,
       page_views          INTEGER DEFAULT 0,

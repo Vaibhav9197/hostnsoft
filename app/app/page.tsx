@@ -75,8 +75,7 @@ export default function ProjectsPage() {
       <CloudBackdrop />
 
       <PageHeader
-        title="Apps"
-        subtitle="Every app deployed under this company."
+        title="My apps"
         actions={
           <Button onClick={() => setCreating((v) => !v)}>
             <Plus />

@@ -9,6 +9,10 @@ type Status = "loading" | "authed" | "anon";
 interface SessionValue {
   status: Status;
   user: { id: string; email: string; name: string | null } | null;
+  // True only for platform admins. Hides the admin entry point for everyone
+  // else — the /admin pages and their APIs check server-side as well, so this
+  // is presentation, not protection.
+  isSuperAdmin: boolean;
   companies: CompanyMembershipSummary[];
   activeCompanyId: string | null;
   activeCompany: CompanyMembershipSummary | null;
@@ -157,6 +161,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const value: SessionValue = {
     status,
     user: me ? { id: me.id, email: me.email, name: me.name } : null,
+    isSuperAdmin: me?.isSuperAdmin === true,
     companies,
     activeCompanyId,
     activeCompany,

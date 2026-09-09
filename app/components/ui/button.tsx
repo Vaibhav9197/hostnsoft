@@ -12,8 +12,12 @@ const buttonVariants = cva(
         default: "bg-foreground text-background hover:bg-foreground/90",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
+        // No resting fill — it reads as an outline on whatever surface it sits
+        // on. The edge carries it instead, so it must be explicit: a bare
+        // `border` inherits the decorative --line and disappears at ~1.4:1
+        // against the page. Fill appears on hover only, as feedback.
         outline:
-          "border bg-background shadow-sm hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+          "border border-control bg-transparent text-foreground hover:border-foreground/45 hover:bg-accent hover:text-accent-foreground",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost:

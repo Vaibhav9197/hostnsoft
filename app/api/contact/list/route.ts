@@ -1,19 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Database from 'better-sqlite3';
-import path from 'path';
+import { getDb } from '../../../lib/db';
+import { currentSuperAdmin } from '../../../lib/api';
 
-const dbPath = path.join(process.cwd(), '.data', 'hero-ab.sqlite');
-let db: Database.Database;
-
-function getDb() {
-  if (!db) {
-    db = new Database(dbPath);
-    db.pragma('journal_mode = WAL');
-  }
-  return db;
-}
-
+// This returns other people's email addresses and the messages they sent us.
+// Unauthenticated reads would publish that to anyone who found the URL, so the
+// same login session that guards the rest of /admin is required here.
 export async function GET(req: NextRequest) {
+  // Platform admins only. A plain login session used to be enough here, which
+  // meant any signed-in customer could read this.
+  if (!(await currentSuperAdmin())) {
+    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  }
+
   try {
     const db = getDb();
     const messages = db.prepare(`

@@ -8,16 +8,26 @@ interface ContactDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+// The values the API accepts (it also takes "other", which the form doesn't
+// offer); the labels are what the user reads.
+const TYPES = [
+  { value: 'feedback', label: 'Feedback' },
+  { value: 'feature', label: 'Feature' },
+] as const;
+
+type QueryType = (typeof TYPES)[number]['value'];
+
 export function ContactDialog({ open, onOpenChange }: ContactDialogProps) {
   const [email, setEmail] = useState('');
   const [query, setQuery] = useState('');
+  const [type, setType] = useState<QueryType>('feedback');
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !query) {
       setErrorMsg('Please fill in all fields');
       setStatus('error');
@@ -32,7 +42,7 @@ export function ContactDialog({ open, onOpenChange }: ContactDialogProps) {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, query }),
+        body: JSON.stringify({ email, query, type }),
       });
 
       const data = await res.json();
@@ -44,6 +54,7 @@ export function ContactDialog({ open, onOpenChange }: ContactDialogProps) {
         setStatus('success');
         setEmail('');
         setQuery('');
+        setType('feedback');
         setTimeout(() => {
           onOpenChange(false);
           setStatus('idle');
@@ -85,6 +96,37 @@ export function ContactDialog({ open, onOpenChange }: ContactDialogProps) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <span id="type-label" className="block text-sm font-medium mb-1">
+              Type
+            </span>
+            {/* One segmented track rather than two loose buttons, so the pair
+                reads as a single choice and the selected half is unmistakable. */}
+            <div
+              role="radiogroup"
+              aria-labelledby="type-label"
+              className="grid grid-cols-2 gap-1 rounded-lg bg-gray-100 p-1"
+            >
+              {TYPES.map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={type === value}
+                  onClick={() => setType(value)}
+                  disabled={loading}
+                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50 ${
+                    type === value
+                      ? 'bg-black text-white'
+                      : 'text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div>
             <label htmlFor="email" className="block text-sm font-medium mb-1">
               Email

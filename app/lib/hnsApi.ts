@@ -229,3 +229,15 @@ export const billingApi = {
   cancel: (companyId: string) =>
     hns<BillingSubscription>(`/companies/${companyId}/billing/subscription`, { method: "DELETE" }),
 };
+
+// ----------------------------------------------------- Customer queries
+export const customerQueryApi = {
+  // POST /companies/:companyId/customer-query — feedback from a signed-in
+  // user. The API takes the email from the verified session, so don't send one;
+  // these land under "Dashboard Queries" in /admin.
+  create: (companyId: string, type: "feature" | "feedback", message: string) =>
+    hns<{ id: string }>(`/companies/${companyId}/customer-query`, {
+      method: "POST",
+      body: { type, message },
+    }),
+};

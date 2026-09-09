@@ -5,16 +5,15 @@ import { useEffect, useState } from "react";
 /**
  * A soft sky behind the projects list.
  *
- * Cloud photographs from Unsplash — free to use under the Unsplash licence, no
- * attribution required. All five are deliberately high-key: they sit under real
- * content, and anything darker fights the text over it.
+ * Served from /public rather than Unsplash: the backdrop is part of the product
+ * now, so it shouldn't depend on a third-party host staying up or keeping a
+ * photo at the same URL. All three are deliberately high-key — they sit under
+ * real content, and anything darker fights the text over it.
  */
 const CLOUDS = [
-  "photo-1504253163759-c23fccaebb55", // Vladimir Anikeev — white cloudtops
-  "photo-1428908728789-d2de25dbd4e2", // Dominik Schröder — cloud sea at altitude
-  "photo-1536514498073-50e69d39c6cf", // Carlos Torres — pale cumulus
-  "photo-1501630834273-4b5604d2ee31", // Billy Huynh — bright fair-weather cloud
-  "photo-1547963802-25f153e14080", // Matt Palmer — soft cream sky
+  "/atmosphere/sky-clear.jpg", // open blue, a few wisps at the edges
+  "/atmosphere/sky-sunrise.jpg", // pale sunrise, warm low band
+  "/atmosphere/sky-cumulus.jpg", // blue above a band of cumulus
 ];
 
 export function CloudBackdrop() {
@@ -30,9 +29,7 @@ export function CloudBackdrop() {
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
       <div
         className="absolute inset-0 bg-cover bg-top opacity-[0.22] transition-opacity duration-700"
-        style={{
-          backgroundImage: `url('https://images.unsplash.com/${CLOUDS[index]}?auto=format&fit=crop&w=2400&q=60')`,
-        }}
+        style={{ backgroundImage: `url('${CLOUDS[index]}')` }}
       />
       <div className="absolute inset-0 bg-gradient-to-b from-background/35 via-background/75 to-background" />
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { LoginScreen } from "../components/console/LoginScreen";
+import { HeaderContactButton } from "../components/console/HeaderContactButton";
 import { HeaderHomeButton } from "../components/console/HeaderHomeButton";
 import { HeaderPlanBadge } from "../components/console/HeaderPlanBadge";
 import { HeaderTokenButton } from "../components/console/HeaderTokenButton";
@@ -60,11 +61,13 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-2 sm:px-4">
-        {/* All navigation lives in this menu now — the left sidebar is gone. */}
+        {/* Navigation sits on the left, next to the account it belongs to; the
+            right edge is for the plan chip and getting hold of us. */}
         <HeaderUserMenu />
+        <HeaderHomeButton />
+        <HeaderTokenButton />
         <div className="ml-auto flex items-center gap-2">
-          <HeaderHomeButton />
-          <HeaderTokenButton />
+          <HeaderContactButton />
           <HeaderPlanBadge />
         </div>
       </header>

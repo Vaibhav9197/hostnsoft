@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, Check, ChevronsUpDown, CreditCard, KeyRound, LayoutGrid, LogOut, User, Users } from "lucide-react";
+import { Building2, Check, ChevronsUpDown, CreditCard, KeyRound, LayoutGrid, LogOut, Shield, User, Users } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -24,7 +24,7 @@ import { useSession } from "@/app/lib/session";
  * the sidebar being mounted or expanded.
  */
 export function HeaderUserMenu() {
-  const { user, companies, activeCompanyId, activeCompany, setActiveCompanyId, signOut } = useSession();
+  const { user, companies, activeCompanyId, activeCompany, isSuperAdmin, setActiveCompanyId, signOut } = useSession();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -42,6 +42,9 @@ export function HeaderUserMenu() {
     { href: "/app/members", label: "Members", icon: Users },
     { href: "/app/tokens", label: "Deploy tokens", icon: KeyRound },
     { href: "/app/billing", label: "Billing", icon: CreditCard },
+    // Platform-wide, not company-scoped, so it sits last and only for admins.
+    // Everyone else never sees it; the pages guard themselves regardless.
+    ...(isSuperAdmin ? [{ href: "/admin", label: "Admin", icon: Shield }] : []),
   ];
   const isCurrent = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
@@ -53,7 +56,10 @@ export function HeaderUserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className="flex max-w-[16rem] items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        // No focus ring: closing the menu returns focus here, which left the
+        // ring drawn over the header after every click. Keyboard focus still
+        // shows through the same tint as hover.
+        className="flex max-w-[16rem] items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:outline-none"
         aria-label="Account menu"
       >
         <span className="grid size-7 shrink-0 place-items-center rounded-md bg-foreground text-xs font-bold text-background">

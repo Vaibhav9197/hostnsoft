@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '../../lib/db';
-import { currentUser } from '../../lib/api';
+import { currentSuperAdmin } from '../../lib/api';
 
 // These are internal business numbers — which landing page wins, and how many
 // visitors convert. Public reads would hand that to anyone who guessed the URL,
 // so the dashboard's data source requires a login session.
 export async function GET(req: NextRequest) {
-  if (!(await currentUser())) {
+  // Platform admins only. A plain login session used to be enough here, which
+  // meant any signed-in customer could read this.
+  if (!(await currentSuperAdmin())) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 

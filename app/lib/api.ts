@@ -237,6 +237,49 @@ function normalizeMeResponse(data: Record<string, unknown>): Record<string, unkn
   return { ...data, companies };
 }
 
+// Platform-admin gate for the /admin surfaces. `isSuperAdmin` is a
+// database-level flag that only hostnsoft-api knows about, so this asks it
+// directly rather than trusting anything the browser sent.
+//
+// Fails closed on purpose. currentUser() below deliberately falls back to the
+// MSG91 identity so ordinary sign-in survives a control-plane outage, but that
+// identity carries no admin flag — falling back here would silently promote
+// every logged-in user the moment the backend went down. No answer means no.
+export async function currentSuperAdmin(): Promise<Identity | null> {
+  const proxyToken = await readProxyToken();
+  if (!proxyToken) return null;
+
+  const res = await upstream("/auth/me", { proxyToken }).catch(() => null);
+  if (!res || !res.ok) return null;
+
+  const data = (await res.json().catch(() => null)) as Record<string, unknown> | null;
+  // Strict true: a missing flag, a string "false", or any other shape is not
+  // an admin.
+  if (!data || data.isSuperAdmin !== true) return null;
+
+  const id = data.id ?? data.email ?? null;
+  if (!id) return null;
+
+  const identity: Identity = {
+    id: String(id),
+    email: typeof data.email === "string" ? data.email : "",
+    name: typeof data.name === "string" ? data.name : null,
+  };
+
+  // ADMIN_EMAILS can narrow access further, but never widen it — the flag
+  // above is still required.
+  const allowlist = (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (allowlist.length > 0 && !allowlist.includes(identity.email.toLowerCase())) {
+    return null;
+  }
+
+  return identity;
+}
+
 // Guard for internal-only routes. Resolves the caller from the login session,
 // or null when there isn't a valid one. Identity is read straight from MSG91
 // rather than hostnsoft-api, so the guard still works — and still refuses

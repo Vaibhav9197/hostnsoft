@@ -30,6 +30,7 @@ export default {
         info: "var(--info)",
         border: "var(--line)",
         input: "var(--line-strong)",
+        control: "var(--line-control)",
         ring: "var(--accent)",
         // Sidebar tokens, mapped onto the app's own surfaces so the console
         // stays on the neutral black/white scale (never --accent).
