@@ -130,6 +130,18 @@ export const deploymentsApi = {
   // GET .../deployments — deploy history, newest first.
   list: (companyId: string, projectId: string) =>
     hns<Deployment[]>(`/companies/${companyId}/projects/${projectId}/deployments`),
+
+  // POST .../deployments/:deploymentId/rollback — put an earlier deploy back in
+  // service. A pointer flip onto the image that deploy already built, so it
+  // takes seconds and never rebuilds; custom domains and env vars are left
+  // exactly as they are. History isn't rewritten: this lands as a brand-new
+  // deployment (its own version, `triggeredBy` prefixed "rollback:"), which is
+  // what comes back. 422 if the target never succeeded or has no image.
+  rollback: (companyId: string, projectId: string, deploymentId: string) =>
+    hns<Deployment>(
+      `/companies/${companyId}/projects/${projectId}/deployments/${deploymentId}/rollback`,
+      { method: "POST" },
+    ),
 };
 
 // ------------------------------------------------------------- Custom domains

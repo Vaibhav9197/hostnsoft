@@ -1,10 +1,12 @@
 'use client';
 
+import { useEffect } from 'react';
 import {
   ArrowRight, ArrowUpRight, Check, ChevronDown, Cloud, Copy, Database, FileUp,
   Globe2, KeyRound, ShieldCheck, Sparkles, Upload,
 } from 'lucide-react';
 import { siClaude, siCursor, siGithubcopilot, siGooglegemini, siReplit } from 'simple-icons';
+import { trackEvent, trackCTA, trackDeployment } from '../lib/tracking';
 import barcelonaMorning from './barcelona-morning.png';
 import { CopyPromptButton as SharedCopyPromptButton, COPIED_LABEL } from '../components/CopyPromptButton';
 import { SiteHeader } from '../components/SiteHeader';
@@ -34,6 +36,7 @@ function CopyPromptButton({ compact = false }: { compact?: boolean }) {
   return <SharedCopyPromptButton
     className={compact ? 'copy-button copy-button-small' : 'copy-button'}
     copiedChildren={<><Check aria-hidden="true" />{COPIED_LABEL}</>}
+    onClicked={() => trackCTA('copy')}
   >
     <Copy aria-hidden="true" />
     Copy the deploy prompt
@@ -92,6 +95,9 @@ function FinalScene() {
 }
 
 export default function Home() {
+  useEffect(() => {
+    trackEvent('page_view');
+  }, []);
   const structuredData = { '@context': 'https://schema.org', '@type': 'WebApplication', name: 'Embarko', applicationCategory: 'BusinessApplication', operatingSystem: 'Web', description: 'Instant hosting for every app you build with AI.' };
   return <main className="site-page">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />

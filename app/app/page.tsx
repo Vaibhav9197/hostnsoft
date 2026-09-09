@@ -80,7 +80,7 @@ export default function ProjectsPage() {
         actions={
           <Button onClick={() => setCreating((v) => !v)}>
             <Plus />
-            New app
+            Host new app
           </Button>
         }
       />
@@ -100,7 +100,7 @@ export default function ProjectsPage() {
       <DeployPromptDialog
         open={creating}
         onClose={() => setCreating(false)}
-        title="New app"
+        title="Host new app"
         description="Copy this and paste it into your AI agent. It deploys your app, and the app shows up here on its own subdomain — nothing to fill in first."
       />
 
@@ -136,16 +136,14 @@ export default function ProjectsPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 py-2.5 border-t border-border">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono text-faint bg-muted px-2 py-1 rounded">{p.memoryMb} MB</span>
-                  <span className="text-xs text-muted-foreground">•</span>
-                  <span className="text-xs text-faint">Created {formatDate(p.createdAt)}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-xs text-faint">Added {relativeTime(p.createdAt)}</span>
+              {/* One row, one fact: both of these read `createdAt`, so the
+                  relative time carries the absolute date beside it rather than
+                  repeating itself as a second line. The divider moved down here
+                  with the row that used to sit above. */}
+              <div className="flex items-center justify-between border-t border-border pt-3">
+                <span className="text-xs text-faint">
+                  Added {relativeTime(p.createdAt)} · {formatDate(p.createdAt)}
+                </span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4 text-muted-foreground transition-all duration-200 group-hover:translate-x-1 group-hover:text-primary"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
               </div>
             </Link>

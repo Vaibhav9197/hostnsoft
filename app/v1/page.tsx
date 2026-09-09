@@ -1,10 +1,14 @@
+'use client';
+
 import type { CSSProperties, ReactNode } from 'react';
+import { useEffect } from 'react';
 import {
   Activity, ArrowRight, Check, Copy, Database, FolderOpen, Globe, HardDrive,
   KeyRound, MapPin, Plane, RefreshCw, ShieldCheck,
 } from 'lucide-react';
 import barcelonaMorning from '../v4/barcelona-morning.png';
 import { SectionSnap } from './SectionSnap';
+import { trackEvent, trackCTA, trackDeployment } from '../lib/tracking';
 import { AGENTS, agentIconSrc } from '../lib/agents';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
@@ -449,6 +453,7 @@ function CopyPromptCta() {
           {COPIED_LABEL}
         </>
       }
+      onClicked={() => trackCTA('copy')}
     >
       <Copy className="h-[18px] w-[18px]" aria-hidden="true" />
       Copy the deploy prompt
@@ -502,12 +507,24 @@ function Steps() {
   );
 }
 
+
+/**
+ * Client component to track page view
+ */
+function PageViewTracker() {
+  useEffect(() => {
+    trackEvent('page_view');
+  }, []);
+  return null;
+}
+
 export default function EmbarkoV1() {
   return (
     /* The header sits OUTSIDE #v1-scenes on purpose: that wrapper has
        overflow-x-hidden, and an overflow ancestor becomes the containing block
        for position:sticky, which stops the header sticking at all. */
     <>
+      <PageViewTracker />
       <SiteHeader />
 
       <div id="v1-scenes" className="overflow-x-hidden bg-white text-black">

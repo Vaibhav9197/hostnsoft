@@ -67,11 +67,6 @@ export default function StatusPage() {
           No incidents to report. Past incidents and maintenance windows are posted here, and account
           holders are emailed about anything that affects a running app.
         </P>
-        <P>
-          Seeing something we aren&apos;t? Email{" "}
-          <A href="mailto:hello@embarko.ai">hello@embarko.ai</A>. This page is maintained by hand —{" "}
-          <Fill>point it at live monitoring before launch</Fill>.
-        </P>
       </Section>
     </DocumentPage>
   );

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { ArrowRight, Copy, Bot, Globe } from 'lucide-react';
 import { AGENTS, agentIconSrc } from '../lib/agents';
 import { CopyPromptButton, COPIED_LABEL } from '../components/CopyPromptButton';
+import { trackEvent, trackCTA, trackDeployment } from '../lib/tracking';
 import { SiteHeader } from '../components/SiteHeader';
 
 /* Looping "watch it deploy" timeline shown on step 1. A single elapsed-ms
@@ -43,6 +44,10 @@ function Sub({ children }: { children: React.ReactNode }) {
   );
 }
 
+function StepNumeral({ n }: { n: string }) {
+  return <div className="text-6xl font-bold leading-none text-gray-300">{n}</div>;
+}
+
 /* Headline highlight: a solid black chip behind a phrase. box-decoration-break
    keeps the padding and radius on every fragment when a phrase wraps. */
 function Mark({ children }: { children: React.ReactNode }) {
@@ -67,6 +72,28 @@ function TrafficLights() {
 
 export default function EmbarkoV2() {
   const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    // Track page view
+    trackEvent('page_view');
+
+    /* Keyboard navigation: left/right arrows and up/down arrows */
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        setStep((s) => Math.min(s + 1, 2));
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        setStep((s) => Math.max(s - 1, 0));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   return (
     <main className="relative flex h-[100dvh] flex-col overflow-hidden bg-white text-black antialiased">
@@ -94,9 +121,9 @@ export default function EmbarkoV2() {
           onClick={() => setStep((s) => s - 1)}
           aria-label="Previous step"
           /* Centred under the 64px header, which owns the top row. */
-          className="absolute left-1/2 top-20 z-20 flex h-9 w-9 -translate-x-1/2 items-center justify-center rounded-full text-black/35 transition hover:bg-black/[0.04] hover:text-black"
+          className="absolute left-1/2 bottom-8 z-20 flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full bg-black/5 text-black/60 transition hover:bg-black/10 hover:text-black"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
         </button>
@@ -115,25 +142,6 @@ export default function EmbarkoV2() {
         </div>
       </div>
 
-      {/* step indicator */}
-      <div className="flex shrink-0 items-center justify-center gap-2 pb-8">
-        {STEPS.map((label, i) => (
-          <button
-            key={label}
-            onClick={() => i < step && setStep(i)}
-            aria-label={label}
-            aria-current={i === step ? 'step' : undefined}
-            disabled={i > step}
-            className={`h-1.5 rounded-full transition-all duration-500 ${
-              i === step
-                ? 'w-7 bg-black'
-                : i < step
-                  ? 'w-1.5 bg-black/25 hover:bg-black/50'
-                  : 'w-1.5 bg-black/10'
-            }`}
-          />
-        ))}
-      </div>
     </main>
   );
 }
@@ -161,7 +169,20 @@ function Hero({ onNext }: { onNext: () => void }) {
         </svg>
       </button>
 
-      <div className="mt-5 text-[14px] text-black/35">It takes minutes to live</div>
+      {/* Two-step handoff, mirroring the numbered steps on the other versions. */}
+      <ol
+        aria-label="How it works"
+        className="mt-5 flex list-none items-center justify-center gap-4 text-[14px] font-medium text-black/40"
+      >
+        <li className="inline-flex items-center gap-1.5 whitespace-nowrap">
+          <span className="grid h-[18px] w-[18px] place-items-center rounded-full border border-black/15 text-[12px] font-semibold">1</span>
+          Copy the prompt
+        </li>
+        <li className="inline-flex items-center gap-1.5 whitespace-nowrap">
+          <span className="grid h-[18px] w-[18px] place-items-center rounded-full border border-black/15 text-[12px] font-semibold">2</span>
+          Hand it to your agent
+        </li>
+      </ol>
     </div>
   );
 }
@@ -354,6 +375,8 @@ function CopyStep({ onNext }: { onNext: () => void }) {
   return (
     <div>
       <div className="text-center">
+        {/* Same oversized step numeral v1 uses to head each "How?" column. */}
+        <StepNumeral n="01" />
         <Heading>Copy the prompt</Heading>
         <Sub>This is all your agent needs to know. One prompt, any agent.</Sub>
       </div>
@@ -361,7 +384,10 @@ function CopyStep({ onNext }: { onNext: () => void }) {
       <div className="mt-8 text-center">
         <CopyPromptButton
           /* The demo must reach step 2 even where the clipboard is blocked. */
-          onClicked={() => setTimeout(onNext, 850)}
+          onClicked={() => {
+            trackCTA('copy');
+            setTimeout(onNext, 850);
+          }}
           className="inline-flex items-center gap-2.5 rounded-full bg-black px-8 py-4 text-[16px] font-medium text-white transition hover:bg-black/85"
           copiedClassName="inline-flex items-center gap-2.5 rounded-full bg-[#16a34a] px-8 py-4 text-[16px] font-medium text-white transition"
           copiedChildren={
@@ -392,7 +418,8 @@ function ChatStep() {
   return (
     <div>
       <div className="text-center">
-        <Heading>Paste it into your AI</Heading>
+        <StepNumeral n="02" />
+        <Heading>Paste it into your AI, That's all</Heading>
         <Sub>Your agent runs the deploy itself. You just watch.</Sub>
       </div>
 
@@ -416,9 +443,7 @@ function ChatStep() {
         </ul>
       </div>
 
-      <p className="mt-10 text-center text-[15px] text-black/35">
-        One prompt, any agent — the deploy runs the same either way.
-      </p>
+
     </div>
   );
 }

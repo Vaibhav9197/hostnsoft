@@ -237,6 +237,32 @@ function normalizeMeResponse(data: Record<string, unknown>): Record<string, unkn
   return { ...data, companies };
 }
 
+// Guard for internal-only routes. Resolves the caller from the login session,
+// or null when there isn't a valid one. Identity is read straight from MSG91
+// rather than hostnsoft-api, so the guard still works — and still refuses
+// anonymous callers — on a deploy where the control plane is unreachable.
+//
+// ADMIN_EMAILS optionally narrows access to a comma-separated allowlist; left
+// unset, any logged-in user passes. It is compared case-insensitively.
+export async function currentUser(): Promise<Identity | null> {
+  const proxyToken = await readProxyToken();
+  if (!proxyToken) return null;
+
+  const identity = await msg91GetDetails(proxyToken);
+  if (!identity) return null;
+
+  const allowlist = (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (allowlist.length > 0 && !allowlist.includes(identity.email.toLowerCase())) {
+    return null;
+  }
+
+  return identity;
+}
+
 // Who am I? Used at app boot. Identity comes from hostnsoft-api when reachable
 // (so we also get companies), otherwise from the MSG91 proxy session — so the
 // user stays logged in and in the app even when hostnsoft-api is down.

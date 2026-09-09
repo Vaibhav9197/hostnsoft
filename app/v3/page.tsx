@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { trackEvent, trackCTA, trackDeployment } from '../lib/tracking';
 import {
   Activity, Copy, Database, FolderOpen, Globe, HardDrive, KeyRound, RefreshCw, ShieldCheck,
 } from "lucide-react";
@@ -301,6 +302,7 @@ function DeployPanel() {
   const [reduced, setReduced] = useState(false);
 
   useEffect(() => {
+    trackEvent('page_view');
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setReduced(true);
       return;
@@ -401,7 +403,7 @@ function Hero() {
           </h1>
 
           <div className="flex flex-wrap items-center gap-[18px]">
-            <CopyPromptButton className={BTN_PRIMARY} copiedChildren={COPIED_LABEL}>
+            <CopyPromptButton className={BTN_PRIMARY} copiedChildren={COPIED_LABEL} onClicked={() => trackCTA('copy')}>
               <Copy aria-hidden="true" className="h-4 w-4" />
               Copy deployment prompt
             </CopyPromptButton>
@@ -509,7 +511,7 @@ function PromptSection() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3.5">
-              <CopyPromptButton
+              <CopyPromptButton onClicked={() => trackCTA('copy')}
                 className={BTN_PRIMARY}
                 copiedChildren={COPIED_LABEL}
                 onCopied={() => setCopied(true)}
@@ -686,7 +688,7 @@ function FinalCta() {
         <p className="mb-[34px] max-w-[480px] text-[17px] text-muted-foreground">
           The same app. Now on the internet.
         </p>
-        <CopyPromptButton className={BTN_PRIMARY} copiedChildren={COPIED_LABEL}>
+        <CopyPromptButton className={BTN_PRIMARY} copiedChildren={COPIED_LABEL} onClicked={() => trackCTA('copy')}>
           <Copy aria-hidden="true" className="h-4 w-4" />
           Copy deployment prompt
         </CopyPromptButton>

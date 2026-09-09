@@ -1,4 +1,8 @@
+'use client';
+
+import { useState } from 'react';
 import Link from "next/link";
+import { ContactDialog } from './ContactDialog';
 
 /**
  * The site-wide footer for the standalone pages (terms, privacy, DPA,
@@ -21,7 +25,7 @@ const COLUMNS = [
     links: [
       { label: "Docs", href: "/doc" },
       { label: "Pricing", href: "/pricing" },
-      { label: "Status", href: "/status" },
+      /* { label: "Status", href: "/status" }, */
       { label: "llms.txt", href: "/llms.txt", external: true },
     ],
   },
@@ -38,57 +42,70 @@ const COLUMNS = [
     links: [
       { label: "Security", href: "/security" },
       { label: "Abuse", href: "/abuse" },
-      { label: "Contact", href: "mailto:hello@embarko.ai", external: true },
     ],
   },
 ] as const;
 
 export function SiteFooter({ measure = MARKETING_MEASURE }: { measure?: string }) {
+  const [contactOpen, setContactOpen] = useState(false);
   return (
-    <footer className="border-t border-border py-16">
-      <div className={measure}>
-        <div className="grid gap-10 sm:grid-cols-[1fr_auto_auto_auto] sm:gap-16">
-          <div>
-            <span className="text-lg font-semibold tracking-tight text-foreground">embarko</span>
-            <p className="mt-3 max-w-[24ch] text-sm leading-relaxed text-muted-foreground">
-              Hosting for the apps your AI builds.
-            </p>
+    <>
+      <ContactDialog open={contactOpen} onOpenChange={setContactOpen} />
+      <footer className="border-t border-border py-16">
+        <div className={measure}>
+          <div className="grid gap-10 sm:grid-cols-[1fr_auto_auto_auto] sm:gap-16">
+            <div>
+              <span className="text-lg font-semibold tracking-tight text-foreground">embarko</span>
+              <p className="mt-3 max-w-[24ch] text-sm leading-relaxed text-muted-foreground">
+                Hosting for the apps your AI builds.
+              </p>
+            </div>
+
+            {COLUMNS.map((column) => (
+              <div key={column.heading}>
+                <p className="font-mono text-[11px] uppercase tracking-widest text-faint">
+                  {column.heading}
+                </p>
+                <ul className="mt-3 space-y-2">
+                  {column.links.map((link) => (
+                    <li key={link.label}>
+                      {"external" in link && link.external ? (
+                        <a
+                          href={link.href}
+                          className="text-sm text-muted-foreground transition hover:text-foreground"
+                        >
+                          {link.label}
+                        </a>
+                      ) : (
+                        <Link
+                          href={link.href}
+                          className="text-sm text-muted-foreground transition hover:text-foreground"
+                        >
+                          {link.label}
+                        </Link>
+                      )}
+                    </li>
+                  ))}
+                  {column.heading === "Company" && (
+                    <li>
+                      <button
+                        onClick={() => setContactOpen(true)}
+                        className="text-sm text-muted-foreground transition hover:text-foreground cursor-pointer"
+                      >
+                        Contact
+                      </button>
+                    </li>
+                  )}
+                </ul>
+              </div>
+            ))}
           </div>
 
-          {COLUMNS.map((column) => (
-            <div key={column.heading}>
-              <p className="font-mono text-[11px] uppercase tracking-widest text-faint">
-                {column.heading}
-              </p>
-              <ul className="mt-3 space-y-2">
-                {column.links.map((link) => (
-                  <li key={link.label}>
-                    {"external" in link && link.external ? (
-                      <a
-                        href={link.href}
-                        className="text-sm text-muted-foreground transition hover:text-foreground"
-                      >
-                        {link.label}
-                      </a>
-                    ) : (
-                      <Link
-                        href={link.href}
-                        className="text-sm text-muted-foreground transition hover:text-foreground"
-                      >
-                        {link.label}
-                      </Link>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <div className="mt-10 border-t border-border pt-6 text-sm text-muted-foreground">
+            © {new Date().getFullYear()} Embarko — hosting for AI-built apps
+          </div>
         </div>
-
-        <div className="mt-10 border-t border-border pt-6 text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Embarko — hosting for AI-built apps
-        </div>
-      </div>
-    </footer>
+      </footer>
+    </>
   );
 }

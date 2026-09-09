@@ -325,26 +325,19 @@ function DomainCard({
  * each one rather than describing where to paste it.
  */
 function DnsRecord({ record }: { record: DomainInstructions }) {
-  const proxied = record.type === "CNAME";
-
   return (
     <div>
       <p className="mb-3 text-[0.92rem] text-muted-foreground">
         Add this record at whoever manages DNS for this domain — your registrar, or Cloudflare, or wherever the
-        nameservers point.
-        {proxied && " On Cloudflare, leave proxying on — the orange cloud, not “DNS only”."}
+        nameservers point. On Cloudflare, turn proxying off — “DNS only”, the grey cloud, not the orange one.
       </p>
-      <dl
-        className={`grid gap-px overflow-hidden rounded-lg border border-border bg-border ${
-          proxied ? "sm:grid-cols-[auto_1fr_1fr_auto]" : "sm:grid-cols-[auto_1fr_1fr]"
-        }`}
-      >
+      <dl className="grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-[auto_1fr_1fr_auto]">
         <Field label="Type" value={record.type} />
         <Field label="Name" value={record.name} />
         <Field label="Value" value={record.value} />
         {/* A required setting rather than a value to paste, so no copy button —
-            copying the word "Enabled" into a DNS form would be nonsense. */}
-        {proxied && <Field label="Proxy" value="Enabled" copyable={false} />}
+            copying the word "Disabled" into a DNS form would be nonsense. */}
+        <Field label="Proxy" value="Disabled" copyable={false} />
       </dl>
     </div>
   );
