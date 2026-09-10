@@ -2,15 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Boxes, Mail, MessageSquare, Globe, ExternalLink } from 'lucide-react';
+import { BarChart3, Boxes, Mail, MessageSquare, Globe, ArrowLeft } from 'lucide-react';
 
 export function AdminNav() {
   const pathname = usePathname();
 
   const isActive = (href: string) => pathname === href;
 
+  /* Sticky, viewport-tall and scrollable on its own: the admin pages run
+     longer than the screen, and without this the nav scrolled off the top
+     and the sidebar's ground ran out behind it. */
   return (
-    <nav className="w-64 bg-gray-900 text-white p-6 min-h-screen flex flex-col">
+    <nav className="sticky top-0 h-screen w-64 shrink-0 overflow-y-auto bg-gray-900 text-white p-6 flex flex-col">
       <div>
         <div className="mb-8">
           <h1 className="text-2xl font-bold">Admin</h1>
@@ -84,13 +87,13 @@ export function AdminNav() {
       </div>
 
       <div className="mt-auto">
+        {/* Same window: this is a move back into the console, not a detour
+            out to another site, so a new tab just leaves admin orphaned. */}
         <a
           href="/app"
-          target="_blank"
-          rel="noopener noreferrer"
           className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 transition"
         >
-          <ExternalLink className="w-5 h-5" />
+          <ArrowLeft className="w-5 h-5" />
           <span>Go to App</span>
         </a>
       </div>

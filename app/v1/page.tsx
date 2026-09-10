@@ -644,6 +644,9 @@ export default function EmbarkoV1() {
               <CopyPromptButton
                 className="font-medium text-black underline hover:no-underline"
                 copiedChildren={COPIED_LABEL}
+                /* Counts the same as the hero CTA: a copy from here is the
+                   same conversion, and without this it was invisible. */
+                onClicked={() => trackCTA('copy')}
               >
                 Copy prompt →
               </CopyPromptButton>

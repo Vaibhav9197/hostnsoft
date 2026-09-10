@@ -1,6 +1,7 @@
 "use client";
 
 import { use } from "react";
+import { ProjectAnalytics } from "../../../components/console/ProjectAnalytics";
 import { StatusPill } from "../../../components/console/StatusPill";
 import { Alert, Fact, FactGrid, Page, PageHeader, Skeleton } from "../../../components/console/kit";
 import { formatDate } from "../../../lib/format";
@@ -28,6 +29,8 @@ export default function ProjectOverviewPage({ params }: { params: Promise<{ proj
         <Fact k="Health" v={<StatusPill status={project.health} />} />
         <Fact k="Created" v={formatDate(project.createdAt)} />
       </FactGrid>
+
+      <ProjectAnalytics companyId={activeCompanyId} projectId={projectId} />
     </Page>
   );
 }

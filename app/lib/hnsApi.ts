@@ -9,6 +9,7 @@
 
 import { HnsError, hns } from "./client";
 import type {
+  AnalyticsRange,
   BillingPlan,
   BillingStatus,
   BillingSubscription,
@@ -23,6 +24,7 @@ import type {
   Member,
   PaymentMethod,
   Project,
+  ProjectAnalytics,
   ProjectDetail,
 } from "./types";
 
@@ -241,3 +243,22 @@ export const customerQueryApi = {
       body: { type, message },
     }),
 };
+
+// ---------------------------------------------------------------- Analytics
+export const analyticsApi = {
+  // GET /companies/:companyId/projects/:projectId/analytics — traffic and
+  // resource usage over `range`. The series arrive pre-bucketed for charting
+  // (hourly for 24h, 6-hourly for 7d, daily above that), so nothing here
+  // re-buckets them.
+  //
+  // A 503 from this endpoint means the analytics pipeline is unreachable, not
+  // that the app is idle — an idle app answers 200 with zeroes. Callers must
+  // keep those apart; see ANALYTICS_UNAVAILABLE below.
+  project: (companyId: string, projectId: string, range: AnalyticsRange = "24h") =>
+    hns<ProjectAnalytics>(
+      `/companies/${companyId}/projects/${projectId}/analytics?range=${range}`,
+    ),
+};
+
+/** The status that means "pipeline down", as distinct from "no traffic". */
+export const ANALYTICS_UNAVAILABLE = 503;

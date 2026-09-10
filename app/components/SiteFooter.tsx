@@ -55,7 +55,11 @@ export function SiteFooter({ measure = MARKETING_MEASURE }: { measure?: string }
         <div className={measure}>
           <div className="grid gap-10 sm:grid-cols-[1fr_auto_auto_auto] sm:gap-16">
             <div>
-              <span className="text-lg font-semibold tracking-tight text-foreground">embarko</span>
+              <span className="inline-flex items-center gap-1.5 text-lg font-semibold tracking-tight text-foreground">
+                {/* Same mark as the header; decorative, the wordmark reads it out. */}
+                <img src="/assets/embarko-icon.svg" alt="" aria-hidden="true" className="size-5 rounded" />
+                Embarko
+              </span>
               <p className="mt-3 max-w-[24ch] text-sm leading-relaxed text-muted-foreground">
                 Hosting for the apps your AI builds.
               </p>

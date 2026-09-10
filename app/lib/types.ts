@@ -237,3 +237,41 @@ export interface PaymentMethod {
     email: string | null;
   };
 }
+
+// ---------------------------------------------------------------- Analytics
+// GET /companies/:id/projects/:id/analytics. The pipeline is optional
+// infrastructure: a 503 means it couldn't be reached, which is NOT the same as
+// an app with no traffic (that answers 200 with zeroes).
+export type AnalyticsRange = "24h" | "7d" | "30d" | "90d" | "all";
+
+export interface TrafficSeriesPoint {
+  bucketStart: string;
+  requests: number;
+  errors: number;
+}
+
+export interface ResourceSeriesPoint {
+  bucketStart: string;
+  avgCpuPercent: number;
+  maxCpuPercent: number;
+  avgMemoryMb: number;
+  maxMemoryMb: number;
+}
+
+export interface ProjectAnalytics {
+  traffic: {
+    range: AnalyticsRange;
+    totalRequests: number;
+    statusBreakdown: { "2xx": number; "3xx": number; "4xx": number; "5xx": number };
+    // Both null when nothing was served in the range.
+    latencyMs: { p50: number | null; p95: number | null };
+    topPaths: { path: string; requests: number }[];
+    series: TrafficSeriesPoint[];
+  };
+  resourceUsage: {
+    range: AnalyticsRange;
+    // null if never sampled — e.g. the app isn't running.
+    current: { cpuPercent: number; memoryMb: number; sampledAt: string } | null;
+    series: ResourceSeriesPoint[];
+  };
+}

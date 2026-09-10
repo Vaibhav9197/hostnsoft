@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '../../lib/db';
 import { currentSuperAdmin } from '../../lib/api';
+import { VARIANT_NAMES } from '../../lib/variants';
 
 // These are internal business numbers — which landing page wins, and how many
 // visitors convert. Public reads would hand that to anyone who guessed the URL,
@@ -14,7 +15,16 @@ export async function GET(req: NextRequest) {
 
   try {
     const db = getDb();
-    const metrics = db.prepare('SELECT * FROM variant_metrics ORDER BY variant').all();
+    /* Arm order, not alphabetical: sorting the names put Delta before Gamma,
+       which reads as a mistake next to the A/B/C/D the arms stand for. Rows
+       for arms no longer in the table sort last rather than disappearing. */
+    const order = (variant: string) => {
+      const i = VARIANT_NAMES.indexOf(variant as (typeof VARIANT_NAMES)[number]);
+      return i === -1 ? VARIANT_NAMES.length : i;
+    };
+    const metrics = (db.prepare('SELECT * FROM variant_metrics').all() as any[]).sort(
+      (a, b) => order(a.variant) - order(b.variant),
+    );
     
     // Calculate conversion rates
     const metricsWithRates = metrics.map((m: any) => ({
