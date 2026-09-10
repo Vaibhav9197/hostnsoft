@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { Check, Copy, Plus } from "lucide-react";
 import { CloudBackdrop } from "../components/console/CloudBackdrop";
-import { Alert, EmptyState, Page, PageHeader, Skeleton } from "../components/console/kit";
+import { Alert, EmptyState, Page, PageHeader, Skeleton, Steps } from "../components/console/kit";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { DeployPromptDialog } from "../components/console/DeployPromptDialog";
+import { CopyPromptButton } from "../components/CopyPromptButton";
+import { CONSOLE_DEPLOY_PROMPT } from "../lib/deployPrompt";
 import { HnsError } from "../lib/client"; // used by the parked createProject below
 import { companiesApi, projectsApi } from "../lib/hnsApi";
 import { formatDate, relativeTime } from "../lib/format";
@@ -75,11 +77,11 @@ export default function ProjectsPage() {
       <CloudBackdrop />
 
       <PageHeader
-        title="My apps"
+        title="Your apps"
         actions={
           <Button onClick={() => setCreating((v) => !v)}>
             <Plus />
-            Host new app
+            Deploy an app
           </Button>
         }
       />
@@ -99,7 +101,7 @@ export default function ProjectsPage() {
       <DeployPromptDialog
         open={creating}
         onClose={() => setCreating(false)}
-        title="Host new app"
+        title="Deploy an app"
         description="Copy this and paste it into your AI agent. It deploys your app, and the app shows up here on its own subdomain — nothing to fill in first."
       />
 
@@ -112,8 +114,24 @@ export default function ProjectsPage() {
       )}
 
       {projects && projects.length === 0 && (
-        <EmptyState title="No apps yet">
-          Create an app above, then deploy to its subdomain.
+        <EmptyState title="Your apps will appear here">
+          {/* The prompt itself, not a button that hides it: there is nothing to
+              decide here, so showing it is one step shorter than a dialog. */}
+          <div className="relative mx-auto mt-4 max-w-xl text-left">
+            <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-border bg-white p-4 pr-12 font-mono text-xs leading-relaxed text-muted-foreground">
+              {CONSOLE_DEPLOY_PROMPT}
+            </pre>
+            <CopyPromptButton
+              text={CONSOLE_DEPLOY_PROMPT}
+              aria-label="Copy deploy prompt"
+              title="Copy deploy prompt"
+              className="absolute right-2 top-2 grid size-8 place-items-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:text-foreground"
+              copiedChildren={<Check className="size-4 text-foreground" />}
+            >
+              <Copy className="size-4" />
+            </CopyPromptButton>
+          </div>
+          <Steps steps={["Copy prompt", "Paste into your AI agent", "Ask it to deploy"]} />
         </EmptyState>
       )}
 

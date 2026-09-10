@@ -23,6 +23,34 @@ declare global {
   }
 }
 
+// The widget renders its own <main> with horizontal padding, which lands on top
+// of the padding the console page already has. It lives two shadow roots deep,
+// so no stylesheet of ours can reach it — the override has to be appended
+// inside that root.
+//
+// This reaches into markup we don't own, so it's written to fail quietly: if a
+// widget update renames or restructures anything, the selector simply matches
+// nothing and the padding comes back. It never breaks the page.
+const SHADOW_STYLE_FLAG = "data-embarko-reset";
+const SHADOW_OVERRIDES = `main { padding: 0 !important; }`;
+
+function injectPaddingReset(root: Document | ShadowRoot): boolean {
+  let injected = false;
+  for (const el of root.querySelectorAll("*")) {
+    if (!el.shadowRoot) continue;
+    const sr = el.shadowRoot;
+    if (sr.querySelector("main") && !sr.querySelector(`style[${SHADOW_STYLE_FLAG}]`)) {
+      const style = document.createElement("style");
+      style.setAttribute(SHADOW_STYLE_FLAG, "");
+      style.textContent = SHADOW_OVERRIDES;
+      sr.appendChild(style);
+      injected = true;
+    }
+    if (injectPaddingReset(sr)) injected = true;
+  }
+  return injected;
+}
+
 export function UserManagementWidget() {
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -63,6 +91,15 @@ export function UserManagementWidget() {
         },
       });
       setReady(true);
+
+      // The widget mounts asynchronously, so its shadow roots don't exist yet.
+      // Poll briefly rather than guess at a delay, and give up quietly.
+      const deadline = Date.now() + 5000;
+      const timer = window.setInterval(() => {
+        if (injectPaddingReset(document) || Date.now() > deadline) {
+          window.clearInterval(timer);
+        }
+      }, 100);
     }
 
     function onLoadFailure() {

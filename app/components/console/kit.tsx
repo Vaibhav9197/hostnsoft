@@ -68,7 +68,18 @@ export function EmptyState({ title, children }: { title: React.ReactNode; childr
   return (
     <div className="rounded-xl border border-dashed border-input bg-card/50 px-6 py-14 text-center">
       <h3 className="text-[1.1rem] font-bold text-foreground">{title}</h3>
-      {children && <p className="mx-auto mt-2 max-w-[44ch] text-[0.92rem] leading-relaxed text-muted-foreground">{children}</p>}
+      {/* div, not p: callers pass block content (the Steps list) as well as text. */}
+      {children && (
+        <div
+          className={cn(
+            "mx-auto mt-2 text-[0.92rem] leading-relaxed text-muted-foreground",
+            // Measure only prose; block children (the Steps row) size themselves.
+            typeof children === "string" && "max-w-[44ch]",
+          )}
+        >
+          {children}
+        </div>
+      )}
     </div>
   );
 }
@@ -210,5 +221,26 @@ export function Tag({ children, tone }: { children: React.ReactNode; tone?: "war
     >
       {children}
     </span>
+  );
+}
+
+/** The same numbered run-through the marketing site shows, for use in empty states. */
+export function Steps({ steps }: { steps: string[] }) {
+  return (
+    <ol
+      aria-label="How it works"
+      className="mt-5 flex flex-wrap items-center justify-center gap-x-[18px] gap-y-2 text-sm font-medium text-foreground"
+    >
+      {steps.map((label, i) => (
+        <li key={label} className="inline-flex items-center gap-1.5 whitespace-nowrap">
+          {/* leading-none is load-bearing: without it the numeral inherits the
+              list's line-height inside an 18px circle and sits off-centre. */}
+          <span className="grid h-[18px] w-[18px] place-items-center rounded-full border border-current text-[10px] font-bold leading-none">
+            {i + 1}
+          </span>
+          {label}
+        </li>
+      ))}
+    </ol>
   );
 }

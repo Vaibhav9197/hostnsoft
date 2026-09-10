@@ -6,7 +6,7 @@ import remarkGfm from "remark-gfm";
 import { Header } from "../components/Header";
 import { SiteFooter } from "../components/SiteFooter";
 import { LoginModal } from "../components/LoginModal";
-import { slugify, type TocEntry } from "../lib/docs";
+import { DOCS, localizeDocHref, slugify, type TocEntry } from "../lib/docs";
 
 /* Turn a heading's rendered children back into plain text, so an id can be
    derived from it. The source writes headings as self-links —
@@ -58,16 +58,22 @@ const components = {
   strong: ({ children }: { children?: ReactNode }) => (
     <strong className="font-semibold text-neutral-950">{children}</strong>
   ),
-  a: ({ href, children }: { href?: string; children?: ReactNode }) => (
-    <a
-      href={href}
-      className="font-medium text-neutral-950 underline underline-offset-2 hover:text-neutral-600"
-      /* Anything off-site opens in a new tab; in-page anchors must not. */
-      {...(href?.startsWith("http") ? { target: "_blank", rel: "noreferrer" } : {})}
-    >
-      {children}
-    </a>
-  ),
+  a: ({ href, children }: { href?: string; children?: ReactNode }) => {
+    /* A link to a sibling doc points at its raw .md upstream; send it to that
+       doc's page here instead of handing the reader a file download. */
+    const to = localizeDocHref(href);
+    return (
+      <a
+        href={to}
+        className="font-medium text-neutral-950 underline underline-offset-2 hover:text-neutral-600"
+        /* Anything still off-site opens in a new tab; in-page anchors and the
+           rewritten links above must not. */
+        {...(to?.startsWith("http") ? { target: "_blank", rel: "noreferrer" } : {})}
+      >
+        {children}
+      </a>
+    );
+  },
   blockquote: ({ children }: { children?: ReactNode }) => (
     <blockquote className="mt-4 border-l-2 border-neutral-300 pl-4 text-sm italic text-neutral-500">
       {children}
@@ -109,9 +115,11 @@ const components = {
 interface DocViewProps {
   markdown: string | null;
   toc: TocEntry[];
+  /** Which of DOCS is being shown, so the switcher can mark it. */
+  activeSlug: string;
 }
 
-export function DocView({ markdown, toc }: DocViewProps) {
+export function DocView({ markdown, toc, activeSlug }: DocViewProps) {
   const [loginOpen, setLoginOpen] = useState(false);
 
   return (
@@ -122,8 +130,28 @@ export function DocView({ markdown, toc }: DocViewProps) {
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[220px_1fr]">
           <nav className="hidden lg:block">
             <div className="sticky top-24 space-y-1">
+              {/* The three docs cross-reference each other constantly, so they
+                  need to be reachable from one another, not just by URL. */}
               <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-neutral-400">
-                Documentation
+                Guides
+              </p>
+              {DOCS.map((d) => (
+                <a
+                  key={d.slug}
+                  href={d.path}
+                  aria-current={d.slug === activeSlug ? "page" : undefined}
+                  className={`block rounded-lg px-3 py-1.5 text-sm ${
+                    d.slug === activeSlug
+                      ? "bg-neutral-100 font-semibold text-neutral-950"
+                      : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950"
+                  }`}
+                >
+                  {d.title}
+                </a>
+              ))}
+
+              <p className="mb-3 pt-6 text-xs font-semibold uppercase tracking-widest text-neutral-400">
+                On this page
               </p>
               {toc.map((item) => (
                 <a

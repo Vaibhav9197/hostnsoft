@@ -45,7 +45,7 @@ function CopyPromptButton({ compact = false }: { compact?: boolean }) {
 
 function Steps() {
   return <ol className="steps" aria-label="How it works">
-    <li><span>1</span> Copy</li>
+    <li><span>1</span> Copy prompt</li>
     <li><span>2</span> Paste into your AI agent</li>
     <li><span>3</span> Ask it to deploy</li>
   </ol>;

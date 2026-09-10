@@ -484,7 +484,7 @@ function SceneStep({ n }: { n: string }) {
 }
 
 function Steps() {
-  const steps = ['Copy', 'Paste into your AI agent', 'Ask it to deploy'];
+  const steps = ['Copy prompt', 'Paste into your AI agent', 'Ask it to deploy'];
   return (
     <ol
       aria-label="How it works"
