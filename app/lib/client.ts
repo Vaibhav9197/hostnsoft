@@ -116,6 +116,15 @@ export async function authLogout(): Promise<void> {
   await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
 }
 
+// The session's proxy_auth_token, for the one place that needs it in the page:
+// MSG91's user-management widget takes it as `authToken`. See the route.
+export async function authWidgetToken(): Promise<string> {
+  const res = await fetch("/api/auth/widget-token", { cache: "no-store" });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new HnsError(data?.error ?? "Not authenticated", res.status);
+  return data.authToken as string;
+}
+
 // Switch the active company for the current session.
 export async function authSwitchCompany(companyId: string): Promise<void> {
   const res = await fetch("/api/auth/switch-company", {

@@ -25,7 +25,7 @@ import { useSession } from "../../lib/session";
 
 const TYPES = [
   { value: "feedback", label: "Feedback" },
-  { value: "feature", label: "Feature" },
+  { value: "feature", label: "Request a feature" },
 ] as const;
 
 type QueryType = (typeof TYPES)[number]["value"];
@@ -65,10 +65,10 @@ export function HeaderContactButton() {
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)} aria-label="Send us feedback">
+      <Button variant="outline" size="sm" onClick={() => setOpen(true)} aria-label="Request a feature">
         <MessageSquare aria-hidden="true" />
         {/* The plan chip shares this row on narrow screens. */}
-        <span className="hidden sm:inline">Contact</span>
+        <span className="hidden sm:inline">Request a feature</span>
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -109,7 +109,7 @@ export function HeaderContactButton() {
                       disabled={busy}
                       className={`rounded px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50 ${
                         type === value
-                          ? "bg-foreground text-background"
+                          ? "bg-elevated-2 text-foreground"
                           : "text-muted-foreground hover:text-foreground"
                       }`}
                     >

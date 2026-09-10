@@ -92,6 +92,8 @@ export default function SwitchCompanyPage() {
                       <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
                     </Button>
                   )}
+                  {/* Rename and delete are parked for now — the dialog and its
+                      handlers stay wired up, only the entry points are hidden.
                   <div className="flex items-center gap-0.5 opacity-60 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
                     <Button
                       variant="ghost"
@@ -112,6 +114,7 @@ export default function SwitchCompanyPage() {
                       <Trash2 />
                     </Button>
                   </div>
+                  */}
                 </div>
               </div>
             );

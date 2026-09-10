@@ -169,17 +169,19 @@ function Hero({ onNext }: { onNext: () => void }) {
         </svg>
       </button>
 
-      {/* Two-step handoff, mirroring the numbered steps on the other versions. */}
+      {/* Two-step handoff, mirroring the numbered steps on the other versions.
+          The numerals need leading-none plus a 1px bottom pad: digits carry no
+          descender, so box-centring alone leaves them sitting visibly low. */}
       <ol
         aria-label="How it works"
         className="mt-5 flex list-none items-center justify-center gap-4 text-[14px] font-medium text-black/40"
       >
         <li className="inline-flex items-center gap-1.5 whitespace-nowrap">
-          <span className="grid h-[18px] w-[18px] place-items-center rounded-full border border-black/15 text-[12px] font-semibold">1</span>
+          <span className="inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center pb-px rounded-full border border-black/15 text-[11px] font-semibold leading-none tabular-nums">1</span>
           Copy the prompt
         </li>
         <li className="inline-flex items-center gap-1.5 whitespace-nowrap">
-          <span className="grid h-[18px] w-[18px] place-items-center rounded-full border border-black/15 text-[12px] font-semibold">2</span>
+          <span className="inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center pb-px rounded-full border border-black/15 text-[11px] font-semibold leading-none tabular-nums">2</span>
           Hand it to your agent
         </li>
       </ol>
