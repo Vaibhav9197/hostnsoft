@@ -34,13 +34,11 @@ export const STATUS_LABEL: Record<string, string> = {
   success: "Success",
   failed: "Failed",
   in_progress: "In progress",
-  // project health (live, from the deploy service)
-  running: "Running",
-  starting: "Starting",
-  crashed: "Crashed",
-  stopped: "Stopped",
-  not_deployed: "Not deployed",
-  unknown: "Unknown",
+  /* Project health is deliberately absent. It has its own vocabulary in
+     HealthPill — Live / Not online / Needs attention — because a reader cannot
+     act differently on "crashed" than on "stopped". Naming the states twice is
+     what had the app card saying "Live" while the app's own page said
+     "Running" about the very same value. */
   // membership status
   active: "Active",
   invited: "Invited",
@@ -55,20 +53,15 @@ export function statusTone(status: string): "ok" | "warn" | "err" | "muted" {
   switch (status) {
     case "success":
     case "active":
-    case "running":
       return "ok";
     case "in_progress":
     case "invited":
     case "pending_dns":
-    case "starting":
       return "warn";
     case "failed":
     case "revoked":
-    case "crashed":
       return "err";
-    // "stopped" and "not_deployed" are resting states, not faults, and
-    // "unknown" means we couldn't check — all three stay muted, as does
-    // anything else we don't recognise.
+    // Anything unrecognised stays muted rather than guessing a tone.
     default:
       return "muted";
   }

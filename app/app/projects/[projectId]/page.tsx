@@ -2,7 +2,7 @@
 
 import { use } from "react";
 import { ProjectAnalytics } from "../../../components/console/ProjectAnalytics";
-import { StatusPill } from "../../../components/console/StatusPill";
+import { HealthPill } from "../../../components/console/HealthPill";
 import { Alert, Fact, FactGrid, Page, PageHeader, Skeleton } from "../../../components/console/kit";
 import { formatDate } from "../../../lib/format";
 import { useSession } from "../../../lib/session";
@@ -26,7 +26,7 @@ export default function ProjectOverviewPage({ params }: { params: Promise<{ proj
         <Fact k="Live URL" v={<a className="text-primary hover:underline" href={liveUrl} target="_blank" rel="noreferrer">{project.slug}.app.embarko.ai</a>} />
         <Fact k="Slug" v={project.slug} mono />
         <Fact k="Memory (requested)" v={`${project.memoryMb} MB`} mono />
-        <Fact k="Health" v={<StatusPill status={project.health} />} />
+        <Fact k="Health" v={<HealthPill health={project.health} variant="pill" />} />
         <Fact k="Created" v={formatDate(project.createdAt)} />
       </FactGrid>
 

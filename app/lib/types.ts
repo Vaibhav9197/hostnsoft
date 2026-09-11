@@ -9,8 +9,8 @@ export type MemberStatus = "invited" | "active";
 export type DeploymentStatus = "success" | "failed" | "in_progress";
 
 // Live health, resolved per-request from hostnsoft-deploy's Nomad allocation
-// status. Only GET-one carries it — it isn't a stored column, and the list
-// endpoint leaves it out deliberately to stay cheap.
+// status. The list endpoint carries it too, so a card can say whether an app is
+// up without fetching each project in turn.
 export type ProjectHealth =
   | "running" // healthy, actively serving traffic
   | "starting" // just deployed / redeploying, allocation not placed yet
@@ -79,13 +79,19 @@ export interface Project {
   // window runs out.
   isOrphan: boolean;
   orphanExpiresAt: string | null;
+  /** The deploy currently serving this project, null before the first one. */
+  currentDeploymentId: string | null;
+  /** How that deploy ended. Null before anything has been deployed. */
+  status: DeploymentStatus | null;
+  health: ProjectHealth;
+  createdBy: string | null;
   createdAt: string;
+  updatedAt: string;
 }
 
-// GET one project adds live health on top of the stored row.
-export interface ProjectDetail extends Project {
-  health: ProjectHealth;
-}
+/** GET one returns the same shape the list does; the name is kept because it
+ *  reads better at call sites that fetch a single project. */
+export type ProjectDetail = Project;
 
 export interface EnvVar {
   id: string;
