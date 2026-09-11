@@ -13,7 +13,7 @@ import { CONSOLE_DEPLOY_PROMPT } from "../lib/deployPrompt";
 import { HnsError } from "../lib/client"; // used by the parked createProject below
 import { HealthPill } from "../components/console/HealthPill";
 import { companiesApi, projectsApi } from "../lib/hnsApi";
-import { formatDate, relativeTime } from "../lib/format";
+import { formatDateTime } from "../lib/format";
 import { useSession } from "../lib/session";
 import type { Project } from "../lib/types";
 
@@ -164,14 +164,12 @@ export default function ProjectsPage() {
                 <HealthPill health={p.health} className="mt-1" />
               </div>
 
-              {/* One row, one fact: both of these read `createdAt`, so the
-                  relative time carries the absolute date beside it rather than
-                  repeating itself as a second line. The divider moved down here
-                  with the row that used to sit above. */}
+              {/* `updatedAt` is when the project record last changed, which is
+                  not the same as when the app last deployed — a rollback moves
+                  the running version without touching this. Labelled "Updated"
+                  rather than "Deployed" for exactly that reason. */}
               <div className="flex items-center justify-between border-t border-border pt-3">
-                <span className="text-xs text-faint">
-                  Added {relativeTime(p.createdAt)} · {formatDate(p.createdAt)}
-                </span>
+                <span className="text-xs text-faint">Updated {formatDateTime(p.updatedAt)}</span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4 text-muted-foreground transition-all duration-200 group-hover:translate-x-1 group-hover:text-primary"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
               </div>
             </Link>

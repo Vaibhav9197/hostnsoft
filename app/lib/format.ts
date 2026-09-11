@@ -73,6 +73,20 @@ export function formatDate(iso: string | null): string {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
+// Absolute date with clock time, e.g. "27 Aug 2026, 14:05". For timestamps
+// where the hour matters — "yesterday" is no use when you want to know whether
+// a change landed before or after something else.
+export function formatDateTime(iso: string | null): string {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 // Money from minor units, e.g. formatMoney(1500, "USD") → "$15".
 // Whole amounts drop the decimals; anything else keeps two.
 export function formatMoney(cents: number, currency: string): string {
