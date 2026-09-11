@@ -142,7 +142,11 @@ export default function ProjectsPage() {
             <Link
               key={p.id}
               href={`/app/projects/${p.id}`}
-              className="group flex flex-col gap-3.5 rounded-lg border border-border bg-card p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-input hover:shadow-md"
+              /* No outline: the card's own surface and its shadow already lift
+                 it off the sky, and a third edge on top of those made a grid of
+                 apps read as a table. Hover keeps the lift and the deeper
+                 shadow, so the affordance survives losing the border. */
+              className="group flex flex-col gap-3.5 rounded-lg bg-card p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
             >
               {/* The initial leads, the way an app icon does everywhere else,
                   which frees the top-right for the one thing you open this
