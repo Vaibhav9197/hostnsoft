@@ -11,6 +11,17 @@
   "observability": {
     "enabled": true
   },
+  // A/B metrics store. This used to be a better-sqlite3 file under DATA_DIR,
+  // which works on a Node host but not here -- workerd cannot load a native
+  // addon, so every write threw and production recorded nothing. D1 is SQLite
+  // too, so the schema and queries carried over unchanged.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "hostnsoft-ab",
+      "database_id": "325f5527-ca4e-49c4-9420-76386845d5da"
+    }
+  ],
   // EARLY_ACCESS_WEBHOOK_URL is set manually in the Cloudflare dashboard,
   // so it's intentionally NOT defined here. keep_vars preserves dashboard
   // vars/secrets across deploys instead of wiping them.

@@ -22,9 +22,8 @@ export async function GET(req: NextRequest) {
       const i = VARIANT_NAMES.indexOf(variant as (typeof VARIANT_NAMES)[number]);
       return i === -1 ? VARIANT_NAMES.length : i;
     };
-    const metrics = (db.prepare('SELECT * FROM variant_metrics').all() as any[]).sort(
-      (a, b) => order(a.variant) - order(b.variant),
-    );
+    const { results } = await db.prepare('SELECT * FROM variant_metrics').all();
+    const metrics = (results as any[]).sort((a, b) => order(a.variant) - order(b.variant));
     
     // Calculate conversion rates
     const metricsWithRates = metrics.map((m: any) => ({

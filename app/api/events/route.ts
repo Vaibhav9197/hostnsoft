@@ -15,41 +15,39 @@ const CTA_COLUMNS: Record<string, string> = {
 /**
  * Map event types to variant_metrics columns
  */
-function incrementMetric(variant: string, event: string, data?: any) {
+async function incrementMetric(variant: string, event: string, data?: any) {
   const db = getDb();
 
-  try {
-    // Ensure row exists for variant
-    db.prepare('INSERT OR IGNORE INTO variant_metrics (variant) VALUES (?)').run(variant);
+  /* One statement picks the counter, so the whole thing is a single batch
+     round trip rather than two-to-three sequential ones. D1 is a network hop
+     from the Worker, and this runs on every page view. */
+  let update: string | null = null;
 
-    if (event === 'page_view') {
-      db.prepare(
-        'UPDATE variant_metrics SET page_views = page_views + 1 WHERE variant = ?'
-      ).run(variant);
-    } else if (event === 'cta_clicked') {
-      /* The click still counts toward the total even when the cta_type isn't one
-         we break out separately — otherwise a typo upstream silently loses the
-         click from both columns. */
-      const column = CTA_COLUMNS[String(data?.cta_type)];
-      db.prepare(
-        column
-          ? `UPDATE variant_metrics SET cta_clicks = cta_clicks + 1, ${column} = ${column} + 1 WHERE variant = ?`
-          : 'UPDATE variant_metrics SET cta_clicks = cta_clicks + 1 WHERE variant = ?'
-      ).run(variant);
-    } else if (event === 'deployment') {
-      const column =
-        data?.status === 'success' ? 'deployments_success' : 'deployments_failed';
-      db.prepare(
-        `UPDATE variant_metrics SET ${column} = ${column} + 1 WHERE variant = ?`
-      ).run(variant);
-    } else if (event === 'signup') {
-      db.prepare(
-        'UPDATE variant_metrics SET signups = signups + 1 WHERE variant = ?'
-      ).run(variant);
-    }
-  } catch (err) {
-    console.error('DB error:', err);
+  if (event === 'page_view') {
+    update = 'UPDATE variant_metrics SET page_views = page_views + 1 WHERE variant = ?';
+  } else if (event === 'cta_clicked') {
+    /* The click still counts toward the total even when the cta_type isn't one
+       we break out separately — otherwise a typo upstream silently loses the
+       click from both columns. */
+    const column = CTA_COLUMNS[String(data?.cta_type)];
+    update = column
+      ? `UPDATE variant_metrics SET cta_clicks = cta_clicks + 1, ${column} = ${column} + 1 WHERE variant = ?`
+      : 'UPDATE variant_metrics SET cta_clicks = cta_clicks + 1 WHERE variant = ?';
+  } else if (event === 'deployment') {
+    const column =
+      data?.status === 'success' ? 'deployments_success' : 'deployments_failed';
+    update = `UPDATE variant_metrics SET ${column} = ${column} + 1 WHERE variant = ?`;
+  } else if (event === 'signup') {
+    update = 'UPDATE variant_metrics SET signups = signups + 1 WHERE variant = ?';
   }
+
+  const statements = [
+    // Ensure row exists for variant
+    db.prepare('INSERT OR IGNORE INTO variant_metrics (variant) VALUES (?)').bind(variant),
+  ];
+  if (update) statements.push(db.prepare(update).bind(variant));
+
+  await db.batch(statements);
 }
 
 export async function POST(req: NextRequest) {
@@ -73,14 +71,16 @@ export async function POST(req: NextRequest) {
 
     // Log event to hero_events table
     const db = getDb();
-    const stmt = db.prepare(`
-      INSERT INTO hero_events (visitor_id, variant, event, url, user_agent)
-      VALUES (?, ?, ?, ?, ?)
-    `);
-    stmt.run(visitor_id, variant, event, body.url || '', body.user_agent || '');
+    await db
+      .prepare(
+        `INSERT INTO hero_events (visitor_id, variant, event, url, user_agent)
+         VALUES (?, ?, ?, ?, ?)`,
+      )
+      .bind(visitor_id, variant, event, body.url || '', body.user_agent || '')
+      .run();
 
     // Increment variant_metrics
-    incrementMetric(variant, event, data);
+    await incrementMetric(variant, event, data);
 
     return NextResponse.json({ ok: true });
   } catch (err) {
