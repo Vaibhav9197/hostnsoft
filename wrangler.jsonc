@@ -19,7 +19,7 @@
     {
       "binding": "DB",
       "database_name": "hostnsoft-ab",
-      "database_id": "325f5527-ca4e-49c4-9420-76386845d5da"
+      "database_id": "115e79d8-c987-4dcb-9172-5aded5c264c6"
     }
   ],
   // EARLY_ACCESS_WEBHOOK_URL is set manually in the Cloudflare dashboard,
