@@ -2,7 +2,7 @@
 
 import { use, useCallback, useEffect, useState } from "react";
 import { StatusPill } from "../../../../components/console/StatusPill";
-import { Alert, EmptyState, Fact, FactGrid, Page, PageHeader, Panel, PanelTitle, Skeleton } from "../../../../components/console/kit";
+import { Alert, EmptyState, Fact, FactGrid, Page, PageHeader, Panel, PanelTitle, Skeleton, Tag } from "../../../../components/console/kit";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../../components/ui/table";
 import { Button } from "../../../../components/ui/button";
 import { deploymentsApi } from "../../../../lib/hnsApi";
@@ -61,6 +61,13 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
 
   const active = deps.find((d) => d.id === selected) ?? null;
 
+  /* Which deploy is actually serving traffic. The API never says so directly,
+     but the answer is determinate rather than a guess: the list is newest
+     first, a failed deploy never takes over from what is already running, and
+     a rollback lands as a brand-new deployment at the top rather than editing
+     the one it restores. So the newest successful row is live. */
+  const liveId = deps.find((d) => d.status === "success")?.id ?? null;
+
   return (
     <Page>
       <PageHeader title="Deployments" subtitle="Every deploy attempt, newest first." />
@@ -99,21 +106,27 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
                   {/* Clicking the row opens the detail panel, so the button has
                       to stop the click from bubbling into that toggle. */}
                   <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                    {/* Nothing the API returns says which deploy is actually
-                        serving traffic, so every successful one gets the button
-                        — guessing and hiding it on the row we guessed wrong
-                        would take away the only way back. Re-flipping the deploy
-                        that is already live is harmless anyway: same image. */}
-                    <Button
-                      variant="outline"
-                      size="xs"
-                      /* A deploy that never succeeded has no image to flip to
-                         — the API would answer 422, so don't offer it. */
-                      disabled={d.status !== "success" || rollingBack !== null}
-                      onClick={() => makeLive(d.id)}
-                    >
-                      {rollingBack === d.id ? "Making live…" : "Make this live"}
-                    </Button>
+                    {/* The running deploy is marked, not offered. "Make this
+                        live" on the row that already is reads as though it
+                        would change something, and the page otherwise never
+                        said which one was serving traffic — so this replaces
+                        an action that did nothing with the fact you came to
+                        find. Every other successful row keeps its button, so
+                        there is still always a way back. */}
+                    {d.id === liveId ? (
+                      <Tag tone="ok">Live</Tag>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="xs"
+                        /* A deploy that never succeeded has no image to flip to
+                           — the API would answer 422, so don't offer it. */
+                        disabled={d.status !== "success" || rollingBack !== null}
+                        onClick={() => makeLive(d.id)}
+                      >
+                        {rollingBack === d.id ? "Making live…" : "Make this live"}
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
