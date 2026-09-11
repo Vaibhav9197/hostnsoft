@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { trackEvent, trackCTA, trackDeployment } from '../lib/tracking';
+import { trackPageView, trackCTA, trackDeployment } from '../lib/tracking';
 import {
   Activity, Copy, Database, FolderOpen, Globe, HardDrive, KeyRound, RefreshCw, ShieldCheck,
 } from "lucide-react";
@@ -302,7 +302,7 @@ function DeployPanel() {
   const [reduced, setReduced] = useState(false);
 
   useEffect(() => {
-    trackEvent('page_view');
+    trackPageView();
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setReduced(true);
       return;

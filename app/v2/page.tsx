@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { ArrowRight, Copy, Bot, Globe } from 'lucide-react';
 import { AGENTS, agentIconSrc } from '../lib/agents';
 import { CopyPromptButton, COPIED_LABEL } from '../components/CopyPromptButton';
-import { trackEvent, trackCTA, trackDeployment } from '../lib/tracking';
+import { trackPageView, trackCTA, trackDeployment } from '../lib/tracking';
 import { SiteHeader } from '../components/SiteHeader';
 
 /* Looping "watch it deploy" timeline shown on step 1. A single elapsed-ms
@@ -75,7 +75,7 @@ export default function EmbarkoV2() {
 
   useEffect(() => {
     // Track page view
-    trackEvent('page_view');
+    trackPageView();
 
     /* Keyboard navigation: left/right arrows and up/down arrows */
     const handleKeyDown = (e: KeyboardEvent) => {

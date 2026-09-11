@@ -6,7 +6,7 @@ import {
   Globe2, KeyRound, ShieldCheck, Sparkles, Upload,
 } from 'lucide-react';
 import { siClaude, siCursor, siGithubcopilot, siGooglegemini, siReplit } from 'simple-icons';
-import { trackEvent, trackCTA, trackDeployment } from '../lib/tracking';
+import { trackPageView, trackCTA, trackDeployment } from '../lib/tracking';
 import barcelonaMorning from './barcelona-morning.png';
 import { CopyPromptButton as SharedCopyPromptButton, COPIED_LABEL } from '../components/CopyPromptButton';
 import { SiteHeader } from '../components/SiteHeader';
@@ -96,7 +96,7 @@ function FinalScene() {
 
 export default function Home() {
   useEffect(() => {
-    trackEvent('page_view');
+    trackPageView();
   }, []);
   const structuredData = { '@context': 'https://schema.org', '@type': 'WebApplication', name: 'Embarko', applicationCategory: 'BusinessApplication', operatingSystem: 'Web', description: 'Instant hosting for every app you build with AI.' };
   return <main className="site-page">

@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import barcelonaMorning from '../v4/barcelona-morning.png';
 import { SectionSnap } from './SectionSnap';
-import { trackEvent, trackCTA, trackDeployment } from '../lib/tracking';
+import { trackPageView, trackCTA, trackDeployment } from '../lib/tracking';
 import { AGENTS, agentIconSrc } from '../lib/agents';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
@@ -513,7 +513,7 @@ function Steps() {
  */
 function PageViewTracker() {
   useEffect(() => {
-    trackEvent('page_view');
+    trackPageView();
   }, []);
   return null;
 }
