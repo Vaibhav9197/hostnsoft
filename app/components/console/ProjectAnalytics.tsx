@@ -173,7 +173,7 @@ export function ProjectAnalytics({
       {/* Down, not idle. Says so plainly rather than showing zeroes that the
           owner would read as "nobody visited my app". */}
       {unavailable && (
-        <Alert variant="info">
+        <Alert variant="note">
           Analytics are temporarily unavailable for this app. This says nothing about whether it is
           being used — traffic is still being served.
         </Alert>

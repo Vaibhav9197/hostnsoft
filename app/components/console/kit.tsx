@@ -88,6 +88,12 @@ const ALERT_STYLES = {
   err: "text-destructive bg-destructive/10 border-destructive/30",
   info: "text-info bg-info/10 border-info/30",
   warn: "text-warning bg-warning/10 border-warning/40",
+  /* A plain explanatory note, not a status signal. Colour should mean
+     something here — err/warn/info each say "react to me" — and a note that
+     just explains why a panel is empty isn't asking for a reaction. It also
+     keeps the console on its neutral scale, and stops the text reading as a
+     link, which coloured body copy always does. */
+  note: "text-muted-foreground bg-card border-border",
 };
 
 export function Alert({
@@ -95,7 +101,7 @@ export function Alert({
   children,
   className,
 }: {
-  variant?: "err" | "info" | "warn";
+  variant?: "err" | "info" | "warn" | "note";
   children: React.ReactNode;
   className?: string;
 }) {
