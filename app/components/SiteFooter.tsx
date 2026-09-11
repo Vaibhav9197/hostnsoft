@@ -23,7 +23,7 @@ const COLUMNS = [
   {
     heading: "Product",
     links: [
-      { label: "Docs", href: "/doc" },
+      { label: "Docs", href: "/docs" },
       { label: "Pricing", href: "/pricing" },
       /* { label: "Status", href: "/status" }, */
       { label: "llms.txt", href: "/llms.txt", external: true },

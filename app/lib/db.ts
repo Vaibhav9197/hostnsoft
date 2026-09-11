@@ -6,7 +6,7 @@ import path from "path";
 // else lives in the container filesystem and is wiped on the next deploy. So
 // the A/B store follows DATA_DIR when the platform sets it, and falls back to
 // the ./.data folder this project has always used for local dev (where the
-// variable doesn't exist). See https://embarko.ai/doc#storage-requirements.
+// variable doesn't exist). See https://embarko.ai/docs#storage-requirements.
 const DATA_DIR = process.env.DATA_DIR ?? path.join(process.cwd(), ".data");
 const DB_PATH = path.join(DATA_DIR, "hero-ab.sqlite");
 

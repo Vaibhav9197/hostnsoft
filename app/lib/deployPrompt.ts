@@ -56,7 +56,7 @@ export const CONSOLE_DEPLOY_PROMPT = build("");
  * The page wins over the cookie. A direct hit on /v1../v4 — QA, or a shared
  * link — shows a landing page that need not match the arm the visitor was
  * bucketed into, and the honest answer is the page the copy actually came
- * from. For everyone else the path is `/` or /doc, which says nothing, so the
+ * from. For everyone else the path is `/` or /docs, which says nothing, so the
  * cookie decides.
  */
 function currentVariant(): string | null {

@@ -30,7 +30,7 @@ export function isVariant(value: string | null | undefined): value is Variant {
  *
  * Only a direct hit on /v1../v4 answers. A bucketed visitor sees `/` — the
  * rewrite is invisible to the browser — so the path says nothing and the
- * cookie is the only source. Returns null for every other page, /doc included.
+ * cookie is the only source. Returns null for every other page, /docs included.
  */
 export function variantForPath(pathname: string): Variant | null {
   return VARIANT_NAMES.find((name) => VARIANTS[name] === pathname) ?? null;

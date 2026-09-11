@@ -25,7 +25,7 @@ export default function TermsPage() {
           serve it over HTTPS at <Code>&lt;app-name&gt;.app.embarko.ai</Code> or a custom domain you
           connect. Depending on your plan, a live app can also use the database, file storage, login,
           and backup features described on our <A href="/pricing">pricing page</A> and in the{" "}
-          <A href="/doc">documentation</A>.
+          <A href="/docs">documentation</A>.
         </P>
         <P>
           Unlike a static host, we execute the code you send us. That means your app&apos;s behaviour
@@ -51,7 +51,7 @@ export default function TermsPage() {
           </Item>
           <Item>
             <Term>Tokens are secrets, and yours to guard.</Term> Anyone holding a token can deploy as
-            your company. Revoke a leaked token from <A href="/doc">your token settings</A>; we are
+            your company. Revoke a leaked token from <A href="/docs">your token settings</A>; we are
             not responsible for deploys made with a token you failed to protect.
           </Item>
         </List>

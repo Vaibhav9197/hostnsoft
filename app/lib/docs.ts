@@ -30,7 +30,7 @@ export interface DocMeta {
 export const DOCS: DocMeta[] = [
   {
     slug: "docs",
-    path: "/doc",
+    path: "/docs",
     title: "Documentation",
     description: "How to deploy an app to Embarko and manage it once it's live.",
   },

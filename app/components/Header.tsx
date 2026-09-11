@@ -112,7 +112,7 @@ export function Header({ onAuthClick, links }: HeaderProps) {
           <Link href="/pricing" className={`hidden ${NAV_LINK} ${hasLinks ? "lg:block" : "sm:block"}`}>
             Pricing
           </Link>
-          <Link href="/doc" className={`hidden ${NAV_LINK} ${hasLinks ? "lg:block" : "sm:block"}`}>
+          <Link href="/docs" className={`hidden ${NAV_LINK} ${hasLinks ? "lg:block" : "sm:block"}`}>
             Docs
           </Link>
           <button
@@ -174,7 +174,7 @@ export function Header({ onAuthClick, links }: HeaderProps) {
               Pricing
             </Link>
             <Link
-              href="/doc"
+              href="/docs"
               onClick={() => setMenuOpen(false)}
               className="border-t border-[var(--line)] py-3 text-[15px] font-medium text-neutral-700 hover:text-neutral-950"
             >

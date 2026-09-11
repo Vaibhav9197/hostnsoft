@@ -1,4 +1,4 @@
-import { docMetadata, renderDoc } from "../doc/renderDoc";
+import { docMetadata, renderDoc } from "../docs/renderDoc";
 
 export const metadata = docMetadata("limitations-and-recommendations");
 
