@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Header } from "../components/Header";
@@ -112,6 +112,97 @@ const components = {
   },
 };
 
+/* Which section the reader is actually in. A 21-item contents list with no
+   current position is a wall of links — this is what makes the nav show where
+   you are rather than just what exists. */
+function useActiveHeading(toc: TocEntry[]): string | null {
+  const [active, setActive] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (toc.length === 0) return;
+
+    let frame = 0;
+
+    const pick = () => {
+      frame = 0;
+      /* The last heading to have passed under the sticky header. Reading
+         happens below that line, so that heading is the one you're inside. */
+      let current = toc[0].id;
+      for (const { id } of toc) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= 120) current = id;
+      }
+      /* The page can't scroll far enough to push the last heading past the
+         line, so without this the final entry would never light up. */
+      if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 2) {
+        current = toc[toc.length - 1].id;
+      }
+      setActive(current);
+    };
+
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(pick);
+    };
+
+    pick();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [toc]);
+
+  return active;
+}
+
+/** An h2 and the h3s that belong under it, so each level can own a rail. */
+interface TocSection {
+  /** Null only if the doc opens on an h3 before any h2 — then its children
+   *  hang off the outer rail with no parent to indent under. */
+  heading: TocEntry | null;
+  children: TocEntry[];
+}
+
+function groupToc(toc: TocEntry[]): TocSection[] {
+  const out: TocSection[] = [];
+  for (const item of toc) {
+    if (item.level === 2 || out.length === 0) {
+      const isParent = item.level === 2;
+      out.push({ heading: isParent ? item : null, children: isParent ? [] : [item] });
+    } else {
+      out[out.length - 1].children.push(item);
+    }
+  }
+  return out;
+}
+
+/* One entry, on whichever rail its parent put it. The level drives type and
+   colour; the rail it sits on is decided by where it's rendered. */
+function TocLink({ item, current }: { item: TocEntry; current: boolean }) {
+  const nested = item.level === 3;
+  return (
+    <a
+      href={`#${item.id}`}
+      aria-current={current ? "location" : undefined}
+      /* -ml-px sits the marker on top of the rail rather than beside it, so
+         the line thickens in place. */
+      className={`-ml-px block border-l-2 leading-snug transition-colors ${
+        nested ? "py-1 pl-4 pr-3 text-[13px]" : "py-1.5 pl-4 pr-3 text-sm font-medium"
+      } ${
+        current
+          ? "border-neutral-900 font-semibold text-neutral-950"
+          : `border-transparent hover:border-neutral-300 hover:text-neutral-950 ${
+              nested ? "text-neutral-500" : "text-neutral-700"
+            }`
+      }`}
+    >
+      {item.label}
+    </a>
+  );
+}
+
 interface DocViewProps {
   markdown: string | null;
   toc: TocEntry[];
@@ -121,49 +212,75 @@ interface DocViewProps {
 
 export function DocView({ markdown, toc, activeSlug }: DocViewProps) {
   const [loginOpen, setLoginOpen] = useState(false);
+  const active = useActiveHeading(toc);
+  const sections = useMemo(() => groupToc(toc), [toc]);
 
   return (
     <div className="min-h-screen bg-white text-neutral-950">
       <Header onAuthClick={() => setLoginOpen(true)} />
 
       <div className="mx-auto max-w-6xl px-6 py-12">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[220px_1fr]">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[240px_1fr]">
           <nav className="hidden lg:block">
-            <div className="sticky top-24 space-y-1">
+            {/* Scrolls on its own: three guides plus a long contents list runs
+                past a short viewport, and a sticky block that overflows just
+                hides its own tail. */}
+            <div className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto pb-10">
               {/* The three docs cross-reference each other constantly, so they
-                  need to be reachable from one another, not just by URL. */}
-              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-neutral-400">
+                  need to be reachable from one another, not just by URL.
+                  Deliberately styled as filled rows, not rail entries: moving
+                  between documents is a different act from moving within one,
+                  and the two lists shouldn't read as one 24-item menu. */}
+              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-neutral-500">
                 Guides
               </p>
-              {DOCS.map((d) => (
-                <a
-                  key={d.slug}
-                  href={d.path}
-                  aria-current={d.slug === activeSlug ? "page" : undefined}
-                  className={`block rounded-lg px-3 py-1.5 text-sm ${
-                    d.slug === activeSlug
-                      ? "bg-neutral-100 font-semibold text-neutral-950"
-                      : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950"
-                  }`}
-                >
-                  {d.title}
-                </a>
-              ))}
+              <div className="space-y-0.5">
+                {DOCS.map((d) => (
+                  <a
+                    key={d.slug}
+                    href={d.path}
+                    aria-current={d.slug === activeSlug ? "page" : undefined}
+                    className={`block rounded-lg px-3 py-2 text-sm leading-snug ${
+                      d.slug === activeSlug
+                        ? "bg-neutral-100 font-semibold text-neutral-950"
+                        : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-950"
+                    }`}
+                  >
+                    {d.title}
+                  </a>
+                ))}
+              </div>
 
-              <p className="mb-3 pt-6 text-xs font-semibold uppercase tracking-widest text-neutral-400">
+              <p className="mb-2 mt-8 text-xs font-semibold uppercase tracking-widest text-neutral-500">
                 On this page
               </p>
-              {toc.map((item) => (
-                <a
-                  key={item.id}
-                  href={`#${item.id}`}
-                  className={`block rounded-lg py-1.5 text-sm text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950 ${
-                    item.level === 3 ? "pl-6 pr-3 text-[13px]" : "px-3"
-                  }`}
-                >
-                  {item.label}
-                </a>
-              ))}
+              {/* Two rails, one per level. The outer one is the document's
+                  spine and every h2 sits on it; the inner one starts exactly
+                  at the h2 text edge (ml-4 against the parent's pl-4), so a
+                  child's line begins where its parent's label begins and the
+                  nesting is readable without counting pixels of indent. The
+                  marker for the section you're in rides whichever rail it
+                  belongs to. */}
+              <div className="border-l border-neutral-200">
+                {sections.map((section, i) => (
+                  <div key={section.heading?.id ?? `group-${i}`}>
+                    {section.heading && (
+                      <TocLink item={section.heading} current={section.heading.id === active} />
+                    )}
+                    {section.children.length > 0 && (
+                      /* 1rem-1px, not 1rem: the h2 above pulls itself back
+                         onto the outer rail with -ml-px, so matching its text
+                         edge means starting from the rail, not from the
+                         container's content box one pixel to its right. */
+                      <div className="ml-[calc(1rem-1px)] border-l border-neutral-200">
+                        {section.children.map((child) => (
+                          <TocLink key={child.id} item={child} current={child.id === active} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </nav>
 
