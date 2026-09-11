@@ -35,10 +35,10 @@ export const STATUS_LABEL: Record<string, string> = {
   failed: "Failed",
   in_progress: "In progress",
   /* Project health is deliberately absent. It has its own vocabulary in
-     HealthPill — Live / Not online / Needs attention — because a reader cannot
+     HealthPill — Running / Not online / Needs attention — because a reader cannot
      act differently on "crashed" than on "stopped". Naming the states twice is
-     what had the app card saying "Live" while the app's own page said
-     "Running" about the very same value. */
+     what let the app card and the app's own page disagree about
+     the very same value. */
   // membership status
   active: "Active",
   invited: "Invited",

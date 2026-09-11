@@ -6,14 +6,14 @@ import type { ProjectHealth } from "@/app/lib/types";
  *
  * The six health values the API reports are an infrastructure vocabulary —
  * "crashed", "not_deployed", an allocation that is "stopped". Collapsing them
- * to Live / Not online / Needs attention is deliberate: the panel's job is to
- * say whether the app is serving and whether anyone needs to act, and a reader
- * cannot act differently on "crashed" than on "stopped".
+ * to Running / Not online / Needs attention is deliberate: the panel's job is
+ * to say whether the app is serving and whether anyone needs to act, and a
+ * reader cannot act differently on "crashed" than on "stopped".
  */
 type Tone = "live" | "offline" | "attention";
 
 const TONES: Record<ProjectHealth, { label: string; tone: Tone }> = {
-  running: { label: "Live", tone: "live" },
+  running: { label: "Running", tone: "live" },
   /* Deliberately not its own state. A deploy in flight resolves on its own
      within seconds, and a third colour that means "wait" only adds a thing to
      interpret. */
