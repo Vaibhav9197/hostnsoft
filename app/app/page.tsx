@@ -153,7 +153,7 @@ export default function ProjectsPage() {
                 <div className="size-10 shrink-0 grid place-items-center rounded-md bg-muted text-primary font-semibold text-sm">
                   {p.name.charAt(0).toUpperCase()}
                 </div>
-                <div className="flex flex-col gap-1 flex-1 min-w-0">
+                <div className="flex flex-col flex-1 min-w-0">
                   <h3 className="text-base font-bold text-foreground truncate">{p.name}</h3>
                   <p className="text-sm text-muted-foreground truncate">{p.slug}.app.embarko.ai</p>
                 </div>
