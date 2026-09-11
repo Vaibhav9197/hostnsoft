@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Boxes, Mail, MessageSquare, Globe, ArrowLeft } from 'lucide-react';
+import { BarChart3, Boxes, Mail, MessageSquare, ArrowLeft } from 'lucide-react';
 
 export function AdminNav() {
   const pathname = usePathname();
@@ -69,19 +69,7 @@ export function AdminNav() {
             }`}
           >
             <MessageSquare className="w-5 h-5" />
-            <span>Dashboard Queries</span>
-          </Link>
-
-          <Link
-            href="/admin/customer-query/public"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
-              isActive('/admin/customer-query/public')
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-300 hover:bg-gray-800'
-            }`}
-          >
-            <Globe className="w-5 h-5" />
-            <span>Public Queries</span>
+            <span>Customer Queries</span>
           </Link>
         </div>
       </div>
