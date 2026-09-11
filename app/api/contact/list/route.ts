@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '../../../lib/db';
+import { getAdminDb } from '../../../lib/db';
 import { currentSuperAdmin } from '../../../lib/api';
 
 // This returns other people's email addresses and the messages they sent us.
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const db = getDb();
+    const db = getAdminDb();
     const { results } = await db
       .prepare(
         `SELECT id, email, query, created_at

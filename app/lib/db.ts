@@ -20,6 +20,24 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
  * at request time, and doing it per request would cost a round trip on every
  * hit.
  */
+/**
+ * The store the admin dashboard reads.
+ *
+ * Deployed this is the same database `getDb()` writes to. In `next dev` it is
+ * the production one, because a dashboard showing whatever rows this laptop
+ * happens to hold answers no question anyone has — you open it to see what
+ * real visitors did.
+ *
+ * Reads only. Writes must keep going through `getDb()`, or local browsing
+ * starts inventing production traffic.
+ */
+export function getAdminDb(): D1Database {
+  /* Falls back to the write binding rather than failing: an older deployment,
+     or a checkout whose wrangler.jsonc predates DB_ADMIN, should still show a
+     dashboard. In production the two are the same database anyway. */
+  return getCloudflareContext().env.DB_ADMIN ?? getDb();
+}
+
 export function getDb(): D1Database {
   const db = getCloudflareContext().env.DB;
   if (!db) {

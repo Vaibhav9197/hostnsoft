@@ -16,6 +16,9 @@
 interface CloudflareEnv {
   /** A/B metrics store. See migrations/ for its schema. */
   DB: import("@cloudflare/workers-types").D1Database;
+  /** The same database as DB. Bound separately so local dev can read the
+   *  production figures while its writes stay local -- see wrangler.jsonc. */
+  DB_ADMIN: import("@cloudflare/workers-types").D1Database;
   ASSETS: import("@cloudflare/workers-types").Fetcher;
   HOSTNSOFT_API_URL: string;
   NEXT_PUBLIC_MSG91_REFERENCE_ID: string;

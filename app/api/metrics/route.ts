@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '../../lib/db';
+import { getAdminDb } from '../../lib/db';
 import { currentSuperAdmin } from '../../lib/api';
 import { VARIANT_NAMES } from '../../lib/variants';
 
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const db = getDb();
+    const db = getAdminDb();
     /* Arm order, not alphabetical: sorting the names put Delta before Gamma,
        which reads as a mistake next to the A/B/C/D the arms stand for. Rows
        for arms no longer in the table sort last rather than disappearing. */
