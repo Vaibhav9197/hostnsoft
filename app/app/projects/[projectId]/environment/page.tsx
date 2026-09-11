@@ -139,7 +139,7 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
 
   return (
     <Page>
-      <PageHeader title="Environment" subtitle="Config and secrets stored for this app." />
+      <PageHeader title="App setup" subtitle="Settings and secrets your app runs with." />
 
       <form className="flex flex-wrap items-center gap-2.5" onSubmit={upsert}>
         <Input className="min-w-[140px] flex-1 font-mono" placeholder="KEY" value={key} onChange={(e) => setKey(e.target.value.toUpperCase())} />

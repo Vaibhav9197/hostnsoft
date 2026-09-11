@@ -20,7 +20,10 @@ import { useProject } from "@/app/lib/useProject";
  */
 const SECTIONS = [
   { seg: "", label: "Overview" },
-  { seg: "environment", label: "Environment" },
+  /* "App setup", not "Environment": the reader is setting up their app, and
+     doesn't need to know the platform calls these environment variables. The
+     route keeps its name — only the label speaks user language. */
+  { seg: "environment", label: "App setup" },
   { seg: "deployments", label: "Deployments" },
   { seg: "domain", label: "Domain" },
   { seg: "settings", label: "Settings" },
@@ -85,6 +88,9 @@ export function ProjectNav({ projectId }: { projectId: string }) {
         onClose={() => setPromptOpen(false)}
         title="Deploy prompt"
         description={`Copy this and paste it into your AI agent to deploy${project ? ` ${project.name}` : ""}.`}
+        /* Names this app in the prompt, so the agent redeploys it instead of
+           standing up a second one under a different name. */
+        appSlug={project?.slug}
       />
 
       {/* Underline tabs rather than a pill row: they read as sections of this
