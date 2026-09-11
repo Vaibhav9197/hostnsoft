@@ -166,10 +166,10 @@ export default function ProjectsPage() {
 
               {/* `updatedAt` is when the project record last changed, which is
                   not the same as when the app last deployed — a rollback moves
-                  the running version without touching this. Labelled "Updated"
-                  rather than "Deployed" for exactly that reason. */}
+                  the running version without touching this. Labelled "Last
+                  updated" rather than "Last deployed" for exactly that reason. */}
               <div className="flex items-center justify-between border-t border-border pt-3">
-                <span className="text-xs text-faint">Updated {formatDateTime(p.updatedAt)}</span>
+                <span className="text-xs text-faint">Last updated {formatDateTime(p.updatedAt)}</span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4 text-muted-foreground transition-all duration-200 group-hover:translate-x-1 group-hover:text-primary"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
               </div>
             </Link>
