@@ -61,12 +61,11 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
 
   const active = deps.find((d) => d.id === selected) ?? null;
 
-  /* Which deploy is actually serving traffic. The API never says so directly,
-     but the answer is determinate rather than a guess: the list is newest
-     first, a failed deploy never takes over from what is already running, and
-     a rollback lands as a brand-new deployment at the top rather than editing
-     the one it restores. So the newest successful row is live. */
-  const liveId = deps.find((d) => d.status === "success")?.id ?? null;
+  /* The API marks the serving deploy with isCurrent, so this is read rather
+     than worked out. Falling back to nothing if no row claims it is
+     deliberate: with no live row every successful deploy keeps its button,
+     which is the old behaviour and loses nobody their way back. */
+  const liveId = deps.find((d) => d.isCurrent)?.id ?? null;
 
   return (
     <Page>
@@ -111,8 +110,7 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
                         would change something, and the page otherwise never
                         said which one was serving traffic — so this replaces
                         an action that did nothing with the fact you came to
-                        find. Every other successful row keeps its button, so
-                        there is still always a way back. */}
+                        find. */}
                     {d.id === liveId ? (
                       <Tag tone="ok">Live</Tag>
                     ) : (

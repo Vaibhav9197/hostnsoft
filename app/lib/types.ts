@@ -127,7 +127,12 @@ export interface Deployment {
   status: DeploymentStatus;
   errorDetail: string | null;
   triggeredBy: string | null;
+  /** Whether this is the deploy currently serving traffic. Exactly one row
+   *  carries it, and a rollback moves it onto the new row it creates rather
+   *  than onto the deploy being restored. */
+  isCurrent: boolean;
   createdAt: string;
+  updatedAt: string;
   finishedAt: string | null;
 }
 
