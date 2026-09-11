@@ -11,9 +11,9 @@ const VARIANT_PLACEHOLDER = "<alpha|beta|gamma|delta>";
 
 /** `header lp_variant: …` rides along to the deploy service so a deploy can be
  *  attributed back to the landing page that produced it. */
-function build(variantHeader: string): string {
+function build(variantHeader: string, appName?: string | null): string {
   return `Deploy this to Embarko: POST https://ship.embarko.ai/apps with
-header Authorization: Bearer $DEPLOY_TOKEN, header X-App-Name: <name>${variantHeader},
+header Authorization: Bearer $DEPLOY_TOKEN, header X-App-Name: ${appName || "<name>"}${variantHeader},
 and multipart field source=<tarball of the app>. Full docs:
 https://embarko.ai/docs. (A helper skill exists too —
 npx skills add embarko-ai/skill --skill embarko-deploy -g — but that's
@@ -49,6 +49,23 @@ export function deployPromptFor(variant: string | null): string {
  * would attribute the deploy to a page that had no part in it.
  */
 export const CONSOLE_DEPLOY_PROMPT = build("");
+
+/**
+ * The console prompt with the app already named.
+ *
+ * Copied from inside an app, the prompt is for redeploying *that* app, and the
+ * name is what decides which one the deploy lands on — the platform treats a
+ * name it hasn't seen as a new app, so leaving `<name>` for the reader to fill
+ * in is how you end up with a second copy of your site on a second subdomain.
+ *
+ * Pass the slug, not the display name: `X-App-Name` is also the live
+ * subdomain, and the two are only the same string until someone renames one.
+ * Falls back to the placeholder when the slug hasn't loaded, so a prompt
+ * copied early is generic rather than addressed to "undefined".
+ */
+export function consoleDeployPromptFor(appSlug: string | null | undefined): string {
+  return build("", appSlug);
+}
 
 /**
  * Which arm the visitor is copying from, for attribution.
