@@ -1,0 +1,126 @@
+"use client";
+
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Alert } from "../../components/console/kit";
+
+// Login entry point for AI-connector OAuth flows (e.g. a generic MCP OAuth
+// proxy redirecting a user here with its own redirect_uri/state, the way it
+// would redirect to any other platform's login page).
+//
+// Deliberately separate from LoginScreen.tsx: that screen is wired into the
+// dashboard's own session (Option B - the widget's success callback POSTs
+// straight to /auth/msg91/exchange, and its redirect_path is hardcoded to
+// /app). This page instead uses "Option A" - once the widget hands us a
+// token, we navigate the browser to /auth/msg91/callback (via the
+// same-origin bridge at /api/auth/connector-callback, see that route's own
+// comment) with the CALLER's redirect_uri/state, so hostnsoft-api's existing
+// allowlist + `code`/`state` forwarding logic (auth.routes.ts) does the rest.
+// No local session/cookie is created by this page - the caller is a
+// third-party server, not this dashboard.
+const REFERENCE_ID = process.env.NEXT_PUBLIC_MSG91_REFERENCE_ID || "";
+const WIDGET_SRC = process.env.NEXT_PUBLIC_MSG91_WIDGET_SCRIPT || "";
+function ConnectorLoginInner() {
+  const searchParams = useSearchParams();
+  const redirectUri = searchParams.get("redirect_uri");
+  const state = searchParams.get("state");
+
+  const [error, setError] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    if (!redirectUri || !REFERENCE_ID || started.current) return;
+    started.current = true;
+    const targetRedirectUri = redirectUri;
+
+    function boot() {
+      if (typeof window.initVerification !== "function") {
+        setError("The login widget could not be loaded. Check your connection and reload.");
+        return;
+      }
+      if (containerRef.current) containerRef.current.innerHTML = "";
+      window.initVerification({
+        referenceId: REFERENCE_ID,
+        type: "authorization",
+        theme: "light",
+        // No addInfo.redirect_path here (unlike LoginScreen) - this page
+        // handles the redirect itself via the success callback below, so
+        // there's no dashboard-relative path for the widget to fall back to.
+        success: (data: unknown) => {
+          const token =
+            (data as { token?: string; proxy_auth_token?: string })?.token ??
+            (data as { proxy_auth_token?: string })?.proxy_auth_token;
+          if (!token) {
+            setError("The login widget didn't return a token. Please try again.");
+            return;
+          }
+          const bridge = new URL("/api/auth/connector-callback", window.location.origin);
+          bridge.searchParams.set("proxy_auth_token", token);
+          bridge.searchParams.set("redirect_uri", targetRedirectUri);
+          if (state) bridge.searchParams.set("state", state);
+          window.location.href = bridge.toString();
+        },
+        failure: (err: unknown) => {
+          console.warn("MSG91 verification failed", err);
+          setError("Verification was cancelled or failed. Please try again.");
+        },
+      });
+    }
+
+    const existing = document.querySelector<HTMLScriptElement>(`script[src="${WIDGET_SRC}"]`);
+    if (existing && typeof window.initVerification === "function") {
+      boot();
+    } else if (existing) {
+      existing.addEventListener("load", boot, { once: true });
+    } else {
+      const s = document.createElement("script");
+      s.src = WIDGET_SRC;
+      s.async = true;
+      s.addEventListener("load", boot, { once: true });
+      s.addEventListener("error", () =>
+        setError("The login widget could not be loaded. Check your connection and reload."),
+      );
+      document.head.appendChild(s);
+    }
+  }, [redirectUri, state]);
+
+  if (!redirectUri) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background p-6">
+        <div className="w-full max-w-[420px] border border-border bg-card p-7">
+          <Alert variant="err">Missing redirect_uri. This page must be reached via an AI client's OAuth redirect, not visited directly.</Alert>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid min-h-screen place-items-center bg-background p-6">
+      <div className="w-full max-w-[420px] border border-border bg-card p-7">
+        <div className="flex items-center gap-3">
+          <span className="grid size-8 shrink-0 place-items-center bg-primary text-base font-extrabold text-primary-foreground" aria-hidden="true">H</span>
+          <div>
+            <div className="text-[1.15rem] font-extrabold tracking-tight text-foreground">Sign in to Embarko</div>
+            <div className="mt-0.5 font-mono text-[0.66rem] uppercase tracking-[0.12em] text-primary">Connecting an AI client</div>
+          </div>
+        </div>
+
+        {error && <Alert variant="err" className="mt-4">{error}</Alert>}
+
+        <p className="mt-3 text-[0.92rem] text-muted-foreground">
+          Verify your email to continue. You'll be sent back to the app you connected from.
+        </p>
+        <div id={REFERENCE_ID} ref={containerRef} className="login-widget mt-3" />
+      </div>
+    </div>
+  );
+}
+
+export default function ConnectorLoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <ConnectorLoginInner />
+    </Suspense>
+  );
+}
