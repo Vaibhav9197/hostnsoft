@@ -19,10 +19,10 @@ interface AdminApp {
 // Reads off the most recent deployment, so "no_deployments" is a real state and
 // not a missing value — the app exists but has never shipped.
 const STATUS: Record<string, { label: string; className: string }> = {
-  success: { label: 'Live', className: 'bg-green-100 text-green-800' },
-  failed: { label: 'Failed', className: 'bg-red-100 text-red-800' },
-  in_progress: { label: 'Deploying', className: 'bg-blue-100 text-blue-800' },
-  no_deployments: { label: 'Never deployed', className: 'bg-gray-100 text-gray-600' },
+  success: { label: 'Live', className: 'bg-[var(--ok-soft)] text-success' },
+  failed: { label: 'Failed', className: 'bg-[var(--danger-soft)] text-destructive' },
+  in_progress: { label: 'Deploying', className: 'bg-elevated text-foreground' },
+  no_deployments: { label: 'Never deployed', className: 'bg-elevated text-muted-foreground' },
 };
 
 export default function Apps() {
@@ -63,75 +63,75 @@ export default function Apps() {
   }, [load]);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-background">
       <AdminNav />
 
       <div className="flex-1 p-8">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl font-bold mb-2">All Apps</h1>
-          <p className="text-gray-600 mb-8">
+          <p className="text-muted-foreground mb-8">
             Every app deployed on the platform, across all companies.
             {apps && apps.length > 0 && ` ${apps.length} total.`}
           </p>
 
           {error && (
-            <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-700">{error}</p>
+            <div className="mb-8 p-4 bg-[var(--danger-soft)] border border-destructive/30 rounded-lg">
+              <p className="text-destructive">{error}</p>
             </div>
           )}
 
           {apps === null ? (
             <div className="text-center py-12">
-              <p className="text-gray-600">Loading...</p>
+              <p className="text-muted-foreground">Loading...</p>
             </div>
           ) : apps.length === 0 && !error ? (
-            <div className="text-center py-12 bg-white rounded-lg border">
-              <p className="text-gray-600">No apps on the platform yet</p>
+            <div className="text-center py-12 bg-card rounded-lg border">
+              <p className="text-muted-foreground">No apps on the platform yet</p>
             </div>
           ) : apps.length > 0 ? (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-card rounded-lg shadow overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-100 border-b">
+                  <thead className="bg-elevated border-b">
                     <tr>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">App</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Company</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
-                      <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">Deploys</th>
-                      <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">Memory</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Created</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">App</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Company</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Status</th>
+                      <th className="px-6 py-4 text-right text-sm font-semibold text-foreground">Deploys</th>
+                      <th className="px-6 py-4 text-right text-sm font-semibold text-foreground">Memory</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Created</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
                     {apps.map((a) => {
                       const status = STATUS[a.status] ?? {
                         label: a.status ?? '—',
-                        className: 'bg-gray-100 text-gray-600',
+                        className: 'bg-elevated text-muted-foreground',
                       };
                       return (
-                        <tr key={a.appSlug} className="hover:bg-gray-50">
+                        <tr key={a.appSlug} className="hover:bg-elevated">
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="font-mono text-sm text-gray-900">{a.appSlug}</span>
+                            <span className="font-mono text-sm text-foreground">{a.appSlug}</span>
                             <a
                               href={`https://${a.appSlug}.app.embarko.ai`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="ml-2 text-xs text-blue-600 hover:underline"
+                              className="ml-2 text-xs text-primary hover:underline"
                             >
                               open
                             </a>
                           </td>
-                          <td className="px-6 py-4 text-gray-700 text-sm">{a.companyName}</td>
+                          <td className="px-6 py-4 text-foreground text-sm">{a.companyName}</td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`rounded px-2 py-1 text-xs font-medium ${status.className}`}>
                               {status.label}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-right text-gray-600 text-sm">{a.deploymentCount}</td>
-                          <td className="px-6 py-4 text-right text-gray-600 text-sm whitespace-nowrap">
+                          <td className="px-6 py-4 text-right text-muted-foreground text-sm">{a.deploymentCount}</td>
+                          <td className="px-6 py-4 text-right text-muted-foreground text-sm whitespace-nowrap">
                             {a.memoryMb != null ? `${a.memoryMb} MB` : '—'}
                           </td>
-                          <td className="px-6 py-4 text-gray-600 text-sm whitespace-nowrap">
+                          <td className="px-6 py-4 text-muted-foreground text-sm whitespace-nowrap">
                             {formatDate(a.createdAt ?? null)}
                           </td>
                         </tr>

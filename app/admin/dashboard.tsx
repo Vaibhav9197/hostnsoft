@@ -149,10 +149,10 @@ export default function AdminDashboard() {
 
   if (denied) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="mx-auto max-w-md rounded-lg border border-gray-200 bg-white p-6">
+      <div className="min-h-screen bg-background p-8">
+        <div className="mx-auto max-w-md rounded-lg border border-border bg-card p-6">
           <h1 className="text-xl font-bold">Sign in required</h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-muted-foreground">
             This dashboard shows internal performance data. Sign in with an account that has
             access to view it.
           </p>
@@ -162,12 +162,12 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-background">
       <AdminNav />
       <div className="flex-1 p-8">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl font-bold mb-2">AB Test Dashboard</h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             Landing page variant performance. Every figure counts unique visitors, not events.
           </p>
 
@@ -179,7 +179,7 @@ export default function AdminDashboard() {
                 onClick={() => setRange(r)}
                 aria-pressed={range === r}
                 className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                  range === r ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
+                  range === r ? 'bg-primary text-primary-foreground' : 'bg-card text-foreground hover:bg-elevated'
                 }`}
               >
                 {RANGE_LABEL[r]}
@@ -190,37 +190,37 @@ export default function AdminDashboard() {
           {verdict.leader && (
             <div
               className={`mb-8 rounded-lg border-2 p-6 ${
-                verdict.conclusive ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-white'
+                verdict.conclusive ? 'border-success/30 bg-[var(--ok-soft)]' : 'border-border bg-card'
               }`}
             >
               <p
                 className={`text-sm font-semibold ${
-                  verdict.conclusive ? 'text-green-700' : 'text-gray-500'
+                  verdict.conclusive ? 'text-success' : 'text-muted-foreground'
                 }`}
               >
                 {verdict.conclusive ? '🏆 WINNER' : 'LEADING SO FAR'}
               </p>
               <p
                 className={`mt-2 text-3xl font-bold ${
-                  verdict.conclusive ? 'text-green-900' : 'text-gray-900'
+                  verdict.conclusive ? 'text-success' : 'text-foreground'
                 }`}
               >
                 {formatVariant(verdict.leader.variant)}
               </p>
-              <p className={`mt-1 ${verdict.conclusive ? 'text-green-700' : 'text-gray-600'}`}>
+              <p className={`mt-1 ${verdict.conclusive ? 'text-success' : 'text-muted-foreground'}`}>
                 {verdict.leader.overall_conversion}% overall conversion ·{' '}
                 {verdict.leader.visitors.toLocaleString()} visitors
               </p>
               {/* The caveat is the point, not a footnote: this banner is the
                   only thing most people will read. */}
-              <p className="mt-2 text-sm text-gray-600">{verdict.reason}</p>
+              <p className="mt-2 text-sm text-muted-foreground">{verdict.reason}</p>
             </div>
           )}
 
         {/* Metrics Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-card rounded-lg shadow overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-100 border-b">
+            <thead className="bg-elevated border-b">
               <tr>
                 <th className="px-6 py-4 text-left font-semibold">Variant</th>
                 <th className="px-6 py-4 text-center font-semibold">Visitors</th>
@@ -238,8 +238,8 @@ export default function AdminDashboard() {
                   key={m.variant}
                   className={`border-b ${
                     verdict.conclusive && m.variant === verdict.leader?.variant
-                      ? 'bg-green-50'
-                      : 'hover:bg-gray-50'
+                      ? 'bg-[var(--ok-soft)]'
+                      : 'hover:bg-elevated'
                   }`}
                 >
                   <td className="px-6 py-4 font-bold text-lg">{formatVariant(m.variant)}</td>
@@ -258,8 +258,8 @@ export default function AdminDashboard() {
 
         {/* CTA Breakdown */}
         <div className="mt-8 grid grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="font-semibold text-gray-700 mb-4">Copy Clicks by Variant</h3>
+          <div className="bg-card p-6 rounded-lg shadow">
+            <h3 className="font-semibold text-foreground mb-4">Copy Clicks by Variant</h3>
             <div className="space-y-2">
               {metrics.map((m) => (
                 <div key={m.variant} className="flex justify-between">
@@ -270,8 +270,8 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="font-semibold text-gray-700 mb-4">Login Clicks by Variant</h3>
+          <div className="bg-card p-6 rounded-lg shadow">
+            <h3 className="font-semibold text-foreground mb-4">Login Clicks by Variant</h3>
             <div className="space-y-2">
               {metrics.map((m) => (
                 <div key={m.variant} className="flex justify-between">
@@ -282,8 +282,8 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="font-semibold text-gray-700 mb-4">Signup Clicks by Variant</h3>
+          <div className="bg-card p-6 rounded-lg shadow">
+            <h3 className="font-semibold text-foreground mb-4">Signup Clicks by Variant</h3>
             <div className="space-y-2">
               {metrics.map((m) => (
                 <div key={m.variant} className="flex justify-between">
@@ -297,25 +297,25 @@ export default function AdminDashboard() {
 
         {/* Deployment Stats */}
         <div className="mt-8 grid grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="font-semibold text-gray-700 mb-4">Successful Deployments</h3>
+          <div className="bg-card p-6 rounded-lg shadow">
+            <h3 className="font-semibold text-foreground mb-4">Successful Deployments</h3>
             <div className="space-y-2">
               {metrics.map((m) => (
                 <div key={m.variant} className="flex justify-between">
                   <span>{formatVariant(m.variant)}</span>
-                  <span className="font-bold text-green-600">{m.deployments_success}</span>
+                  <span className="font-bold text-success">{m.deployments_success}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="font-semibold text-gray-700 mb-4">Failed Deployments</h3>
+          <div className="bg-card p-6 rounded-lg shadow">
+            <h3 className="font-semibold text-foreground mb-4">Failed Deployments</h3>
             <div className="space-y-2">
               {metrics.map((m) => (
                 <div key={m.variant} className="flex justify-between">
                   <span>{formatVariant(m.variant)}</span>
-                  <span className="font-bold text-red-600">{m.deployments_failed}</span>
+                  <span className="font-bold text-destructive">{m.deployments_failed}</span>
                 </div>
               ))}
             </div>

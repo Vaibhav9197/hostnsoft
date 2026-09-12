@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AdminNav } from '../../components/AdminNav';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../../components/ui/sheet';
 import { formatDate } from '../../lib/format';
 
 /* Customer queries arrive by several routes — the signed-in dashboard, the
@@ -58,6 +59,9 @@ export default function Queries() {
   const [total, setTotal] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [active, setActive] = useState<string | null>(null);
+  /* Index into `visible`, not an id: these rows are allowed to arrive without
+     one (the table already falls back to the index as a key). */
+  const [selected, setSelected] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -113,14 +117,22 @@ export default function Queries() {
     [rows, active],
   );
 
+  // Changing the filter reshuffles `visible`, so a held index would point at a
+  // different query than the one that was opened.
+  useEffect(() => {
+    setSelected(null);
+  }, [active]);
+
+  const detail = selected != null ? (visible[selected] ?? null) : null;
+
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-background">
       <AdminNav />
 
       <div className="flex-1 p-8">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl font-bold mb-2">Customer Queries</h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             Every query in the store, whichever route it came in by — the console, the public form,
             or an agent.
             {/* The endpoint pages at 25 by default; say so rather than
@@ -153,31 +165,31 @@ export default function Queries() {
           )}
 
           {error && (
-            <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-700">{error}</p>
+            <div className="mb-8 p-4 bg-[var(--danger-soft)] border border-destructive/30 rounded-lg">
+              <p className="text-destructive">{error}</p>
             </div>
           )}
 
           {rows === null ? (
             <div className="text-center py-12">
-              <p className="text-gray-600">Loading...</p>
+              <p className="text-muted-foreground">Loading...</p>
             </div>
           ) : visible.length === 0 && !error ? (
-            <div className="text-center py-12 bg-white rounded-lg border">
-              <p className="text-gray-600">
+            <div className="text-center py-12 bg-card rounded-lg border">
+              <p className="text-muted-foreground">
                 {active ? `No queries from ${sourceLabel(active)} yet` : 'No customer queries yet'}
               </p>
             </div>
           ) : visible.length > 0 ? (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-card rounded-lg shadow overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-100 border-b">
+                  <thead className="bg-elevated border-b">
                     <tr>
                       {['Source', 'Type', 'Message', 'From', 'Company', 'Project', 'Agent', 'When'].map((h) => (
                         <th
                           key={h}
-                          className="px-6 py-4 text-left text-sm font-semibold text-gray-700 whitespace-nowrap"
+                          className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap"
                         >
                           {h}
                         </th>
@@ -186,25 +198,36 @@ export default function Queries() {
                   </thead>
                   <tbody className="divide-y">
                     {visible.map((q, i) => (
-                      <tr key={q.id ?? i} className="hover:bg-gray-50">
+                      <tr
+                        key={q.id ?? i}
+                        className="cursor-pointer hover:bg-elevated"
+                        onClick={() => setSelected(i)}
+                      >
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="rounded bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700">
+                          <span className="rounded bg-elevated px-2 py-1 text-xs font-medium text-foreground">
                             {sourceLabel(sourceOf(q))}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="rounded bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700">
+                          <span className="rounded bg-elevated px-2 py-1 text-xs font-medium text-foreground">
                             {q.type ?? '—'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 max-w-2xl">
-                          <p className="text-gray-700 break-words whitespace-pre-wrap">{q.message ?? '—'}</p>
+                        {/* One line, clipped. These messages run to full bug
+                            reports; letting them wrap made a single row a
+                            screenful and buried every other column. The whole
+                            text is a click away in the sheet. max-w with a
+                            fixed width is what actually makes truncate work
+                            inside a table cell — without it the cell just grows
+                            to fit and nothing is ever clipped. */}
+                        <td className="max-w-md px-6 py-4">
+                          <p className="truncate text-foreground">{q.message ?? '—'}</p>
                         </td>
-                        <td className="px-6 py-4 text-gray-600 text-sm break-all">{q.email ?? '—'}</td>
-                        <td className="px-6 py-4 text-gray-600 text-sm">{q.companyId ?? '—'}</td>
-                        <td className="px-6 py-4 text-gray-600 text-sm break-all">{q.projectSlug ?? '—'}</td>
-                        <td className="px-6 py-4 text-gray-600 text-sm break-all">{q.agentName ?? '—'}</td>
-                        <td className="px-6 py-4 text-gray-600 text-sm whitespace-nowrap">
+                        <td className="px-6 py-4 text-muted-foreground text-sm break-all">{q.email ?? '—'}</td>
+                        <td className="px-6 py-4 text-muted-foreground text-sm">{q.companyId ?? '—'}</td>
+                        <td className="px-6 py-4 text-muted-foreground text-sm break-all">{q.projectSlug ?? '—'}</td>
+                        <td className="px-6 py-4 text-muted-foreground text-sm break-all">{q.agentName ?? '—'}</td>
+                        <td className="px-6 py-4 text-muted-foreground text-sm whitespace-nowrap">
                           {formatDate(q.createdAt ?? null)}
                         </td>
                       </tr>
@@ -216,6 +239,53 @@ export default function Queries() {
           ) : null}
         </div>
       </div>
+
+      {/* Detail opens beside the table rather than expanding the row: no
+          backdrop and not modal, so the list stays readable and clicking
+          another row swaps the contents instead of closing first. */}
+      <Sheet modal={false} open={detail !== null} onOpenChange={(open) => { if (!open) setSelected(null); }}>
+        <SheetContent
+          showOverlay={false}
+          onInteractOutside={(e) => e.preventDefault()}
+          className="gap-0 shadow-2xl sm:max-w-xl"
+        >
+          {detail && (
+            <>
+              <SheetHeader className="shrink-0 p-5 pb-3">
+                <SheetTitle>{sourceLabel(sourceOf(detail))} query</SheetTitle>
+                <SheetDescription>{formatDate(detail.createdAt ?? null)}</SheetDescription>
+              </SheetHeader>
+
+              <div className="shrink-0 grid grid-cols-2 gap-x-4 gap-y-3 px-5 pb-4">
+                {([
+                  ['Type', detail.type],
+                  ['From', detail.email],
+                  ['Company', detail.companyId],
+                  ['Project', detail.projectSlug],
+                  ['Agent', detail.agentName],
+                  ['User', detail.userId],
+                ] as const).map(([k, v]) => (
+                  <div key={k} className="min-w-0">
+                    <div className="font-mono text-[0.66rem] uppercase tracking-[0.1em] text-faint">{k}</div>
+                    <div className="mt-1 break-words text-[0.9rem] text-foreground">{v ?? '—'}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* The message is why the sheet exists, so it gets the remaining
+                  height and its own scroll rather than pushing the facts off. */}
+              <div className="flex min-h-0 flex-1 flex-col border-t border-border px-5 py-4">
+                <div className="mb-2 shrink-0 font-mono text-[0.66rem] uppercase tracking-[0.1em] text-faint">
+                  Message
+                </div>
+                <p className="min-h-0 flex-1 overflow-auto whitespace-pre-wrap break-words text-[0.9rem] leading-relaxed text-foreground">
+                  {detail.message ?? '—'}
+                </p>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
@@ -238,12 +308,12 @@ function FilterChip({
       aria-pressed={selected}
       className={`rounded-full border px-4 py-1.5 text-sm font-medium transition ${
         selected
-          ? 'border-blue-600 bg-blue-600 text-white'
-          : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-100'
+          ? 'border-primary bg-primary text-primary-foreground'
+          : 'border-input bg-card text-foreground hover:bg-elevated'
       }`}
     >
       {label}
-      <span className={selected ? 'ml-2 text-blue-100' : 'ml-2 text-gray-500'}>{count}</span>
+      <span className={selected ? 'ml-2 text-primary-foreground/70' : 'ml-2 text-muted-foreground'}>{count}</span>
     </button>
   );
 }

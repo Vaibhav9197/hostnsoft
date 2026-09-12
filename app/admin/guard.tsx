@@ -18,10 +18,10 @@ import { currentSuperAdmin } from "../lib/api";
 
 export function SignInRequired() {
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="mx-auto max-w-md rounded-lg border border-gray-200 bg-white p-6">
+    <div className="min-h-screen bg-background p-8">
+      <div className="mx-auto max-w-md rounded-lg border border-border bg-card p-6">
         <h1 className="text-xl font-bold">Not available</h1>
-        <p className="mt-2 text-gray-600">
+        <p className="mt-2 text-muted-foreground">
           This page shows internal data and is limited to platform administrators. If you should have
           access, sign in with an account that has it.
         </p>

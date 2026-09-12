@@ -13,11 +13,11 @@ export function AdminNav() {
      longer than the screen, and without this the nav scrolled off the top
      and the sidebar's ground ran out behind it. */
   return (
-    <nav className="sticky top-0 h-screen w-64 shrink-0 overflow-y-auto bg-gray-900 text-white p-6 flex flex-col">
+    <nav className="sticky top-0 h-screen w-64 shrink-0 overflow-y-auto border-r border-border bg-card text-foreground p-6 flex flex-col">
       <div>
         <div className="mb-8">
           <h1 className="text-2xl font-bold">Admin</h1>
-          <p className="text-gray-400 text-sm mt-1">Dashboard</p>
+          <p className="text-faint text-sm mt-1">Dashboard</p>
         </div>
 
         <div className="space-y-2">
@@ -25,8 +25,8 @@ export function AdminNav() {
             href="/admin"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
               isActive('/admin')
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-300 hover:bg-gray-800'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-elevated hover:text-foreground'
             }`}
           >
             <BarChart3 className="w-5 h-5" />
@@ -37,8 +37,8 @@ export function AdminNav() {
             href="/admin/apps"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
               isActive('/admin/apps')
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-300 hover:bg-gray-800'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-elevated hover:text-foreground'
             }`}
           >
             <Boxes className="w-5 h-5" />
@@ -51,8 +51,8 @@ export function AdminNav() {
             href="/admin/contact"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
               isActive('/admin/contact')
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-300 hover:bg-gray-800'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-elevated hover:text-foreground'
             }`}
           >
             <Mail className="w-5 h-5" />
@@ -64,8 +64,8 @@ export function AdminNav() {
             href="/admin/customer-query"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
               isActive('/admin/customer-query')
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-300 hover:bg-gray-800'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-elevated hover:text-foreground'
             }`}
           >
             <MessageSquare className="w-5 h-5" />
@@ -79,7 +79,7 @@ export function AdminNav() {
             out to another site, so a new tab just leaves admin orphaned. */}
         <a
           href="/app"
-          className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 transition"
+          className="flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground hover:bg-elevated transition"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Go to App</span>
