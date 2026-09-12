@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Alert } from "../../components/console/kit";
+import { CONNECTOR_PENDING_REDIRECT_KEY, CONNECTOR_PENDING_STATE_KEY } from "../../lib/connectorPendingRedirect";
 
 // Login entry point for AI-connector OAuth flows (e.g. a generic MCP OAuth
 // proxy redirecting a user here with its own redirect_uri/state, the way it
@@ -23,6 +24,17 @@ const REFERENCE_ID =
 const WIDGET_SRC =
   process.env.NEXT_PUBLIC_MSG91_WIDGET_SCRIPT ||
   "https://proxy.msg91.com/assets/proxy-auth/proxy-auth.js";
+
+// Fallback for when MSG91's own "redirect" mode fires instead of (or in
+// addition to) the in-page success callback below - it's configured against
+// this referenceId on MSG91's own dashboard and always lands the browser on
+// this site's root ("/"), not wherever the widget was actually embedded, and
+// that target isn't something a query param here can override. So before
+// handing off to the widget, stash what the eventual redirect needs in
+// sessionStorage (same-origin, survives that MSG91 hop) - see
+// ConnectorTokenPickup.tsx, mounted in the root layout, which looks for
+// these on every page load and finishes the handoff if MSG91 dropped the
+// browser somewhere unexpected with a token in tow.
 function ConnectorLoginInner() {
   const searchParams = useSearchParams();
   const redirectUri = searchParams.get("redirect_uri");
@@ -36,6 +48,16 @@ function ConnectorLoginInner() {
     if (!redirectUri || !REFERENCE_ID || started.current) return;
     started.current = true;
     const targetRedirectUri = redirectUri;
+
+    try {
+      sessionStorage.setItem(CONNECTOR_PENDING_REDIRECT_KEY, targetRedirectUri);
+      if (state) sessionStorage.setItem(CONNECTOR_PENDING_STATE_KEY, state);
+      else sessionStorage.removeItem(CONNECTOR_PENDING_STATE_KEY);
+    } catch {
+      // Private browsing / storage disabled - the in-page success callback
+      // below still works fine on its own in that case, this is only a
+      // fallback for MSG91's separate redirect-mode behavior.
+    }
 
     function boot() {
       if (typeof window.initVerification !== "function") {
@@ -57,6 +79,12 @@ function ConnectorLoginInner() {
           if (!token) {
             setError("The login widget didn't return a token. Please try again.");
             return;
+          }
+          try {
+            sessionStorage.removeItem(CONNECTOR_PENDING_REDIRECT_KEY);
+            sessionStorage.removeItem(CONNECTOR_PENDING_STATE_KEY);
+          } catch {
+            // ignore
           }
           const bridge = new URL("/api/auth/connector-callback", window.location.origin);
           bridge.searchParams.set("proxy_auth_token", token);

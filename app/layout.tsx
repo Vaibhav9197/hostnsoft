@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./base.css";
 import { GoogleTagManager, GoogleTagManagerNoScript } from "./components/analytics/GoogleTagManager";
 import { PageViewTracker } from "./components/analytics/PageViewTracker";
+import { ConnectorTokenPickup } from "./components/connector/ConnectorTokenPickup";
 
 export const metadata: Metadata = {
   title: "Embarko — Deploy any app. Get a live URL.",
@@ -35,6 +36,7 @@ export default function RootLayout({
       <body>
         <GoogleTagManagerNoScript />
         <PageViewTracker />
+        <ConnectorTokenPickup />
         {children}
       </body>
     </html>
