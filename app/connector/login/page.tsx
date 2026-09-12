@@ -31,10 +31,17 @@ const WIDGET_SRC =
 // this site's root ("/"), not wherever the widget was actually embedded, and
 // that target isn't something a query param here can override. So before
 // handing off to the widget, stash what the eventual redirect needs in
-// sessionStorage (same-origin, survives that MSG91 hop) - see
-// ConnectorTokenPickup.tsx, mounted in the root layout, which looks for
-// these on every page load and finishes the handoff if MSG91 dropped the
-// browser somewhere unexpected with a token in tow.
+// localStorage (shared across tabs/windows of this origin - the widget's
+// verification step plausibly runs in a popup, a different top-level
+// browsing context than this tab, so sessionStorage wouldn't be visible
+// there) - see ConnectorTokenPickup.tsx, mounted in the root layout, which
+// looks for these on every page load and finishes the handoff if MSG91
+// dropped the browser somewhere unexpected with a token in tow.
+const DEBUG = true; // TEMPORARY - remove once this flow is confirmed working live.
+function debugLog(...args: unknown[]) {
+  if (DEBUG) console.log("[ConnectorLogin]", ...args);
+}
+
 function ConnectorLoginInner() {
   const searchParams = useSearchParams();
   const redirectUri = searchParams.get("redirect_uri");
@@ -50,16 +57,19 @@ function ConnectorLoginInner() {
     const targetRedirectUri = redirectUri;
 
     try {
-      sessionStorage.setItem(CONNECTOR_PENDING_REDIRECT_KEY, targetRedirectUri);
-      if (state) sessionStorage.setItem(CONNECTOR_PENDING_STATE_KEY, state);
-      else sessionStorage.removeItem(CONNECTOR_PENDING_STATE_KEY);
-    } catch {
+      localStorage.setItem(CONNECTOR_PENDING_REDIRECT_KEY, targetRedirectUri);
+      if (state) localStorage.setItem(CONNECTOR_PENDING_STATE_KEY, state);
+      else localStorage.removeItem(CONNECTOR_PENDING_STATE_KEY);
+      debugLog("stashed pending redirect:", targetRedirectUri, "state:", state);
+    } catch (err) {
       // Private browsing / storage disabled - the in-page success callback
       // below still works fine on its own in that case, this is only a
       // fallback for MSG91's separate redirect-mode behavior.
+      debugLog("localStorage write failed:", err);
     }
 
     function boot() {
+      debugLog("booting widget, initVerification available:", typeof window.initVerification === "function");
       if (typeof window.initVerification !== "function") {
         setError("The login widget could not be loaded. Check your connection and reload.");
         return;
@@ -73,6 +83,7 @@ function ConnectorLoginInner() {
         // handles the redirect itself via the success callback below, so
         // there's no dashboard-relative path for the widget to fall back to.
         success: (data: unknown) => {
+          debugLog("widget success callback fired with:", data);
           const token =
             (data as { token?: string; proxy_auth_token?: string })?.token ??
             (data as { proxy_auth_token?: string })?.proxy_auth_token;
@@ -81,8 +92,8 @@ function ConnectorLoginInner() {
             return;
           }
           try {
-            sessionStorage.removeItem(CONNECTOR_PENDING_REDIRECT_KEY);
-            sessionStorage.removeItem(CONNECTOR_PENDING_STATE_KEY);
+            localStorage.removeItem(CONNECTOR_PENDING_REDIRECT_KEY);
+            localStorage.removeItem(CONNECTOR_PENDING_STATE_KEY);
           } catch {
             // ignore
           }
@@ -90,9 +101,11 @@ function ConnectorLoginInner() {
           bridge.searchParams.set("proxy_auth_token", token);
           bridge.searchParams.set("redirect_uri", targetRedirectUri);
           if (state) bridge.searchParams.set("state", state);
+          debugLog("in-page success path forwarding to bridge:", bridge.toString());
           window.location.href = bridge.toString();
         },
         failure: (err: unknown) => {
+          debugLog("widget failure callback fired with:", err);
           console.warn("MSG91 verification failed", err);
           setError("Verification was cancelled or failed. Please try again.");
         },
