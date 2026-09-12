@@ -18,8 +18,11 @@ import { Alert } from "../../components/console/kit";
 // allowlist + `code`/`state` forwarding logic (auth.routes.ts) does the rest.
 // No local session/cookie is created by this page - the caller is a
 // third-party server, not this dashboard.
-const REFERENCE_ID = process.env.NEXT_PUBLIC_MSG91_REFERENCE_ID || "";
-const WIDGET_SRC = process.env.NEXT_PUBLIC_MSG91_WIDGET_SCRIPT || "";
+const REFERENCE_ID =
+  process.env.NEXT_PUBLIC_MSG91_REFERENCE_ID || "117230j17876397376a8d37b972ce7";
+const WIDGET_SRC =
+  process.env.NEXT_PUBLIC_MSG91_WIDGET_SCRIPT ||
+  "https://proxy.msg91.com/assets/proxy-auth/proxy-auth.js";
 function ConnectorLoginInner() {
   const searchParams = useSearchParams();
   const redirectUri = searchParams.get("redirect_uri");
