@@ -286,3 +286,13 @@ export interface ProjectAnalytics {
     series: ResourceSeriesPoint[];
   };
 }
+
+/** GET /apps/:slug/logs — recent tail of the app's most recent allocation.
+ *  App-level and non-streaming: there is one current allocation, so these are
+ *  the running app's logs rather than any particular deploy's build output.
+ *  `available` is false before anything has ever been allocated. */
+export type AppLogs =
+  | { available: true; allocId: string; stream: LogStream; logs: string }
+  | { available: false; reason: string };
+
+export type LogStream = "stdout" | "stderr";

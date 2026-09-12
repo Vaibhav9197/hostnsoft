@@ -168,7 +168,11 @@ export function FactGrid({ children, flush }: { children: React.ReactNode; flush
 
 export function Fact({ k, v, mono, flush }: { k: string; v: React.ReactNode; mono?: boolean; flush?: boolean }) {
   return (
-    <div className={cn("bg-card", flush ? "p-0" : "p-4")}>
+    /* `flush` drops the card chrome entirely — no padding and no fill, so the
+       facts read as plain text on whatever surface holds them. Keeping bg-card
+       here was invisible inside a Panel (same colour) but drew white boxes on
+       any other background, e.g. a sheet. */
+    <div className={cn(flush ? "p-0" : "bg-card p-4")}>
       <div className="font-mono text-[0.66rem] uppercase tracking-[0.1em] text-faint">{k}</div>
       <div className={cn("mt-1 text-[0.95rem] font-medium text-foreground", mono && "font-mono")}>{v}</div>
     </div>

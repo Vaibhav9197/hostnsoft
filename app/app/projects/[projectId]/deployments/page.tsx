@@ -2,14 +2,16 @@
 
 import { use, useCallback, useEffect, useState } from "react";
 import { StatusPill } from "../../../../components/console/StatusPill";
-import { Alert, EmptyState, Fact, FactGrid, Page, PageHeader, Panel, PanelTitle, Skeleton, Tag } from "../../../../components/console/kit";
+import { Alert, EmptyState, Fact, FactGrid, Page, PageHeader, Panel, Skeleton, Tag } from "../../../../components/console/kit";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../../components/ui/table";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "../../../../components/ui/sheet";
 import { Button } from "../../../../components/ui/button";
-import { deploymentsApi } from "../../../../lib/hnsApi";
+import { appsApi, deploymentsApi } from "../../../../lib/hnsApi";
+import { useProject } from "../../../../lib/useProject";
 import { relativeTime } from "../../../../lib/format";
 import { useSession } from "../../../../lib/session";
 import { cn } from "../../../../lib/utils";
-import type { Deployment } from "../../../../lib/types";
+import type { AppLogs, Deployment, LogStream } from "../../../../lib/types";
 
 export default function DeploymentsPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = use(params);
@@ -19,6 +21,11 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
   const [selected, setSelected] = useState<string | null>(null);
   const [rollingBack, setRollingBack] = useState<string | null>(null);
   const [rollbackError, setRollbackError] = useState<string | null>(null);
+  const { project } = useProject(activeCompanyId, projectId);
+  const [logsOpen, setLogsOpen] = useState(false);
+  const [stream, setStream] = useState<LogStream>("stdout");
+  const [logs, setLogs] = useState<AppLogs | null>(null);
+  const [logsError, setLogsError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!activeCompanyId) return;
@@ -34,6 +41,22 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
   useEffect(() => {
     load();
   }, [load]);
+
+  /* Logs are app-level — one running allocation, not one per deploy — which is
+     why they get their own sheet rather than living inside a deploy's detail.
+     Fetched per slug and stream, and only while that sheet is open. */
+  const slug = project?.slug ?? null;
+  useEffect(() => {
+    if (!slug || !logsOpen) return;
+    let live = true;
+    setLogs(null);
+    setLogsError(null);
+    appsApi
+      .logs(slug, stream)
+      .then((r) => { if (live) setLogs(r); })
+      .catch((e) => { if (live) setLogsError(e instanceof Error ? e.message : "Couldn’t load logs."); });
+    return () => { live = false; };
+  }, [slug, stream, logsOpen]);
 
   // Roll an earlier deploy back into service. The API answers with a new
   // deployment rather than editing the old one, so the only correct thing to do
@@ -69,7 +92,15 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
 
   return (
     <Page>
-      <PageHeader title="Deployments" subtitle="Every deploy attempt, newest first." />
+      <PageHeader
+        title="Deployments"
+        subtitle="Every deploy attempt, newest first."
+        actions={
+          <Button variant="outline" onClick={() => { setSelected(null); setLogsOpen(true); }}>
+            Last log
+          </Button>
+        }
+      />
 
       {rollbackError && <Alert>{rollbackError}</Alert>}
 
@@ -93,8 +124,8 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
               {deps.map((d) => (
                 <TableRow
                   key={d.version}
-                  className={cn("cursor-pointer", active?.id === d.id && "bg-primary/10 shadow-[inset_3px_0_0_var(--accent)]")}
-                  onClick={() => setSelected(active?.id === d.id ? null : d.id)}
+                  className={cn("group cursor-pointer", active?.id === d.id && "bg-primary/10 shadow-[inset_3px_0_0_var(--accent)]")}
+                  onClick={() => { setLogsOpen(false); setSelected(active?.id === d.id ? null : d.id); }}
                 >
                   <TableCell className="font-mono">{d.version}</TableCell>
                   <TableCell><StatusPill status={d.status} /></TableCell>
@@ -117,6 +148,16 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
                       <Button
                         variant="outline"
                         size="xs"
+                        /* Rollback is a rare, deliberate act, so it stays out of
+                           the way until you're on the row. Revealed on hover and
+                           on keyboard focus — opacity rather than `hidden` so the
+                           cell keeps its width and rows don't shift. Kept visible
+                           mid-rollback, when the hover has usually moved on but
+                           the button is still saying what it's doing. */
+                        className={cn(
+                          "opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100",
+                          rollingBack === d.id && "opacity-100",
+                        )}
                         /* A deploy that never succeeded has no image to flip to
                            — the API would answer 422, so don't offer it. */
                         disabled={d.status !== "success" || rollingBack !== null}
@@ -133,23 +174,93 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
         </Panel>
       )}
 
-      {active && (
-        <Panel padded>
-          <div className="mb-3 flex items-center gap-2.5">
-            <PanelTitle>Deploy {active.version}</PanelTitle>
-            <StatusPill status={active.status} />
+      {/* Detail lives in a side sheet rather than under the table: the row
+          you clicked stays where it was instead of the page growing beneath
+          it. Non-modal and backdrop-free on purpose — the table stays live, so
+          clicking a different row swaps the sheet's contents instead of
+          closing it and making you click twice. */}
+      <Sheet modal={false} open={active !== null} onOpenChange={(open) => { if (!open) setSelected(null); }}>
+        <SheetContent
+          showOverlay={false}
+          /* Radix closes a non-modal dialog on any outside interaction, which
+             would fight the row-to-row switching above. Close is the X, Esc,
+             or clicking the open row again. */
+          onInteractOutside={(e) => e.preventDefault()}
+          className="gap-0 shadow-2xl sm:max-w-xl"
+        >
+          {active && (
+            <>
+              <SheetHeader className="p-5 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <SheetTitle>Deploy {active.version}</SheetTitle>
+                  <StatusPill status={active.status} />
+                </div>
+                <SheetDescription>{relativeTime(active.createdAt)}</SheetDescription>
+              </SheetHeader>
+              <div className="shrink-0 px-5 pb-5">
+                {active.errorDetail && <Alert className="mb-3">{active.errorDetail}</Alert>}
+                <FactGrid flush>
+                  <Fact flush k="App version" v={active.appVersion} mono />
+                  <Fact flush k="Image tag" v={active.imageTag ?? "—"} mono />
+                  <Fact flush k="Memory" v={active.memoryMb != null ? `${active.memoryMb} MB` : "—"} mono />
+                  <Fact flush k="Triggered by" v={active.triggeredBy ?? "—"} />
+                  <Fact flush k="Started" v={relativeTime(active.createdAt)} />
+                  <Fact flush k="Finished" v={active.finishedAt ? relativeTime(active.finishedAt) : "—"} />
+                </FactGrid>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Logs live in their own sheet: the endpoint reports the app's current
+          allocation, so they belong to the app rather than to any row in the
+          table above. */}
+      <Sheet modal={false} open={logsOpen} onOpenChange={setLogsOpen}>
+        <SheetContent
+          showOverlay={false}
+          onInteractOutside={(e) => e.preventDefault()}
+          className="gap-0 shadow-2xl sm:max-w-xl"
+        >
+          <SheetHeader className="shrink-0 p-5 pb-3">
+            <SheetTitle>App logs</SheetTitle>
+            <SheetDescription>
+              The running app’s most recent output — not tied to any one deploy.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex min-h-0 flex-1 flex-col px-5 pb-5">
+            <div className="mb-2.5 flex shrink-0 items-center gap-1">
+              {(["stdout", "stderr"] as const).map((s) => (
+                <Button
+                  key={s}
+                  variant={stream === s ? "secondary" : "ghost"}
+                  size="xs"
+                  className="font-mono"
+                  onClick={() => setStream(s)}
+                >
+                  {s}
+                </Button>
+              ))}
+            </div>
+
+            {logsError && <Alert>{logsError}</Alert>}
+            {!logsError && logs === null && <Skeleton className="min-h-0 flex-1" aria-hidden="true" />}
+            {!logsError && logs?.available === false && (
+              <p className="text-[0.85rem] text-muted-foreground">{logs.reason}</p>
+            )}
+            {!logsError && logs?.available === true && (
+              logs.logs.trim() === "" ? (
+                <p className="text-[0.85rem] text-muted-foreground">Nothing on {stream} yet.</p>
+              ) : (
+                <pre className="min-h-0 flex-1 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-border bg-elevated p-3 font-mono text-[0.72rem] leading-relaxed text-muted-foreground">
+                  {logs.logs}
+                </pre>
+              )
+            )}
           </div>
-          {active.errorDetail && <Alert className="mb-3">{active.errorDetail}</Alert>}
-          <FactGrid flush>
-            <Fact flush k="App version" v={active.appVersion} mono />
-            <Fact flush k="Image tag" v={active.imageTag ?? "—"} mono />
-            <Fact flush k="Memory" v={active.memoryMb != null ? `${active.memoryMb} MB` : "—"} mono />
-            <Fact flush k="Triggered by" v={active.triggeredBy ?? "—"} />
-            <Fact flush k="Started" v={relativeTime(active.createdAt)} />
-            <Fact flush k="Finished" v={active.finishedAt ? relativeTime(active.finishedAt) : "—"} />
-          </FactGrid>
-        </Panel>
-      )}
+        </SheetContent>
+      </Sheet>
+
     </Page>
   );
 }
