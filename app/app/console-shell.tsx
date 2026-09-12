@@ -10,15 +10,18 @@ import { Alert } from "../components/console/kit";
 import { SessionSignals } from "../components/analytics/SessionSignals";
 import { BillingProvider } from "../lib/billing";
 import { SessionProvider, useSession } from "../lib/session";
+import { ThemeProvider } from "../lib/theme";
 
 export function ConsoleShell({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider>
-      <SessionSignals />
-      <BillingProvider>
-        <Shell>{children}</Shell>
-      </BillingProvider>
-    </SessionProvider>
+    <ThemeProvider>
+      <SessionProvider>
+        <SessionSignals />
+        <BillingProvider>
+          <Shell>{children}</Shell>
+        </BillingProvider>
+      </SessionProvider>
+    </ThemeProvider>
   );
 }
 

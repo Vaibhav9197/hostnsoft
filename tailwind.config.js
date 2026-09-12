@@ -1,5 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  // The console resolves light/dark itself and writes it here, so `dark:`
+  // variants track the chosen theme rather than the OS directly — otherwise a
+  // user on a dark OS who picks light would still get them.
+  darkMode: ["selector", '[data-theme="dark"]'],
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
@@ -24,7 +28,7 @@ export default {
         accent: "var(--surface-2)",
         "accent-foreground": "var(--ink)",
         destructive: "var(--danger)",
-        "destructive-foreground": "#1A0808",
+        "destructive-foreground": "var(--on-danger)",
         success: "var(--ok)",
         warning: "var(--warn)",
         info: "var(--info)",

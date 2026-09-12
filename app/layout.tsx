@@ -29,7 +29,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    /* The console's theme script sets data-theme on this element before React
+       hydrates, so the client DOM deliberately differs from the server HTML
+       here. Suppression is one level deep — it covers this element's own
+       attributes, not the tree inside it — which is exactly the scope of the
+       difference. Without it React warns on every console page load. */
+    <html lang="en" suppressHydrationWarning>
       <head>
         <GoogleTagManager />
       </head>

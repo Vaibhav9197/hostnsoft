@@ -119,7 +119,7 @@ export default function ProjectsPage() {
           {/* The prompt itself, not a button that hides it: there is nothing to
               decide here, so showing it is one step shorter than a dialog. */}
           <div className="relative mx-auto mt-4 max-w-xl text-left">
-            <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-border bg-white p-4 pr-12 font-mono text-xs leading-relaxed text-muted-foreground">
+            <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-border bg-card p-4 pr-12 font-mono text-xs leading-relaxed text-muted-foreground">
               {CONSOLE_DEPLOY_PROMPT}
             </pre>
             <CopyPromptButton
