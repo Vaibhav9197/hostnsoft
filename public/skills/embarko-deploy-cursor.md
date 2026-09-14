@@ -8,53 +8,38 @@ Then tell the agent to "deploy this to Embarko."
 
 ---
 
-You can deploy this application to **Embarko**, a managed hosting environment
-that builds the app automatically (no Dockerfile) and serves it at a generated
-URL. Follow these steps whenever asked to deploy, redeploy, ship, or release.
+Deploy this project to **Embarko** whenever the user asks to deploy, redeploy,
+ship, or release it. Embarko builds the app automatically (no Dockerfile) and
+serves it at a live URL.
 
-## Required configuration
-- `DEPLOY_TOKEN` — the API token, set as an environment variable.
+Install the Embarko deploy skill once, then follow it:
 
-## App requirements
-1. The app must read its port from the `PORT` environment variable.
-2. It must bind to `0.0.0.0`, not `127.0.0.1`/`localhost`.
-3. No Dockerfile — Embarko detects the language/framework and builds the image.
-
-## Optional embedded database
-Apps that need SQL can use an in-process database instead of a hosted one:
-1. Add `@electric-sql/pglite` as a dependency.
-2. Point it at `DATA_DIR` (provided by Embarko, persists across redeploys):
-   ```js
-   const { PGlite } = require('@electric-sql/pglite');
-   const db = new PGlite(`${process.env.DATA_DIR}/pglite`);
-   ```
-
-## Step 1 — Package
-Create a `.tar.gz` with contents at the root (no wrapper folder):
 ```bash
-tar -czf /tmp/<app-name>.tar.gz \
-  --exclude='.git' --exclude='node_modules' --exclude='.next' --exclude='dist' \
-  --exclude='venv' --exclude='__pycache__' \
-  -C /path/to/app .
+npx skills add embarko-ai/skill --skill embarko-deploy -g
 ```
 
-## Step 2 — Name & version
-- **App name:** lowercase letters, numbers, dashes. Infer from the manifest or folder.
-- **Version:** always unique (git SHA, semver, or timestamp).
+For a repo-local install instead of global, drop the `-g`.
 
-## Step 3 — Deploy
-```bash
-curl -X POST "https://ship.embarko.ai/apps" \
-  -H "Authorization: Bearer ${DEPLOY_TOKEN}" \
-  -H "X-App-Name: <app-name>" \
-  -H "X-App-Version: <version>" \
-  -F "source=@/tmp/<app-name>.tar.gz"
-```
+The skill handles packaging, naming, versioning, the upload, build status, and
+error handling — follow it rather than assembling your own `tar`/`curl` calls.
+It also runs pre-flight checks (network reachability, unsupported storage APIs)
+that a hand-rolled call skips, and it waits for the build, so a clean exit is
+the real confirmation. No account or token is needed for a first deploy; that
+produces a live but temporary app, and the skill explains how to make it
+permanent.
 
-## Step 4 — Verify
-A successful API response means the deploy was *accepted*, not that the app is
-*running*. Confirm before reporting success:
-```bash
-curl "<the returned url>"
-```
-Only share the live URL once this returns the app's real content.
+Report the live URL only once the skill's deploy exits successfully — an
+accepted upload is not a running app.
+
+When a deploy fails, match the reported error `code` against the skill's
+`scripts/troubleshoot.md` (or https://embarko.ai/troubleshoot), fix it, and run
+the same command again — don't retry blindly and don't work around it with raw
+API calls.
+
+Full platform reference, if you need anything the skill doesn't cover:
+**https://embarko.ai/doc**.
+
+Three requirements for any app deployed here: it must read its port from the
+`PORT` environment variable, bind to `0.0.0.0` (not `localhost`), and have no
+Dockerfile. Anything that must survive a redeploy has to be written under the
+`DATA_DIR` path Embarko provides.
