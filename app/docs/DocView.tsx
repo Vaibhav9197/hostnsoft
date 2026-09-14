@@ -203,6 +203,54 @@ function TocLink({ item, current }: { item: TocEntry; current: boolean }) {
   );
 }
 
+/* The contents list itself. Lifted out of the layout because it renders in
+   two places: its own right rail on a wide screen, and back under Guides on a
+   narrower one where there is no room for a third column. */
+function TocBlock({
+  sections,
+  active,
+  className,
+}: {
+  sections: TocSection[];
+  active: string | null;
+  className?: string;
+}) {
+  if (sections.length === 0) return null;
+  return (
+    <div className={className}>
+      <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-neutral-500">
+        On this page
+      </p>
+      {/* Two rails, one per level. The outer one is the document's spine and
+          every h2 sits on it; the inner one starts exactly at the h2 text edge
+          (ml-4 against the parent's pl-4), so a child's line begins where its
+          parent's label begins and the nesting is readable without counting
+          pixels of indent. The marker for the section you're in rides
+          whichever rail it belongs to. */}
+      <div className="border-l border-neutral-200">
+        {sections.map((section, i) => (
+          <div key={section.heading?.id ?? `group-${i}`}>
+            {section.heading && (
+              <TocLink item={section.heading} current={section.heading.id === active} />
+            )}
+            {section.children.length > 0 && (
+              /* 1rem-1px, not 1rem: the h2 above pulls itself back onto the
+                 outer rail with -ml-px, so matching its text edge means
+                 starting from the rail, not from the container's content box
+                 one pixel to its right. */
+              <div className="ml-[calc(1rem-1px)] border-l border-neutral-200">
+                {section.children.map((child) => (
+                  <TocLink key={child.id} item={child} current={child.id === active} />
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 interface DocViewProps {
   markdown: string | null;
   toc: TocEntry[];
@@ -219,18 +267,24 @@ export function DocView({ markdown, toc, activeSlug }: DocViewProps) {
     <div className="min-h-screen bg-white text-neutral-950">
       <Header onAuthClick={() => setLoginOpen(true)} />
 
-      <div className="mx-auto max-w-6xl px-6 py-12">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[240px_1fr]">
-          <nav className="hidden lg:block">
-            {/* Scrolls on its own: three guides plus a long contents list runs
+      {/* max-w-7xl, not 6xl: the contents list moved out to its own rail, and
+          at 6xl the three columns left the prose at roughly 550px. The header
+          and footer set their own widths, so widening here misaligns nothing. */}
+      <div className="mx-auto max-w-7xl px-6 py-12">
+        {/* The right rail only appears at xl. Between lg and xl a third column
+            would take its width out of the prose, so below xl the contents
+            list stays under Guides where it used to live. */}
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_240px]">
+          <nav className="hidden lg:block" aria-label="Guides">
+            {/* Scrolls on its own: the guides plus a long contents list runs
                 past a short viewport, and a sticky block that overflows just
                 hides its own tail. */}
             <div className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto pb-10">
-              {/* The three docs cross-reference each other constantly, so they
-                  need to be reachable from one another, not just by URL.
+              {/* The docs cross-reference each other constantly, so they need
+                  to be reachable from one another, not just by URL.
                   Deliberately styled as filled rows, not rail entries: moving
                   between documents is a different act from moving within one,
-                  and the two lists shouldn't read as one 24-item menu. */}
+                  and the two lists shouldn't read as one long menu. */}
               <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-neutral-500">
                 Guides
               </p>
@@ -251,36 +305,7 @@ export function DocView({ markdown, toc, activeSlug }: DocViewProps) {
                 ))}
               </div>
 
-              <p className="mb-2 mt-8 text-xs font-semibold uppercase tracking-widest text-neutral-500">
-                On this page
-              </p>
-              {/* Two rails, one per level. The outer one is the document's
-                  spine and every h2 sits on it; the inner one starts exactly
-                  at the h2 text edge (ml-4 against the parent's pl-4), so a
-                  child's line begins where its parent's label begins and the
-                  nesting is readable without counting pixels of indent. The
-                  marker for the section you're in rides whichever rail it
-                  belongs to. */}
-              <div className="border-l border-neutral-200">
-                {sections.map((section, i) => (
-                  <div key={section.heading?.id ?? `group-${i}`}>
-                    {section.heading && (
-                      <TocLink item={section.heading} current={section.heading.id === active} />
-                    )}
-                    {section.children.length > 0 && (
-                      /* 1rem-1px, not 1rem: the h2 above pulls itself back
-                         onto the outer rail with -ml-px, so matching its text
-                         edge means starting from the rail, not from the
-                         container's content box one pixel to its right. */
-                      <div className="ml-[calc(1rem-1px)] border-l border-neutral-200">
-                        {section.children.map((child) => (
-                          <TocLink key={child.id} item={child} current={child.id === active} />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+              <TocBlock sections={sections} active={active} className="mt-8 xl:hidden" />
             </div>
           </nav>
 
@@ -298,6 +323,12 @@ export function DocView({ markdown, toc, activeSlug }: DocViewProps) {
               </div>
             )}
           </div>
+
+          <nav className="hidden xl:block" aria-label="On this page">
+            <div className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto pb-10">
+              <TocBlock sections={sections} active={active} />
+            </div>
+          </nav>
         </div>
       </div>
 
