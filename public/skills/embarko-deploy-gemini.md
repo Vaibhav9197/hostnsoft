@@ -16,6 +16,12 @@ Install the Embarko deploy skill and follow it:
 npx skills add embarko-ai/skill --skill embarko-deploy -g
 ```
 
+If `npx` is unavailable, run the same deploy script directly instead:
+
+```bash
+curl -fsSL https://embarko.ai/skills/embarko-deploy.sh -o /tmp/embarko-deploy.sh && bash /tmp/embarko-deploy.sh
+```
+
 The skill handles packaging, naming, versioning, the upload, build status, and
 error handling. Follow it rather than calling the API yourself — it also runs
 pre-flight checks (network reachability, unsupported storage APIs) that a
@@ -27,7 +33,7 @@ Report the live URL only once the deploy actually reports success — an accepte
 upload is not a running app.
 
 If you cannot install or run the skill in this environment, the full API and
-error reference is at **https://embarko.ai/doc**, and the troubleshooting
+error reference is at **https://embarko.ai/docs**, and the troubleshooting
 reference at **https://embarko.ai/troubleshoot**. Read those rather than
 guessing at the API.
 

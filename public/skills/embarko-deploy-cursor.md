@@ -20,6 +20,12 @@ npx skills add embarko-ai/skill --skill embarko-deploy -g
 
 For a repo-local install instead of global, drop the `-g`.
 
+If `npx` is unavailable, run the same deploy script directly instead:
+
+```bash
+curl -fsSL https://embarko.ai/skills/embarko-deploy.sh -o /tmp/embarko-deploy.sh && bash /tmp/embarko-deploy.sh
+```
+
 The skill handles packaging, naming, versioning, the upload, build status, and
 error handling — follow it rather than assembling your own `tar`/`curl` calls.
 It also runs pre-flight checks (network reachability, unsupported storage APIs)
@@ -37,7 +43,7 @@ the same command again — don't retry blindly and don't work around it with raw
 API calls.
 
 Full platform reference, if you need anything the skill doesn't cover:
-**https://embarko.ai/doc**.
+**https://embarko.ai/docs**.
 
 Three requirements for any app deployed here: it must read its port from the
 `PORT` environment variable, bind to `0.0.0.0` (not `localhost`), and have no

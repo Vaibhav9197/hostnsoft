@@ -10,8 +10,14 @@ import { variantForPath } from "./variants";
  *  skill and at embarko.ai/docs, which are maintained with the platform — a
  *  prompt that inlines them is a copy that goes stale in someone's chat
  *  history, and it makes the agent reason about HTTP instead of about
- *  deploying. The skill's own fallback section covers environments that can't
- *  install it. */
+ *  deploying.
+ *
+ *  Three escape hatches, in descending order of how much they do for you: the
+ *  skill, the same script fetched standalone (for agents with no `npx`), and
+ *  the docs for anything that can't run either. The standalone script is the
+ *  byte-identical file the skill ships — `npm run sync:skill` publishes it to
+ *  /skills/embarko-deploy.sh — so the fallback can't drift into being a
+ *  lesser deploy path than the skill's. */
 
 /** Stands in for the visitor's landing-page arm wherever a real one isn't
  *  known yet — server render, and the docs page before hydration. */
@@ -31,12 +37,16 @@ function build(variantLine: string, appName?: string | null): string {
   const nameLine = appName
     ? `\nDeploy it as the existing Embarko app "${appName}" — that exact name, so it updates that app instead of creating a new one.`
     : "";
-  return `Deploy this app to Embarko and tell me the live URL when it is live.
+  return `Embarko is Cloud for small apps.
+Deploy this app to Embarko.
 
 Install the Embarko deploy skill and follow it:
 npx skills add embarko-ai/skill --skill embarko-deploy -g${nameLine}
+
+If npx is unavailable, run the same deploy script directly instead:
+curl -fsSL https://embarko.ai/skills/embarko-deploy.sh -o /tmp/embarko-deploy.sh && bash /tmp/embarko-deploy.sh
 ${variantLine}
-The skill handles packaging, naming, the upload, build status and errors — follow it instead of calling the API yourself. No account or token is needed for a first deploy. If you cannot install it, the full reference is at https://embarko.ai/docs`;
+If you cannot install it, the full reference is at https://embarko.ai/docs`;
 }
 
 /** The documentation form: the attribution variable is shown, with its allowed
