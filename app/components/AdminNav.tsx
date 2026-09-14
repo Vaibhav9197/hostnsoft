@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Boxes, Mail, MessageSquare, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, BarChart3, Boxes, Mail, MessageSquare, Sparkles } from 'lucide-react';
 
 export function AdminNav() {
   const pathname = usePathname();
@@ -70,6 +70,18 @@ export function AdminNav() {
           >
             <MessageSquare className="w-5 h-5" />
             <span>Customer Queries</span>
+          </Link>
+
+          <Link
+            href="/admin/showcase"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+              isActive('/admin/showcase')
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-elevated hover:text-foreground'
+            }`}
+          >
+            <Sparkles className="w-5 h-5" />
+            <span>Showcase</span>
           </Link>
         </div>
       </div>
