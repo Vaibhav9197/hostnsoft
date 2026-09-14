@@ -46,6 +46,12 @@ export const DOCS: DocMeta[] = [
     title: "Limitations & recommendations",
     description: "Confirmed platform constraints, each paired with what to do about it.",
   },
+  {
+    slug: "hackathons",
+    path: "/hackathons",
+    title: "Hackathons",
+    description: "Free Embarko Pro for every participant, and a Showcase page for your event.",
+  },
 ];
 
 export function docBySlug(slug: string): DocMeta | undefined {
