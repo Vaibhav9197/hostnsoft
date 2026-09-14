@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '../../../lib/db';
+import { getAdminDb } from '../../../lib/db';
 import { currentSuperAdmin } from '../../../lib/api';
 
 // This returns other people's email addresses and the messages they sent us.
@@ -13,14 +13,16 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const db = getDb();
-    const messages = db.prepare(`
-      SELECT id, email, query, created_at
-      FROM contact_messages
-      ORDER BY created_at DESC
-    `).all();
+    const db = getAdminDb();
+    const { results } = await db
+      .prepare(
+        `SELECT id, email, query, created_at
+         FROM contact_messages
+         ORDER BY created_at DESC`,
+      )
+      .all();
 
-    return NextResponse.json(messages);
+    return NextResponse.json(results);
   } catch (err) {
     console.error('Contact list API error:', err);
     return NextResponse.json(

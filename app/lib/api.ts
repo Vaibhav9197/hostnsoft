@@ -14,6 +14,11 @@ import { NextResponse } from "next/server";
 
 export const API_BASE = (process.env.HOSTNSOFT_API_URL ?? "http://localhost:4100").replace(/\/$/, "");
 
+// The deploy endpoint's own root. The management API lives under /api on the
+// same host, but the deploy routes agents use — POST /apps, GET /apps/:name/logs
+// — sit one level up, so they need the origin without that suffix.
+export const DEPLOY_BASE = API_BASE.replace(/\/api$/, "");
+
 // MSG91 proxy-auth REST base. The proxy is the identity provider — a valid
 // proxy_auth_token can be validated and turned into user details here without
 // hostnsoft-api being involved (getDetails needs no secret authkey).
@@ -99,6 +104,8 @@ type UpstreamInit = {
   body?: string | null;
   proxyToken?: string | null;
   search?: string;
+  /** Defaults to the management API; pass DEPLOY_BASE for the deploy routes. */
+  base?: string;
 };
 
 async function upstream(path: string, init: UpstreamInit): Promise<Response> {
@@ -106,7 +113,7 @@ async function upstream(path: string, init: UpstreamInit): Promise<Response> {
   if (init.body != null) headers["Content-Type"] = "application/json";
   if (init.proxyToken) headers["proxy_auth_token"] = init.proxyToken;
   try {
-    return await fetch(`${API_BASE}${path}${init.search ?? ""}`, {
+    return await fetch(`${init.base ?? API_BASE}${path}${init.search ?? ""}`, {
       method: init.method ?? "GET",
       headers,
       body: init.body ?? undefined,
@@ -143,7 +150,7 @@ async function toNextResponse(res: Response): Promise<NextResponse> {
 // Generic authenticated proxy used by /api/hns/[...path] — attaches the PAT.
 export async function proxy(
   path: string,
-  opts: { method: string; body?: string | null; search?: string },
+  opts: { method: string; body?: string | null; search?: string; base?: string },
 ): Promise<NextResponse> {
   const proxyToken = await readProxyToken();
   if (!proxyToken) {
@@ -154,6 +161,7 @@ export async function proxy(
     method: opts.method,
     body: opts.body,
     search: opts.search,
+    base: opts.base,
     proxyToken,
   });
 

@@ -88,6 +88,12 @@ const ALERT_STYLES = {
   err: "text-destructive bg-destructive/10 border-destructive/30",
   info: "text-info bg-info/10 border-info/30",
   warn: "text-warning bg-warning/10 border-warning/40",
+  /* A plain explanatory note, not a status signal. Colour should mean
+     something here — err/warn/info each say "react to me" — and a note that
+     just explains why a panel is empty isn't asking for a reaction. It also
+     keeps the console on its neutral scale, and stops the text reading as a
+     link, which coloured body copy always does. */
+  note: "text-muted-foreground bg-card border-border",
 };
 
 export function Alert({
@@ -95,7 +101,7 @@ export function Alert({
   children,
   className,
 }: {
-  variant?: "err" | "info" | "warn";
+  variant?: "err" | "info" | "warn" | "note";
   children: React.ReactNode;
   className?: string;
 }) {
@@ -162,7 +168,11 @@ export function FactGrid({ children, flush }: { children: React.ReactNode; flush
 
 export function Fact({ k, v, mono, flush }: { k: string; v: React.ReactNode; mono?: boolean; flush?: boolean }) {
   return (
-    <div className={cn("bg-card", flush ? "p-0" : "p-4")}>
+    /* `flush` drops the card chrome entirely — no padding and no fill, so the
+       facts read as plain text on whatever surface holds them. Keeping bg-card
+       here was invisible inside a Panel (same colour) but drew white boxes on
+       any other background, e.g. a sheet. */
+    <div className={cn(flush ? "p-0" : "bg-card p-4")}>
       <div className="font-mono text-[0.66rem] uppercase tracking-[0.1em] text-faint">{k}</div>
       <div className={cn("mt-1 text-[0.95rem] font-medium text-foreground", mono && "font-mono")}>{v}</div>
     </div>

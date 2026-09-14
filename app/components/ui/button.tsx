@@ -11,7 +11,7 @@ const buttonVariants = cva(
       variant: {
         default: "bg-foreground text-background hover:bg-foreground/90",
         destructive:
-          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
         // No resting fill — it reads as an outline on whatever surface it sits
         // on. The edge carries it instead, so it must be explicit: a bare
         // `border` inherits the decorative --line and disappears at ~1.4:1

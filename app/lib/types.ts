@@ -9,8 +9,8 @@ export type MemberStatus = "invited" | "active";
 export type DeploymentStatus = "success" | "failed" | "in_progress";
 
 // Live health, resolved per-request from hostnsoft-deploy's Nomad allocation
-// status. Only GET-one carries it — it isn't a stored column, and the list
-// endpoint leaves it out deliberately to stay cheap.
+// status. The list endpoint carries it too, so a card can say whether an app is
+// up without fetching each project in turn.
 export type ProjectHealth =
   | "running" // healthy, actively serving traffic
   | "starting" // just deployed / redeploying, allocation not placed yet
@@ -79,13 +79,19 @@ export interface Project {
   // window runs out.
   isOrphan: boolean;
   orphanExpiresAt: string | null;
+  /** The deploy currently serving this project, null before the first one. */
+  currentDeploymentId: string | null;
+  /** How that deploy ended. Null before anything has been deployed. */
+  status: DeploymentStatus | null;
+  health: ProjectHealth;
+  createdBy: string | null;
   createdAt: string;
+  updatedAt: string;
 }
 
-// GET one project adds live health on top of the stored row.
-export interface ProjectDetail extends Project {
-  health: ProjectHealth;
-}
+/** GET one returns the same shape the list does; the name is kept because it
+ *  reads better at call sites that fetch a single project. */
+export type ProjectDetail = Project;
 
 export interface EnvVar {
   id: string;
@@ -127,7 +133,12 @@ export interface Deployment {
   status: DeploymentStatus;
   errorDetail: string | null;
   triggeredBy: string | null;
+  /** Whether this is the deploy currently serving traffic. Exactly one row
+   *  carries it, and a rollback moves it onto the new row it creates rather
+   *  than onto the deploy being restored. */
+  isCurrent: boolean;
   createdAt: string;
+  updatedAt: string;
   finishedAt: string | null;
 }
 
@@ -237,3 +248,51 @@ export interface PaymentMethod {
     email: string | null;
   };
 }
+
+// ---------------------------------------------------------------- Analytics
+// GET /companies/:id/projects/:id/analytics. The pipeline is optional
+// infrastructure: a 503 means it couldn't be reached, which is NOT the same as
+// an app with no traffic (that answers 200 with zeroes).
+export type AnalyticsRange = "24h" | "7d" | "30d" | "90d" | "all";
+
+export interface TrafficSeriesPoint {
+  bucketStart: string;
+  requests: number;
+  errors: number;
+}
+
+export interface ResourceSeriesPoint {
+  bucketStart: string;
+  avgCpuPercent: number;
+  maxCpuPercent: number;
+  avgMemoryMb: number;
+  maxMemoryMb: number;
+}
+
+export interface ProjectAnalytics {
+  traffic: {
+    range: AnalyticsRange;
+    totalRequests: number;
+    statusBreakdown: { "2xx": number; "3xx": number; "4xx": number; "5xx": number };
+    // Both null when nothing was served in the range.
+    latencyMs: { p50: number | null; p95: number | null };
+    topPaths: { path: string; requests: number }[];
+    series: TrafficSeriesPoint[];
+  };
+  resourceUsage: {
+    range: AnalyticsRange;
+    // null if never sampled — e.g. the app isn't running.
+    current: { cpuPercent: number; memoryMb: number; sampledAt: string } | null;
+    series: ResourceSeriesPoint[];
+  };
+}
+
+/** GET /apps/:slug/logs — recent tail of the app's most recent allocation.
+ *  App-level and non-streaming: there is one current allocation, so these are
+ *  the running app's logs rather than any particular deploy's build output.
+ *  `available` is false before anything has ever been allocated. */
+export type AppLogs =
+  | { available: true; allocId: string; stream: LogStream; logs: string }
+  | { available: false; reason: string };
+
+export type LogStream = "stdout" | "stderr";

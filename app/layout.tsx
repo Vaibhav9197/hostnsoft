@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./base.css";
 import { GoogleTagManager, GoogleTagManagerNoScript } from "./components/analytics/GoogleTagManager";
 import { PageViewTracker } from "./components/analytics/PageViewTracker";
+import { ConnectorTokenPickup } from "./components/connector/ConnectorTokenPickup";
 
 export const metadata: Metadata = {
   title: "Embarko — Deploy any app. Get a live URL.",
@@ -28,13 +29,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    /* The console's theme script sets data-theme on this element before React
+       hydrates, so the client DOM deliberately differs from the server HTML
+       here. Suppression is one level deep — it covers this element's own
+       attributes, not the tree inside it — which is exactly the scope of the
+       difference. Without it React warns on every console page load. */
+    <html lang="en" suppressHydrationWarning>
       <head>
         <GoogleTagManager />
       </head>
       <body>
         <GoogleTagManagerNoScript />
         <PageViewTracker />
+        <ConnectorTokenPickup />
         {children}
       </body>
     </html>

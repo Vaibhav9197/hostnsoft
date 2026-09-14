@@ -1,20 +1,32 @@
 import { nanoid } from 'nanoid';
-import { VARIANTS } from './variants';
+import { isVariant, variantForPath } from './variants';
 
 const VISITOR_ID_COOKIE = 'visitor_id';
 const VISITOR_ID_STORAGE_KEY = 'visitor_id';
 
 /**
- * Map route name (v1-v4) to variant name (alpha-delta)
+ * Which arm an event belongs to.
+ *
+ * The page wins over the cookie, matching how the deploy prompt already
+ * resolves this: a direct hit on /v1../v4 — QA, or a shared link — shows a
+ * page that need not match the arm the visitor was bucketed into, and the
+ * honest answer is the page the event actually happened on. Everywhere else
+ * (the header's login/signup, which appear site-wide) the cookie decides.
+ *
+ * Null when neither knows, and the caller drops the event. This used to
+ * default to `v1`, which silently filed every cookie-less visitor under alpha
+ * — middleware only sets the cookie on `/`, so anyone landing straight on
+ * /v2../v4, or blocking cookies, inflated one arm at the others' expense.
  */
-function routeToVariant(route: string): string {
-  const mapping: Record<string, string> = {
-    'v1': 'alpha',
-    'v2': 'beta',
-    'v3': 'gamma',
-    'v4': 'delta',
-  };
-  return mapping[route] || route;
+function currentVariant(): string | null {
+  const fromPath = variantForPath(window.location.pathname);
+  if (fromPath) return fromPath;
+
+  const cookie = document.cookie
+    .split('; ')
+    .find((row) => row.startsWith('lp_variant='));
+  const value = cookie?.split('=')[1];
+  return isVariant(value) ? value : null;
 }
 
 /**
@@ -63,21 +75,22 @@ export async function trackEvent(
 ) {
   if (typeof window === 'undefined') return;
 
+  const variant = currentVariant();
+  /* No arm, nothing to learn. Recording it against a guess is worse than not
+     recording it — one arm's numbers move for reasons that have nothing to do
+     with the page it is being judged on. */
+  if (!variant) return;
+
   try {
-    const visitorId = getOrCreateVisitorId();
-
-    // Get route name from cookie (v1-v4) and convert to variant name (alpha-delta)
-    const variantCookie = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('lp_variant='));
-    const routeName = variantCookie ? variantCookie.split('=')[1] : 'v1';
-    const variant = routeToVariant(routeName);
-
     await fetch('/api/events', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      /* The CTAs open modals today, but a future one may navigate away, and an
+         in-flight fetch is cancelled when the page unloads. keepalive lets it
+         finish regardless. */
+      keepalive: true,
       body: JSON.stringify({
-        visitor_id: visitorId,
+        visitor_id: getOrCreateVisitorId(),
         variant,
         event,
         url: window.location.pathname,
@@ -91,12 +104,27 @@ export async function trackEvent(
 }
 
 /**
- * Track page view on mount
+ * One page view per visitor per page per session.
+ *
+ * The landing pages fire this from an effect, which React runs twice in
+ * StrictMode, and a client-side navigation back to the page runs it again —
+ * both inflate the denominator every rate on the dashboard divides by.
+ * sessionStorage rather than a module variable, so a reload doesn't re-count
+ * either, while a genuinely new session still does.
  */
-export function usePageView() {
-  if (typeof window !== 'undefined') {
-    trackEvent('page_view');
+export function trackPageView() {
+  if (typeof window === 'undefined') return;
+
+  const key = `pv:${window.location.pathname}`;
+  try {
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, '1');
+  } catch {
+    /* Private mode, or storage disabled. Counting one view twice beats
+       counting none at all, so fall through and track. */
   }
+
+  trackEvent('page_view');
 }
 
 /**

@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { Lock } from "lucide-react";
 import { Alert, EmptyState, LinkButton, Page, PageHeader, Panel, Skeleton } from "../../../../components/console/kit";
 import { BulkEnvDialog } from "../../../../components/console/BulkEnvDialog";
@@ -25,7 +26,7 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
   const { activeCompanyId } = useSession();
   const [vars, setVars] = useState<EnvVar[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<React.ReactNode>(null);
   const [key, setKey] = useState("");
   const [value, setValue] = useState("");
   const [busy, setBusy] = useState(false);
@@ -78,8 +79,19 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
     setError(null);
     setNotice(null);
     try {
-      const created = await deploymentsApi.rollback(activeCompanyId, projectId, latest.id);
-      setNotice(`Re-deployed ${latest.appVersion} as ${created.version}. The running app now has these variables.`);
+      await deploymentsApi.rollback(activeCompanyId, projectId, latest.id);
+      /* Points at Deployments rather than the live URL: until this finishes,
+         the app on that URL is still the old one, so the build is the thing
+         worth watching. */
+      setNotice(
+        <>
+          Deployment started — it may take a little while.{" "}
+          <Link className="text-info underline underline-offset-2" href={`/app/projects/${projectId}/deployments`}>
+            Check the deployment status
+          </Link>
+          .
+        </>,
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn’t re-deploy.");
     } finally {
@@ -139,7 +151,7 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
 
   return (
     <Page>
-      <PageHeader title="Environment" subtitle="Config and secrets stored for this app." />
+      <PageHeader title="App setup" subtitle="Settings and secrets your app runs with." />
 
       <form className="flex flex-wrap items-center gap-2.5" onSubmit={upsert}>
         <Input className="min-w-[140px] flex-1 font-mono" placeholder="KEY" value={key} onChange={(e) => setKey(e.target.value.toUpperCase())} />
@@ -175,7 +187,7 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
       </Dialog>
 
       {error && <Alert>{error}</Alert>}
-      {notice && <Alert variant="info">{notice}</Alert>}
+      {notice && <Alert variant="info" className="text-foreground">{notice}</Alert>}
 
       {!vars && !error && <Skeleton className="h-[140px]" aria-hidden="true" />}
 

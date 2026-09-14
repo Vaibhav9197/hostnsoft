@@ -7,7 +7,7 @@ import { variantForPath } from "./variants";
  *
  *  It states the intent and points at the skill; it does NOT restate the API.
  *  Endpoints, headers, auth, packaging, polling and error codes live in the
- *  skill and at embarko.ai/doc, which are maintained with the platform — a
+ *  skill and at embarko.ai/docs, which are maintained with the platform — a
  *  prompt that inlines them is a copy that goes stale in someone's chat
  *  history, and it makes the agent reason about HTTP instead of about
  *  deploying. The skill's own fallback section covers environments that can't
@@ -19,14 +19,24 @@ const VARIANT_PLACEHOLDER = "<alpha|beta|gamma|delta>";
 
 /** `EMBARKO_LP_VARIANT` rides along to the deploy service (the deploy script
  *  forwards it as the `lp_variant` header) so a deploy can be attributed back
- *  to the landing page that produced it. */
-function build(variantLine: string): string {
+ *  to the landing page that produced it.
+ *
+ *  `appName` names an app that already exists, so a prompt copied from inside
+ *  one redeploys that app rather than standing up a second copy on a second
+ *  subdomain. Omitted on the marketing pages, where there is no app yet. */
+function build(variantLine: string, appName?: string | null): string {
+  /* Named explicitly even though the skill can pick a name: the skill only
+     knows the folder it is run from, and the platform treats a name it hasn't
+     seen as a brand-new app. */
+  const nameLine = appName
+    ? `\nDeploy it as the existing Embarko app "${appName}" — that exact name, so it updates that app instead of creating a new one.`
+    : "";
   return `Deploy this app to Embarko and tell me the live URL when it is live.
 
 Install the Embarko deploy skill and follow it:
-npx skills add embarko-ai/skill --skill embarko-deploy -g
+npx skills add embarko-ai/skill --skill embarko-deploy -g${nameLine}
 ${variantLine}
-The skill handles packaging, naming, the upload, build status and errors — follow it instead of calling the API yourself. No account or token is needed for a first deploy. If you cannot install it, the full reference is at https://embarko.ai/doc`;
+The skill handles packaging, naming, the upload, build status and errors — follow it instead of calling the API yourself. No account or token is needed for a first deploy. If you cannot install it, the full reference is at https://embarko.ai/docs`;
 }
 
 /** The documentation form: the attribution variable is shown, with its allowed
@@ -64,12 +74,29 @@ export function deployPromptFor(variant: string | null): string {
 export const CONSOLE_DEPLOY_PROMPT = build("");
 
 /**
+ * The console prompt with the app already named.
+ *
+ * Copied from inside an app, the prompt is for redeploying *that* app, and the
+ * name is what decides which one the deploy lands on — the platform treats a
+ * name it hasn't seen as a new app, so leaving `<name>` for the reader to fill
+ * in is how you end up with a second copy of your site on a second subdomain.
+ *
+ * Pass the slug, not the display name: `X-App-Name` is also the live
+ * subdomain, and the two are only the same string until someone renames one.
+ * Falls back to the placeholder when the slug hasn't loaded, so a prompt
+ * copied early is generic rather than addressed to "undefined".
+ */
+export function consoleDeployPromptFor(appSlug: string | null | undefined): string {
+  return build("", appSlug);
+}
+
+/**
  * Which arm the visitor is copying from, for attribution.
  *
  * The page wins over the cookie. A direct hit on /v1../v4 — QA, or a shared
  * link — shows a landing page that need not match the arm the visitor was
  * bucketed into, and the honest answer is the page the copy actually came
- * from. For everyone else the path is `/` or /doc, which says nothing, so the
+ * from. For everyone else the path is `/` or /docs, which says nothing, so the
  * cookie decides.
  */
 function currentVariant(): string | null {

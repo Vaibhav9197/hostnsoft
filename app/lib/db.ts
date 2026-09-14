@@ -1,75 +1,53 @@
-import Database from "better-sqlite3";
-import fs from "fs";
-import path from "path";
+import type { D1Database } from "@cloudflare/workers-types";
 
-// Embarko only persists what an app writes underneath DATA_DIR — everything
-// else lives in the container filesystem and is wiped on the next deploy. So
-// the A/B store follows DATA_DIR when the platform sets it, and falls back to
-// the ./.data folder this project has always used for local dev (where the
-// variable doesn't exist). See https://embarko.ai/doc#storage-requirements.
-const DATA_DIR = process.env.DATA_DIR ?? path.join(process.cwd(), ".data");
-const DB_PATH = path.join(DATA_DIR, "hero-ab.sqlite");
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-let db: Database.Database | undefined;
-
-// A fresh deploy starts with an empty DATA_DIR, so the schema has to be created
-// on demand — otherwise the first request dies on "no such table". Every
-// statement is IF NOT EXISTS, which makes this a no-op against the existing
-// local database.
-function migrate(handle: Database.Database) {
-  handle.exec(`
-    CREATE TABLE IF NOT EXISTS hero_assignments (
-      visitor_id TEXT PRIMARY KEY,
-      variant    TEXT NOT NULL,
-      first_seen TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS hero_events (
-      id         INTEGER PRIMARY KEY AUTOINCREMENT,
-      visitor_id TEXT NOT NULL,
-      variant    TEXT NOT NULL,
-      event      TEXT NOT NULL,
-      url        TEXT,
-      user_agent TEXT,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_hero_events_variant ON hero_events(variant);
-    CREATE INDEX IF NOT EXISTS idx_hero_events_event   ON hero_events(event);
-
-    -- Legacy: the contact form now posts to hostnsoft-api's
-    -- /public/customer-query instead. Kept so /api/contact/list can still read
-    -- the rows written before that switch.
-    CREATE TABLE IF NOT EXISTS contact_messages (
-      id         INTEGER PRIMARY KEY AUTOINCREMENT,
-      email      TEXT NOT NULL,
-      query      TEXT NOT NULL,
-      created_at TEXT DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS variant_metrics (
-      variant             TEXT PRIMARY KEY,
-      page_views          INTEGER DEFAULT 0,
-      cta_clicks          INTEGER DEFAULT 0,
-      cta_copy            INTEGER DEFAULT 0,
-      cta_login           INTEGER DEFAULT 0,
-      cta_signup          INTEGER DEFAULT 0,
-      deployments_success INTEGER DEFAULT 0,
-      deployments_failed  INTEGER DEFAULT 0,
-      signups             INTEGER DEFAULT 0,
-      updated_at          TEXT DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
+/**
+ * The A/B metrics store.
+ *
+ * This was a better-sqlite3 file under DATA_DIR, which is right for a Node
+ * host and impossible here: production runs as a Cloudflare Worker, workerd
+ * cannot load a native addon, and there is no writable filesystem to put the
+ * file on either. Every call threw, so the dashboard had nothing to show while
+ * local dev looked perfectly healthy.
+ *
+ * D1 is SQLite, so the queries and the schema came across unchanged. What does
+ * change is that everything is async — D1 goes over the network from the
+ * Worker's point of view, where a file handle did not.
+ *
+ * The schema lives in migrations/, not in a migrate() call on first use: a
+ * Worker has no per-deploy filesystem to lose, so there is nothing to recreate
+ * at request time, and doing it per request would cost a round trip on every
+ * hit.
+ */
+/**
+ * The store the admin dashboard reads.
+ *
+ * Deployed this is the same database `getDb()` writes to. In `next dev` it is
+ * the production one, because a dashboard showing whatever rows this laptop
+ * happens to hold answers no question anyone has — you open it to see what
+ * real visitors did.
+ *
+ * Reads only. Writes must keep going through `getDb()`, or local browsing
+ * starts inventing production traffic.
+ */
+export function getAdminDb(): D1Database {
+  /* Falls back to the write binding rather than failing: an older deployment,
+     or a checkout whose wrangler.jsonc predates DB_ADMIN, should still show a
+     dashboard. In production the two are the same database anyway. */
+  return getCloudflareContext().env.DB_ADMIN ?? getDb();
 }
 
-export function getDb(): Database.Database {
+export function getDb(): D1Database {
+  const db = getCloudflareContext().env.DB;
   if (!db) {
-    // DATA_DIR is mounted by the platform, but the local fallback may not exist
-    // yet on a clean checkout, and better-sqlite3 will not create it for us.
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-    db = new Database(DB_PATH);
-    db.pragma("journal_mode = WAL");
-    migrate(db);
+    /* Loud rather than silent. The whole point of this file's history is that
+       a broken store looked like "no traffic yet" on the dashboard — an empty
+       table and a missing binding must never again be indistinguishable. */
+    throw new Error(
+      "D1 binding DB is not available. Check d1_databases in wrangler.jsonc, " +
+        "and that next.config.mjs calls initOpenNextCloudflareForDev() for local dev.",
+    );
   }
   return db;
 }

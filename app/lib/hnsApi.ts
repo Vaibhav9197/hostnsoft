@@ -9,6 +9,8 @@
 
 import { HnsError, hns } from "./client";
 import type {
+  AnalyticsRange,
+  AppLogs,
   BillingPlan,
   BillingStatus,
   BillingSubscription,
@@ -20,9 +22,11 @@ import type {
   Deployment,
   Domain,
   EnvVar,
+  LogStream,
   Member,
   PaymentMethod,
   Project,
+  ProjectAnalytics,
   ProjectDetail,
 } from "./types";
 
@@ -62,6 +66,27 @@ export const membersApi = {
 };
 
 // ----------------------------------------------------------------- Projects
+export const appsApi = {
+  // GET /apps/:slug/logs — tail of the running app's stdout (or stderr).
+  // Keyed by slug, not project id, and scoped to the live allocation rather
+  // than to a deployment.
+  //
+  // Note the route: this one lives on the deploy endpoint's root, not under
+  // the management API, so it has its own BFF route instead of going through
+  // the generic /api/hns proxy.
+  logs: async (slug: string, stream: LogStream = "stdout"): Promise<AppLogs> => {
+    const res = await fetch(`/api/apps/${encodeURIComponent(slug)}/logs?stream=${stream}`);
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      throw new HnsError(
+        (data && typeof data.error === "string" && data.error) || "Couldn’t load logs.",
+        res.status,
+      );
+    }
+    return data as AppLogs;
+  },
+};
+
 export const projectsApi = {
   // POST /companies/:companyId/projects — create (409 if the derived slug is
   // taken platform-wide).
@@ -241,3 +266,22 @@ export const customerQueryApi = {
       body: { type, message },
     }),
 };
+
+// ---------------------------------------------------------------- Analytics
+export const analyticsApi = {
+  // GET /companies/:companyId/projects/:projectId/analytics — traffic and
+  // resource usage over `range`. The series arrive pre-bucketed for charting
+  // (hourly for 24h, 6-hourly for 7d, daily above that), so nothing here
+  // re-buckets them.
+  //
+  // A 503 from this endpoint means the analytics pipeline is unreachable, not
+  // that the app is idle — an idle app answers 200 with zeroes. Callers must
+  // keep those apart; see ANALYTICS_UNAVAILABLE below.
+  project: (companyId: string, projectId: string, range: AnalyticsRange = "24h") =>
+    hns<ProjectAnalytics>(
+      `/companies/${companyId}/projects/${projectId}/analytics?range=${range}`,
+    ),
+};
+
+/** The status that means "pipeline down", as distinct from "no traffic". */
+export const ANALYTICS_UNAVAILABLE = 503;

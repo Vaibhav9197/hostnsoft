@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Menu, X } from "lucide-react";
 
+import { trackCTA } from "../lib/tracking";
+
 /** An in-page anchor shown in the header's centre slot. */
 export interface HeaderLink {
   href: string;
@@ -84,7 +86,10 @@ export function Header({ onAuthClick, links }: HeaderProps) {
       }`}
     >
       <div className="flex h-16 w-full items-center justify-between px-6">
-        <Link href="/" className="text-lg font-bold text-neutral-950">
+        <Link href="/" className="flex items-center gap-1.5 text-lg font-bold text-neutral-950">
+          {/* Plain img: the mark is a static SVG, so next/image would add a
+              wrapper and an optimiser pass for nothing. */}
+          <img src="/assets/embarko-icon.svg" alt="" aria-hidden="true" className="size-5 rounded" />
           Embarko
         </Link>
 
@@ -107,19 +112,23 @@ export function Header({ onAuthClick, links }: HeaderProps) {
           <Link href="/pricing" className={`hidden ${NAV_LINK} ${hasLinks ? "lg:block" : "sm:block"}`}>
             Pricing
           </Link>
-          <Link href="/doc" className={`hidden ${NAV_LINK} ${hasLinks ? "lg:block" : "sm:block"}`}>
+          <Link href="/docs" className={`hidden ${NAV_LINK} ${hasLinks ? "lg:block" : "sm:block"}`}>
             Docs
           </Link>
           <button
             type="button"
-            onClick={onAuthClick}
+            /* Both auth buttons open the same modal, so the only place the
+               dashboard's login/signup split can come from is which one was
+               pressed. Tracked here rather than in each variant: all four
+               share this header. */
+            onClick={() => { trackCTA('login'); onAuthClick(); }}
             className={`hidden ${NAV_LINK} ${hasLinks ? "lg:block" : "sm:block"}`}
           >
             Log in
           </button>
           <button
             type="button"
-            onClick={onAuthClick}
+            onClick={() => { trackCTA('signup'); onAuthClick(); }}
             className="inline-flex items-center gap-1.5 rounded-full border border-blue-600 px-4 py-2 text-sm font-semibold text-blue-600 transition hover:bg-blue-50"
           >
             Sign up <ArrowRight className="h-3.5 w-3.5" />
@@ -165,7 +174,7 @@ export function Header({ onAuthClick, links }: HeaderProps) {
               Pricing
             </Link>
             <Link
-              href="/doc"
+              href="/docs"
               onClick={() => setMenuOpen(false)}
               className="border-t border-[var(--line)] py-3 text-[15px] font-medium text-neutral-700 hover:text-neutral-950"
             >
@@ -175,6 +184,7 @@ export function Header({ onAuthClick, links }: HeaderProps) {
               type="button"
               onClick={() => {
                 setMenuOpen(false);
+                trackCTA('login');
                 onAuthClick();
               }}
               className="border-t border-[var(--line)] py-3 text-left text-[15px] font-medium text-neutral-700 hover:text-neutral-950"

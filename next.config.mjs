@@ -1,9 +1,31 @@
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
+
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  async redirects() {
+    return [
+      // The docs used to live at /doc. The deploy prompt, llms.txt and older
+      // shared links all point at the singular form, so keep it working.
+      { source: "/doc", destination: "/docs", permanent: true },
+    ];
+  },
+};
+
+/* Loads the workerd runtime into `next dev` so getCloudflareContext() can hand
+   out the D1 binding locally. This was deliberately left out while the app used
+   no bindings at all — that stopped being true when the A/B store moved to D1,
+   and without it every /api/events and /api/metrics request fails in dev.
+   Running dev on the same binding as production is also what would have caught
+   the better-sqlite3 problem before it shipped.
+
+   Guarded on NODE_ENV because `next build` evaluates this file too. DB_ADMIN is
+   `remote: true`, so an unguarded call makes the build open a live connection to
+   production D1 — fine locally where wrangler is logged in, fatal in Cloudflare's
+   build sandbox, which has no credentials and hangs on "Establishing remote
+   connection..." until the 30-minute timeout. A build must not need the database
+   it is being built to talk to. */
+if (process.env.NODE_ENV === "development") {
+  initOpenNextCloudflareForDev();
+}
 
 export default nextConfig;
-
-// Note: OpenNext's initOpenNextCloudflareForDev() is intentionally NOT called here.
-// It loads the workerd runtime into `next dev`, which this app doesn't need
-// (the API uses only process.env + fetch, no Cloudflare bindings). The real
-// Worker runtime is exercised via `npm run preview` / `npm run deploy` (Wrangler).

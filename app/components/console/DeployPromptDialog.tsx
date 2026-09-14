@@ -3,7 +3,7 @@
 import { Button, buttonVariants } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { COPIED_LABEL, CopyPromptButton } from "../CopyPromptButton";
-import { CONSOLE_DEPLOY_PROMPT } from "@/app/lib/deployPrompt";
+import { CONSOLE_DEPLOY_PROMPT, consoleDeployPromptFor } from "@/app/lib/deployPrompt";
 
 /**
  * Hands the visitor the deploy prompt to paste into their agent.
@@ -22,12 +22,18 @@ export function DeployPromptDialog({
   onClose,
   title,
   description,
+  appSlug,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   description: React.ReactNode;
+  /** Names the app in the prompt, so a redeploy lands on this one rather than
+   *  creating a second app. Omitted by the apps list, which has no app yet. */
+  appSlug?: string | null;
 }) {
+  const prompt = appSlug ? consoleDeployPromptFor(appSlug) : CONSOLE_DEPLOY_PROMPT;
+
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <DialogContent className="max-w-md">
@@ -37,7 +43,7 @@ export function DeployPromptDialog({
         </DialogHeader>
 
         <pre className="max-h-[40vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-border bg-elevated p-4 font-mono text-xs leading-relaxed text-muted-foreground">
-          {CONSOLE_DEPLOY_PROMPT}
+          {prompt}
         </pre>
 
         <div className="flex justify-end gap-2">
@@ -47,7 +53,7 @@ export function DeployPromptDialog({
           {/* The shared copy button owns the clipboard behaviour and the
               copied-state flip; it only needs the primary button's styling. */}
           <CopyPromptButton
-            text={CONSOLE_DEPLOY_PROMPT}
+            text={prompt}
             className={buttonVariants()}
             copiedChildren={COPIED_LABEL}
             onCopied={onClose}

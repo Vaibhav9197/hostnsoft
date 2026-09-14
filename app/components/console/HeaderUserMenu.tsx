@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, Check, ChevronsUpDown, CreditCard, KeyRound, LayoutGrid, LogOut, Shield, User, Users } from "lucide-react";
+import { Building2, Check, ChevronsUpDown, CreditCard, KeyRound, LaptopMinimal, LayoutGrid, LogOut, Moon, Shield, Sun, User, Users } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -14,6 +14,8 @@ import {
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
 import { useSession } from "@/app/lib/session";
+import { type ThemePref, useTheme } from "@/app/lib/theme";
+import { cn } from "@/app/lib/utils";
 
 /**
  * Account menu in the console header: who you're signed in as, which company
@@ -23,10 +25,17 @@ import { useSession } from "@/app/lib/session";
  * the console still works when the sidebar goes away — nothing here depends on
  * the sidebar being mounted or expanded.
  */
+const THEMES: { value: ThemePref; label: string; icon: typeof Sun }[] = [
+  { value: "light", label: "Light", icon: Sun },
+  { value: "dark", label: "Dark", icon: Moon },
+  { value: "system", label: "System", icon: LaptopMinimal },
+];
+
 export function HeaderUserMenu() {
   const { user, companies, activeCompanyId, activeCompany, isSuperAdmin, setActiveCompanyId, signOut } = useSession();
   const pathname = usePathname();
   const router = useRouter();
+  const { pref, setPref } = useTheme();
 
   // Every console page is scoped to the active company, so whatever's on
   // screen (a project, its settings, deployments…) belongs to the company we're
@@ -136,6 +145,37 @@ export function HeaderUserMenu() {
             Manage companies
           </Link>
         </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
+        {/* A segmented row rather than three menu items: the choice is one
+            setting with three values, and showing all three makes it obvious
+            that "System" is a distinct option from whichever theme the OS
+            happens to be serving right now. */}
+        <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Theme</DropdownMenuLabel>
+        <div className="flex gap-1 px-1 pb-1" role="radiogroup" aria-label="Theme">
+          {THEMES.map(({ value, label, icon: Icon }) => {
+            const isActive = pref === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={isActive}
+                onClick={() => setPref(value)}
+                className={cn(
+                  "flex flex-1 flex-col items-center gap-1 rounded px-2 py-1.5 text-[0.7rem] transition-colors",
+                  isActive
+                    ? "bg-elevated font-medium text-foreground"
+                    : "text-muted-foreground hover:bg-elevated/60",
+                )}
+              >
+                <Icon className="size-4 shrink-0" aria-hidden="true" />
+                {label}
+              </button>
+            );
+          })}
+        </div>
 
         <DropdownMenuSeparator />
 

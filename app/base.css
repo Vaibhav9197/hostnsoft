@@ -46,6 +46,7 @@
   --info-soft:rgba(37,99,235,.12);
   --danger:#dc2626;
   --danger-soft:rgba(220,38,38,.12);
+  --on-danger:#ffffff;    /* white text on the light-mode red */
   /* Soft elevation shadows — warm tone for light ground. */
   --elev-1:0 1px 3px -1px rgba(20,18,16,.06),0 1px 2px -1px rgba(20,18,16,.04);
   --elev-2:0 4px 6px -1px rgba(20,18,16,.08),0 2px 4px -2px rgba(20,18,16,.06);
@@ -53,6 +54,65 @@
   --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
 }
+
+/* Dark palette — the same token names, so nothing downstream needs a dark
+   variant: every Tailwind colour in tailwind.config.js already resolves through
+   these vars.
+
+   Keyed on a resolved attribute (light|dark), never on prefers-color-scheme
+   directly. The preference has three values — light, dark, system — and the
+   console resolves "system" in JS before writing the attribute. One source of
+   truth means CSS, Tailwind's `dark:` variant and the UI can't disagree about
+   which theme is showing.
+
+   Scoped to the attribute rather than :root so the marketing pages, which are
+   hand-designed for the cream ground and carry no attribute, stay light. */
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#14130f;           /* warm near-black page */
+  --surface:#1c1b16;      /* raised card */
+  --surface-2:#26241e;    /* chips/inputs */
+  --surface-3:#33302a;    /* elevated-2 */
+  --ink:#f2f0ea;          /* warm off-white text */
+  --ink-soft:#a8a299;
+  --ink-faint:#7b756c;
+  /* Light mode puts black on cream; dark inverts the pair rather than
+     introducing a colour, keeping the console on its neutral scale. */
+  --accent:#f2f0ea;
+  --accent-2:#d9d6ce;
+  --accent-soft:rgba(242,240,234,.08);
+  --accent-line:rgba(242,240,234,.24);
+  --on-accent:#14130f;
+  --line:#2e2b25;
+  --line-strong:#3b382f;
+  /* Same job as in light mode: a control edge that clears 3:1, here by being
+     lighter than the ground rather than darker. */
+  --line-control:#6f6a60;
+  /* Lifted so they carry on dark ground — the light values sit near 3:1
+     against #14130f and read as muddy. */
+  --ok:#4ade80;
+  --ok-soft:rgba(74,222,128,.16);
+  --warn:#fbbf24;
+  --warn-soft:rgba(251,191,36,.16);
+  --info:#60a5fa;
+  --info-soft:rgba(96,165,250,.16);
+  --danger:#f87171;
+  --danger-soft:rgba(248,113,113,.16);
+  /* The dark red is a light tint, so its label goes dark. White here would be
+     both unreadable and against the rule the rest of this palette follows. */
+  --on-danger:#1a1208;
+  /* Shadows do almost nothing on a dark ground, so they lean on opacity to
+     stay perceptible at all rather than tinting. */
+  --elev-1:0 1px 3px -1px rgba(0,0,0,.5),0 1px 2px -1px rgba(0,0,0,.4);
+  --elev-2:0 4px 6px -1px rgba(0,0,0,.55),0 2px 4px -2px rgba(0,0,0,.45);
+  --elev-3:0 10px 15px -3px rgba(0,0,0,.6),0 4px 6px -4px rgba(0,0,0,.5);
+}
+
+/* --bg-glass and its solid fallback are deliberately not redeclared: they are
+   color-mix() over var(--bg), which re-resolves against whichever --bg is in
+   scope. */
+
+:root[data-theme="light"]{ color-scheme: light; }
 
 @layer base {
   /* Foundational normalization only — the same box-sizing/margin/padding and

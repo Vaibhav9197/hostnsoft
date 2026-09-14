@@ -34,13 +34,11 @@ export const STATUS_LABEL: Record<string, string> = {
   success: "Success",
   failed: "Failed",
   in_progress: "In progress",
-  // project health (live, from the deploy service)
-  running: "Running",
-  starting: "Starting",
-  crashed: "Crashed",
-  stopped: "Stopped",
-  not_deployed: "Not deployed",
-  unknown: "Unknown",
+  /* Project health is deliberately absent. It has its own vocabulary in
+     HealthPill — Running / Not online / Needs attention — because a reader cannot
+     act differently on "crashed" than on "stopped". Naming the states twice is
+     what let the app card and the app's own page disagree about
+     the very same value. */
   // membership status
   active: "Active",
   invited: "Invited",
@@ -55,20 +53,15 @@ export function statusTone(status: string): "ok" | "warn" | "err" | "muted" {
   switch (status) {
     case "success":
     case "active":
-    case "running":
       return "ok";
     case "in_progress":
     case "invited":
     case "pending_dns":
-    case "starting":
       return "warn";
     case "failed":
     case "revoked":
-    case "crashed":
       return "err";
-    // "stopped" and "not_deployed" are resting states, not faults, and
-    // "unknown" means we couldn't check — all three stay muted, as does
-    // anything else we don't recognise.
+    // Anything unrecognised stays muted rather than guessing a tone.
     default:
       return "muted";
   }
@@ -78,6 +71,20 @@ export function statusTone(status: string): "ok" | "warn" | "err" | "muted" {
 export function formatDate(iso: string | null): string {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+// Absolute date with clock time, e.g. "27 Aug 2026, 14:05". For timestamps
+// where the hour matters — "yesterday" is no use when you want to know whether
+// a change landed before or after something else.
+export function formatDateTime(iso: string | null): string {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 // Money from minor units, e.g. formatMoney(1500, "USD") → "$15".

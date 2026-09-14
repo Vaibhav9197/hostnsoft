@@ -2,60 +2,30 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '../../lib/db';
 import { isVariant } from '../../lib/variants';
 
-/* This endpoint is public — anything on the internet can POST to it — so no
-   value off the wire is ever pasted into SQL. Values are bound as parameters,
-   and column names (which SQLite cannot bind) are looked up in this fixed map,
-   so an unrecognised cta_type selects nothing instead of naming a column. */
-const CTA_COLUMNS: Record<string, string> = {
-  copy: 'cta_copy',
-  login: 'cta_login',
-  signup: 'cta_signup',
-};
-
 /**
- * Map event types to variant_metrics columns
+ * Records one A/B event.
+ *
+ * Public — anything on the internet can POST here — so nothing off the wire is
+ * trusted: the arm is checked against the known set, and every value is bound
+ * as a parameter.
+ *
+ * One row per event, and nothing else. This used to also keep running totals
+ * in a `variant_metrics` table, which meant two tallies of the same thing that
+ * could drift, and which threw away everything the dashboard actually wants:
+ * who did it, when, and on which page. The metrics endpoint aggregates these
+ * rows instead.
  */
-function incrementMetric(variant: string, event: string, data?: any) {
-  const db = getDb();
-
-  try {
-    // Ensure row exists for variant
-    db.prepare('INSERT OR IGNORE INTO variant_metrics (variant) VALUES (?)').run(variant);
-
-    if (event === 'page_view') {
-      db.prepare(
-        'UPDATE variant_metrics SET page_views = page_views + 1 WHERE variant = ?'
-      ).run(variant);
-    } else if (event === 'cta_clicked') {
-      /* The click still counts toward the total even when the cta_type isn't one
-         we break out separately — otherwise a typo upstream silently loses the
-         click from both columns. */
-      const column = CTA_COLUMNS[String(data?.cta_type)];
-      db.prepare(
-        column
-          ? `UPDATE variant_metrics SET cta_clicks = cta_clicks + 1, ${column} = ${column} + 1 WHERE variant = ?`
-          : 'UPDATE variant_metrics SET cta_clicks = cta_clicks + 1 WHERE variant = ?'
-      ).run(variant);
-    } else if (event === 'deployment') {
-      const column =
-        data?.status === 'success' ? 'deployments_success' : 'deployments_failed';
-      db.prepare(
-        `UPDATE variant_metrics SET ${column} = ${column} + 1 WHERE variant = ?`
-      ).run(variant);
-    } else if (event === 'signup') {
-      db.prepare(
-        'UPDATE variant_metrics SET signups = signups + 1 WHERE variant = ?'
-      ).run(variant);
-    }
-  } catch (err) {
-    console.error('DB error:', err);
-  }
-}
-
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { visitor_id, variant, event, data } = body;
+    const body = (await req.json()) as {
+      visitor_id?: string;
+      variant?: string;
+      event?: string;
+      url?: string;
+      user_agent?: string;
+      data?: unknown;
+    };
+    const { visitor_id, variant, event } = body;
 
     if (!visitor_id || !variant || !event) {
       return NextResponse.json(
@@ -65,22 +35,24 @@ export async function POST(req: NextRequest) {
     }
 
     /* Anyone can post here, so an unrecognised arm is rejected rather than
-       stored — otherwise the metrics table grows a row per made-up variant and
-       the dashboard fills with noise. */
+       stored — otherwise the dashboard fills with made-up variants. */
     if (!isVariant(variant)) {
       return NextResponse.json({ error: 'Unknown variant' }, { status: 400 });
     }
 
-    // Log event to hero_events table
-    const db = getDb();
-    const stmt = db.prepare(`
-      INSERT INTO hero_events (visitor_id, variant, event, url, user_agent)
-      VALUES (?, ?, ?, ?, ?)
-    `);
-    stmt.run(visitor_id, variant, event, body.url || '', body.user_agent || '');
+    /* Stored as sent, and only ever read back with json_extract for the two
+       keys we aggregate on — so an unexpected shape costs a null, not a
+       failure. Capped because this endpoint is public and the column is
+       otherwise an open invitation. */
+    const payload = body.data == null ? null : JSON.stringify(body.data).slice(0, 2000);
 
-    // Increment variant_metrics
-    incrementMetric(variant, event, data);
+    await getDb()
+      .prepare(
+        `INSERT INTO hero_events (visitor_id, variant, event, url, user_agent, data)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(visitor_id, variant, event, body.url || '', body.user_agent || '', payload)
+      .run();
 
     return NextResponse.json({ ok: true });
   } catch (err) {

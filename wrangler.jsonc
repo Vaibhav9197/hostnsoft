@@ -11,6 +11,36 @@
   "observability": {
     "enabled": true
   },
+  // A/B metrics store. This used to be a better-sqlite3 file under DATA_DIR,
+  // which works on a Node host but not here -- workerd cannot load a native
+  // addon, so every write threw and production recorded nothing. D1 is SQLite
+  // too, so the schema and queries carried over unchanged.
+  //
+  // Two bindings, one database. Deployed they are the same thing; the split
+  // only matters in `next dev`:
+  //
+  //   DB        stays local, so browsing the site on localhost cannot inject
+  //             page views and clicks into the real A/B results -- /api/events
+  //             writes on every single page view, so a remote write binding
+  //             would corrupt the very numbers this exists to measure.
+  //   DB_ADMIN  `remote: true`, so the admin dashboard reads the production
+  //             figures instead of whatever this machine happens to have.
+  //
+  // Consequence worth knowing while developing: a CTA you click on localhost
+  // lands in the local database, so the dashboard will not move.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "hostnsoft-ab",
+      "database_id": "115e79d8-c987-4dcb-9172-5aded5c264c6"
+    },
+    {
+      "binding": "DB_ADMIN",
+      "database_name": "hostnsoft-ab",
+      "database_id": "115e79d8-c987-4dcb-9172-5aded5c264c6",
+      "remote": true
+    }
+  ],
   // EARLY_ACCESS_WEBHOOK_URL is set manually in the Cloudflare dashboard,
   // so it's intentionally NOT defined here. keep_vars preserves dashboard
   // vars/secrets across deploys instead of wiping them.

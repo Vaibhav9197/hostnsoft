@@ -41,33 +41,33 @@ export default function ContactPage() {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-background">
       <AdminNav />
 
       <div className="flex-1 p-8">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl font-bold mb-2">Contact Queries</h1>
-          <p className="text-gray-600 mb-8">Messages from users through the contact form</p>
+          <p className="text-muted-foreground mb-8">Messages from users through the contact form</p>
 
           {error && (
-            <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-700">{error}</p>
+            <div className="mb-8 p-4 bg-[var(--danger-soft)] border border-destructive/30 rounded-lg">
+              <p className="text-destructive">{error}</p>
             </div>
           )}
 
           {loading ? (
             <div className="text-center py-12">
-              <p className="text-gray-600">Loading...</p>
+              <p className="text-muted-foreground">Loading...</p>
             </div>
           ) : messages.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-lg border">
-              <p className="text-gray-600">No contact messages yet</p>
+            <div className="text-center py-12 bg-card rounded-lg border">
+              <p className="text-muted-foreground">No contact messages yet</p>
             </div>
           ) : (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-card rounded-lg shadow overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-100 border-b">
+                  <thead className="bg-elevated border-b">
                     <tr>
                       <th className="px-6 py-4 text-left font-semibold">Email</th>
                       <th className="px-6 py-4 text-left font-semibold">Message</th>
@@ -76,21 +76,21 @@ export default function ContactPage() {
                   </thead>
                   <tbody>
                     {messages.map((msg) => (
-                      <tr key={msg.id} className="border-b hover:bg-gray-50">
+                      <tr key={msg.id} className="border-b hover:bg-elevated">
                         <td className="px-6 py-4">
                           <a
                             href={`mailto:${msg.email}`}
-                            className="text-blue-600 hover:underline"
+                            className="text-primary hover:underline"
                           >
                             {msg.email}
                           </a>
                         </td>
                         <td className="px-6 py-4 max-w-2xl">
-                          <p className="text-gray-700 break-words whitespace-pre-wrap">
+                          <p className="text-foreground break-words whitespace-pre-wrap">
                             {msg.query}
                           </p>
                         </td>
-                        <td className="px-6 py-4 text-gray-600 text-sm whitespace-nowrap">
+                        <td className="px-6 py-4 text-muted-foreground text-sm whitespace-nowrap">
                           {formatDate(msg.created_at)}
                         </td>
                       </tr>
@@ -99,7 +99,7 @@ export default function ContactPage() {
                 </table>
               </div>
 
-              <div className="bg-gray-50 px-6 py-4 text-sm text-gray-600">
+              <div className="bg-background px-6 py-4 text-sm text-muted-foreground">
                 Total: {messages.length} message{messages.length !== 1 ? 's' : ''}
               </div>
             </div>
