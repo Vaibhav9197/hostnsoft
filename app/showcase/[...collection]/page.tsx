@@ -19,7 +19,11 @@ import { ShareRow } from "../share";
  * reach here.
  */
 
-export const revalidate = 60;
+/* Rendered per request, not prerendered. These pages read D1, and the binding
+   only exists inside a request — `getCloudflareContext()` throws during the
+   build's static export, which fails the whole deploy rather than just this
+   route. Caching belongs at the edge, not in a build artefact. */
+export const dynamic = "force-dynamic";
 
 interface Props {
   params: Promise<{ collection: string[] }>;

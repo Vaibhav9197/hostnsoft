@@ -13,10 +13,11 @@ export const metadata: Metadata = {
   description: "Apps built with AI. Hosted on Embarko.",
 };
 
-/* The gallery is read from D1 on request. Cached for a minute rather than per
-   request: a newly approved app appearing within the minute is fine, and the
-   front page is the most-hit route here. */
-export const revalidate = 60;
+/* Rendered per request, not prerendered. These pages read D1, and the binding
+   only exists inside a request — `getCloudflareContext()` throws during the
+   build's static export, which fails the whole deploy rather than just this
+   route. Caching belongs at the edge, not in a build artefact. */
+export const dynamic = "force-dynamic";
 
 export default async function ShowcasePage() {
   const apps = await listApps();
