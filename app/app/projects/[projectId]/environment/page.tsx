@@ -37,6 +37,11 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
   const [latest, setLatest] = useState<Deployment | null>(null);
   const [redeploying, setRedeploying] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [editAllOpen, setEditAllOpen] = useState(false);
+  // The row being edited inline, and its in-progress value. Null when no row
+  // is open for editing.
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editingValue, setEditingValue] = useState("");
   // The key awaiting a confirmed removal. Null when no prompt is open.
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
 
@@ -132,16 +137,56 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
   // Same bulk-upsert endpoint the single-pair form uses; the dialog has
   // already parsed and shown what's about to be sent. Errors are thrown back
   // for the dialog to display, since that's where the paste still is.
-  async function saveBulk(incoming: { key: string; value: string }[]) {
+  //
+  // `removedKeys` is only ever non-empty from the edit dialog, where the box
+  // stands for the whole set. The upsert endpoint is a merge and can't express
+  // a deletion, so removals are separate DELETEs — done after the writes, so a
+  // failure part-way leaves the new values saved rather than the old ones gone.
+  async function saveBulk(incoming: { key: string; value: string }[], removedKeys: string[] = []) {
     if (!activeCompanyId) return;
-    await envVarsApi.set(activeCompanyId, projectId, incoming);
+    if (incoming.length > 0) await envVarsApi.set(activeCompanyId, projectId, incoming);
+    for (const key of removedKeys) {
+      await envVarsApi.remove(activeCompanyId, projectId, key);
+    }
+    const saved = incoming.length;
+    const removed = removedKeys.length;
     setNotice(
-      `${incoming.length} variable${incoming.length === 1 ? "" : "s"} saved. Re-deploy to apply ${
-        incoming.length === 1 ? "it" : "them"
-      } to the running app.`,
+      `${[
+        saved > 0 && `${saved} variable${saved === 1 ? "" : "s"} saved`,
+        removed > 0 && `${removed} removed`,
+      ]
+        .filter(Boolean)
+        .join(", ")}. Re-deploy to apply to the running app.`,
     );
     setError(null);
     await load();
+  }
+
+  // Inline edit of one value. The key can't change here — renaming a variable
+  // is a delete plus an add, which the edit-all dialog expresses honestly and
+  // a text box on a row does not.
+  function startEdit(v: EnvVar) {
+    setEditingKey(v.key);
+    setEditingValue(v.value);
+    setRevealed((r) => ({ ...r, [v.key]: true }));
+  }
+
+  async function saveEdit() {
+    if (!activeCompanyId || editingKey === null) return;
+    const key = editingKey;
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await envVarsApi.set(activeCompanyId, projectId, [{ key, value: editingValue }]);
+      setEditingKey(null);
+      setNotice(`${key} updated. Applies on the next deploy.`);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn’t update the variable.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   // Only called once the removal is confirmed. Optimistic, rolling the row
@@ -190,6 +235,13 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
       </form>
 
       <BulkEnvDialog open={bulkOpen} onOpenChange={setBulkOpen} onSave={saveBulk} />
+      <BulkEnvDialog
+        open={editAllOpen}
+        onOpenChange={setEditAllOpen}
+        onSave={saveBulk}
+        mode="edit"
+        existing={vars ?? []}
+      />
 
       {/* A deleted variable can't be recovered — the value isn't stored
           anywhere else — so removal asks first. */}
@@ -225,6 +277,20 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
       )}
 
       {vars && vars.length > 0 && (
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-[0.92rem] text-muted-foreground">
+            {vars.length} variable{vars.length === 1 ? "" : "s"}
+          </p>
+          {/* Editing one value is a row action; this is for reordering,
+              renaming or clearing out several at once, where a text block
+              beats a row at a time. */}
+          <Button variant="outline" size="sm" onClick={() => setEditAllOpen(true)}>
+            Edit all
+          </Button>
+        </div>
+      )}
+
+      {vars && vars.length > 0 && (
         <Panel>
           <Table>
             <TableHeader>
@@ -235,7 +301,25 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
                 <TableRow key={v.key}>
                   <TableCell className="font-mono">{v.key}</TableCell>
                   <TableCell className="max-w-[340px] font-mono">
-                    {!revealed[v.key] ? (
+                    {editingKey === v.key ? (
+                      <span className="flex flex-wrap items-center gap-2">
+                        <Input
+                          className="min-w-[180px] flex-1 font-mono"
+                          value={editingValue}
+                          onChange={(e) => setEditingValue(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") saveEdit();
+                            if (e.key === "Escape") setEditingKey(null);
+                          }}
+                          aria-label={`Value for ${v.key}`}
+                          autoFocus
+                        />
+                        <Button size="sm" onClick={saveEdit} disabled={busy}>Save</Button>
+                        <Button size="sm" variant="ghost" onClick={() => setEditingKey(null)} disabled={busy}>
+                          Cancel
+                        </Button>
+                      </span>
+                    ) : !revealed[v.key] ? (
                       <span className="inline-flex items-center gap-2 text-faint">
                         <Lock className="size-[13px]" />
                         ••••••••
@@ -250,7 +334,14 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
                   </TableCell>
                   <TableCell className="font-mono text-[0.78rem] text-faint">{relativeTime(v.updatedAt)}</TableCell>
                   <TableCell className="whitespace-nowrap text-right">
-                    <LinkButton danger onClick={() => setConfirmRemove(v.key)}>Remove</LinkButton>
+                    {editingKey !== v.key && (
+                      <>
+                        <LinkButton onClick={() => startEdit(v)}>Edit</LinkButton>
+                        <LinkButton danger className="ml-3.5" onClick={() => setConfirmRemove(v.key)}>
+                          Remove
+                        </LinkButton>
+                      </>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

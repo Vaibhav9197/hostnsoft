@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import { Alert } from "./kit";
 import { Button } from "../ui/button";
@@ -19,23 +19,61 @@ import { parseEnvFile } from "../../lib/envFile";
  *
  * Everything is parsed as you type and shown back before anything is saved —
  * these are secrets, and a silent misparse is expensive.
+ *
+ * Two modes. "add" starts empty and only ever upserts, so nothing already
+ * saved can be lost by pasting. "edit" starts from the variables that exist
+ * and treats the box as the whole set: a line deleted there is a variable
+ * deleted here. That difference is destructive enough to be worth stating in
+ * the dialog rather than inferring from a prop name.
  */
 export function BulkEnvDialog({
   open,
   onOpenChange,
   onSave,
+  mode = "add",
+  existing = [],
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Upserts the pairs. Throwing surfaces the message inside the dialog. */
-  onSave: (vars: { key: string; value: string }[]) => Promise<void>;
+  /** Upserts `vars`, deletes `removedKeys`. Throwing shows the message here. */
+  onSave: (vars: { key: string; value: string }[], removedKeys: string[]) => Promise<void>;
+  mode?: "add" | "edit";
+  /** The variables as they stand. Seeds the box in edit mode, and is what
+      the diff below compares against. Ignored in add mode. */
+  existing?: { key: string; value: string }[];
 }) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
+  const isEdit = mode === "edit";
+
+  // Seed on open rather than on mount: the dialog stays mounted between
+  // opens, and the variables may have changed since the last time.
+  useEffect(() => {
+    if (!open) return;
+    setError(null);
+    setText(isEdit ? existing.map((v) => `${v.key}=${v.value}`).join("\n") : "");
+    // existing is a fresh array each render; keying on the content keeps this
+    // from re-seeding (and discarding edits) on every parent re-render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, isEdit, existing.map((v) => `${v.key}=${v.value}`).join("\n")]);
+
   const parsed = parseEnvFile(text);
+
+  // What saving would actually change. Only meaningful in edit mode, where
+  // the box represents the complete set.
+  const byKey = new Map(existing.map((v) => [v.key, v.value]));
+  const nextKeys = new Set(parsed.vars.map((v) => v.key));
+  const added = isEdit ? parsed.vars.filter((v) => !byKey.has(v.key)).map((v) => v.key) : [];
+  const changed = isEdit
+    ? parsed.vars.filter((v) => byKey.has(v.key) && byKey.get(v.key) !== v.value).map((v) => v.key)
+    : [];
+  // A line removed from the box means the variable goes. Never inferred in
+  // add mode, where omission just means "not mentioned".
+  const removedKeys = isEdit ? existing.filter((v) => !nextKeys.has(v.key)).map((v) => v.key) : [];
+  const nothingToDo = isEdit && added.length === 0 && changed.length === 0 && removedKeys.length === 0;
 
   function reset() {
     setText("");
@@ -65,7 +103,7 @@ export function BulkEnvDialog({
     setBusy(true);
     setError(null);
     try {
-      await onSave(parsed.vars.map(({ key, value }) => ({ key, value })));
+      await onSave(parsed.vars.map(({ key, value }) => ({ key, value })), removedKeys);
       reset();
       onOpenChange(false);
     } catch (e) {
@@ -85,11 +123,21 @@ export function BulkEnvDialog({
     >
       <DialogContent className="max-w-[560px]">
         <DialogHeader>
-          <DialogTitle>Add variables in bulk</DialogTitle>
+          <DialogTitle>{isEdit ? "Edit all variables" : "Add variables in bulk"}</DialogTitle>
           <DialogDescription>
-            Paste a block of <span className="font-mono">NAME=value</span> lines, or upload a{" "}
-            <span className="font-mono">.env</span> file. Blank lines and <span className="font-mono">#</span> comments
-            are ignored.
+            {isEdit ? (
+              <>
+                This is every variable, with its real value. Change what you need and save — a line you
+                delete here <b className="text-foreground">deletes that variable</b>. Blank lines and{" "}
+                <span className="font-mono">#</span> comments are ignored.
+              </>
+            ) : (
+              <>
+                Paste a block of <span className="font-mono">NAME=value</span> lines, or upload a{" "}
+                <span className="font-mono">.env</span> file. Blank lines and <span className="font-mono">#</span>{" "}
+                comments are ignored.
+              </>
+            )}
           </DialogDescription>
         </DialogHeader>
 
@@ -146,11 +194,29 @@ export function BulkEnvDialog({
         {text.trim() !== "" && (
           <div className="flex flex-col gap-2 rounded-lg border border-border bg-elevated px-3.5 py-3">
             <p className="text-[0.85rem] text-muted-foreground">
-              {parsed.vars.length === 0
-                ? "Nothing to add yet."
-                : `${parsed.vars.length} variable${parsed.vars.length === 1 ? "" : "s"} ready to save.`}
+              {isEdit
+                ? nothingToDo
+                  ? "No changes yet."
+                  : [
+                      changed.length > 0 && `${changed.length} changed`,
+                      added.length > 0 && `${added.length} added`,
+                      removedKeys.length > 0 && `${removedKeys.length} removed`,
+                    ]
+                      .filter(Boolean)
+                      .join(", ")
+                : parsed.vars.length === 0
+                  ? "Nothing to add yet."
+                  : `${parsed.vars.length} variable${parsed.vars.length === 1 ? "" : "s"} ready to save.`}
             </p>
-            {parsed.vars.length > 0 && (
+            {/* Removals are the only part of saving that destroys something,
+                so they're named individually rather than counted. */}
+            {removedKeys.length > 0 && (
+              <p className="text-[0.8rem] text-muted-foreground">
+                <b className="text-destructive">Will be deleted:</b>{" "}
+                <span className="font-mono text-foreground">{removedKeys.join(", ")}</span>
+              </p>
+            )}
+            {!isEdit && parsed.vars.length > 0 && (
               <p className="flex flex-wrap gap-1.5">
                 {parsed.vars.map((v) => (
                   <span
@@ -190,12 +256,18 @@ export function BulkEnvDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={busy}>
             Cancel
           </Button>
-          <Button onClick={save} disabled={busy || parsed.vars.length === 0}>
+          <Button
+            onClick={save}
+            variant={removedKeys.length > 0 ? "destructive" : "default"}
+            disabled={busy || (isEdit ? nothingToDo : parsed.vars.length === 0)}
+          >
             {busy
               ? "Saving…"
-              : parsed.vars.length === 0
-                ? "Save variables"
-                : `Save ${parsed.vars.length} variable${parsed.vars.length === 1 ? "" : "s"}`}
+              : isEdit
+                ? "Save changes"
+                : parsed.vars.length === 0
+                  ? "Save variables"
+                  : `Save ${parsed.vars.length} variable${parsed.vars.length === 1 ? "" : "s"}`}
           </Button>
         </DialogFooter>
       </DialogContent>
