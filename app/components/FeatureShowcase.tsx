@@ -3,7 +3,7 @@
 import { useId, useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Activity, Database, FolderOpen, Globe, HardDrive, KeyRound } from "lucide-react";
+import { Activity, Database, FolderOpen, Globe, HardDrive, KeyRound, Plug } from "lucide-react";
 
 /**
  * "What you get, without setting it up" — the replacement for the eight-cell
@@ -35,6 +35,9 @@ type Feature = {
      mockup below it draws a working feature and a drawing is persuasive
      enough to be mistaken for one. */
   upcoming?: boolean;
+  /* How the feature is named mid-sentence in the docs link. Defaults to the
+     lowercased rail label, which is wrong for anything carrying an acronym. */
+  linkLabel?: string;
 };
 
 /* Two palettes, one layout. `gray` is the plain Tailwind scale /v1 and /v4 are
@@ -146,6 +149,21 @@ function mockups(tone: ShowcaseTone) {
       </Frame>
     ),
 
+    keys: () => (
+      <Frame tone={tone}>
+        <div className={`mb-2 font-mono text-[10px] uppercase tracking-[0.1em] ${t.faint}`}>Variables</div>
+        {/* Masked the way the console masks them, so the drawing doesn't
+            suggest the panel shows anyone their keys in the clear. */}
+        <div className="text-[13px]">
+          <Row tone={tone} left={<span className="font-mono">STRIPE_KEY</span>} right="sk_live_••••" />
+          <Row tone={tone} left={<span className="font-mono">RESEND_KEY</span>} right="re_••••" />
+          <Row tone={tone} left={<span className="font-mono">OPENAI_API_KEY</span>} right="sk-••••" />
+          <Row tone={tone} left={<span className="font-mono">SHEETS_TOKEN</span>} right="ya29••••" last />
+        </div>
+        <p className={`mt-3 text-[12px] ${t.faint}`}>Handed to your app on every deploy</p>
+      </Frame>
+    ),
+
     login: () => (
       <Frame tone={tone}>
         <div className="mx-auto max-w-[260px] py-2 text-center">
@@ -227,6 +245,16 @@ function features(tone: ShowcaseTone): Feature[] {
       body: "Orders, notes, sign-ups. Your app can write and read from its first deploy — nothing to provision, no connection string to paste in.",
       prompts: ["“Save the sign-ups”", "“Add a table for orders”", "“What’s in the database?”"],
       Mockup: m.database,
+    },
+    {
+      id: "keys",
+      label: "API keys",
+      Icon: Plug,
+      headline: "Connect the tools you already pay for",
+      body: "Stripe, Resend, OpenAI, a spreadsheet — save the key once and your app gets it on every deploy. Your agent reads them by name and never has to ask you for one twice.",
+      prompts: ["“Take payments with my Stripe key”", "“Email the receipts through Resend”", "“Use my OpenAI key for the chat”"],
+      Mockup: m.keys,
+      linkLabel: "API keys",
     },
     {
       id: "uptime",
@@ -358,7 +386,7 @@ export function FeatureShowcase({
               href="/docs"
               className={`mt-5 inline-block text-[14px] font-medium underline-offset-4 hover:underline ${t.muted}`}
             >
-              See how {active.label.toLowerCase()} works →
+              More about {active.linkLabel ?? active.label.toLowerCase()} →
             </Link>
           )}
         </div>
