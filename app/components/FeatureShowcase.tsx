@@ -31,6 +31,10 @@ type Feature = {
      what it is — not commands, and not a CLI. */
   prompts: string[];
   Mockup: () => ReactNode;
+  /* Not built yet. Says so on the rail and again in the panel, because the
+     mockup below it draws a working feature and a drawing is persuasive
+     enough to be mistaken for one. */
+  upcoming?: boolean;
 };
 
 /* Two palettes, one layout. `gray` is the plain Tailwind scale /v1 and /v4 are
@@ -47,6 +51,7 @@ const TONES = {
     faint: "text-gray-500",
     quote: "bg-gray-900 text-white",
     accentDot: "bg-gray-900",
+    tag: "border-gray-300 text-gray-500",
   },
   token: {
     surface: "bg-card",
@@ -58,6 +63,7 @@ const TONES = {
     faint: "text-faint",
     quote: "bg-foreground text-background",
     accentDot: "bg-success",
+    tag: "border-input text-faint",
   },
 } as const;
 
@@ -198,6 +204,9 @@ function mockups(tone: ShowcaseTone) {
   };
 }
 
+/* Shipped first, then what is coming. A rail that opens on something the owner
+   can't have yet sells the wrong thing, and mixing the two in one list leaves
+   them checking every row for a tag. */
 function features(tone: ShowcaseTone): Feature[] {
   const m = mockups(tone);
   return [
@@ -220,33 +229,6 @@ function features(tone: ShowcaseTone): Feature[] {
       Mockup: m.database,
     },
     {
-      id: "login",
-      label: "Login",
-      Icon: KeyRound,
-      headline: "Let people sign in without building it",
-      body: "Accounts, sessions and password resets are already there. Ask for them and they appear; you never sit down and design an auth flow.",
-      prompts: ["“Add login to this”", "“Only let my team in”", "“Add Google sign-in”"],
-      Mockup: m.login,
-    },
-    {
-      id: "files",
-      label: "Files",
-      Icon: FolderOpen,
-      headline: "Room for whatever people upload",
-      body: "Photos, PDFs, spreadsheets. Your app takes files and hands them back, and the space for them grows with it.",
-      prompts: ["“Let people upload photos”", "“Keep the PDFs”", "“Show the uploads as a gallery”"],
-      Mockup: m.files,
-    },
-    {
-      id: "backups",
-      label: "Backups",
-      Icon: HardDrive,
-      headline: "Yesterday is still there",
-      body: "Your data is copied on a schedule and kept. When something goes wrong, your agent can put an earlier version back.",
-      prompts: ["“Roll back to yesterday”", "“When was the last backup?”", "“Restore what I deleted”"],
-      Mockup: m.backups,
-    },
-    {
       id: "uptime",
       label: "Uptime",
       Icon: Activity,
@@ -255,7 +237,47 @@ function features(tone: ShowcaseTone): Feature[] {
       prompts: ["“Is anything wrong?”", "“Why did it restart?”", "“Check on my app”"],
       Mockup: m.uptime,
     },
+    {
+      id: "login",
+      label: "Login",
+      Icon: KeyRound,
+      headline: "Let people sign in without building it",
+      body: "Accounts, sessions and password resets, ready to switch on. You will ask for them and they appear, instead of sitting down to design an auth flow.",
+      prompts: ["“Add login to this”", "“Only let my team in”", "“Add Google sign-in”"],
+      Mockup: m.login,
+      upcoming: true,
+    },
+    {
+      id: "files",
+      label: "Files",
+      Icon: FolderOpen,
+      headline: "Room for whatever people upload",
+      body: "Photos, PDFs, spreadsheets. Your app will take files and hand them back, with the space for them growing as it fills.",
+      prompts: ["“Let people upload photos”", "“Keep the PDFs”", "“Show the uploads as a gallery”"],
+      Mockup: m.files,
+      upcoming: true,
+    },
+    {
+      id: "backups",
+      label: "Backups",
+      Icon: HardDrive,
+      headline: "Yesterday is still there",
+      body: "Your data copied on a schedule and kept, so when something goes wrong your agent can put an earlier version back.",
+      prompts: ["“Roll back to yesterday”", "“When was the last backup?”", "“Restore what I deleted”"],
+      Mockup: m.backups,
+      upcoming: true,
+    },
   ];
+}
+
+function Tag({ tone, className = "" }: { tone: ShowcaseTone; className?: string }) {
+  return (
+    <span
+      className={`shrink-0 rounded-full border px-1.5 py-px font-mono text-[9px] uppercase tracking-[0.08em] ${TONES[tone].tag} ${className}`}
+    >
+      Upcoming
+    </span>
+  );
 }
 
 export function FeatureShowcase({
@@ -298,7 +320,7 @@ export function FeatureShowcase({
           aria-label="What Embarko handles"
           className="flex gap-1.5 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0"
         >
-          {items.map(({ id, label, Icon }) => {
+          {items.map(({ id, label, Icon, upcoming }) => {
             const selected = id === activeId;
             return (
               <button
@@ -314,30 +336,42 @@ export function FeatureShowcase({
               >
                 <Icon aria-hidden="true" strokeWidth={1.5} className="h-[17px] w-[17px]" />
                 {label}
+                {upcoming && <Tag tone={tone} className="lg:ml-auto" />}
               </button>
             );
           })}
         </div>
 
         <div id={panelId} role="tabpanel" aria-live="polite">
-          <h3 className="text-[19px] font-semibold tracking-tight">{active.headline}</h3>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h3 className="text-[19px] font-semibold tracking-tight">{active.headline}</h3>
+            {active.upcoming && <Tag tone={tone} />}
+          </div>
           <p className={`mt-2.5 text-[15px] leading-relaxed ${t.muted}`}>{active.body}</p>
           <div className="mt-6" aria-hidden="true">
             <active.Mockup />
           </div>
-          <Link
-            href="/docs"
-            className={`mt-5 inline-block text-[14px] font-medium underline-offset-4 hover:underline ${t.muted}`}
-          >
-            See how {active.label.toLowerCase()} works →
-          </Link>
+          {/* Nothing to read about a feature that isn't built, so the link is
+              the one thing the upcoming panels don't carry. */}
+          {!active.upcoming && (
+            <Link
+              href="/docs"
+              className={`mt-5 inline-block text-[14px] font-medium underline-offset-4 hover:underline ${t.muted}`}
+            >
+              See how {active.label.toLowerCase()} works →
+            </Link>
+          )}
         </div>
 
         {/* The column that makes the section's argument: none of this is
             configured, it is asked for. Sits last in the source so a narrow
             screen reads feature, then proof, then the words to use. */}
         <div>
-          <p className={`font-mono text-[10px] uppercase tracking-[0.12em] ${t.faint}`}>Tell your agent</p>
+          {/* "Tell your agent" over a feature that doesn't exist yet reads as
+              an instruction that would fail. */}
+          <p className={`font-mono text-[10px] uppercase tracking-[0.12em] ${t.faint}`}>
+            {active.upcoming ? "You’ll be able to say" : "Tell your agent"}
+          </p>
           <ul className="mt-3.5 flex flex-col gap-2">
             {active.prompts.map((prompt) => (
               <li key={prompt} className={`rounded-lg px-3 py-2 font-mono text-[12px] leading-snug ${t.quote}`}>
