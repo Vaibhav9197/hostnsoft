@@ -229,7 +229,7 @@ export default function TokensPage() {
       {dead.length > 0 && (
         <div>
           <LinkButton onClick={() => setShowRevoked((v) => !v)} aria-expanded={showRevoked}>
-            {showRevoked ? "Hide revoked" : `Revoked (${dead.length})`}
+            {showRevoked ? "Hide revoked tokens" : `Revoked tokens (${dead.length})`}
           </LinkButton>
 
           {showRevoked && (
