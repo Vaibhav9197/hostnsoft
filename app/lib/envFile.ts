@@ -26,7 +26,15 @@ export interface ParsedEnvFile {
 
 // Shell-ish env names. Anything else is far more likely a typo or a stray line
 // of prose than a name the platform would accept.
-const KEY = /^[A-Za-z_][A-Za-z0-9_]*$/;
+//
+// Exported because the single-variable form on the environment page needs the
+// same test, and this must stay identical to the server's own check
+// (hostnsoft-api's envVars.routes.ts and agentApps.routes.ts): the key is
+// embedded as a bare, unquoted attribute name in generated Nomad job-spec
+// HCL, so the API rejects anything else. Checking here only buys a better
+// error — the server is the enforcement point, not this.
+export const ENV_VAR_KEY = /^[A-Za-z_][A-Za-z0-9_]*$/;
+const KEY = ENV_VAR_KEY;
 
 export function parseEnvFile(text: string): ParsedEnvFile {
   const byKey = new Map<string, ParsedEnvVar>();

@@ -17,6 +17,7 @@ import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../../components/ui/table";
 import { deploymentsApi, envVarsApi } from "../../../../lib/hnsApi";
+import { ENV_VAR_KEY } from "../../../../lib/envFile";
 import { relativeTime } from "../../../../lib/format";
 import { useSession } from "../../../../lib/session";
 import type { Deployment, EnvVar } from "../../../../lib/types";
@@ -38,6 +39,14 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
   const [bulkOpen, setBulkOpen] = useState(false);
   // The key awaiting a confirmed removal. Null when no prompt is open.
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
+
+  const trimmedKey = key.trim();
+  // Only complain once something has been typed — an empty box isn't wrong
+  // yet, it's just empty, and the Save button is already disabled for it.
+  const keyInvalid = trimmedKey !== "" && !ENV_VAR_KEY.test(trimmedKey);
+  // What they probably meant: the usual cause is a dash or a dot from a
+  // copied name, or a leading digit.
+  const suggestedKey = trimmedKey.replace(/[^A-Za-z0-9_]/g, "_").replace(/^(?=\d)/, "_");
 
   const load = useCallback(async () => {
     if (!activeCompanyId) return;
@@ -101,14 +110,15 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
 
   async function upsert(e: React.FormEvent) {
     e.preventDefault();
-    if (!activeCompanyId) return;
+    // Guards the Enter key, which submits regardless of the button's state.
+    if (!activeCompanyId || !trimmedKey || keyInvalid) return;
     setBusy(true);
     setError(null);
     setNotice(null);
     try {
       // Bulk-upsert endpoint; we send a single pair. Existing keys omitted are left as-is.
-      await envVarsApi.set(activeCompanyId, projectId, [{ key: key.trim(), value }]);
-      setNotice(`${key.trim()} saved. Applies on the next deploy.`);
+      await envVarsApi.set(activeCompanyId, projectId, [{ key: trimmedKey, value }]);
+      setNotice(`${trimmedKey} saved. Applies on the next deploy.`);
       setKey("");
       setValue("");
       await load();
@@ -153,11 +163,30 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
     <Page>
       <PageHeader title="App setup" subtitle="Settings and secrets your app runs with." />
 
-      <form className="flex flex-wrap items-center gap-2.5" onSubmit={upsert}>
-        <Input className="min-w-[140px] flex-1 font-mono" placeholder="KEY" value={key} onChange={(e) => setKey(e.target.value.toUpperCase())} />
-        <Input className="min-w-[140px] flex-1 font-mono" placeholder="value" value={value} onChange={(e) => setValue(e.target.value)} />
-        <Button type="submit" disabled={busy || !key.trim() || !value}>Save</Button>
-        <Button type="button" variant="outline" onClick={() => setBulkOpen(true)}>Add in bulk</Button>
+      {/* The paste dialog already rejects bad names line by line; this form
+          didn't, so a name like FOO-BAR only failed after a round trip, as a
+          generic validation error with no hint at which part was wrong. */}
+      <form className="flex flex-col gap-1.5" onSubmit={upsert}>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Input
+            className="min-w-[140px] flex-1 font-mono"
+            placeholder="KEY"
+            value={key}
+            onChange={(e) => setKey(e.target.value.toUpperCase())}
+            aria-invalid={keyInvalid || undefined}
+            aria-describedby={keyInvalid ? "env-key-error" : undefined}
+          />
+          <Input className="min-w-[140px] flex-1 font-mono" placeholder="value" value={value} onChange={(e) => setValue(e.target.value)} />
+          <Button type="submit" disabled={busy || !trimmedKey || !value || keyInvalid}>Save</Button>
+          <Button type="button" variant="outline" onClick={() => setBulkOpen(true)}>Add in bulk</Button>
+        </div>
+        {keyInvalid && (
+          <p id="env-key-error" className="text-[0.82rem] text-destructive">
+            Names use letters, digits and underscores, and can’t start with a digit — so{" "}
+            <span className="font-mono">{trimmedKey}</span> won’t work. Try{" "}
+            <span className="font-mono">{suggestedKey}</span>.
+          </p>
+        )}
       </form>
 
       <BulkEnvDialog open={bulkOpen} onOpenChange={setBulkOpen} onSave={saveBulk} />
