@@ -30,18 +30,25 @@ const VARIANT_PLACEHOLDER = "<alpha|beta|gamma|delta>";
  *  `appName` names an app that already exists, so a prompt copied from inside
  *  one redeploys that app rather than standing up a second copy on a second
  *  subdomain. Omitted on the marketing pages, where there is no app yet. */
-function build(variantLine: string, appName?: string | null): string {
+function build(variantLine: string, appName?: string | null, token?: string | null): string {
   /* Named explicitly even though the skill can pick a name: the skill only
      knows the folder it is run from, and the platform treats a name it hasn't
      seen as a brand-new app. */
   const nameLine = appName
     ? `\nDeploy it as the existing Embarko app "${appName}" — that exact name, so it updates that app instead of creating a new one.`
     : "";
+  /* Names both places the skill looks — the environment, and the credential
+     file it falls back to — so the agent stores the token once and every later
+     deploy is authenticated without the owner being asked again. */
+  const tokenLine = token
+    ? `\nUse this Embarko deploy token: ${token}
+Set it as DEPLOY_TOKEN in the environment before running the deploy, and save it to ~/.embarko/credentials so future deploys use it automatically. Do not deploy anonymously.`
+    : "";
   return `Embarko is Cloud for small apps.
 Deploy this app to Embarko.
 
 Install the Embarko deploy skill and follow it:
-npx skills add embarko-ai/skill --skill embarko-deploy -g${nameLine}
+npx skills add embarko-ai/skill --skill embarko-deploy -g${nameLine}${tokenLine}
 
 If npx is unavailable, run the same deploy script directly instead:
 curl -fsSL https://embarko.ai/skills/embarko-deploy.sh -o /tmp/embarko-deploy.sh && bash /tmp/embarko-deploy.sh
@@ -98,6 +105,19 @@ export const CONSOLE_DEPLOY_PROMPT = build("");
  */
 export function consoleDeployPromptFor(appSlug: string | null | undefined): string {
   return build("", appSlug);
+}
+
+/**
+ * The console prompt with a freshly issued deploy token inside it.
+ *
+ * Handed out exactly once, from the tokens page, at the moment the raw token
+ * is on screen. A bare `hns_…` string leaves the owner to work out what to do
+ * with it; this is the one thing they paste into their agent instead — the
+ * deploy instructions and the credential together, so the agent needs nothing
+ * else from them.
+ */
+export function consoleDeployPromptWithToken(token: string): string {
+  return build("", null, token);
 }
 
 /**

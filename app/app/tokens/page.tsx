@@ -1,17 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { X } from "lucide-react";
 import { ConfirmDialog, type ConfirmRequest } from "../../components/console/ConfirmDialog";
 import { Alert, LinkButton, Page, PageHeader, Panel, Skeleton, Tag } from "../../components/console/kit";
-import { Button } from "../../components/ui/button";
+import { COPIED_LABEL, CopyPromptButton } from "../../components/CopyPromptButton";
+import { Button, buttonVariants } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
+import { consoleDeployPromptWithToken } from "../../lib/deployPrompt";
 import { tokensApi } from "../../lib/hnsApi";
 import { formatDate, relativeTime } from "../../lib/format";
 import { useSession } from "../../lib/session";
 import { cn } from "../../lib/utils";
 import type { DeployToken, DeployTokenSecret } from "../../lib/types";
+
+/** What a token is called when the owner leaves the name blank. */
+const DEFAULT_LABEL = "My AI agent";
 
 export default function TokensPage() {
   const { activeCompanyId } = useSession();
@@ -20,7 +24,11 @@ export default function TokensPage() {
   const [label, setLabel] = useState("");
   const [creating, setCreating] = useState(false);
   const [secret, setSecret] = useState<DeployTokenSecret | null>(null);
-  const [copied, setCopied] = useState(false);
+  /* Whether the secret on screen has reached the clipboard at least once. The
+     banner can only be dismissed after that: it is the one and only showing of
+     the token, and a stray click on a close button should not be able to lose
+     it. */
+  const [secretCopied, setSecretCopied] = useState(false);
   const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
 
   const load = useCallback(async () => {
@@ -44,8 +52,12 @@ export default function TokensPage() {
     setCreating(true);
     setError(null);
     try {
-      const created = await tokensApi.create(activeCompanyId, label.trim());
+      /* The name is optional. Most owners have exactly one token and no idea
+         what to call it; making them invent a label before the button works
+         turned "where do I get a token?" into two questions. */
+      const created = await tokensApi.create(activeCompanyId, label.trim() || DEFAULT_LABEL);
       setSecret(created);
+      setSecretCopied(false);
       setLabel("");
       await load();
     } catch (e) {
@@ -61,6 +73,7 @@ export default function TokensPage() {
     try {
       const rotated = await tokensApi.rotate(activeCompanyId, id);
       setSecret(rotated);
+      setSecretCopied(false);
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn’t rotate the token.");
@@ -102,47 +115,84 @@ export default function TokensPage() {
     }
   }
 
-  async function copySecret() {
-    if (!secret) return;
-    try {
-      await navigator.clipboard.writeText(secret.token);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    } catch {
-      setCopied(false);
-    }
-  }
-
   return (
     <Page>
       <PageHeader
         title="Deploy tokens"
-        subtitle={
-          <>Credentials <code className="border border-border bg-elevated px-1 py-0.5 font-mono text-[0.85em] text-foreground">embarko-deploy</code> checks on every deploy. Not used to sign in here.</>
-        }
+        /* Written for the person who arrived asking "where do I get a token?".
+           The old line named the skill that consumes it, which answers a
+           different question — one nobody on this page has. */
+        subtitle="This is where you make a token. Create one below, copy it, and give it to your AI agent — that’s what lets it deploy your apps."
       />
 
-      <form className="flex flex-wrap gap-2.5" onSubmit={createToken}>
-        <Input className="min-w-[220px] flex-1" placeholder="Label — e.g. CI pipeline" value={label} onChange={(e) => setLabel(e.target.value)} maxLength={40} />
-        <Button type="submit" disabled={creating || !label.trim()}>{creating ? "Creating…" : "Create token"}</Button>
+      {/* The name is a 40-character optional aside, so it gets a field sized
+          like one and sits next to the button that does the actual work,
+          rather than stretching across the page ahead of it. */}
+      <form className="flex flex-wrap items-end gap-2.5" onSubmit={createToken}>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="token-label" className="text-sm font-semibold text-foreground">
+            Name <span className="font-normal text-muted-foreground">(optional)</span>
+          </label>
+          <Input
+            id="token-label"
+            className="w-[260px]"
+            placeholder={DEFAULT_LABEL}
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            maxLength={40}
+            disabled={creating}
+          />
+        </div>
+        <Button type="submit" disabled={creating}>{creating ? "Creating…" : "Create token"}</Button>
       </form>
 
       {error && <Alert>{error}</Alert>}
 
       {secret && (
-        <div className="border border-primary/30 bg-primary/10">
-          <div className="flex items-center justify-between border-b border-primary/30 px-4 py-3">
-            <span className="text-[0.86rem] font-bold text-foreground">Copy your token now — it won’t be shown again.</span>
-            <button className="grid place-items-center text-muted-foreground hover:text-foreground" onClick={() => setSecret(null)} aria-label="Dismiss">
-              <X className="size-4" />
-            </button>
+        <div className="rounded-xl border border-primary/30 bg-primary/10">
+          <div className="border-b border-primary/30 px-4 py-3">
+            <p className="text-[0.86rem] font-bold text-foreground">Your token is ready — it won’t be shown again.</p>
+            <p className="mt-0.5 text-[0.86rem] text-muted-foreground">
+              Copy the prompt below and paste it into your AI agent. The token is already inside it, so there is nothing else to set up.
+            </p>
           </div>
-          <div className="flex items-center gap-3 p-4">
-            <code className="flex-1 break-all font-mono text-[0.88rem] text-foreground">{secret.token}</code>
-            <Button variant="outline" size="sm" onClick={copySecret}>{copied ? "Copied" : "Copy"}</Button>
+
+          {/* The prompt is the primary action and the raw token the secondary
+              one: the prompt is what the owner actually needs to paste, and it
+              carries the token with it. The bare token is for someone who
+              already has a prompt in flight and just needs the credential. */}
+          <div className="flex flex-wrap items-center gap-2.5 px-4 pt-4">
+            <CopyPromptButton
+              text={consoleDeployPromptWithToken(secret.token)}
+              className={buttonVariants()}
+              copiedChildren={COPIED_LABEL}
+              onCopied={() => setSecretCopied(true)}
+            >
+              Copy prompt with token
+            </CopyPromptButton>
+            <CopyPromptButton
+              text={secret.token}
+              className={buttonVariants({ variant: "outline" })}
+              copiedChildren="Copied"
+              onCopied={() => setSecretCopied(true)}
+            >
+              Copy token only
+            </CopyPromptButton>
+            {/* Appears only once something has been copied — closing the banner
+                before that would lose the token for good. */}
+            {secretCopied && (
+              <Button variant="ghost" className="ml-auto" onClick={() => setSecret(null)}>
+                Done
+              </Button>
+            )}
           </div>
+
+          <code className="block break-all px-4 pb-4 pt-3 font-mono text-[0.8rem] text-muted-foreground">{secret.token}</code>
+
           {secret.oldTokenValidUntil && (
-            <div className="px-4 pb-3.5 font-mono text-[0.78rem] text-faint">The previous token keeps working until {new Date(secret.oldTokenValidUntil).toLocaleString()}.</div>
+            <div className="border-t border-primary/30 px-4 py-3 text-[0.82rem] text-muted-foreground">
+              Your previous token keeps working until {new Date(secret.oldTokenValidUntil).toLocaleString()}, so nothing breaks while you switch.
+            </div>
           )}
         </div>
       )}
@@ -190,8 +240,6 @@ export default function TokensPage() {
           </Table>
         </Panel>
       )}
-
-      <p className="text-[0.92rem] text-muted-foreground"><b className="text-foreground">Rotate</b> for routine hygiene — the old token keeps working for an hour. <b className="text-foreground">Revoke</b> immediately if a token leaked.</p>
 
       <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
     </Page>
