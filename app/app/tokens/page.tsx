@@ -1,27 +1,25 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Plus } from "lucide-react";
 import { ConfirmDialog, type ConfirmRequest } from "../../components/console/ConfirmDialog";
 import { Alert, LinkButton, Page, PageHeader, Panel, Skeleton, Tag } from "../../components/console/kit";
 import { COPIED_LABEL, CopyPromptButton } from "../../components/CopyPromptButton";
 import { Button, buttonVariants } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { consoleDeployPromptWithToken } from "../../lib/deployPrompt";
 import { tokensApi } from "../../lib/hnsApi";
 import { formatDate, relativeTime } from "../../lib/format";
 import { useSession } from "../../lib/session";
+import { randomTokenName } from "../../lib/tokenName";
 import { cn } from "../../lib/utils";
 import type { DeployToken, DeployTokenSecret } from "../../lib/types";
 
-/** What a token is called when the owner leaves the name blank. */
-const DEFAULT_LABEL = "My AI agent";
 
 export default function TokensPage() {
   const { activeCompanyId } = useSession();
   const [tokens, setTokens] = useState<DeployToken[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [label, setLabel] = useState("");
   const [creating, setCreating] = useState(false);
   const [secret, setSecret] = useState<DeployTokenSecret | null>(null);
   /* Whether the secret on screen has reached the clipboard at least once. The
@@ -46,19 +44,14 @@ export default function TokensPage() {
     load();
   }, [load]);
 
-  async function createToken(e: React.FormEvent) {
-    e.preventDefault();
+  async function createToken() {
     if (!activeCompanyId) return;
     setCreating(true);
     setError(null);
     try {
-      /* The name is optional. Most owners have exactly one token and no idea
-         what to call it; making them invent a label before the button works
-         turned "where do I get a token?" into two questions. */
-      const created = await tokensApi.create(activeCompanyId, label.trim() || DEFAULT_LABEL);
+      const created = await tokensApi.create(activeCompanyId, randomTokenName((tokens ?? []).map((t) => t.label)));
       setSecret(created);
       setSecretCopied(false);
-      setLabel("");
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn’t create the token.");
@@ -125,26 +118,14 @@ export default function TokensPage() {
         subtitle="This is where you make a token. Create one below, copy it, and give it to your AI agent — that’s what lets it deploy your apps."
       />
 
-      {/* The name is a 40-character optional aside, so it gets a field sized
-          like one and sits next to the button that does the actual work,
-          rather than stretching across the page ahead of it. */}
-      <form className="flex flex-wrap items-end gap-2.5" onSubmit={createToken}>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="token-label" className="text-sm font-semibold text-foreground">
-            Name <span className="font-normal text-muted-foreground">(optional)</span>
-          </label>
-          <Input
-            id="token-label"
-            className="w-[260px]"
-            placeholder={DEFAULT_LABEL}
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-            maxLength={40}
-            disabled={creating}
-          />
-        </div>
-        <Button type="submit" disabled={creating}>{creating ? "Creating…" : "Create token"}</Button>
-      </form>
+      {/* One button, no form: the token is named for the owner, so there is
+          nothing to fill in before the only action on the page works. */}
+      <div>
+        <Button onClick={createToken} disabled={creating}>
+          <Plus aria-hidden="true" />
+          {creating ? "Creating…" : "Create token"}
+        </Button>
+      </div>
 
       {error && <Alert>{error}</Alert>}
 
