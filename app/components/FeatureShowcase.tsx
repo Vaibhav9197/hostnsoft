@@ -247,14 +247,14 @@ function features(tone: ShowcaseTone): Feature[] {
       Mockup: m.database,
     },
     {
-      id: "keys",
-      label: "API keys",
+      id: "tools",
+      label: "Connect tools",
       Icon: Plug,
       headline: "Connect the tools you already pay for",
       body: "Stripe, Resend, OpenAI, a spreadsheet — save the key once and your app gets it on every deploy. Your agent reads them by name and never has to ask you for one twice.",
       prompts: ["“Take payments with my Stripe key”", "“Email the receipts through Resend”", "“Use my OpenAI key for the chat”"],
       Mockup: m.keys,
-      linkLabel: "API keys",
+      linkLabel: "connecting tools",
     },
     {
       id: "uptime",
