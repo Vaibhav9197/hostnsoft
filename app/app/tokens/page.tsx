@@ -12,7 +12,6 @@ import { tokensApi } from "../../lib/hnsApi";
 import { formatDate, relativeTime } from "../../lib/format";
 import { useSession } from "../../lib/session";
 import { randomTokenName } from "../../lib/tokenName";
-import { cn } from "../../lib/utils";
 import type { DeployToken, DeployTokenSecret } from "../../lib/types";
 
 
@@ -27,7 +26,14 @@ export default function TokensPage() {
      the token, and a stray click on a close button should not be able to lose
      it. */
   const [secretCopied, setSecretCopied] = useState(false);
+  const [showRevoked, setShowRevoked] = useState(false);
   const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
+
+  /* A token mid-rotation has a revokedAt in the future — it still works, so it
+     belongs with the live ones, carrying its "rotating" tag. Only a date that
+     has already passed means the token is dead. */
+  const live = (tokens ?? []).filter((t) => t.revokedAt == null || new Date(t.revokedAt).getTime() > Date.now());
+  const dead = (tokens ?? []).filter((t) => t.revokedAt != null && new Date(t.revokedAt).getTime() <= Date.now());
 
   const load = useCallback(async () => {
     if (!activeCompanyId) return;
@@ -130,7 +136,7 @@ export default function TokensPage() {
       {error && <Alert>{error}</Alert>}
 
       {secret && (
-        <div className="rounded-xl border border-primary/30 bg-primary/10">
+        <div className="rounded-xl border border-primary/30 bg-card">
           <div className="border-b border-primary/30 px-4 py-3">
             <p className="text-[0.86rem] font-bold text-foreground">Your token is ready — it won’t be shown again.</p>
             <p className="mt-0.5 text-[0.86rem] text-muted-foreground">
@@ -180,25 +186,24 @@ export default function TokensPage() {
 
       {!tokens && !error && <Skeleton className="h-[120px]" aria-hidden="true" />}
 
-      {tokens && tokens.length === 0 && (
+      {tokens && live.length === 0 && (
         <div className="border border-dashed border-input bg-card px-6 py-12 text-center">
           <h3 className="text-[1.1rem] font-bold text-foreground">No tokens</h3>
-          <p className="mx-auto mt-1.5 max-w-[42ch] text-[0.92rem] text-muted-foreground">Create one above to let a CI pipeline deploy.</p>
+          <p className="mx-auto mt-1.5 max-w-[42ch] text-[0.92rem] text-muted-foreground">Create one above and hand it to your AI agent.</p>
         </div>
       )}
 
-      {tokens && tokens.length > 0 && (
+      {live.length > 0 && (
         <Panel>
           <Table>
             <TableHeader>
               <TableRow><TableHead>Label</TableHead><TableHead>Token</TableHead><TableHead>Last used</TableHead><TableHead>Created</TableHead><TableHead /></TableRow>
             </TableHeader>
             <TableBody>
-              {tokens.map((t) => {
-                const revoked = t.revokedAt != null && new Date(t.revokedAt).getTime() <= Date.now();
-                const rotating = t.revokedAt != null && !revoked;
+              {live.map((t) => {
+                const rotating = t.revokedAt != null;
                 return (
-                  <TableRow key={t.id} className={cn(revoked && "opacity-50")}>
+                  <TableRow key={t.id}>
                     <TableCell>{t.label}</TableCell>
                     <TableCell className="font-mono">
                       {t.tokenPrefix}…
@@ -207,12 +212,8 @@ export default function TokensPage() {
                     <TableCell className="font-mono text-[0.78rem] text-faint">{relativeTime(t.lastUsedAt)}</TableCell>
                     <TableCell className="font-mono text-[0.78rem] text-faint">{formatDate(t.createdAt)}</TableCell>
                     <TableCell className="whitespace-nowrap text-right">
-                      {!revoked && (
-                        <>
-                          <LinkButton onClick={() => rotate(t.id)}>Rotate</LinkButton>
-                          <LinkButton danger className="ml-3.5" onClick={() => askRevoke(t)}>Revoke</LinkButton>
-                        </>
-                      )}
+                      <LinkButton onClick={() => rotate(t.id)}>Rotate</LinkButton>
+                      <LinkButton danger className="ml-3.5" onClick={() => askRevoke(t)}>Revoke</LinkButton>
                     </TableCell>
                   </TableRow>
                 );
@@ -220,6 +221,38 @@ export default function TokensPage() {
             </TableBody>
           </Table>
         </Panel>
+      )}
+
+      {/* Dead tokens are history, not inventory: nothing can be done to them
+          and they push the working ones down the page. Kept behind a link so
+          the record is still there for anyone checking what they revoked. */}
+      {dead.length > 0 && (
+        <div>
+          <LinkButton onClick={() => setShowRevoked((v) => !v)} aria-expanded={showRevoked}>
+            {showRevoked ? "Hide revoked" : `Revoked (${dead.length})`}
+          </LinkButton>
+
+          {showRevoked && (
+            <Panel className="mt-3">
+              <Table>
+                <TableHeader>
+                  <TableRow><TableHead>Label</TableHead><TableHead>Token</TableHead><TableHead>Last used</TableHead><TableHead>Created</TableHead><TableHead>Revoked</TableHead></TableRow>
+                </TableHeader>
+                <TableBody>
+                  {dead.map((t) => (
+                    <TableRow key={t.id} className="opacity-60">
+                      <TableCell>{t.label}</TableCell>
+                      <TableCell className="font-mono">{t.tokenPrefix}…</TableCell>
+                      <TableCell className="font-mono text-[0.78rem] text-faint">{relativeTime(t.lastUsedAt)}</TableCell>
+                      <TableCell className="font-mono text-[0.78rem] text-faint">{formatDate(t.createdAt)}</TableCell>
+                      <TableCell className="font-mono text-[0.78rem] text-faint">{formatDate(t.revokedAt)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Panel>
+          )}
+        </div>
       )}
 
       <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
