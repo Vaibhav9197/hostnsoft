@@ -3,8 +3,17 @@ import "./base.css";
 import { GoogleTagManager, GoogleTagManagerNoScript } from "./components/analytics/GoogleTagManager";
 import { PageViewTracker } from "./components/analytics/PageViewTracker";
 import { ConnectorTokenPickup } from "./components/connector/ConnectorTokenPickup";
+import { SITE } from "./lib/site";
 
 export const metadata: Metadata = {
+  // Resolves every relative URL in this metadata — including the canonical
+  // below and any Open Graph image — against the live origin, so crawlers and
+  // link unfurlers never receive a bare path they cannot fetch.
+  metadataBase: new URL(SITE),
+  // Each page declares itself the canonical version of its own URL. Without
+  // this, the same page reached with a tracking parameter or a trailing slash
+  // can be treated as a separate, competing URL.
+  alternates: { canonical: "./" },
   title: "Embarko — Deploy any app. Get a live URL.",
   description:
     "Managed hosting that builds your app automatically — no Dockerfile, no config. Deploy from your terminal or your AI agent, and get a live URL with a database and persistent storage built in.",
