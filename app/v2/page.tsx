@@ -121,7 +121,9 @@ export default function EmbarkoV2() {
           onClick={() => setStep((s) => s - 1)}
           aria-label="Previous step"
           /* Centred under the 64px header, which owns the top row. */
-          className="absolute left-1/2 bottom-8 z-20 flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full bg-black/5 text-black/60 transition hover:bg-black/10 hover:text-black"
+          /* Opaque, not a tint: it floats over a scrolling column, and a
+             translucent fill lets the cards behind it read straight through. */
+          className="absolute left-1/2 bottom-8 z-20 flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full bg-white text-black/60 shadow-[0_2px_10px_rgba(0,0,0,0.08)] ring-1 ring-black/10 transition hover:text-black hover:ring-black/20"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -129,12 +131,24 @@ export default function EmbarkoV2() {
         </button>
       )}
 
-      {/* the one section */}
-      <div className="flex flex-1 items-center justify-center overflow-y-auto px-6 py-12">
+      {/* the one section.
+
+          Centring is done with `m-auto` on the child rather than `items-center`
+          here. A centred flex item that outgrows its scroll container overflows
+          equally in both directions, and the part above the top edge cannot be
+          reached — scrollTop stops at 0. On a phone that put this step's
+          headline 77px above the viewport with no way to scroll back up to it.
+          Auto margins collapse instead of overflowing, so a tall step scrolls
+          from its true top.
+
+          The header is `fixed`, so it takes no space in this column: the top
+          padding is what keeps the first line out from under it, and the bottom
+          padding clears the back button. */}
+      <div className="flex flex-1 justify-center overflow-y-auto px-6 pb-24 pt-24">
         <div
           key={step}
           /* Hero's headline needs a wider column than the demo steps to hold two lines. */
-          className={`eb-in w-full ${step === 0 ? 'max-w-[1180px]' : 'max-w-[1000px]'}`}
+          className={`eb-in m-auto w-full ${step === 0 ? 'max-w-[1180px]' : 'max-w-[1000px]'}`}
         >
           {step === 0 && <Hero onNext={() => setStep(1)} />}
           {step === 1 && <CopyStep onNext={() => setStep(2)} />}
