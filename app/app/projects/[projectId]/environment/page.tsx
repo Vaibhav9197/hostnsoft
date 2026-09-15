@@ -49,6 +49,14 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
   const [editingValue, setEditingValue] = useState("");
   // The key awaiting a confirmed removal. Null when no prompt is open.
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
+  /* Whether a variable has been added, edited or removed in this visit — the
+     only thing Apply changes is for.
+     Deliberately not derived from the data: comparing each variable's
+     updatedAt against the running deploy's createdAt looks like the more
+     honest signal, but a deploy writes its own variables after its record is
+     created, so an untouched app reads as permanently pending and the button
+     is back to being furniture. */
+  const [pending, setPending] = useState(false);
 
   const trimmedKey = key.trim();
   // Only complain once something has been typed — an empty box isn't wrong
@@ -100,6 +108,9 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
     setDeployNotice(null);
     try {
       await deploymentsApi.rollback(activeCompanyId, projectId, latest.id);
+      /* The variables are on their way to the app, so there is nothing left to
+         apply — until the next edit. */
+      setPending(false);
       /* Points at Deployments rather than the live URL: until this finishes,
          the app on that URL is still the old one, so the build is the thing
          worth watching. */
@@ -132,6 +143,7 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
     try {
       // Bulk-upsert endpoint; we send a single pair. Existing keys omitted are left as-is.
       await envVarsApi.set(activeCompanyId, projectId, [{ key: trimmedKey, value }]);
+      setPending(true);
       setNotice(`${trimmedKey} saved. Applies on the next deploy.`);
       setDeployNotice(null);
       setKey("");
@@ -158,6 +170,7 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
     for (const key of removedKeys) {
       await envVarsApi.remove(activeCompanyId, projectId, key);
     }
+    setPending(true);
     const saved = incoming.length;
     const removed = removedKeys.length;
     setNotice(
@@ -189,6 +202,7 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
     setNotice(null);
     try {
       await envVarsApi.set(activeCompanyId, projectId, [{ key, value: editingValue }]);
+      setPending(true);
       setEditingKey(null);
       setNotice(`${key} updated. Applies on the next deploy.`);
       await load();
@@ -204,10 +218,14 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
   async function remove(k: string) {
     if (!activeCompanyId) return;
     setConfirmRemove(null);
+    /* The old message names a variable that may be the one just removed —
+       "FOO saved" above a list with no FOO in it is a straight contradiction. */
+    setNotice(null);
     const prev = vars;
     setVars((v) => (v ?? []).filter((x) => x.key !== k));
     try {
       await envVarsApi.remove(activeCompanyId, projectId, k);
+      setPending(true);
     } catch (e) {
       setVars(prev ?? null);
       setError(e instanceof Error ? e.message : "Couldn’t remove the variable.");
@@ -360,24 +378,35 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
         </Panel>
       )}
 
-      <div className="flex flex-col items-start gap-2.5">
-        {/* Above the button, not below it: the button can scroll out of view on
-            a short screen, and a confirmation the reader has to hunt for is one
-            they will assume never appeared. */}
-        {deployNotice && <Alert variant="note" className="w-full text-foreground">{deployNotice}</Alert>}
-        {/* Reuses the image the latest deploy already built, so this is a
-            restart with the current variables, not a rebuild — seconds, and the
-            code stays exactly where it is. */}
-        <Button variant="outline" onClick={redeploy} disabled={redeploying || !latest}>
-          {redeploying ? "Applying…" : "Apply changes"}
-        </Button>
-        {latest && (
-          <p className="text-[0.8rem] text-faint">
-            Restarts the latest version, <span className="font-mono">{latest.appVersion}</span> ({latest.version}),
-            with your saved variables. No rebuild — the running code doesn’t change.
-          </p>
-        )}
-      </div>
+      {/* The button only means something once a variable has changed: an app
+          already running the saved values has nothing to apply, and a button
+          that sits there permanently reads as a thing you are supposed to
+          press. The notice outlives it, so the confirmation doesn't vanish
+          along with the button that produced it. */}
+      {(deployNotice || pending) && (
+        <div className="flex flex-col items-start gap-2.5">
+          {/* Above the button, not below it: the button can scroll out of view on
+              a short screen, and a confirmation the reader has to hunt for is one
+              they will assume never appeared. */}
+          {deployNotice && <Alert variant="note" className="w-full text-foreground">{deployNotice}</Alert>}
+          {pending && (
+            <>
+              {/* Reuses the image the latest deploy already built, so this is a
+                  restart with the current variables, not a rebuild — seconds, and
+                  the code stays exactly where it is. */}
+              <Button variant="outline" onClick={redeploy} disabled={redeploying || !latest}>
+                {redeploying ? "Applying…" : "Apply changes"}
+              </Button>
+              {latest && (
+                <p className="text-[0.8rem] text-faint">
+                  Restarts the latest version, <span className="font-mono">{latest.appVersion}</span> ({latest.version}),
+                  with your saved variables. No rebuild — the running code doesn’t change.
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      )}
     </Page>
   );
 }
