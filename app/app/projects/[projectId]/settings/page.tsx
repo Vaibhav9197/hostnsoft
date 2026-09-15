@@ -1,12 +1,12 @@
 "use client";
 
+import { Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import { Alert, Fact, FactGrid, Page, PageHeader, Panel, PanelTitle, Skeleton } from "../../../../components/console/kit";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
 import { projectsApi } from "../../../../lib/hnsApi";
-import { formatDate } from "../../../../lib/format";
 import { useSession } from "../../../../lib/session";
 import { useProject } from "../../../../lib/useProject";
 
@@ -22,6 +22,11 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
   const [savingMem, setSavingMem] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [formErr, setFormErr] = useState<string | null>(null);
+  /* Both fields read as plain text until asked for. Settings is somewhere you
+     come to check what the app is called far more often than to change it, and
+     a page of open inputs invites edits nobody came to make. */
+  const [editingName, setEditingName] = useState(false);
+  const [editingMem, setEditingMem] = useState(false);
   const [confirm, setConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [delErr, setDelErr] = useState<string | null>(null);
@@ -41,7 +46,8 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
     setFormErr(null);
     try {
       await projectsApi.rename(activeCompanyId, projectId, name.trim());
-      setNotice("Display name updated. The slug and live URL never change.");
+      setNotice("Name updated. Your app’s web address is unchanged.");
+      setEditingName(false);
       await reload();
     } catch (e) {
       setFormErr(e instanceof Error ? e.message : "Couldn’t rename the app.");
@@ -55,7 +61,7 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
     if (!activeCompanyId) return;
     const mb = Number(memory);
     if (!Number.isInteger(mb) || mb <= 0) {
-      setFormErr("Memory must be a whole number of MB greater than 0.");
+      setFormErr("Memory has to be a whole number greater than 0.");
       return;
     }
     setSavingMem(true);
@@ -63,10 +69,11 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
     setFormErr(null);
     try {
       await projectsApi.setMemory(activeCompanyId, projectId, mb);
-      setNotice("Requested memory saved. It applies on the next deploy — the running container isn’t resized now.");
+      setNotice("Saved. The new memory applies the next time your AI deploys — nothing changes right now.");
+      setEditingMem(false);
       await reload();
     } catch (e) {
-      setFormErr(e instanceof Error ? e.message : "Couldn’t update memory.");
+      setFormErr(e instanceof Error ? e.message : "Couldn’t save the memory setting.");
     } finally {
       setSavingMem(false);
     }
@@ -80,7 +87,7 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
       await projectsApi.remove(activeCompanyId, projectId);
       router.push("/app");
     } catch (e) {
-      setDelErr(e instanceof Error ? e.message : "Couldn’t delete the app.");
+      setDelErr(e instanceof Error ? e.message : "Couldn’t remove the app.");
       setDeleting(false);
     }
   }
@@ -90,42 +97,114 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
 
   return (
     <Page>
-      <PageHeader title="Settings" subtitle={`Configuration for ${project.name}.`} />
+      <PageHeader title="Settings" subtitle={`Rename ${project.name}, or remove it from your apps.`} />
 
       {notice && <Alert variant="info">{notice}</Alert>}
       {formErr && <Alert>{formErr}</Alert>}
 
+      {/* Only the support id is stated outright. The web address already appears
+          under Name, where it earns its place by explaining what renaming does
+          not change, and the created date answers a question nobody asks here. */}
       <Panel padded>
-        <PanelTitle>App</PanelTitle>
+        <PanelTitle>This app</PanelTitle>
         <FactGrid flush>
-          <Fact flush k="Slug (immutable)" v={project.slug} mono />
-          <Fact flush k="App ID" v={project.id} mono />
-          <Fact flush k="Created" v={formatDate(project.createdAt)} />
+          <Fact flush k="ID for support" v={project.id} mono />
         </FactGrid>
 
-        <form className="mt-4 flex flex-wrap gap-2.5" onSubmit={rename}>
-          <Input className="min-w-[220px] flex-1" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} aria-label="Display name" />
-          <Button type="submit" disabled={savingName || !name.trim() || name.trim() === project.name}>{savingName ? "Saving…" : "Rename"}</Button>
-        </form>
-        <form className="mt-2.5 flex flex-wrap gap-2.5" onSubmit={saveMemory}>
-          <Input className="min-w-[220px] flex-1 font-mono" type="number" min={1} value={memory} onChange={(e) => setMemory(e.target.value)} aria-label="Requested memory (MB)" />
-          <Button type="submit" variant="outline" disabled={savingMem || memory === String(project.memoryMb)}>{savingMem ? "Saving…" : "Set memory (MB)"}</Button>
-        </form>
-        <p className="mt-3 text-[0.92rem] text-muted-foreground">Renaming changes the display name only — the slug <code className="border border-border bg-elevated px-1 py-0.5 font-mono text-[0.85em] text-foreground">{project.slug}</code>, and therefore the live URL, never changes.</p>
+        <Field
+          label="Name"
+          value={project.name}
+          editing={editingName}
+          onEdit={() => { setName(project.name); setFormErr(null); setEditingName(true); }}
+        >
+          <p className="mt-1 text-[0.92rem] text-muted-foreground">
+            This is the name you see here. Your app stays at{" "}
+            <code className="border border-border bg-elevated px-1 py-0.5 font-mono text-[0.85em] text-foreground">{project.slug}.app.embarko.ai</code>{" "}
+            whatever you call it, so links you have already shared keep working.
+          </p>
+          <form className="mt-2.5 flex flex-wrap gap-2.5" onSubmit={rename}>
+            <Input className="min-w-[220px] flex-1" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} aria-label="App name" autoFocus />
+            <Button type="submit" disabled={savingName || !name.trim() || name.trim() === project.name}>{savingName ? "Saving…" : "Save"}</Button>
+            <Button type="button" variant="outline" onClick={() => { setName(project.name); setEditingName(false); }}>Cancel</Button>
+          </form>
+        </Field>
+
+        <Field
+          label="Memory"
+          value={`${project.memoryMb} MB`}
+          editing={editingMem}
+          onEdit={() => { setMemory(String(project.memoryMb)); setFormErr(null); setEditingMem(true); }}
+        >
+          <p className="mt-1 text-[0.92rem] text-muted-foreground">
+            How much room your app has to work in. Most apps are happy at 256 MB — raise it only if yours
+            runs into trouble. A new number takes effect the next time your AI deploys.
+          </p>
+          <form className="mt-2.5 flex flex-wrap gap-2.5" onSubmit={saveMemory}>
+            <Input className="min-w-[220px] flex-1 font-mono" type="number" min={1} value={memory} onChange={(e) => setMemory(e.target.value)} aria-label="Memory in MB" autoFocus />
+            <Button type="submit" disabled={savingMem || memory === String(project.memoryMb)}>{savingMem ? "Saving…" : "Save"}</Button>
+            <Button type="button" variant="outline" onClick={() => { setMemory(String(project.memoryMb)); setEditingMem(false); }}>Cancel</Button>
+          </form>
+        </Field>
       </Panel>
 
       <Panel padded tone="danger">
-        <PanelTitle tone="danger">Danger zone</PanelTitle>
+        <PanelTitle tone="danger">Remove this app</PanelTitle>
+        {/* Removal is not instant: the app is taken off the list first and shut
+            down afterwards. Said plainly here so nobody is surprised by a URL
+            that still answers a few minutes later. */}
         <p className="mt-1 text-[0.92rem] text-muted-foreground">
-          Deleting <b className="text-foreground">{project.name}</b> removes it from the console. Note: this <b className="text-foreground">doesn’t stop what’s running</b> yet —
-          the deployed container keeps running until the backend adds a teardown step.
+          This takes <b className="text-foreground">{project.name}</b> off your apps list and can’t be undone.
+          After you remove it, <b className="text-foreground">your app keeps running for a while</b> — it stays reachable
+          at its web address until it is fully removed.
         </p>
         {delErr && <Alert className="mt-3">{delErr}</Alert>}
         <div className="mt-3.5 flex flex-wrap gap-2.5">
           <Input className="min-w-[220px] flex-1" placeholder={`Type “${project.name}” to confirm`} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
-          <Button variant="destructive" disabled={deleting || confirm !== project.name} onClick={del}>{deleting ? "Deleting…" : "Delete app"}</Button>
+          <Button variant="destructive" disabled={deleting || confirm !== project.name} onClick={del}>{deleting ? "Removing…" : "Remove app"}</Button>
         </div>
       </Panel>
     </Page>
+  );
+}
+
+/**
+ * One setting, shown as its value until someone asks to change it.
+ *
+ * The pencil is a real button rather than a hover affordance: on a touch screen
+ * there is no hover, and an edit control nobody can find is the same as no edit
+ * control at all.
+ */
+function Field({
+  label,
+  value,
+  editing,
+  onEdit,
+  children,
+}: {
+  label: string;
+  value: string;
+  editing: boolean;
+  onEdit: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="mt-5 border-t border-border pt-4">
+      <p className="text-[0.92rem] font-medium text-foreground">{label}</p>
+      {editing ? (
+        children
+      ) : (
+        <div className="mt-1 flex items-center gap-2">
+          <span className="text-[0.95rem] text-foreground">{value}</span>
+          <button
+            type="button"
+            onClick={onEdit}
+            aria-label={`Edit ${label.toLowerCase()}`}
+            className="grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+          >
+            <Pencil className="size-3.5" aria-hidden="true" />
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
