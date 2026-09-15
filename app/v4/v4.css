@@ -268,3 +268,9 @@ html body { background: #fff; color: #111; }
 .notes-line.three{top:68px;width:92px}
 .notes-people{position:absolute;right:13px;bottom:13px;display:flex}
 .notes-people i{width:16px;height:16px;margin-left:-5px;border:2px solid #f2f2ee;border-radius:50%;background:#b9b9ad}
+
+/* The feature showcase brings its own (Tailwind) styling, so this only has to
+   give it the scene's centring and let it use the full content width — the
+   orbit it replaced was a fixed-diameter circle. */
+.showcase-scene{display:flex;align-items:center;justify-content:center;min-height:0;padding:116px 24px}
+@media (max-width:800px){.showcase-scene{padding:89px 24px}}

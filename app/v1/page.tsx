@@ -2,10 +2,7 @@
 
 import type { CSSProperties, ReactNode } from 'react';
 import { useEffect } from 'react';
-import {
-  Activity, ArrowRight, Check, Copy, Database, FolderOpen, Globe, HardDrive,
-  KeyRound, MapPin, Plane, RefreshCw, ShieldCheck,
-} from 'lucide-react';
+import { ArrowRight, Check, Copy, MapPin, Plane } from 'lucide-react';
 import barcelonaMorning from '../v4/barcelona-morning.png';
 import { SectionSnap } from './SectionSnap';
 import { trackPageView, trackCTA, trackDeployment } from '../lib/tracking';
@@ -13,6 +10,7 @@ import { AGENTS, agentIconSrc } from '../lib/agents';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { CopyPromptButton, COPIED_LABEL } from '../components/CopyPromptButton';
+import { FeatureShowcase } from '../components/FeatureShowcase';
 
 /**
  * Atmospheric backdrop.
@@ -464,21 +462,6 @@ function CopyPromptCta() {
 /* The story scenes carry the same numerals as the "How?" recap further down, so
    a reader arriving at that summary recognises it as a recap of what they just
    watched rather than new material. Styled to match those numerals exactly. */
-/* What Embarko handles for a deployed app — ported from /v3's "Already
-   handled" grid. v3 draws it from the shared design tokens; v1 uses its own
-   neutral greys, so the block sits in this page's palette rather than arriving
-   in v3's warmer one. */
-const INCLUDED = [
-  { Icon: Globe, title: 'Domain', body: 'Get a live URL the moment your app deploys.' },
-  { Icon: Database, title: 'Database', body: 'Your app can save and load data right away.' },
-  { Icon: KeyRound, title: 'Login', body: 'Let people sign in without building auth yourself.' },
-  { Icon: FolderOpen, title: 'Files', body: 'Upload and store files without extra setup.' },
-  { Icon: ShieldCheck, title: 'HTTPS', body: 'Every app is secure by default.' },
-  { Icon: HardDrive, title: 'Backups', body: 'Your data is backed up automatically.' },
-  { Icon: RefreshCw, title: 'Updates', body: 'Ship changes any time your agent rebuilds.' },
-  { Icon: Activity, title: 'Uptime', body: 'Your app stays online without you watching it.' },
-];
-
 function SceneStep({ n }: { n: string }) {
   return <div className="text-6xl font-bold text-gray-300">{n}</div>;
 }
@@ -672,28 +655,9 @@ export default function EmbarkoV1() {
         </div>
       </section>
 
-      {/* SCENE 06: THE PAIN REMOVED (ported from /v3) */}
+      {/* SCENE 06: THE PAIN REMOVED */}
       <section className="flex min-h-[100dvh] items-center justify-center bg-gray-50 px-6 py-20">
-        <div className="w-full max-w-5xl">
-          <div className="mb-12 max-w-xl">
-            <h2 className="text-3xl font-bold sm:text-4xl md:text-5xl">Everything your app needs. Already handled.</h2>
-            <p className="mt-4 text-lg font-light leading-relaxed text-gray-600">
-              Your AI builds the app. Embarko takes care of everything needed to keep it running — you
-              don&apos;t have to set any of this up yourself.
-            </p>
-          </div>
-          {/* A 1px grid gap over a grey ground draws the cell rules, so the block
-              reads as one table rather than eight detached boxes. */}
-          <div className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-gray-200 bg-gray-200 sm:grid-cols-2 lg:grid-cols-4">
-            {INCLUDED.map(({ Icon, title, body }) => (
-              <div key={title} className="bg-white px-6 py-7">
-                <Icon aria-hidden="true" strokeWidth={1.5} className="mb-3.5 h-[22px] w-[22px]" />
-                <h3 className="mb-1.5 text-base font-bold">{title}</h3>
-                <p className="text-sm font-light leading-relaxed text-gray-600">{body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        <FeatureShowcase tone="gray" />
       </section>
 
       {/* SCENE 07: WHAT CAN I BUILD */}

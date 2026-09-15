@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { trackPageView, trackCTA, trackDeployment } from '../lib/tracking';
-import {
-  Activity, Copy, Database, FolderOpen, Globe, HardDrive, KeyRound, RefreshCw, ShieldCheck,
-} from "lucide-react";
+import { Copy } from "lucide-react";
 
 import { AGENTS, agentIconSrc } from "../lib/agents";
 import { CopyPromptButton, COPIED_LABEL } from "../components/CopyPromptButton";
+import { FeatureShowcase } from "../components/FeatureShowcase";
 import { SiteFooter } from "../components/SiteFooter";
 import { SiteHeader } from "../components/SiteHeader";
 
@@ -69,17 +68,6 @@ const FLOW = [
     body: "Claude, Cursor, Gemini, Copilot, or Replit — your agent reads the prompt, calls Embarko, and your app gets its own URL.",
     extra: "agents",
   },
-] as const;
-
-const FEATURES = [
-  { Icon: Globe, title: "Domain", body: "Get a live URL the moment your app deploys." },
-  { Icon: Database, title: "Database", body: "Your app can save and load data right away." },
-  { Icon: KeyRound, title: "Login", body: "Let people sign in without building auth yourself." },
-  { Icon: FolderOpen, title: "Files", body: "Upload and store files without extra setup." },
-  { Icon: ShieldCheck, title: "HTTPS", body: "Every app is secure by default." },
-  { Icon: HardDrive, title: "Backups", body: "Your data is backed up automatically." },
-  { Icon: RefreshCw, title: "Updates", body: "Ship changes any time your agent rebuilds." },
-  { Icon: Activity, title: "Uptime", body: "Your app stays online without you watching it." },
 ] as const;
 
 /* Miniature app screens for the example cards, in the spirit of v4's
@@ -574,22 +562,7 @@ function Included() {
   return (
     <section id="included" className="scroll-mt-16 bg-card py-[88px] max-[720px]:py-[60px]">
       <div className={WRAP}>
-        <SectionHead
-          title="Everything your app needs. Already handled."
-          body="Your AI builds the app. Embarko takes care of everything needed to keep it running — you don't have to set any of this up yourself."
-        />
-
-        {/* 1px grid gap over a border-coloured ground draws the cell rules. */}
-        <div className="grid grid-cols-4 gap-px overflow-hidden rounded-[14px] border border-border bg-border max-[800px]:grid-cols-2 max-[460px]:grid-cols-1">
-          {FEATURES.map(({ Icon, title, body }) => (
-            <div key={title} className="bg-card px-[22px] py-[26px]">
-              {/* Decorative: the heading right below already names the feature. */}
-              <Icon aria-hidden="true" strokeWidth={1.5} className="mb-3.5 h-[22px] w-[22px] text-foreground" />
-              <h4 className="mb-1.5 text-base font-semibold">{title}</h4>
-              <p className="text-sm leading-[1.5] text-muted-foreground">{body}</p>
-            </div>
-          ))}
-        </div>
+        <FeatureShowcase tone="token" className="max-w-none" />
       </div>
     </section>
   );

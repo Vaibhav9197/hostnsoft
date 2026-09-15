@@ -1,16 +1,14 @@
 'use client';
 
 import { useEffect } from 'react';
-import {
-  ArrowRight, ArrowUpRight, Check, ChevronDown, Cloud, Copy, Database, FileUp,
-  Globe2, KeyRound, ShieldCheck, Sparkles, Upload,
-} from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Check, ChevronDown, Copy, ShieldCheck, Sparkles } from 'lucide-react';
 import { siClaude, siCursor, siGithubcopilot, siGooglegemini, siReplit } from 'simple-icons';
 import { trackPageView, trackCTA, trackDeployment } from '../lib/tracking';
 import barcelonaMorning from './barcelona-morning.png';
 import { CopyPromptButton as SharedCopyPromptButton, COPIED_LABEL } from '../components/CopyPromptButton';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
+import { FeatureShowcase } from '../components/FeatureShowcase';
 
 const agents = [
   { name: 'Claude', icon: siClaude },
@@ -60,9 +58,12 @@ function LiveScene() {
   return <section className="scene live-scene" id="live"><div className="live-scene-inner"><div className="scene-copy centered"><h2>Your app is live.</h2><p>The same app. Now on the internet.</p></div><div className="browser-card"><div className="browser-bar"><span className="browser-controls"><i /><i /><i /></span><span className="browser-url"><ShieldCheck aria-hidden="true" /> weekend.embarko.app</span><span /></div><div className="browser-content"><div className="live-panel"><span className="browser-live"><i /> Live</span><h3>Barcelona<br />is ready.</h3><p>Eight bright days, held in one place.</p><button>Open itinerary <ArrowUpRight aria-hidden="true" /></button></div><img src={barcelonaMorning.src} alt="" /></div></div></div></section>;
 }
 
+/* The orbit that used to live here named seven features around a logo, which
+   looked like a diagram of Embarko rather than a description of what the owner
+   gets. The showcase picks one at a time and prints the sentence you would say
+   to your agent to get it. */
 function HostingScene() {
-  const items = [['Domain', Globe2], ['Database', Database], ['Login', KeyRound], ['Files', FileUp], ['HTTPS', ShieldCheck], ['Backups', Cloud], ['Updates', Upload]] as const;
-  return <section className="scene hosting-scene"><div className="scene-copy centered"><h2>Everything your app needs to stay online.</h2><p>You don’t have to set it up yourself.</p><SceneCta>Copy the deploy prompt</SceneCta></div><div className="hosting-orbit" aria-label="Hosting features managed by Embarko">{items.map(([label, Icon], index) => <div className={'orbit-item orbit-' + (index + 1)} key={label}><Icon aria-hidden="true" /><span>{label}</span></div>)}<div className="embarko-core"><strong>embarko</strong><small><i /> All set</small></div></div></section>;
+  return <section className="scene hosting-scene showcase-scene"><FeatureShowcase tone="gray" /></section>;
 }
 
 function AppGallery() {
