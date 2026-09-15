@@ -527,12 +527,16 @@ export default function EmbarkoV1() {
       <PageViewTracker />
       <SiteHeader />
 
+      {/* Scene heights are 100dvh, not 100vh. On mobile 100vh is the viewport
+          with the browser toolbar *collapsed*, so every scene is taller than
+          what is actually visible — which leaves SectionSnap's "is this scene
+          read to its edge?" check permanently true, and the snap never fires. */}
       <div id="v1-scenes" className="overflow-x-hidden bg-white text-black">
         {/* One scroll gesture = one scene. Renders nothing; see SectionSnap.tsx. */}
         <SectionSnap containerSelector="#v1-scenes" offsetSelector="nav" />
 
       {/* SCENE 01: THE OPENING */}
-      <section className="relative flex min-h-screen flex-col items-center justify-center px-6 py-20">
+      <section className="relative flex min-h-[100dvh] flex-col items-center justify-center px-6 py-20">
         {/* Light gathers at the top and clears to white behind the type, so the
             headline never competes with the sky. */}
         <SkyBackdrop
@@ -561,7 +565,7 @@ export default function EmbarkoV1() {
       </section>
 
       {/* SCENE 02: SOMETHING IS BEING BUILT */}
-      <section className="flex min-h-screen items-center justify-center px-6 py-20">
+      <section className="flex min-h-[100dvh] items-center justify-center px-6 py-20">
         <div className="grid w-full max-w-6xl items-center gap-8 md:grid-cols-2">
           <div className="space-y-6">
             <SceneStep n="01" />
@@ -585,7 +589,7 @@ export default function EmbarkoV1() {
       </section>
 
       {/* SCENE 03: THE QUESTION */}
-      <section className="flex min-h-screen items-center justify-center px-6 py-20">
+      <section className="flex min-h-[100dvh] items-center justify-center px-6 py-20">
         <div className="w-full max-w-4xl space-y-12">
           <div className="space-y-4 text-center">
             <SceneStep n="02" />
@@ -600,7 +604,7 @@ export default function EmbarkoV1() {
       </section>
 
       {/* SCENE 04: THE MAGIC — the one moment that earns a big lift */}
-      <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-20">
+      <section className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-6 py-20">
         {/* Kept light rather than heavy: this source reads grey at full strength,
             and the scene wants a glow around the window, not fog behind it. */}
         <SkyBackdrop
@@ -630,7 +634,7 @@ export default function EmbarkoV1() {
       </section>
 
       {/* SCENE 05: HOW? */}
-      <section className="flex min-h-screen items-center justify-center px-6 py-20">
+      <section className="flex min-h-[100dvh] items-center justify-center px-6 py-20">
         <div className="w-full max-w-4xl space-y-16">
           <h2 className="text-center text-4xl font-bold sm:text-5xl md:text-6xl">How?</h2>
           <div className="grid gap-8 md:grid-cols-3">
@@ -669,7 +673,7 @@ export default function EmbarkoV1() {
       </section>
 
       {/* SCENE 06: THE PAIN REMOVED (ported from /v3) */}
-      <section className="flex min-h-screen items-center justify-center bg-gray-50 px-6 py-20">
+      <section className="flex min-h-[100dvh] items-center justify-center bg-gray-50 px-6 py-20">
         <div className="w-full max-w-5xl">
           <div className="mb-12 max-w-xl">
             <h2 className="text-3xl font-bold sm:text-4xl md:text-5xl">Everything your app needs. Already handled.</h2>
@@ -693,7 +697,7 @@ export default function EmbarkoV1() {
       </section>
 
       {/* SCENE 07: WHAT CAN I BUILD */}
-      <section className="flex min-h-screen flex-col items-center justify-center px-6 py-20">
+      <section className="flex min-h-[100dvh] flex-col items-center justify-center px-6 py-20">
         <div className="w-full max-w-5xl space-y-16">
           <h2 className="text-center text-4xl font-bold sm:text-5xl md:text-6xl">What are you building?</h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -725,7 +729,7 @@ export default function EmbarkoV1() {
 
       {/* SCENE 08: THE WORLD OF APPS (ported from /v4) */}
       <section
-        className="relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-20"
+        className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden px-6 py-20"
         style={{ background: 'radial-gradient(circle at 50% 77%, #ededed 0, rgba(255,255,255,0) 56%), #fff' }}
       >
         <div className="relative z-10 w-full max-w-6xl">
@@ -759,7 +763,7 @@ export default function EmbarkoV1() {
       </section>
 
       {/* SCENE 10: BUILD YOUR WAY */}
-      <section className="flex min-h-screen items-center justify-center bg-gray-50 px-6 py-20">
+      <section className="flex min-h-[100dvh] items-center justify-center bg-gray-50 px-6 py-20">
         <div className="w-full max-w-4xl space-y-12 text-center">
           <h2 className="text-4xl font-bold sm:text-5xl md:text-6xl">Build your way.</h2>
           <div className="flex flex-wrap justify-center gap-4">
@@ -793,7 +797,7 @@ export default function EmbarkoV1() {
       </section>
 
       {/* SCENE 12: THE CORE IDEA */}
-      <section className="flex min-h-screen items-center justify-center px-6 py-20">
+      <section className="flex min-h-[100dvh] items-center justify-center px-6 py-20">
         <div className="max-w-4xl space-y-8 text-center">
           <h2 className="text-5xl font-bold leading-tight sm:text-6xl md:text-8xl">
             Don&apos;t learn hosting.
@@ -807,7 +811,7 @@ export default function EmbarkoV1() {
       </section>
 
       {/* SCENE 13: FINAL FRAME */}
-      <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-20">
+      <section className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-6 py-20">
         {/* Mirror of the opening: there the light sat above, here it rises from below. */}
         <SkyBackdrop
           src="/atmosphere/sky-dawn.jpg"

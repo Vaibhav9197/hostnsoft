@@ -204,7 +204,11 @@ export function SectionSnap({
   const keyButton = "cursor-pointer rounded-[2px] transition hover:brightness-95 active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40";
 
   return (
-    <KbdGroup className="pointer-events-auto fixed inset-x-0 bottom-6 z-50 justify-center">
+    /* Hidden on phones. These are pictures of keyboard keys, and a phone has no
+       keyboard — the touch handler above already advances on swipe, so nothing
+       is lost. Kept visible they overlap the bottom of every scene, which on a
+       short screen means sitting on top of the copy. */
+    <KbdGroup className="pointer-events-auto fixed inset-x-0 bottom-6 z-50 hidden justify-center sm:flex">
       <button type="button" className={keyButton} onClick={() => step(-1)} aria-label="Previous scene">
         <Kbd>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
