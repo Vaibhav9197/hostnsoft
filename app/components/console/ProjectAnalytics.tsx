@@ -57,9 +57,12 @@ function TrafficChart({ series, range }: { series: Analytics["traffic"]["series"
   const peak = Math.max(1, ...series.map((p) => p.requests));
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    /* The grid row is as tall as the taller Top paths card beside it, so the
+       plot area takes the slack instead of leaving it under the axis: the bars
+       sit on the bottom edge of the card wherever that lands. */
+    <div className="flex flex-col rounded-xl border border-border bg-card p-4">
       <div className="font-mono text-[0.66rem] uppercase tracking-[0.1em] text-faint">Requests</div>
-      <div className="mt-3 flex h-32 items-end gap-px" role="img" aria-label="Requests over time">
+      <div className="mt-3 flex min-h-[8rem] flex-1 items-end gap-px" role="img" aria-label="Requests over time">
         {series.map((point) => {
           const height = (point.requests / peak) * 100;
           const errorShare = point.requests > 0 ? (point.errors / point.requests) * 100 : 0;
