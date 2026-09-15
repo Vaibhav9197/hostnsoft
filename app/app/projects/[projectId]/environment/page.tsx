@@ -28,6 +28,11 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
   const [vars, setVars] = useState<EnvVar[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<React.ReactNode>(null);
+  /* Kept apart from `notice`: this one answers the Apply changes button and belongs
+     beside it, while saving a variable is confirmed up next to the form that
+     did it. One shared slot put every message at the top of the page, far from
+     whichever control the reader had just pressed. */
+  const [deployNotice, setDeployNotice] = useState<React.ReactNode>(null);
   const [key, setKey] = useState("");
   const [value, setValue] = useState("");
   const [busy, setBusy] = useState(false);
@@ -92,22 +97,26 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
     setRedeploying(true);
     setError(null);
     setNotice(null);
+    setDeployNotice(null);
     try {
       await deploymentsApi.rollback(activeCompanyId, projectId, latest.id);
       /* Points at Deployments rather than the live URL: until this finishes,
          the app on that URL is still the old one, so the build is the thing
          worth watching. */
-      setNotice(
+      setDeployNotice(
         <>
-          Deployment started — it may take a little while.{" "}
-          <Link className="text-info underline underline-offset-2" href={`/app/projects/${projectId}/deployments`}>
+          {/* Only the status word carries the colour. A whole sentence in green
+              is harder to read than one in body text, and a green link is
+              indistinguishable from the green around it. */}
+          <b className="font-medium text-success">Deployment started</b> — it may take a little while.{" "}
+          <Link className="underline underline-offset-2" href={`/app/projects/${projectId}/deployments`}>
             Check the deployment status
           </Link>
           .
         </>,
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn’t re-deploy.");
+      setError(e instanceof Error ? e.message : "Couldn’t apply the changes.");
     } finally {
       setRedeploying(false);
     }
@@ -124,6 +133,7 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
       // Bulk-upsert endpoint; we send a single pair. Existing keys omitted are left as-is.
       await envVarsApi.set(activeCompanyId, projectId, [{ key: trimmedKey, value }]);
       setNotice(`${trimmedKey} saved. Applies on the next deploy.`);
+      setDeployNotice(null);
       setKey("");
       setValue("");
       await load();
@@ -156,7 +166,7 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
         removed > 0 && `${removed} removed`,
       ]
         .filter(Boolean)
-        .join(", ")}. Re-deploy to apply to the running app.`,
+        .join(", ")}. Apply changes to send them to the running app.`,
     );
     setError(null);
     await load();
@@ -351,20 +361,20 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
       )}
 
       <div className="flex flex-col items-start gap-2.5">
-        <p className="text-[0.92rem] text-muted-foreground">
-          Saved changes are stored here but <b className="text-foreground">don’t reach the running app until it
-          restarts</b> — they apply on the next deploy, or re-deploy now to apply them straight away.
-        </p>
+        {/* Above the button, not below it: the button can scroll out of view on
+            a short screen, and a confirmation the reader has to hunt for is one
+            they will assume never appeared. */}
+        {deployNotice && <Alert variant="note" className="w-full text-foreground">{deployNotice}</Alert>}
         {/* Reuses the image the latest deploy already built, so this is a
             restart with the current variables, not a rebuild — seconds, and the
             code stays exactly where it is. */}
         <Button variant="outline" onClick={redeploy} disabled={redeploying || !latest}>
-          {redeploying ? "Re-deploying…" : "Re-deploy"}
+          {redeploying ? "Applying…" : "Apply changes"}
         </Button>
         {latest && (
           <p className="text-[0.8rem] text-faint">
-            Re-deploys the latest version, <span className="font-mono">{latest.appVersion}</span> ({latest.version}).
-            No rebuild — the running code doesn’t change.
+            Restarts the latest version, <span className="font-mono">{latest.appVersion}</span> ({latest.version}),
+            with your saved variables. No rebuild — the running code doesn’t change.
           </p>
         )}
       </div>
