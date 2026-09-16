@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarClock, Check, CreditCard, ExternalLink, Star } from "lucide-react";
 
 import {
@@ -46,6 +46,23 @@ type CardsState =
 const errorMessage = (e: unknown, fallback: string) => (e instanceof Error ? e.message : fallback);
 const price = (p: BillingPlan) => `${formatMoney(p.amount_cents, p.amount_currency)}${intervalSuffix(p.interval)}`;
 
+type Interval = "monthly" | "yearly";
+
+// Lago carries each billing period as its own plan (embarko_team and
+// embarko_team_annual). The page shows one period at a time, so plans are
+// compared by what they cost per month regardless of how they're billed.
+const MONTHS: Record<string, number> = { monthly: 1, yearly: 12, quarterly: 3, weekly: 1 / 4 };
+const monthlyCents = (p: BillingPlan) => p.amount_cents / (MONTHS[p.interval] ?? 1);
+
+// "free" | "creator" | "team" — the tier a plan belongs to, across periods.
+const planFamily = (plan: BillingPlan): string | null => {
+  const key = `${plan.code} ${plan.name}`.toLowerCase();
+  if (key.includes("free")) return "free";
+  if (key.includes("creator")) return "creator";
+  if (key.includes("team") || key.includes("pro")) return "team";
+  return null;
+};
+
 // Marketing copy for each plan, mirrored from the public pricing page. Lago
 // only carries a one-line description, so the feature lists live here and are
 // matched to plans by code (falls back to a keyword match on the name).
@@ -88,11 +105,8 @@ const PLAN_DETAILS: Record<string, { headline: string; features: string[] }> = {
 };
 
 const planDetails = (plan: BillingPlan) => {
-  const key = `${plan.code} ${plan.name}`.toLowerCase();
-  if (key.includes("free")) return PLAN_DETAILS.free;
-  if (key.includes("creator")) return PLAN_DETAILS.creator;
-  if (key.includes("team") || key.includes("pro")) return PLAN_DETAILS.team;
-  return null;
+  const family = planFamily(plan);
+  return family ? PLAN_DETAILS[family] ?? null : null;
 };
 
 export default function BillingPage() {
@@ -105,6 +119,30 @@ export default function BillingPage() {
   const [busy, setBusy] = useState<string | null>(null); // which action is in flight
   const [confirm, setConfirm] = useState<PendingAction>(null);
   const [cards, setCards] = useState<CardsState>({ kind: "loading" });
+
+  // Yearly by default; if the company already pays monthly, open on that so
+  // the current plan is visible without a click. The catalogue may carry only
+  // one period, in which case that period is shown and the toggle is hidden.
+  const [interval, setInterval] = useState<Interval | null>(null);
+  const hasMonthly = plans.some((p) => p.interval === "monthly" && p.amount_cents > 0);
+  const hasYearly = plans.some((p) => p.interval === "yearly");
+  const hasBothIntervals = hasMonthly && hasYearly;
+  const preferred: Interval =
+    active?.plan && active.plan.amount_cents > 0 && active.plan.interval === "monthly" ? "monthly" : "yearly";
+  const shownInterval: Interval = hasBothIntervals ? interval ?? preferred : hasYearly ? "yearly" : "monthly";
+
+  // Free is billed monthly (at $0) but belongs in both views. Everything else
+  // is filtered to the selected period, cheapest first.
+  const shownPlans = useMemo(
+    () =>
+      plans
+        .filter((p) => p.amount_cents === 0 || p.interval === shownInterval)
+        .sort((a, b) => monthlyCents(a) - monthlyCents(b)),
+    [plans, shownInterval],
+  );
+  // Monthly counterpart of a yearly plan, for the "save X%" line.
+  const monthlyTwin = (plan: BillingPlan) =>
+    plans.find((p) => p.interval === "monthly" && p.code !== plan.code && planFamily(p) === planFamily(plan)) ?? null;
 
   // Saved cards live on this page only (the header doesn't need them).
   const loadCards = useCallback(async () => {
@@ -298,18 +336,44 @@ export default function BillingPage() {
       {/* ---------------------------------------------------- plans */}
       {setup === "ready" && (
         <section id="plans" className="flex flex-col gap-3.5 scroll-mt-20">
-          <div className="flex items-baseline justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <PanelTitle>Plans</PanelTitle>
-            {!isFree && cards.kind === "ready" && !hasDefaultCard && (
-              <span className="text-[0.82rem] text-warning">No default card on file — add one below to keep your plan active.</span>
+            {hasBothIntervals && (
+              <div
+                role="radiogroup"
+                aria-label="Billing period"
+                className="inline-flex items-center rounded-full border border-border bg-background p-0.5 text-[0.82rem]"
+              >
+                {(["monthly", "yearly"] as Interval[]).map((iv) => {
+                  const on = shownInterval === iv;
+                  return (
+                    <button
+                      key={iv}
+                      type="button"
+                      role="radio"
+                      aria-checked={on}
+                      onClick={() => setInterval(iv)}
+                      className={cn(
+                        "rounded-full px-3 py-1 font-medium transition-colors",
+                        on ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      {iv === "monthly" ? "Monthly" : "Yearly"}
+                    </button>
+                  );
+                })}
+              </div>
             )}
           </div>
+          {!isFree && cards.kind === "ready" && !hasDefaultCard && (
+            <span className="text-[0.82rem] text-warning">No default card on file — add one below to keep your plan active.</span>
+          )}
 
           {plans.length === 0 ? (
             <Skeleton className="h-[200px]" />
           ) : (
             <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
-              {plans.map((plan) => {
+              {shownPlans.map((plan) => {
                 const current = active?.plan_code === plan.code;
                 const scheduled = pending?.plan_code === plan.code;
                 const upgrade = isUpgrade(plan, currentPlan);
@@ -330,12 +394,33 @@ export default function BillingPage() {
                       {current && <Tag tone="ok">current</Tag>}
                       {scheduled && <Tag tone="scheduled">scheduled</Tag>}
                     </div>
-                    <div className="mt-4 flex items-baseline gap-1">
-                      <span className="text-3xl font-extrabold tracking-tight text-foreground">
-                        {formatMoney(plan.amount_cents, plan.amount_currency)}
-                      </span>
-                      <span className="text-[0.88rem] text-muted-foreground">{intervalSuffix(plan.interval)}</span>
-                    </div>
+                    {plan.interval === "yearly" ? (
+                      (() => {
+                        const twin = monthlyTwin(plan);
+                        const saving = twin ? Math.round((1 - monthlyCents(plan) / monthlyCents(twin)) * 100) : 0;
+                        return (
+                          <div className="mt-4">
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-3xl font-extrabold tracking-tight text-foreground">
+                                {formatMoney(Math.round(monthlyCents(plan)), plan.amount_currency)}
+                              </span>
+                              <span className="text-[0.88rem] text-muted-foreground">/month</span>
+                            </div>
+                            <div className="mt-1 text-[0.82rem] text-muted-foreground">
+                              Billed {formatMoney(plan.amount_cents, plan.amount_currency)} yearly
+                              {saving > 0 && <span className="ml-1.5 font-semibold text-success">· Save {saving}%</span>}
+                            </div>
+                          </div>
+                        );
+                      })()
+                    ) : (
+                      <div className="mt-4 flex items-baseline gap-1">
+                        <span className="text-3xl font-extrabold tracking-tight text-foreground">
+                          {formatMoney(plan.amount_cents, plan.amount_currency)}
+                        </span>
+                        <span className="text-[0.88rem] text-muted-foreground">{intervalSuffix(plan.interval)}</span>
+                      </div>
+                    )}
                     {details ? (
                       <ul className="mt-5 flex flex-1 flex-col gap-2 border-t border-border pt-4">
                         {details.features.map((f) => (
@@ -488,10 +573,10 @@ export default function BillingPage() {
   );
 }
 
-// Higher price = upgrade. Used for button labels and confirm copy only; the
+// Higher monthly-equivalent price = upgrade. Used for button labels and confirm copy only; the
 // server decides whether the change is immediate or scheduled.
 function isUpgrade(target: BillingPlan, current: BillingPlan | null): boolean {
-  return target.amount_cents > (current?.amount_cents ?? 0);
+  return monthlyCents(target) > (current ? monthlyCents(current) : 0);
 }
 
 function describe(action: NonNullable<PendingAction>, currentPlan: BillingPlan | null) {
