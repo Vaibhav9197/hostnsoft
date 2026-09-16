@@ -24,12 +24,17 @@ Check https://ship.embarko.ai/capabilities before you rely on a feature. It need
 cached for an hour, and is the authoritative machine-readable answer — each feature also says
 whether an agent can invoke it or only a person can, through the dashboard.
 
-Available now: deploy and redeploy, a persistent database under `DATA_DIR`, HTTPS and a live URL,
-custom domains, deployment history, rollback, logs, deploy status.
+Available now: deploy and redeploy, deploy status and logs, environment variables, rollback,
+deployment history, HTTPS and a live URL, custom domains, and storage under `DATA_DIR` that
+survives every redeploy.
 
 Not built yet — do not design an app around these, and do not tell the user they exist: durable
-file storage, a login/auth building block, automatic backups, scheduled jobs, background workers.
-Anything `/capabilities` reports as `"unavailable"` is genuinely absent.
+file storage, a login/auth building block, a managed secrets store, automatic backups, scheduled
+jobs, background workers. Anything `/capabilities` reports as `"unavailable"` is genuinely absent.
+
+There is also no managed database. The app embeds its own (SQLite or PGlite) and writes it under
+`DATA_DIR`, as described below. That data survives redeploys but is stored on one machine and is
+not backed up, so treat it as durable against your own deploys, not against hardware loss.
 
 ## What you need first
 
@@ -190,15 +195,43 @@ https://embarko.ai/docs/troubleshoot
 
 ## Managing an app after it is live
 
-You cannot do any of these with a deploy token. They require the user's signed-in dashboard session,
-so hand them to the user rather than attempting them — a deploy token authenticates deploys and
-nothing else. `/capabilities` reports the same thing in its `via` field:
+There is a control plane on the same host, taking the same deploy token:
 
-- Environment variables. Saving them is not enough; the app only picks up new values on its next
-  deploy, so redeploy after the user saves.
-- Memory allocation. Also takes effect on the next deploy or rollback.
-- Rollback to an earlier successful deployment.
-- Custom domains, and deleting a project.
+    https://ship.embarko.ai/api/apps/{app-name}
+    Authorization: Bearer $DEPLOY_TOKEN
+
+| operation | request |
+| --- | --- |
+| app details | `GET /` |
+| list env vars | `GET /env-vars` |
+| replace all env vars | `PUT /env-vars` |
+| set one | `PUT /env-vars/{key}` |
+| delete one | `DELETE /env-vars/{key}` |
+| apply env vars to the running app | `POST /env-vars/apply` |
+| deployment history | `GET /deployments` |
+| one deployment | `GET /deployments/{id}` |
+| roll back | `POST /rollback` |
+
+Two things to know about env vars. Values are write-only — `GET /env-vars` returns the keys, never
+the values, so you cannot read back a secret the user set. And a write only stores the value: the
+running app does not see it until you call `POST /env-vars/apply` or deploy again. Keys must match
+`^[A-Za-z_][A-Za-z0-9_]*$`.
+
+Rollback reruns a past successful build's image under the *current* configuration, with no rebuild.
+It answers 202 and applies in the background, like a deploy — poll the deployment until its status
+is no longer `in_progress`. Only the last few images are kept per app; a target that has been pruned
+returns 422 `rollback_image_unavailable`, whose `retainCount` says how far back you can still go.
+
+These four are not available to you, only to the user in the dashboard. Ask them rather than
+attempting it:
+
+- Custom domains.
+- Memory allocation. Takes effect on the next deploy or rollback, not immediately.
+- Deleting an app.
+- Analytics.
+
+Do not guess at any of this. `https://ship.embarko.ai/capabilities` is the authoritative list and
+its `via` field says, per feature, whether you can do it or only a person can.
 
 ## Optional: the deploy skill
 
