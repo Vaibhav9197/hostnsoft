@@ -127,13 +127,14 @@ Every deploy is authenticated one of two ways:
 Authorization: Bearer <token>
 ```
 
-1. Go to `https://embarko.ai/login` and sign in (or create an account).
-2. Open your company's **Deploy tokens** page (`https://embarko.ai/app/tokens`).
-3. Enter a label (e.g. `"CI pipeline"`) and click **Create token** — shown
+1. Open your company's **Deploy tokens** page
+   (`https://embarko.ai/app/tokens`) — it asks you to sign in, or to create
+   an account, if you aren't already.
+2. Enter a label (e.g. `"CI pipeline"`) and click **Create token** — shown
    once, prefixed `emb_`, and cannot be retrieved again. (Tokens issued
    before the Embarko rename start `hns_` and remain valid — there's no
    need to rotate them.)
-4. `export DEPLOY_TOKEN="..."` (or store it in a local credentials file,
+3. `export DEPLOY_TOKEN="..."` (or store it in a local credentials file,
    e.g. `~/.embarko/credentials`, `chmod 600`).
 
 **By email, no browser needed** — the route to prefer when an AI agent is

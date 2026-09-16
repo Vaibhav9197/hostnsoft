@@ -54,11 +54,11 @@ the response is identical whether or not a limit was hit, so do not retry in a l
 
 From the dashboard:
 
-1. The user signs in at https://embarko.ai/login
-2. They open their company's Deploy tokens page: https://embarko.ai/app/tokens
-3. They create a token with a label. It is shown once and starts with `emb_`. (Tokens issued before
+1. The user opens their company's Deploy tokens page: https://embarko.ai/app/tokens
+   (it prompts them to sign in, or to create an account, if they are not already)
+2. They create a token with a label. It is shown once and starts with `emb_`. (Tokens issued before
    the Embarko rename start `hns_` and remain valid.)
-4. They put it in your environment as DEPLOY_TOKEN.
+3. They put it in your environment as DEPLOY_TOKEN.
 
 A token authenticates as a *company*, not as a person. Everything deployed with it belongs to that
 company, and no separate company header is needed. Tokens deploy only — they do not sign in to the

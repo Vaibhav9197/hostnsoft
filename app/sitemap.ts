@@ -10,6 +10,11 @@ import { SITE } from "./lib/site";
  * pages out for now — they are reachable by crawl from /showcase, and adding
  * them here would mean making the sitemap dynamic.
  *
+ * Submitting to the Showcase moved to /app/showcase/submit when the console
+ * grew a page for it, so it falls under the signed-in exclusion below — the
+ * old public /showcase/submit stayed listed here after the move and was a 404
+ * being advertised to search engines.
+ *
  * Also left out on purpose: /app and /admin (signed-in only), /connector, and
  * the /v1../v4 landing variants, which are duplicates of `/` chosen by
  * middleware and would compete with it in search.
@@ -30,7 +35,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/", 1.0, "weekly"],
     ["/pricing", 0.9, "weekly"],
     ["/showcase", 0.7, "daily"],
-    ["/showcase/submit", 0.5, "monthly"],
     ["/status", 0.4, "daily"],
     ["/security", 0.4, "monthly"],
     ["/terms", 0.3, "yearly"],
