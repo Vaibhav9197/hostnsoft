@@ -30,24 +30,39 @@ import { variantForPath } from "./variants";
  *  known yet — server render, and the docs page before hydration. */
 const VARIANT_PLACEHOLDER = "<alpha|beta|gamma|delta>";
 
+/** Who is copying the prompt, which is what decides the credential line. */
+type PromptContext = {
+  /** Landing-page attribution, or "" where it doesn't apply. */
+  variantLine?: string;
+  /** An app that already exists — the prompt should update it, not fork it. */
+  appName?: string | null;
+  /** A raw token, available only on the tokens page as it's first shown. */
+  token?: string | null;
+  /** Copied from inside the console, so there's an account to deploy into. */
+  signedIn?: boolean;
+};
+
 /** `EMBARKO_LP_VARIANT` rides along to the deploy service (the deploy script
  *  forwards it as the `lp_variant` header) so a deploy can be attributed back
  *  to the landing page that produced it.
  *
- *  Three credential situations, and the right instruction is different in
- *  each — getting this wrong is what turns a 30-second trial into a signup
- *  wall, or points a redeploy at the wrong app:
+ *  Four credential situations, and the right instruction differs in each.
+ *  Getting it wrong either turns a 30-second trial into a signup wall, or
+ *  drops the app somewhere the owner can't see it:
  *
- *  - **Neither `appName` nor `token`** — the marketing pages. Nobody has an
- *    account yet, and the whole pitch is that they don't need one. Deploy
- *    anonymously, then ask for an email once there's a live URL.
  *  - **`token`** — copied from the tokens page while the raw token is on
- *    screen. Use it; deploying anonymously here would strand the app on a
- *    24-hour expiry the owner didn't ask for.
- *  - **`appName`** — copied from inside an existing app. That app is already
- *    claimed, so an anonymous deploy can't update it; the agent should reach
- *    for the credential the environment already has. */
-function build(variantLine: string, appName?: string | null, token?: string | null): string {
+ *    screen. Use it.
+ *  - **`appName`** — copied from inside an existing app, which is already
+ *    claimed, so an anonymous deploy can't update it.
+ *  - **`signedIn`** — the console's "Deploy an app". There's an account, so
+ *    the deploy must be authenticated: an anonymous deploy creates the
+ *    project under an orphan company (see the API's projectClaim.ts), so it
+ *    would never appear in this person's "Your apps" and would be torn down
+ *    24h later — the opposite of what clicking Deploy in your own console
+ *    promises.
+ *  - **none of the above** — the marketing pages. Nobody has an account yet
+ *    and the whole pitch is that they don't need one. */
+function build({ variantLine = "", appName, token, signedIn }: PromptContext): string {
   /* Named explicitly even though the skill can pick a name: the skill only
      knows the folder it is run from, and the platform treats a name it hasn't
      seen as a brand-new app. */
@@ -55,15 +70,24 @@ function build(variantLine: string, appName?: string | null, token?: string | nu
     ? `\nRedeploy it as the existing Embarko app "${appName}" — that exact name, so it updates that app instead of standing up a second one on a second subdomain.`
     : "";
 
-  /* Names both places the skill looks — the environment, and the credential
-     file it falls back to — so the agent stores the token once and every later
-     deploy is authenticated without the owner being asked again. */
+  /* Where a token is needed, name both places the skill looks — the
+     environment and the credential file it falls back to — so the agent
+     stores it once and every later deploy is authenticated without the owner
+     being asked again. */
+  const useSavedToken =
+    "use DEPLOY_TOKEN or ~/.embarko/credentials if either is already set";
+  const askForToken =
+    'if neither is, ask me for one — I can create it on the "Deploy tokens" page at https://embarko.ai/app/tokens — and save it to ~/.embarko/credentials so later deploys reuse it';
+
   let credentialLines: string;
   if (token) {
     credentialLines = `Use this Embarko deploy token: ${token}
 Set it as DEPLOY_TOKEN and save it to ~/.embarko/credentials so later deploys reuse it. Don't deploy anonymously.`;
   } else if (appName) {
-    credentialLines = `That app is already claimed, so this needs our deploy token: use DEPLOY_TOKEN or ~/.embarko/credentials if either is already set, and ask me for it only if neither is.`;
+    credentialLines = `That app is already claimed, so this needs my deploy token: ${useSavedToken}, and ${askForToken}.`;
+  } else if (signedIn) {
+    credentialLines = `Deploy it under my account, not anonymously: ${useSavedToken}, and ${askForToken}.
+This matters — an anonymous deploy isn't attached to my account, so it won't show up in my Embarko console and is deleted after 24 hours.`;
   } else {
     credentialLines = `Deploy anonymously first — no token, no account — then give me the live URL.
 Only once it's live, ask me for my email: Embarko mails back a token that makes the app permanent.`;
@@ -80,9 +104,9 @@ Faster, if your tools let you install one: npx skills add embarko-ai/skill --ski
 /** The documentation form: the attribution variable is shown, with its allowed
  *  values in place of a real one. Safe to render on the server — it depends on
  *  nothing request-specific, so it can't cause a hydration mismatch. */
-export const DEPLOY_PROMPT = build(
-  `Run the deploy with EMBARKO_LP_VARIANT=${VARIANT_PLACEHOLDER} set in the environment.`,
-);
+export const DEPLOY_PROMPT = build({
+  variantLine: `Run the deploy with EMBARKO_LP_VARIANT=${VARIANT_PLACEHOLDER} set in the environment.`,
+});
 
 /**
  * The prompt as an agent should actually receive it, with the visitor's arm
@@ -95,9 +119,11 @@ export const DEPLOY_PROMPT = build(
  * without ever landing on `/`, or one who clears cookies.
  */
 export function deployPromptFor(variant: string | null): string {
-  return build(
-    variant ? `Run the deploy with EMBARKO_LP_VARIANT=${variant} set in the environment.` : "",
-  );
+  return build({
+    variantLine: variant
+      ? `Run the deploy with EMBARKO_LP_VARIANT=${variant} set in the environment.`
+      : "",
+  });
 }
 
 /**
@@ -109,7 +135,7 @@ export function deployPromptFor(variant: string | null): string {
  * marketing visit says nothing about where THIS deploy came from — sending it
  * would attribute the deploy to a page that had no part in it.
  */
-export const CONSOLE_DEPLOY_PROMPT = build("");
+export const CONSOLE_DEPLOY_PROMPT = build({ signedIn: true });
 
 /**
  * The console prompt with the app already named.
@@ -125,7 +151,7 @@ export const CONSOLE_DEPLOY_PROMPT = build("");
  * copied early is generic rather than addressed to "undefined".
  */
 export function consoleDeployPromptFor(appSlug: string | null | undefined): string {
-  return build("", appSlug);
+  return build({ appName: appSlug, signedIn: true });
 }
 
 /**
@@ -138,7 +164,7 @@ export function consoleDeployPromptFor(appSlug: string | null | undefined): stri
  * else from them.
  */
 export function consoleDeployPromptWithToken(token: string): string {
-  return build("", null, token);
+  return build({ token, signedIn: true });
 }
 
 /**
