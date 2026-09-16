@@ -1,8 +1,7 @@
 import { requireAdmin, SignInRequired } from "../guard";
 import Submissions from "./submissions";
 
-/* The Showcase review queue. Gated like every other /admin page; the API guards
-   itself as well, since it can be requested directly. */
+/* Showcase oversight. Gated like every /admin page; the API guards itself too. */
 export default async function ShowcaseAdminPage() {
   if (!(await requireAdmin())) return <SignInRequired />;
 

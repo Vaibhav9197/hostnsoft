@@ -2,13 +2,18 @@
 
 import { Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { use, useEffect, useState } from "react";
-import { Alert, Fact, FactGrid, Page, PageHeader, Panel, PanelTitle, Skeleton } from "../../../../components/console/kit";
+import Link from "next/link";
+import { use, useCallback, useEffect, useState } from "react";
+import { ArrowUpRight, Plus } from "lucide-react";
+import { ConfirmDialog, type ConfirmRequest } from "../../../../components/console/ConfirmDialog";
+import { Alert, Fact, FactGrid, LinkButton, Page, PageHeader, Panel, PanelTitle, Skeleton } from "../../../../components/console/kit";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
-import { projectsApi } from "../../../../lib/hnsApi";
+import { projectsApi, showcaseApi } from "../../../../lib/hnsApi";
+import { formatDate } from "../../../../lib/format";
 import { useSession } from "../../../../lib/session";
 import { useProject } from "../../../../lib/useProject";
+import type { ShowcaseListing } from "../../../../lib/types";
 
 export default function ProjectSettingsPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = use(params);
@@ -30,6 +35,43 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
   const [confirm, setConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [delErr, setDelErr] = useState<string | null>(null);
+
+  /* Where this app is showcased. Withdrawing removes the listing at once. */
+  const [listings, setListings] = useState<ShowcaseListing[] | null>(null);
+  const [showcaseErr, setShowcaseErr] = useState<string | null>(null);
+  const [confirmReq, setConfirmReq] = useState<ConfirmRequest | null>(null);
+
+  const loadListings = useCallback(async () => {
+    if (!activeCompanyId) return;
+    try {
+      setListings(await showcaseApi.listMySubmissions(activeCompanyId, projectId));
+    } catch (e) {
+      setListings([]);
+      setShowcaseErr(e instanceof Error ? e.message : "Couldn’t load showcase listings.");
+    }
+  }, [activeCompanyId, projectId]);
+
+  useEffect(() => {
+    loadListings();
+  }, [loadListings]);
+
+  function askWithdraw(l: ShowcaseListing) {
+    setConfirmReq({
+      title: `Remove ${l.name} from /showcase/${l.collection.slug}?`,
+      body: "It disappears from that page and the gallery straight away. You can list it again any time.",
+      cta: "Remove listing",
+      destructive: true,
+      onConfirm: async () => {
+        if (!activeCompanyId) return;
+        try {
+          await showcaseApi.withdraw(activeCompanyId, l.id);
+          await loadListings();
+        } catch (e) {
+          setShowcaseErr(e instanceof Error ? e.message : "Couldn’t remove that listing.");
+        }
+      },
+    });
+  }
 
   useEffect(() => {
     if (project) {
@@ -147,6 +189,58 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
         </Field>
       </Panel>
 
+      <Panel padded>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <PanelTitle>Showcase</PanelTitle>
+            <p className="mt-1 text-[0.92rem] text-muted-foreground">
+              Where this app is listed on Embarko Showcase.
+            </p>
+          </div>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/app/showcase/submit">
+              <Plus aria-hidden="true" />
+              List on a page
+            </Link>
+          </Button>
+        </div>
+        {showcaseErr && <Alert className="mt-3">{showcaseErr}</Alert>}
+        {listings === null && <Skeleton className="mt-4 h-10" aria-hidden="true" />}
+        {listings && listings.length === 0 && (
+          <p className="mt-4 text-[0.92rem] text-muted-foreground">Not showcased anywhere yet.</p>
+        )}
+        {listings && listings.length > 0 && (
+          <ul className="mt-4 divide-y divide-border">
+            {listings.map((l) => (
+              <li key={l.id} className="flex flex-wrap items-center justify-between gap-3 py-2.5">
+                <div className="min-w-0">
+                  <a
+                    href={`/showcase/${l.collection.slug}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 font-mono text-[0.85rem] hover:underline"
+                  >
+                    /showcase/{l.collection.slug}
+                    <ArrowUpRight aria-hidden="true" className="size-3" />
+                  </a>
+                  <p className="text-[0.8rem] text-muted-foreground">
+                    {l.collection.title}
+                    {l.collection.type === "company" ? " · your company page" : " · public board"}
+                    {" · "}
+                    {l.isPrivate ? "hidden by organiser" : "live"}
+                    {" · listed "}
+                    {formatDate(l.createdAt)}
+                  </p>
+                </div>
+                <LinkButton danger onClick={() => askWithdraw(l)}>
+                  Remove
+                </LinkButton>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Panel>
+
       <Panel padded tone="danger">
         <PanelTitle tone="danger">Remove this app</PanelTitle>
         {/* Removal is not instant: the app is taken off the list first and shut
@@ -163,6 +257,8 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
           <Button variant="destructive" disabled={deleting || confirm !== project.name} onClick={del}>{deleting ? "Removing…" : "Remove app"}</Button>
         </div>
       </Panel>
+
+      <ConfirmDialog request={confirmReq} onClose={() => setConfirmReq(null)} />
     </Page>
   );
 }

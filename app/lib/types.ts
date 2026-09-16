@@ -296,3 +296,117 @@ export type AppLogs =
   | { available: false; reason: string };
 
 export type LogStream = "stdout" | "stderr";
+
+// ------------------------------------------------------------------ Showcase
+// hostnsoft-api docs/showcase.md. Two kinds of page at /showcase/<slug>: a
+// COMPANY page (its own apps only) and PUBLIC boards (anyone's apps). No
+// approval — everything is live at once.
+
+export type ShowcaseType = "company" | "public";
+
+export interface ShowcaseCollectionCounts {
+  total: number;
+  // Not hidden by the organiser — what the public page actually shows.
+  publicCount: number;
+}
+
+// The owner's view of a page it owns.
+export interface ShowcaseCollection {
+  id: string;
+  slug: string;
+  title: string;
+  intro: string | null;
+  type: ShowcaseType;
+  companyId: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  counts: ShowcaseCollectionCounts;
+}
+
+// Public shape of a page; also what the submit form's picker lists.
+export interface ShowcasePage {
+  slug: string;
+  title: string;
+  intro: string | null;
+  type: ShowcaseType;
+  projectCount: number;
+  createdAt: string;
+}
+
+// One deployed app listed under one collection.
+export interface ShowcaseListing {
+  id: string;
+  slug: string;
+  name: string;
+  tagline: string;
+  whatItDoes: string | null;
+  whyBuilt: string | null;
+  // Derived from the Project at listing time, never typed.
+  appUrl: string;
+  screenshotUrl: string | null;
+  videoUrl: string | null;
+  creatorName: string;
+  creatorProfile: string | null;
+  builtWith: string | null;
+  category: string | null;
+  tags: string[];
+  featured: boolean;
+  createdAt: string;
+  collection: { slug: string; title: string; type: ShowcaseType };
+  collectionId: string;
+  // The deployed app and the company/member who listed it.
+  projectId: string;
+  companyId: string;
+  submittedBy: string;
+  // The organiser's switch: hidden from the public page.
+  isPrivate: boolean;
+  updatedAt: string;
+}
+
+export interface ShowcaseCollectionDetail extends ShowcaseCollection {
+  projects: ShowcaseListing[];
+}
+
+// What a member sends to list one of their company's apps.
+export interface ShowcaseSubmissionInput {
+  collectionSlug: string;
+  projectId: string;
+  name: string;
+  tagline: string;
+  whatItDoes?: string;
+  whyBuilt?: string;
+  creatorName: string;
+  creatorProfile?: string;
+  builtWith?: string;
+  category?: string;
+  tags?: string[];
+  videoUrl?: string;
+  screenshotUrl?: string;
+}
+
+// Admin views.
+export interface AdminShowcaseCollection extends ShowcaseCollection {
+  companyName?: string;
+}
+
+export interface AdminShowcaseCollectionPage {
+  items: AdminShowcaseCollection[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface AdminShowcaseListing extends ShowcaseListing {
+  submitterCompany: { id: string; name?: string };
+  ownerCompany: { id: string; name?: string };
+}
+
+export interface AdminShowcaseListingPage {
+  items: AdminShowcaseListing[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}

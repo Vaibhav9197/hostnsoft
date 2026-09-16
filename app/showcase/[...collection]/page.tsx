@@ -5,54 +5,50 @@ import { ArrowRight } from "lucide-react";
 
 import { SiteHeader } from "../../components/SiteHeader";
 import { SiteFooter } from "../../components/SiteFooter";
-import { getCollection, listCollectionApps } from "../../lib/showcase";
+import { getCollectionWithApps } from "../../lib/showcase";
 import { AppCard, BTN_GHOST, BTN_PRIMARY, WRAP } from "../kit";
 import { ShareRow } from "../share";
 
 /**
- * Collection pages: /showcase/games, /showcase/claude,
- * /showcase/hackathons/iit-indore-2026, /showcase/colleges/iit-indore.
- *
- * A catch-all rather than a route per kind, because the shape of the page is
- * the same for all of them and only the membership rule differs. `/submit` and
- * `/apps/...` are real directories, so Next matches those first and they never
- * reach here.
+ * A showcase page: /showcase/walkover, /showcase/iit-indore-26. A company's
+ * own page or a public board. `/apps/...` is a real directory and matches
+ * first. A catch-all so deeper paths 404 in this layout.
  */
 
-/* Rendered per request, not prerendered. These pages read D1, and the binding
-   only exists inside a request — `getCloudflareContext()` throws during the
-   build's static export, which fails the whole deploy rather than just this
-   route. Caching belongs at the edge, not in a build artefact. */
+/* Per request, not prerendered: a build-time page would freeze the list. */
 export const dynamic = "force-dynamic";
 
 interface Props {
   params: Promise<{ collection: string[] }>;
 }
 
+async function load(segments: string[]) {
+  /* Pages are one segment deep. */
+  if (segments.length !== 1) return null;
+  return getCollectionWithApps(segments[0]);
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { collection } = await params;
-  const found = await getCollection(collection.join("/"));
+  const found = await load(collection);
   if (!found) return {};
 
-  const apps = await listCollectionApps(found);
   return {
-    title: `${found.title} — Embarko Showcase`,
-    description: found.intro ?? `${apps.length} projects built.`,
-    /* The SEO rule, enforced rather than documented: a collection is only
-       indexed once someone has marked it worth indexing. Everything else
-       exists, works and can be shared — search engines are just asked to leave
-       it alone, which is what keeps this from becoming thousands of thin
-       pages. */
-    robots: found.indexable ? undefined : { index: false, follow: true },
+    title: `${found.collection.title} — Embarko Showcase`,
+    description: found.collection.intro ?? `${found.apps.length} projects built.`,
+    /* A page with nothing on it yet is a thin page. It exists, works and can
+       be shared — search engines are just asked to wait until there is
+       something to index. */
+    robots: found.apps.length > 0 ? undefined : { index: false, follow: true },
   };
 }
 
 export default async function CollectionPage({ params }: Props) {
   const { collection } = await params;
-  const found = await getCollection(collection.join("/"));
+  const found = await load(collection);
   if (!found) notFound();
 
-  const apps = await listCollectionApps(found);
+  const { collection: meta, apps } = found;
 
   return (
     <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased">
@@ -68,24 +64,24 @@ export default async function CollectionPage({ params }: Props) {
           </Link>
 
           <h1 className="mt-6 max-w-[720px] text-[42px] font-semibold leading-[1.1] tracking-[-0.02em] max-[900px]:text-[32px]">
-            {found.title}
+            {meta.title}
           </h1>
           <p className="mt-4 text-[17px] text-muted-foreground">
             {apps.length} {apps.length === 1 ? "project" : "projects"} built
           </p>
 
-          {found.intro && (
+          {meta.intro && (
             <p className="mt-5 max-w-[62ch] text-[15.5px] leading-[1.65] text-muted-foreground">
-              {found.intro}
+              {meta.intro}
             </p>
           )}
 
           <div className="mt-9 flex flex-wrap items-center gap-3">
-            <Link href="/showcase/submit" className={BTN_PRIMARY}>
-              Submit your project
+            <Link href="/app/showcase/submit" className={BTN_PRIMARY}>
+              List your app here
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
-            <ShareRow title={`${found.title} — ${apps.length} projects built`} />
+            <ShareRow title={`${meta.title} — ${apps.length} projects built`} />
           </div>
         </div>
       </header>
@@ -99,15 +95,15 @@ export default async function CollectionPage({ params }: Props) {
               ))}
             </div>
           ) : (
-            /* A collection can exist before anything is in it — a hackathon
-               page is created with the event, and the projects arrive over the
-               following days. It says so rather than looking broken. */
+            /* A collection can exist before anything is in it — it is created
+               with the event, and the projects arrive over the following
+               days. It says so rather than looking broken. */
             <div className="rounded-[14px] border border-dashed border-border px-8 py-16 text-center">
               <p className="text-[17px] font-medium">Nothing here yet.</p>
               <p className="mx-auto mt-2 max-w-[44ch] text-[15px] leading-relaxed text-muted-foreground">
-                Projects appear here once they have been submitted and reviewed.
+                Apps appear here as soon as their owners list them from the Embarko console.
               </p>
-              <Link href="/showcase/submit" className={`${BTN_GHOST} mt-7`}>
+              <Link href={`/app/showcase/submit?page=${encodeURIComponent(meta.slug)}`} className={`${BTN_GHOST} mt-7`}>
                 Be the first
                 <ArrowRight aria-hidden="true" className="h-4 w-4" />
               </Link>

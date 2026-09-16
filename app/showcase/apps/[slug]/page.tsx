@@ -40,9 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ShowcaseAppPage({ params }: Props) {
   const { slug } = await params;
   const app = await getApp(slug);
-  /* getApp filters on approved, so a pending or rejected submission 404s here
-     exactly as an unknown slug does — the state of someone's submission is not
-     something this page should leak. */
+  /* Hidden listings 404 like unknown ones. */
   if (!app) notFound();
 
   return (
@@ -126,6 +124,20 @@ export default async function ShowcaseAppPage({ params }: Props) {
                   {/* Text, not links. A tag only becomes a page once there is
                       enough behind it to be worth one. */}
                   <p className="mt-1.5 text-muted-foreground">{app.tags.join(" · ")}</p>
+                </div>
+              )}
+
+              {app.collection && (
+                <div>
+                  <p className={LABEL}>Part of</p>
+                  <p className="mt-1.5">
+                    <Link
+                      href={`/showcase/${app.collection.slug}`}
+                      className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                    >
+                      {app.collection.title}
+                    </Link>
+                  </p>
                 </div>
               )}
 

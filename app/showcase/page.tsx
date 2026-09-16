@@ -70,9 +70,8 @@ export default async function ShowcasePage() {
         </section>
       )}
 
-      {/* Only collections worth linking to. A collection with one app behind it
-          is a thin page, so `indexable` gates this rather than listing every
-          row in the table. */}
+      {/* Only collections worth linking to: the API returns those with at
+          least one public app, so this never points at an empty page. */}
       {collections.length > 0 && (
         <section className="pb-[88px] max-[720px]:pb-[60px]">
           <div className={WRAP}>
@@ -80,8 +79,8 @@ export default async function ShowcasePage() {
             <div className="flex flex-wrap gap-2.5">
               {collections.map((c) => (
                 <Link
-                  key={c.path}
-                  href={`/showcase/${c.path}`}
+                  key={c.slug}
+                  href={`/showcase/${c.slug}`}
                   className="rounded-[8px] border border-border px-3.5 py-2 text-[13.5px] text-muted-foreground transition hover:border-[var(--line-strong)] hover:text-foreground"
                 >
                   {c.title}
@@ -132,8 +131,8 @@ function Hero({ app }: { app: Awaited<ReturnType<typeof listApps>>[number] }) {
                 Open app
                 <ArrowRight aria-hidden="true" className="h-4 w-4" />
               </a>
-              <Link href="/showcase/submit" className={BTN_GHOST}>
-                Submit your app
+              <Link href="/app/showcase/submit" className={BTN_GHOST}>
+                List your app
               </Link>
             </div>
           </div>
@@ -143,12 +142,7 @@ function Hero({ app }: { app: Awaited<ReturnType<typeof listApps>>[number] }) {
   );
 }
 
-/**
- * Nothing approved yet.
- *
- * Still leads with the headline and the submit action rather than apologising:
- * the first person to read this page is the most likely person to fill it.
- */
+/** Nothing listed yet. Leads with the submit action, not an apology. */
 function EmptyHero() {
   return (
     <header className="py-[88px] max-[900px]:py-14">
@@ -162,10 +156,10 @@ function EmptyHero() {
         <div className="mt-10 rounded-[14px] border border-dashed border-border px-8 py-16 text-center">
           <p className="text-[17px] font-medium">The first projects are on their way.</p>
           <p className="mx-auto mt-2 max-w-[42ch] text-[15px] leading-relaxed text-muted-foreground">
-            If you have built something and put it online with Embarko, it belongs here.
+            If you have put something online with Embarko, list it from your console.
           </p>
-          <Link href="/showcase/submit" className={`${BTN_PRIMARY} mt-7`}>
-            Submit your app
+          <Link href="/app/showcase/submit" className={`${BTN_PRIMARY} mt-7`}>
+            List your app
             <ArrowRight aria-hidden="true" className="h-4 w-4" />
           </Link>
         </div>
@@ -229,8 +223,8 @@ function FinalCta({ hasApps }: { hasApps: boolean }) {
             <h2 className="text-[32px] font-semibold leading-tight tracking-[-0.015em]">
               Built something worth sharing?
             </h2>
-            <Link href="/showcase/submit" className={`${BTN_GHOST} mt-6`}>
-              Submit your app
+            <Link href="/app/showcase/submit" className={`${BTN_GHOST} mt-6`}>
+              List your app
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
           </div>

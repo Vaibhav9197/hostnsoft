@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, Check, ChevronsUpDown, CreditCard, KeyRound, LaptopMinimal, LayoutGrid, LogOut, Moon, Shield, Sun, User, Users } from "lucide-react";
+import { Building2, Check, ChevronsUpDown, CreditCard, KeyRound, LaptopMinimal, LayoutGrid, LogOut, Moon, Shield, Sparkles, Sun, User, Users } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -50,6 +50,7 @@ export function HeaderUserMenu() {
     { href: "/app", label: "Apps", icon: LayoutGrid, exact: true },
     { href: "/app/members", label: "Members", icon: Users },
     { href: "/app/tokens", label: "Deploy tokens", icon: KeyRound },
+    { href: "/app/showcase", label: "Showcase", icon: Sparkles },
     { href: "/app/billing", label: "Billing", icon: CreditCard },
     // Platform-wide, not company-scoped, so it sits last and only for admins.
     // Everyone else never sees it; the pages guard themselves regardless.

@@ -9,6 +9,8 @@
 
 import { HnsError, hns } from "./client";
 import type {
+  AdminShowcaseCollectionPage,
+  AdminShowcaseListingPage,
   AnalyticsRange,
   AppLogs,
   BillingPlan,
@@ -28,6 +30,12 @@ import type {
   Project,
   ProjectAnalytics,
   ProjectDetail,
+  ShowcaseCollection,
+  ShowcaseCollectionDetail,
+  ShowcaseListing,
+  ShowcasePage,
+  ShowcaseType,
+  ShowcaseSubmissionInput,
 } from "./types";
 
 // ---------------------------------------------------------------- Companies
@@ -285,3 +293,91 @@ export const analyticsApi = {
 
 /** The status that means "pipeline down", as distinct from "no traffic". */
 export const ANALYTICS_UNAVAILABLE = 503;
+
+// ----------------------------------------------------------------- Showcase
+// hostnsoft-api docs/showcase.md. A company is ORGANISER of its own pages
+// and SUBMITTER of its apps onto any public board.
+export const showcaseApi = {
+  // ---- organiser
+  // GET /companies/:companyId/showcase/collections — owned pages, company page first.
+  listCollections: (companyId: string) =>
+    hns<ShowcaseCollection[]>(`/companies/${companyId}/showcase/collections`),
+
+  // POST /companies/:companyId/showcase/collections — create a public board. 409 SHOWCASE_SLUG_TAKEN.
+  createCollection: (companyId: string, body: { slug: string; title: string; intro?: string | null }) =>
+    hns<ShowcaseCollection>(`/companies/${companyId}/showcase/collections`, { method: "POST", body }),
+
+  // GET .../collections/:collectionId — plus everything listed under it.
+  getCollection: (companyId: string, collectionId: string) =>
+    hns<ShowcaseCollectionDetail>(`/companies/${companyId}/showcase/collections/${collectionId}`),
+
+  // DELETE .../collections/:collectionId — public boards only, while empty (409 otherwise).
+  removeCollection: (companyId: string, collectionId: string) =>
+    hns<null>(`/companies/${companyId}/showcase/collections/${collectionId}`, { method: "DELETE" }),
+
+  // PATCH .../collections/:collectionId/projects/:listingId — hide/unhide a listing.
+  setListingPrivate: (companyId: string, collectionId: string, listingId: string, isPrivate: boolean) =>
+    hns<ShowcaseListing>(`/companies/${companyId}/showcase/collections/${collectionId}/projects/${listingId}`, {
+      method: "PATCH",
+      body: { isPrivate },
+    }),
+
+  // Same route with {remove:true} — take a listing off this page for good.
+  removeListing: (companyId: string, collectionId: string, listingId: string) =>
+    hns<null>(`/companies/${companyId}/showcase/collections/${collectionId}/projects/${listingId}`, {
+      method: "PATCH",
+      body: { remove: true },
+    }),
+
+  // ---- submitter
+  // GET /companies/:companyId/showcase/pages — every page this company may list on.
+  listPages: (companyId: string) => hns<ShowcasePage[]>(`/companies/${companyId}/showcase/pages`),
+
+  // GET /public/showcase/collections/:slug — resolve a typed slug. Open; 404 if unknown.
+  lookupPage: (slug: string) =>
+    hns<{ collection: ShowcasePage }>(`/public/showcase/collections/${encodeURIComponent(slug)}`).then((r) => r.collection),
+
+  // POST /companies/:companyId/showcase/submissions — list an app; live at once.
+  // 404 SHOWCASE_COLLECTION_UNKNOWN, 403 SHOWCASE_COLLECTION_PRIVATE, 409 SHOWCASE_ALREADY_LISTED.
+  submit: (companyId: string, body: ShowcaseSubmissionInput) =>
+    hns<ShowcaseListing>(`/companies/${companyId}/showcase/submissions`, { method: "POST", body }),
+
+  // GET /companies/:companyId/showcase/submissions?projectId= — this company's listings, or one app's.
+  listMySubmissions: (companyId: string, projectId?: string) =>
+    hns<ShowcaseListing[]>(
+      `/companies/${companyId}/showcase/submissions${projectId ? `?projectId=${encodeURIComponent(projectId)}` : ""}`
+    ),
+
+  // DELETE /companies/:companyId/showcase/submissions/:listingId — withdraw.
+  withdraw: (companyId: string, listingId: string) =>
+    hns<null>(`/companies/${companyId}/showcase/submissions/${listingId}`, { method: "DELETE" }),
+};
+
+// Super-admin oversight; nothing is approved here. Every route 404s for non-admins.
+export const adminShowcaseApi = {
+  // GET /admin/showcase/collections — paginated, newest first.
+  listCollections: (params: { type?: ShowcaseType; page?: number; limit?: number; q?: string } = {}) => {
+    const q = new URLSearchParams();
+    if (params.type) q.set("type", params.type);
+    if (params.page) q.set("page", String(params.page));
+    if (params.limit) q.set("limit", String(params.limit));
+    if (params.q) q.set("q", params.q);
+    const qs = q.toString();
+    return hns<AdminShowcaseCollectionPage>(`/admin/showcase/collections${qs ? `?${qs}` : ""}`);
+  },
+
+  // GET /admin/showcase/projects — every listing, for oversight and featuring.
+  listProjects: (params: { collectionId?: string; page?: number; limit?: number; q?: string } = {}) => {
+    const q = new URLSearchParams();
+    if (params.collectionId) q.set("collectionId", params.collectionId);
+    if (params.page) q.set("page", String(params.page));
+    if (params.limit) q.set("limit", String(params.limit));
+    if (params.q) q.set("q", params.q);
+    const qs = q.toString();
+    return hns<AdminShowcaseListingPage>(`/admin/showcase/projects${qs ? `?${qs}` : ""}`);
+  },
+
+  // PATCH /admin/showcase/projects/:id {featured}
+  setFeatured: (id: string, featured: boolean) =>
+    hns<ShowcaseListing>(`/admin/showcase/projects/${id}`, { method: "PATCH", body: { featured } }),
+};
