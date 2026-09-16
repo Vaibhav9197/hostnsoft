@@ -4,9 +4,10 @@ import { Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { use, useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { ArrowUpRight, Plus } from "lucide-react";
 import { ConfirmDialog, type ConfirmRequest } from "../../../../components/console/ConfirmDialog";
-import { Alert, Fact, FactGrid, LinkButton, Page, PageHeader, Panel, PanelTitle, Skeleton } from "../../../../components/console/kit";
+import { Alert, LinkButton, Page, Panel, PanelTitle, Skeleton } from "../../../../components/console/kit";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
 import { projectsApi, showcaseApi } from "../../../../lib/hnsApi";
@@ -25,8 +26,10 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
   const [memory, setMemory] = useState("");
   const [savingName, setSavingName] = useState(false);
   const [savingMem, setSavingMem] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [formErr, setFormErr] = useState<string | null>(null);
+  /* Validation, not an outcome: this one belongs under the input it is about,
+     where the reader is already looking, rather than in a toast that appears
+     in the corner after nothing has happened. Outcomes go to toasts. */
+  const [memErr, setMemErr] = useState<string | null>(null);
   /* Both fields read as plain text until asked for. Settings is somewhere you
      come to check what the app is called far more often than to change it, and
      a page of open inputs invites edits nobody came to make. */
@@ -34,7 +37,6 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
   const [editingMem, setEditingMem] = useState(false);
   const [confirm, setConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
-  const [delErr, setDelErr] = useState<string | null>(null);
 
   /* Where this app is showcased. Withdrawing removes the listing at once. */
   const [listings, setListings] = useState<ShowcaseListing[] | null>(null);
@@ -66,8 +68,9 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
         try {
           await showcaseApi.withdraw(activeCompanyId, l.id);
           await loadListings();
+          toast.success("Listing removed");
         } catch (e) {
-          setShowcaseErr(e instanceof Error ? e.message : "Couldn’t remove that listing.");
+          toast.error(e instanceof Error ? e.message : "Couldn’t remove that listing.");
         }
       },
     });
@@ -84,15 +87,13 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
     e.preventDefault();
     if (!activeCompanyId) return;
     setSavingName(true);
-    setNotice(null);
-    setFormErr(null);
     try {
       await projectsApi.rename(activeCompanyId, projectId, name.trim());
-      setNotice("Name updated. Your app’s web address is unchanged.");
+      toast.success("Name updated", { description: "Your app’s web address is unchanged." });
       setEditingName(false);
       await reload();
     } catch (e) {
-      setFormErr(e instanceof Error ? e.message : "Couldn’t rename the app.");
+      toast.error(e instanceof Error ? e.message : "Couldn’t rename the app.");
     } finally {
       setSavingName(false);
     }
@@ -103,19 +104,20 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
     if (!activeCompanyId) return;
     const mb = Number(memory);
     if (!Number.isInteger(mb) || mb <= 0) {
-      setFormErr("Memory has to be a whole number greater than 0.");
+      setMemErr("Memory has to be a whole number greater than 0.");
       return;
     }
+    setMemErr(null);
     setSavingMem(true);
-    setNotice(null);
-    setFormErr(null);
     try {
       await projectsApi.setMemory(activeCompanyId, projectId, mb);
-      setNotice("Saved. The new memory applies the next time your AI deploys — nothing changes right now.");
+      toast.success("Memory saved", {
+        description: "It applies the next time your AI deploys — nothing changes right now.",
+      });
       setEditingMem(false);
       await reload();
     } catch (e) {
-      setFormErr(e instanceof Error ? e.message : "Couldn’t save the memory setting.");
+      toast.error(e instanceof Error ? e.message : "Couldn’t save the memory setting.");
     } finally {
       setSavingMem(false);
     }
@@ -124,40 +126,57 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
   async function del() {
     if (!activeCompanyId) return;
     setDeleting(true);
-    setDelErr(null);
     try {
       await projectsApi.remove(activeCompanyId, projectId);
+      toast.success(`${project?.name ?? "The app"} removed`);
       router.push("/app");
     } catch (e) {
-      setDelErr(e instanceof Error ? e.message : "Couldn’t remove the app.");
+      /* Longer than a success: this one leaves the reader with a decision to
+         make, and it must not vanish while they are still reading it. */
+      toast.error(e instanceof Error ? e.message : "Couldn’t remove the app.", { duration: 10000 });
       setDeleting(false);
     }
   }
 
   if (error) return <Page><Alert>{error}</Alert></Page>;
-  if (!project) return <Page><Skeleton className="h-40" aria-hidden="true" /></Page>;
+  if (!project) {
+    /* Shaped like the three panels that follow. The old single h-40 block was
+       a fifth of the real height, so the page visibly jumped on load. */
+    return (
+      <Page>
+        <span className="sr-only" role="status">Loading settings…</span>
+        <Skeleton className="h-[260px]" aria-hidden="true" />
+        <Skeleton className="h-[150px]" aria-hidden="true" />
+        <Skeleton className="h-[160px]" aria-hidden="true" />
+      </Page>
+    );
+  }
 
   return (
     <Page>
-      <PageHeader title="Settings" subtitle={`Rename ${project.name}, or remove it from your apps.`} />
+      {/* No page title: the tab above already says "Settings". */}
+      <p className="text-[0.95rem] leading-relaxed text-muted-foreground">
+        Everything about {project.name} that isn’t deploying it.
+      </p>
 
-      {notice && <Alert variant="info">{notice}</Alert>}
-      {formErr && <Alert>{formErr}</Alert>}
-
-      {/* Only the support id is stated outright. The web address already appears
-          under Name, where it earns its place by explaining what renaming does
-          not change, and the created date answers a question nobody asks here. */}
+      {/* No panel title: "This app" named the panel after the page it is on,
+          which told the reader nothing they didn't already know. The fields
+          label themselves. */}
       <Panel padded>
-        <PanelTitle>This app</PanelTitle>
-        <FactGrid flush>
-          <Fact flush k="ID for support" v={project.id} mono />
-        </FactGrid>
-
         <Field
           label="Name"
           value={project.name}
+          /* Sits with the name because that is how someone identifies this app
+             when they write to us — "walkover-uk1, id cmtsfe…" — rather than
+             as a fact of its own further down the page. */
+          hint={
+            <>
+              App ID:{" "}
+              <span className="font-mono text-muted-foreground">{project.id}</span>
+            </>
+          }
           editing={editingName}
-          onEdit={() => { setName(project.name); setFormErr(null); setEditingName(true); }}
+          onEdit={() => { setName(project.name); setEditingName(true); }}
         >
           <p className="mt-1 text-[0.92rem] text-muted-foreground">
             This is the name you see here. Your app stays at{" "}
@@ -175,17 +194,36 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
           label="Memory"
           value={`${project.memoryMb} MB`}
           editing={editingMem}
-          onEdit={() => { setMemory(String(project.memoryMb)); setFormErr(null); setEditingMem(true); }}
+          onEdit={() => { setMemory(String(project.memoryMb)); setMemErr(null); setEditingMem(true); }}
         >
           <p className="mt-1 text-[0.92rem] text-muted-foreground">
             How much room your app has to work in. Most apps are happy at 256 MB — raise it only if yours
             runs into trouble. A new number takes effect the next time your AI deploys.
           </p>
-          <form className="mt-2.5 flex flex-wrap gap-2.5" onSubmit={saveMemory}>
-            <Input className="min-w-[220px] flex-1 font-mono" type="number" min={1} value={memory} onChange={(e) => setMemory(e.target.value)} aria-label="Memory in MB" autoFocus />
+          {/* noValidate so our own message shows instead of the browser's
+              bubble: that bubble is unstyled, vanishes on the next click, and
+              isn't tied to the field by aria-describedby. The rules it would
+              have enforced are enforced in saveMemory instead. */}
+          <form className="mt-2.5 flex flex-wrap gap-2.5" onSubmit={saveMemory} noValidate>
+            <Input
+              className="min-w-[220px] flex-1 font-mono"
+              type="number"
+              min={1}
+              value={memory}
+              onChange={(e) => { setMemory(e.target.value); setMemErr(null); }}
+              aria-label="Memory in MB"
+              aria-invalid={!!memErr || undefined}
+              aria-describedby={memErr ? "memory-error" : undefined}
+              autoFocus
+            />
             <Button type="submit" disabled={savingMem || memory === String(project.memoryMb)}>{savingMem ? "Saving…" : "Save"}</Button>
-            <Button type="button" variant="outline" onClick={() => { setMemory(String(project.memoryMb)); setEditingMem(false); }}>Cancel</Button>
+            <Button type="button" variant="outline" onClick={() => { setMemory(String(project.memoryMb)); setMemErr(null); setEditingMem(false); }}>Cancel</Button>
           </form>
+          {memErr && (
+            <p id="memory-error" className="mt-1.5 text-[0.82rem] text-destructive">
+              {memErr}
+            </p>
+          )}
         </Field>
       </Panel>
 
@@ -247,13 +285,17 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
             down afterwards. Said plainly here so nobody is surprised by a URL
             that still answers a few minutes later. */}
         <p className="mt-1 text-[0.92rem] text-muted-foreground">
-          This takes <b className="text-foreground">{project.name}</b> off your apps list and can’t be undone.
-          After you remove it, <b className="text-foreground">your app keeps running for a while</b> — it stays reachable
-          at its web address until it is fully removed.
+          This can’t be undone, and it isn’t instant —{" "}
+          <b className="text-foreground">your app keeps running for a while</b> before it is permanently removed.
         </p>
-        {delErr && <Alert className="mt-3">{delErr}</Alert>}
         <div className="mt-3.5 flex flex-wrap gap-2.5">
-          <Input className="min-w-[220px] flex-1" placeholder={`Type “${project.name}” to confirm`} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+          <Input
+            className="min-w-[220px] flex-1"
+            placeholder={`Type “${project.name}” to confirm`}
+            aria-label={`Type the app name, ${project.name}, to confirm removal`}
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+          />
           <Button variant="destructive" disabled={deleting || confirm !== project.name} onClick={del}>{deleting ? "Removing…" : "Remove app"}</Button>
         </div>
       </Panel>
@@ -273,33 +315,43 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
 function Field({
   label,
   value,
+  hint,
   editing,
   onEdit,
   children,
 }: {
   label: string;
   value: string;
+  /** A quiet line under the value — context about the thing, not about
+   *  editing it, so it stays out of the way while the form is open. */
+  hint?: React.ReactNode;
   editing: boolean;
   onEdit: () => void;
   children: React.ReactNode;
 }) {
   return (
-    <div className="mt-5 border-t border-border pt-4">
+    /* The divider separates one field from the previous one, so the first in a
+       panel goes without — otherwise it draws a line against the panel's own
+       top edge. */
+    <div className="mt-5 border-t border-border pt-4 first:mt-0 first:border-t-0 first:pt-0">
       <p className="text-[0.92rem] font-medium text-foreground">{label}</p>
       {editing ? (
         children
       ) : (
-        <div className="mt-1 flex items-center gap-2">
-          <span className="text-[0.95rem] text-foreground">{value}</span>
-          <button
-            type="button"
-            onClick={onEdit}
-            aria-label={`Edit ${label.toLowerCase()}`}
-            className="grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
-          >
-            <Pencil className="size-3.5" aria-hidden="true" />
-          </button>
-        </div>
+        <>
+          <div className="mt-1 flex items-center gap-2">
+            <span className="text-[0.95rem] text-foreground">{value}</span>
+            <button
+              type="button"
+              onClick={onEdit}
+              aria-label={`Edit ${label.toLowerCase()}`}
+              className="grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+            >
+              <Pencil className="size-3.5" aria-hidden="true" />
+            </button>
+          </div>
+          {hint && <p className="mt-1 text-[0.78rem] text-faint">{hint}</p>}
+        </>
       )}
     </div>
   );

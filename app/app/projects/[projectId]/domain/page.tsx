@@ -3,7 +3,7 @@
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Check, Copy } from "lucide-react";
 import { ConfirmDialog, type ConfirmRequest } from "../../../../components/console/ConfirmDialog";
-import { Alert, EmptyState, LinkButton, Page, PageHeader, Panel, Skeleton } from "../../../../components/console/kit";
+import { Alert, EmptyState, LinkButton, Page, Panel, Skeleton } from "../../../../components/console/kit";
 import { StatusPill } from "../../../../components/console/StatusPill";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
@@ -181,13 +181,16 @@ export default function DomainPage({ params }: { params: Promise<{ projectId: st
 
   return (
     <Page>
-      <PageHeader title="Domain" subtitle="Serve this app on a domain you own." />
+      {/* No page title: the tab above already says "Domain". */}
+      <p className="text-[0.95rem] leading-relaxed text-muted-foreground">
+        Serve this app on a domain you own.
+      </p>
 
       <div className="flex flex-col gap-2">
         <form className="flex flex-wrap items-center gap-2.5" onSubmit={add}>
           <Input
             className="min-w-[240px] flex-1 font-mono"
-            placeholder="app.acme.com  or  acme.com"
+            placeholder="e.g. example.com"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             autoCapitalize="none"
@@ -198,12 +201,12 @@ export default function DomainPage({ params }: { params: Promise<{ projectId: st
             {adding ? "Adding…" : "Add domain"}
           </Button>
         </form>
-        {/* The placeholder alone reads as "subdomains only". Say outright that
-            a root domain is equally fine, and that the difference only changes
-            which record we hand back. */}
+        {/* The placeholder alone reads as "subdomains only" — this says a root
+            domain is equally fine. Which record each needs is left to the
+            instructions that appear once a domain is added, where the reader
+            is actually about to go and set one up. */}
         <p className="text-[0.85rem] text-muted-foreground">
-          Both work — a subdomain like <Ex>app.acme.com</Ex>, or the root domain <Ex>acme.com</Ex>. We’ll show you
-          the right record for whichever you enter: a CNAME for a subdomain, an A record for a root domain.
+          Both work — a subdomain like <Ex>app.example.com</Ex>, or the root domain <Ex>example.com</Ex>
         </p>
       </div>
 
@@ -228,10 +231,16 @@ export default function DomainPage({ params }: { params: Promise<{ projectId: st
         />
       ))}
 
-      <p className="text-[0.92rem] text-muted-foreground">
-        DNS changes can take anywhere from a few minutes to a few hours to reach us. Verifying is just a live
-        lookup — nothing is rebuilt or redeployed, and it’s safe to press as often as you like.
-      </p>
+      {/* Only while something is actually waiting on DNS. This answers "why
+          isn't it live yet, and can I press Verify again?" — questions nobody
+          has once every domain is active, where it would just be a paragraph
+          about a problem the reader doesn't have. */}
+      {domains?.some((d) => d.status !== "active") && (
+        <p className="text-[0.92rem] text-muted-foreground">
+          DNS changes can take anywhere from a few minutes to a few hours to reach us. Verifying is just a live
+          lookup — nothing is rebuilt or redeployed, and it’s safe to press as often as you like.
+        </p>
+      )}
 
       <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
     </Page>

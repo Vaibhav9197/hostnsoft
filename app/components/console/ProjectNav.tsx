@@ -7,6 +7,7 @@ import { ArrowLeft, Copy, ExternalLink } from "lucide-react";
 
 import { Button } from "@/app/components/ui/button";
 import { DeployPromptDialog } from "@/app/components/console/DeployPromptDialog";
+import { HealthPill } from "@/app/components/console/HealthPill";
 import { useSession } from "@/app/lib/session";
 import { useProject } from "@/app/lib/useProject";
 
@@ -54,12 +55,32 @@ export function ProjectNav({ projectId }: { projectId: string }) {
             {(project?.name ?? projectId).charAt(0).toUpperCase()}
           </span>
           <div className="min-w-0">
-            <div className="truncate text-[1.05rem] font-bold leading-tight text-foreground">
-              {project?.name ?? "…"}
+            {/* Name and state on one line: "is it up?" is the question this
+                page opens with, so the answer belongs beside the app it is
+                about rather than further down among the details. The pill
+                keeps the name truncating on its own — it never shrinks. */}
+            <div className="flex min-w-0 items-center gap-2">
+              <div className="truncate text-[1.05rem] font-bold leading-tight text-foreground">
+                {project?.name ?? "…"}
+              </div>
+              {project && <HealthPill health={project.health} variant="pill" />}
             </div>
-            <div className="truncate font-mono text-[0.75rem] text-muted-foreground">
-              {project?.slug ?? "loading…"}
-            </div>
+            {/* The live URL, not the slug: the address is what the reader
+                recognises their app by, and it's the one piece of identity
+                that stays useful once the Overview page stops repeating it.
+                Held back until the slug loads — the host is built from it. */}
+            {project ? (
+              <a
+                href={`https://${project.slug}.app.embarko.ai`}
+                target="_blank"
+                rel="noreferrer"
+                className="block truncate font-mono text-[0.75rem] text-muted-foreground transition-colors hover:text-foreground hover:underline"
+              >
+                {project.slug}.app.embarko.ai
+              </a>
+            ) : (
+              <div className="truncate font-mono text-[0.75rem] text-muted-foreground">loading…</div>
+            )}
           </div>
         </div>
 

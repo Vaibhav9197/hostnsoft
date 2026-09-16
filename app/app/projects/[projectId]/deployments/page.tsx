@@ -2,7 +2,7 @@
 
 import { use, useCallback, useEffect, useState } from "react";
 import { StatusPill } from "../../../../components/console/StatusPill";
-import { Alert, EmptyState, Fact, FactGrid, Page, PageHeader, Panel, Skeleton, Tag } from "../../../../components/console/kit";
+import { Alert, EmptyState, Fact, FactGrid, Page, Panel, Skeleton, Tag } from "../../../../components/console/kit";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../../components/ui/table";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "../../../../components/ui/sheet";
 import { Button } from "../../../../components/ui/button";
@@ -92,15 +92,16 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
 
   return (
     <Page>
-      <PageHeader
-        title="Deployments"
-        subtitle="Every deploy attempt, newest first."
-        actions={
-          <Button variant="outline" onClick={() => { setSelected(null); setLogsOpen(true); }}>
-            Last log
-          </Button>
-        }
-      />
+      {/* No page title: the tab above already says "Deployments". The line
+          and the log button keep the row the heading used to share. */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <p className="text-[0.95rem] leading-relaxed text-muted-foreground">
+          Every deploy attempt, newest first.
+        </p>
+        <Button variant="outline" onClick={() => { setSelected(null); setLogsOpen(true); }}>
+          Last deploy log
+        </Button>
+      </div>
 
       {rollbackError && <Alert>{rollbackError}</Alert>}
 

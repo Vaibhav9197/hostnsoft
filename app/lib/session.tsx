@@ -44,6 +44,15 @@ function authErrorMessage(code: string): string {
 // it never lingers in the address bar / logs. Returns true if a token was seen.
 const TOKEN_KEYS = ["proxy_auth_token", "token", "access_token", "accessToken", "auth_token", "authToken"];
 
+/* MSG91 also echoes the rest of what it knows about the session onto the same
+   redirect. Nothing here reads any of it — the PAT cookie is the session — but
+   user_ref_id and company_ref_id are real account identifiers, so they must not
+   sit in the address bar, in history, or in the query string PageViewTracker
+   reports. They come off with the token. */
+const ECHO_KEYS = ["token_type", "expire_at", "user_ref_id", "company_ref_id", "is_new_user"];
+
+const STRIP_KEYS = [...TOKEN_KEYS, ...ECHO_KEYS, "auth_error", "next"];
+
 async function consumeRedirectToken(setAuthError: (m: string | null) => void): Promise<boolean> {
   if (typeof window === "undefined") return false;
   const url = new URL(window.location.href);
@@ -61,17 +70,25 @@ async function consumeRedirectToken(setAuthError: (m: string | null) => void): P
   }
   const errCode = url.searchParams.get("auth_error") ?? hashParams.get("auth_error");
 
-  if (!token && !errCode) return false;
-
-  // Clean these params off the URL regardless of outcome.
+  // Clean these params off the URL regardless of outcome. No-op unless at
+  // least one is actually present, so an ordinary page load doesn't rewrite
+  // history for nothing.
   const strip = () => {
-    [...TOKEN_KEYS, "auth_error", "next"].forEach((k) => {
+    if (!STRIP_KEYS.some((k) => pick(k) !== null)) return;
+    STRIP_KEYS.forEach((k) => {
       url.searchParams.delete(k);
       hashParams.delete(k);
     });
     const newHash = hashParams.toString();
     window.history.replaceState({}, "", url.pathname + url.search + (newHash ? `#${newHash}` : ""));
   };
+
+  /* No token to exchange, but the echoed metadata can still be on the URL —
+     a reload of an already-consumed redirect lands exactly here. */
+  if (!token && !errCode) {
+    strip();
+    return false;
+  }
 
   if (errCode) {
     setAuthError(authErrorMessage(errCode));

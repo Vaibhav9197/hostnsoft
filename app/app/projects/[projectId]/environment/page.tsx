@@ -3,7 +3,7 @@
 import { use, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Lock } from "lucide-react";
-import { Alert, EmptyState, LinkButton, Page, PageHeader, Panel, Skeleton } from "../../../../components/console/kit";
+import { Alert, EmptyState, LinkButton, Page, Panel, Skeleton } from "../../../../components/console/kit";
 import { BulkEnvDialog } from "../../../../components/console/BulkEnvDialog";
 import {
   Dialog,
@@ -234,7 +234,12 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
 
   return (
     <Page>
-      <PageHeader title="App setup" subtitle="Settings and secrets your app runs with." />
+      {/* No page title: the tab above already says "App setup", and repeating
+          it only pushed the form further down. The line stays — it says what
+          these values are for, which the tab label doesn't. */}
+      <p className="text-[0.95rem] leading-relaxed text-muted-foreground">
+        Variables and secrets your app runs with.
+      </p>
 
       {/* The paste dialog already rejects bad names line by line; this form
           didn't, so a name like FOO-BAR only failed after a round trip, as a
@@ -305,24 +310,41 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
       )}
 
       {vars && vars.length > 0 && (
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-[0.92rem] text-muted-foreground">
-            {vars.length} variable{vars.length === 1 ? "" : "s"}
-          </p>
-          {/* Editing one value is a row action; this is for reordering,
-              renaming or clearing out several at once, where a text block
-              beats a row at a time. */}
-          <Button variant="outline" size="sm" onClick={() => setEditAllOpen(true)}>
-            Edit all
-          </Button>
-        </div>
-      )}
-
-      {vars && vars.length > 0 && (
         <Panel>
           <Table>
             <TableHeader>
-              <TableRow><TableHead>Key</TableHead><TableHead>Value</TableHead><TableHead>Updated</TableHead><TableHead /></TableRow>
+              <TableRow>
+                <TableHead>
+                  {vars.length} variable{vars.length === 1 ? "" : "s"}
+                </TableHead>
+                <TableHead>Value</TableHead>
+                <TableHead>Updated</TableHead>
+                {/* Editing one value is a row action; this is for renaming or
+                    clearing out several at once, where a text block beats a row
+                    at a time. It sits at the top of the column whose rows each
+                    offer the single-value version of it. */}
+                {/* Heads the Edit column, because that is what it does to
+                    every row of it at once.
+
+                    The cell's own type is a column label — small, uppercase,
+                    mono, faint — and a control that inherits all of that just
+                    reads as another column name. This opts out of the label
+                    typography and keeps the underline on rather than saving it
+                    for hover, which is the only thing left saying it can be
+                    clicked. */}
+                <TableHead className="text-right">
+                  <LinkButton
+                    className="font-sans normal-case tracking-normal underline underline-offset-2"
+                    onClick={() => setEditAllOpen(true)}
+                  >
+                    Edit all
+                  </LinkButton>
+                </TableHead>
+                {/* Removing is per-variable and deliberately has no bulk twin —
+                    the paste dialog is where several go at once, and it asks
+                    first. */}
+                <TableHead />
+              </TableRow>
             </TableHeader>
             <TableBody>
               {vars.map((v) => (
@@ -362,13 +384,13 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
                   </TableCell>
                   <TableCell className="font-mono text-[0.78rem] text-faint">{relativeTime(v.updatedAt)}</TableCell>
                   <TableCell className="whitespace-nowrap text-right">
+                    {editingKey !== v.key && <LinkButton onClick={() => startEdit(v)}>Edit</LinkButton>}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap text-right">
                     {editingKey !== v.key && (
-                      <>
-                        <LinkButton onClick={() => startEdit(v)}>Edit</LinkButton>
-                        <LinkButton danger className="ml-3.5" onClick={() => setConfirmRemove(v.key)}>
-                          Remove
-                        </LinkButton>
-                      </>
+                      <LinkButton danger onClick={() => setConfirmRemove(v.key)}>
+                        Remove
+                      </LinkButton>
                     )}
                   </TableCell>
                 </TableRow>

@@ -16,7 +16,12 @@
   --surface-3:#ddd7cc;    /* even deeper cream for elevated-2 */
   --ink:#1a1916;          /* warm ink/dark text */
   --ink-soft:#6f6a62;     /* muted gray */
-  --ink-faint:#9a938a;    /* faint gray */
+  /* 4.6:1 on the cream page and 5.0:1 on a card — WCAG AA for normal text.
+     The old #9a938a measured 3.0:1, which failed everywhere it was used: the
+     10.5px uppercase labels on every table header and fact. Hierarchy against
+     --ink-soft is carried by size, case and letter-spacing rather than by
+     colour, so darkening this costs nothing and fixes every console screen. */
+  --ink-faint:#736d65;    /* faint gray */
   --accent:#000000;       /* black */
   --accent-2:#2b2b2b;     /* soft black (hover) */
   --accent-soft:rgba(0,0,0,.06);
@@ -75,7 +80,8 @@
   --surface-3:#33302a;    /* elevated-2 */
   --ink:#f2f0ea;          /* warm off-white text */
   --ink-soft:#a8a299;
-  --ink-faint:#7b756c;
+  /* 4.9:1 on a raised card, 5.3:1 on the page. The old #7b756c was 3.8:1. */
+  --ink-faint:#8e887e;
   /* Light mode puts black on cream; dark inverts the pair rather than
      introducing a colour, keeping the console on its neutral scale. */
   --accent:#f2f0ea;

@@ -31,7 +31,7 @@ export type ConfirmRequest = {
  * Shared confirmation step for actions that can't be taken back with a second
  * click. Driven by a nullable request rather than a boolean so the copy is
  * still on screen through the close animation, and so a page can describe the
- * specific thing at hand ("Remove app.acme.com?") instead of "Are you sure?".
+ * specific thing at hand ("Remove app.example.com?") instead of "Are you sure?".
  *
  * Not for the heaviest actions: deleting an app asks you to type its name,
  * because a dialog you can dismiss by reflex isn't enough of a speed bump.

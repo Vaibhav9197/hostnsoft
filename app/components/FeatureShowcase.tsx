@@ -141,8 +141,8 @@ function mockups(tone: ShowcaseTone) {
       <Frame tone={tone}>
         <div className={`mb-1 font-mono text-[10px] uppercase tracking-[0.1em] ${t.faint}`}>sign_ups</div>
         <div className="text-[13px]">
-          <Row tone={tone} left="dana@acme.com" right="2 min ago" />
-          <Row tone={tone} left="sam@acme.com" right="1 hr ago" />
+          <Row tone={tone} left="dana@example.com" right="2 min ago" />
+          <Row tone={tone} left="sam@example.com" right="1 hr ago" />
           <Row tone={tone} left="jo@studio.co" right="yesterday" last />
         </div>
         <p className={`mt-3 text-[12px] ${t.faint}`}>412 rows</p>
