@@ -154,11 +154,10 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
 
   return (
     <Page>
-      {/* No page title: the tab above already says "Settings". */}
-      <p className="text-[0.95rem] leading-relaxed text-muted-foreground">
-        Everything about {project.name} that isn’t deploying it.
-      </p>
-
+      {/* No title and no lead-in: the tab above says "Settings", and each panel
+          below explains itself. A sentence defining the page by what it is not
+          only asked the reader to think about deploying before they could work
+          out what they were looking at. */}
       {/* No panel title: "This app" named the panel after the page it is on,
           which told the reader nothing they didn't already know. The fields
           label themselves. */}
