@@ -21,6 +21,22 @@ function textOf(node: ReactNode): string {
   return "";
 }
 
+/* A heading written as `## [Text](#slug)` names its own anchor. Pull it back out
+   of the rendered link so the id matches what the other docs link to, rather
+   than a slug re-derived from the visible text — the two differ often enough
+   ("Checking deploy status & logs" is `#status-and-logs`) that deriving one
+   breaks the cross-references. */
+function explicitId(node: ReactNode): string | null {
+  if (Array.isArray(node)) {
+    return node.length === 1 ? explicitId(node[0]) : null;
+  }
+  if (node && typeof node === "object" && "props" in node) {
+    const href = (node as { props: { href?: string } }).props.href;
+    if (typeof href === "string" && href.startsWith("#")) return href.slice(1);
+  }
+  return null;
+}
+
 /* Each element gets the same styling the hand-written page used, so swapping to
    a remote source didn't change how the docs look. */
 const components = {
@@ -33,7 +49,7 @@ const components = {
   h2: ({ children }: { children?: ReactNode }) => {
     const text = textOf(children);
     return (
-      <h2 id={slugify(text)} className="mt-16 scroll-mt-24 text-2xl font-bold text-neutral-950">
+      <h2 id={explicitId(children) ?? slugify(text)} className="mt-16 scroll-mt-24 text-2xl font-bold text-neutral-950">
         {text}
       </h2>
     );
@@ -41,7 +57,7 @@ const components = {
   h3: ({ children }: { children?: ReactNode }) => {
     const text = textOf(children);
     return (
-      <h3 id={slugify(text)} className="mt-10 scroll-mt-24 text-lg font-semibold text-neutral-950">
+      <h3 id={explicitId(children) ?? slugify(text)} className="mt-10 scroll-mt-24 text-lg font-semibold text-neutral-950">
         {text}
       </h3>
     );

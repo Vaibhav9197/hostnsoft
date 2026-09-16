@@ -109,6 +109,20 @@ function headingText(raw: string): string {
 }
 
 /**
+ * The id a heading should carry.
+ *
+ * A heading written as a self-link names its own anchor, and that anchor is
+ * what the other docs link to — `docs.md#status-and-logs` for a heading whose
+ * visible text is "Checking deploy status & logs". Deriving the id from the
+ * text instead would silently drop every one of those links at the top of the
+ * page, so the explicit slug wins whenever there is one.
+ */
+export function headingId(raw: string): string {
+  const explicit = /^\s*\[[^\]]+\]\(#([\w-]+)\)\s*$/.exec(raw);
+  return explicit ? explicit[1] : slugify(headingText(raw));
+}
+
+/**
  * Pull the h2/h3 headings out for the sidebar. Fenced code blocks are skipped
  * so a `# comment` inside a bash sample never becomes a nav item.
  */
@@ -128,7 +142,7 @@ export function extractToc(markdown: string): TocEntry[] {
 
     const label = headingText(m[2]);
     if (!label) continue;
-    out.push({ id: slugify(label), label, level: m[1].length === 2 ? 2 : 3 });
+    out.push({ id: headingId(m[2]), label, level: m[1].length === 2 ? 2 : 3 });
   }
   return out;
 }
