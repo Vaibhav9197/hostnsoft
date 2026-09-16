@@ -7,6 +7,19 @@ const nextConfig = {
       // The docs used to live at /doc. The deploy prompt, llms.txt and older
       // shared links all point at the singular form, so keep it working.
       { source: "/doc", destination: "/docs", permanent: true },
+
+      // Troubleshooting and limitations moved under /docs. The old addresses
+      // are not just in shared links — the capabilities manifest the deploy
+      // host serves to agents names /troubleshoot, and so does the deploy
+      // script already installed on people's machines, which prints it in the
+      // error output of a failed deploy. Neither can be recalled, and the
+      // second one is read at exactly the moment somebody is stuck.
+      { source: "/troubleshoot", destination: "/docs/troubleshoot", permanent: true },
+      {
+        source: "/limitations-and-recommendations",
+        destination: "/docs/limitations",
+        permanent: true,
+      },
     ];
   },
 
