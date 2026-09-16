@@ -12,12 +12,20 @@ import { variantForPath } from "./variants";
  *  history, and it makes the agent reason about HTTP instead of about
  *  deploying.
  *
- *  Three escape hatches, in descending order of how much they do for you: the
- *  skill, the same script fetched standalone (for agents with no `npx`), and
- *  the docs for anything that can't run either. The standalone script is the
- *  byte-identical file the skill ships — `npm run sync:skill` publishes it to
- *  /skills/embarko-deploy.sh — so the fallback can't drift into being a
- *  lesser deploy path than the skill's. */
+ *  It leads with the docs URL, not with `npx skills add` or a piped install
+ *  script. Both of those are executable code from a domain the agent has
+ *  never heard of, and capable agents are trained to refuse exactly that
+ *  shape — observed in the wild: the agent declined both install paths,
+ *  spent a turn explaining supply-chain risk, and only then fell through to
+ *  the docs. Fetching a page is the one first move no agent refuses, and the
+ *  docs send it straight back to the script (fetch, read, run) — so the skill
+ *  is still the deploy path, just reached through a door that opens.
+ *
+ *  It also states the token posture up front — deploy anonymously, ask for an
+ *  email only after there's a live URL. Without that line the agent reads the
+ *  docs' own quick start and blocks on "get a deploy token" before it has
+ *  packaged anything, turning a zero-friction first deploy into a signup
+ *  wall. */
 
 /** Stands in for the visitor's landing-page arm wherever a real one isn't
  *  known yet — server render, and the docs page before hydration. */
@@ -53,7 +61,7 @@ npx skills add embarko-ai/skill --skill embarko-deploy -g${nameLine}${tokenLine}
 If npx is unavailable, run the same deploy script directly instead:
 curl -fsSL https://embarko.ai/skills/embarko-deploy.sh -o /tmp/embarko-deploy.sh && bash /tmp/embarko-deploy.sh
 ${variantLine}
-If you cannot install it, the full reference is at https://embarko.ai/docs`;
+Faster, if your tools let you install one: npx skills add embarko-ai/skill --skill embarko-deploy -g`;
 }
 
 /** The documentation form: the attribution variable is shown, with its allowed
