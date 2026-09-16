@@ -5,8 +5,8 @@ runs it, and serves it at a live HTTPS URL.
 
 Agents use Embarko to put a finished app on the internet: a web app, a site, a dashboard, an
 internal tool, a demo. Every deploy lands at {app-name}.app.embarko.ai, or at a custom domain the
-owner has connected. Unlike a static file host, Embarko executes the app — so a server, a database,
-uploaded files, and login all keep working once deployed.
+owner has connected. Unlike a static file host, Embarko executes the app — so a server and a
+database keep working once deployed.
 
 ## When to use Embarko
 
@@ -18,19 +18,47 @@ uploaded files, and login all keep working once deployed.
 Do not use Embarko to host content the user has no right to publish, or to run workloads that are
 not an app — mining, traffic proxying, or load generation are prohibited by the terms of service.
 
+## What exists today
+
+Check https://ship.embarko.ai/capabilities before you rely on a feature. It needs no token, is
+cached for an hour, and is the authoritative machine-readable answer — each feature also says
+whether an agent can invoke it or only a person can, through the dashboard.
+
+Available now: deploy and redeploy, a persistent database under `DATA_DIR`, HTTPS and a live URL,
+custom domains, deployment history, rollback, logs, deploy status.
+
+Not built yet — do not design an app around these, and do not tell the user they exist: durable
+file storage, a login/auth building block, automatic backups, scheduled jobs, background workers.
+Anything `/capabilities` reports as `"unavailable"` is genuinely absent.
+
 ## What you need first
 
-A deploy token, created by the user from the dashboard. Tokens cannot be minted through the API, so
-you cannot create one on the user's behalf:
+A deploy token. Two ways to get one, plus a no-token path (see Anonymous deploys below).
+
+By email, without a browser — prefer this when you are doing the work, since it needs nothing but
+an address:
+
+    curl -X POST "https://ship.embarko.ai/api/public/deploy-tokens/request" \
+      -H "Content-Type: application/json" \
+      -d '{"email": "you@example.com"}'
+
+Always returns 202. The token is emailed to the user and never returned in the response, so you
+cannot read it back — ask the user to paste it to you. An account and company are created
+automatically if that address does not have one. Rate limited per email, per IP, and globally, and
+the response is identical whether or not a limit was hit, so do not retry in a loop.
+
+From the dashboard:
 
 1. The user signs in at https://embarko.ai/login
 2. They open their company's Deploy tokens page: https://embarko.ai/app/tokens
-3. They create a token with a label. It is shown once and starts with `hns_`.
+3. They create a token with a label. It is shown once and starts with `emb_`. (Tokens issued before
+   the Embarko rename start `hns_` and remain valid.)
 4. They put it in your environment as DEPLOY_TOKEN.
 
 A token authenticates as a *company*, not as a person. Everything deployed with it belongs to that
 company, and no separate company header is needed. Tokens deploy only — they do not sign in to the
-dashboard.
+dashboard. A lost token cannot be recovered, only rotated: Rotate issues a replacement and the old
+one keeps working for one hour.
 
 ## Deploy
 
@@ -38,7 +66,8 @@ dashboard.
 
 Headers:
 
-- `Authorization: Bearer $DEPLOY_TOKEN` — required. Identifies the caller and its company.
+- `Authorization: Bearer $DEPLOY_TOKEN` — optional. Omit it entirely for an anonymous deploy (see
+  below). A header that is present but invalid is always a hard 401, never treated as anonymous.
 - `X-App-Name` — required. Lowercase letters, numbers, and dashes only (`^[a-z0-9-]+$`). This is
   also the app's subdomain, so it must be unique platform-wide, not just within the company.
 - `X-App-Version` — optional, defaults to a timestamp. Pass something unique (a git SHA, a semver
@@ -46,8 +75,9 @@ Headers:
 
 Body: multipart form, field `source`, containing a `.tar.gz` of the app's source.
 
-A new app name creates its project on first deploy. There is no dashboard step beforehand, and no
-anonymous mode — every request needs a token.
+A new app name creates its project on first deploy. There is no dashboard step beforehand. The same
+endpoint handles every redeploy — upload new source under the same `X-App-Name`. A redeploy picks up
+the app's current environment variables and memory allocation automatically; you do not resend them.
 
     tar -czf /tmp/my-app.tar.gz --exclude=node_modules --exclude=.git -C /path/to/app .
 
@@ -57,18 +87,58 @@ anonymous mode — every request needs a token.
       -H "X-App-Version: $(git rev-parse --short HEAD)" \
       -F "source=@/tmp/my-app.tar.gz"
 
-Success response:
+The response is 202, and it means the upload was accepted — not that the app is live. The build runs
+in the background:
 
     {
-      "success": true,
-      "message": "Deployment successful!",
-      "version": "abc1234",
-      "image": "my-app:abc1234",
-      "memory": "256MB",
-      "url": "https://my-app.app.embarko.ai"
+      "accepted": true,
+      "statusUrl": "https://ship.embarko.ai/apps/my-app/status",
+      "logsUrl": "https://ship.embarko.ai/apps/my-app/logs"
     }
 
-Report the `url` back to the user. Redeploying the same app name ships a new version to the same URL.
+Never report success to the user on the 202. Poll `statusUrl` until the deploy finishes, then report
+`https://{app-name}.app.embarko.ai`.
+
+## Check the deploy: status and logs
+
+    GET https://ship.embarko.ai/apps/{app-name}/status
+    GET https://ship.embarko.ai/apps/{app-name}/logs
+
+Both take the same `Authorization: Bearer $DEPLOY_TOKEN` header, and both live on the deploy host —
+you never need dashboard credentials to follow your own deploy. While an app is still an unclaimed
+anonymous deploy, no token is needed at all. Once claimed, a missing or wrong token returns 404, not
+401, so a 404 here means "not yours or not found", not "does not exist".
+
+Status:
+
+    {
+      "appName": "my-app",
+      "deploy": {
+        "status": "success",
+        "appVersion": "v1.2.0",
+        "startedAt": "2026-09-09T10:00:00.000Z",
+        "finishedAt": "2026-09-09T10:01:32.000Z",
+        "errorDetail": null
+      },
+      "health": { "...": "live state of the running app" }
+    }
+
+`deploy.status` is `"in_progress"`, `"success"`, or `"failed"`. Poll until it is no longer
+`"in_progress"`. `health` is the app's current running state, independent of the last deploy.
+
+On `"failed"`, fetch the logs — `?stream=stderr` for the error stream, default `stdout`. Logs are a
+snapshot of the tail at the moment you call, not a live stream, so poll if you need to watch. Read
+the cause, fix the app, and redeploy rather than handing the raw log to the user.
+
+## Anonymous deploys
+
+Omit the `Authorization` header entirely to deploy with no account. This creates an unclaimed
+("orphan") project that is torn down automatically 24 hours after creation — the app, its routing
+and its image. HTML apps also get a countdown banner injected into their own pages.
+
+Claim it by redeploying the same `X-App-Name` **with** a valid token before it expires. That cancels
+the expiry and makes it an ordinary project. Tell the user about the 24-hour limit when you use
+this path; there is no reminder email.
 
 ## Storage requirements
 
@@ -81,8 +151,18 @@ Persist data instead with:
 - `better-sqlite3` — SQLite, for key-value and document-shaped data.
 - `@electric-sql/pglite` — Postgres, for relational data that needs joins.
 
-Either way, write to a path under the `DATA_DIR` environment variable. Data written anywhere else
-does not survive a redeploy.
+Either way, write to a path under the `DATA_DIR` environment variable, and create subdirectories
+with `{ recursive: true }` on startup rather than assuming they exist. `DATA_DIR` is the only path
+that survives a redeploy — everything else resets to what the image contains, every time. There is
+no durable file storage beyond this.
+
+## The app's own requirements
+
+- Listen on `process.env.PORT`, bound to `0.0.0.0` — not a hardcoded port, not localhost only.
+- No Dockerfile. Builds are auto-detected by Railpack from the source; a Dockerfile is rejected.
+  Stick to a conventional project layout for the language.
+- Default memory is 256MB, or 512MB when an embedded database is detected. Exceeding it is an
+  OOM kill (exit code 137), not throttling.
 
 ## Errors
 
@@ -91,7 +171,7 @@ on `code` — the wording of `error` can change.
 
 | code | status | meaning |
 | --- | --- | --- |
-| `unauthorized` | 401 | DEPLOY_TOKEN missing, invalid, or revoked |
+| `unauthorized` | 401 | DEPLOY_TOKEN present but invalid or revoked. Omitting it is anonymous, not an error |
 | `invalid_app_name` | 400 | X-App-Name missing, or fails `^[a-z0-9-]+$` |
 | `app_name_taken` | 409 | Another company already holds this app name — pick a different one, do not retry |
 | `app_name_check_failed` | 502 | Name availability could not be verified — transient, safe to retry |
@@ -99,6 +179,26 @@ on `code` — the wording of `error` can change.
 | `missing_source_file` | 400 | No `source` file in the multipart upload |
 | `unsupported_storage_pattern` | 422 | App calls `window.storage` — see Storage requirements |
 | `deploy_failed` | 500 | The build or deploy step failed — read `details` for the real cause |
+| `rollback_image_unavailable` | 422 | Rollback target's image was pruned; `retainCount` says how far back you can go |
+
+Runtime failures do not appear here — they surface in the logs after a successful build. `OOM
+Killed` / exit code 137 is the memory limit; `Not Restarting` / `Exceeded allowed attempts` is a
+crash loop whose real cause is logged just above it.
+
+Full reference, including custom domains and rollback:
+https://embarko.ai/docs/troubleshoot
+
+## Managing an app after it is live
+
+You cannot do any of these with a deploy token. They require the user's signed-in dashboard session,
+so hand them to the user rather than attempting them — a deploy token authenticates deploys and
+nothing else. `/capabilities` reports the same thing in its `via` field:
+
+- Environment variables. Saving them is not enough; the app only picks up new values on its next
+  deploy, so redeploy after the user saves.
+- Memory allocation. Also takes effect on the next deploy or rollback.
+- Rollback to an earlier successful deployment.
+- Custom domains, and deleting a project.
 
 ## Optional: the deploy skill
 
@@ -114,9 +214,8 @@ convenience, not a requirement.
 
 - A live HTTPS URL at `{app-name}.app.embarko.ai`, with certificates handled for you.
 - A custom domain, on the paid plans.
-- Persistent storage for a database and uploaded files, under `DATA_DIR`.
-- A login building block, so the app does not have to implement auth from scratch.
-- Automatic backups, from the Creator plan up.
+- A persistent database under `DATA_DIR`, surviving every redeploy.
+- Deployment history, and rollback to an earlier successful build.
 - Redeploys any time the agent rebuilds the app.
 
 Plan limits (how many apps run at once, how much usage is included) are published at
@@ -125,6 +224,9 @@ https://embarko.ai/pricing.
 ## Links
 
 - Docs: https://embarko.ai/docs
+- Troubleshooting: https://embarko.ai/docs/troubleshoot
+- Limits and constraints: https://embarko.ai/docs/limitations
+- Capabilities (machine-readable): https://ship.embarko.ai/capabilities
 - Pricing: https://embarko.ai/pricing
 - Status: https://embarko.ai/status
 - Terms: https://embarko.ai/terms
