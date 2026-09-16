@@ -45,9 +45,12 @@ for the platform's real constraints and how to design around them —
 - cause: app exceeds its allocated memory (256MB default, 512MB if PGlite is auto-detected). Common causes: an
   embedded DB the platform didn't auto-detect, or a dev-mode server (e.g. a "dev" CLI) shipped as the production
   start command
-- fix: `PATCH .../memory {"memoryMb": 1024}`, **then redeploy or roll back** — this endpoint only persists the
-  new value, it does not itself push it to the running app (see
-  [Changing memory doesn't take effect immediately](#changing-memory-doesnt-take-effect-immediately) below)
+- fix: raise the memory limit, **then redeploy or roll back** — setting it only persists the new value, it
+  does not push it to the running app (see
+  [Changing memory doesn't take effect immediately](#changing-memory-doesnt-take-effect-immediately) below).
+  Memory is **dashboard-only**: an agent cannot change it with a deploy token, so ask the user to open the
+  project's **Memory** section and set it. Shrinking the app's own footprint — shipping a production start
+  command instead of a dev server, or dropping an unused embedded DB — is the part an agent can do alone.
 
 ### Crash loop exhausted
 - match: `"Not Restarting"`, `"Exceeded allowed attempts"`
@@ -190,7 +193,8 @@ now `.../customer-query`. Same data, same behavior, `type` now also accepts `"ot
 ## Rollback
 
 ### Rollback target image unavailable
-- match: HTTP 422, `"code":"rollback_image_unavailable"`, message starts with `"Cannot roll back: the
+- match: HTTP 422, `"code":"rollback_image_unavailable"`, from `POST /api/apps/<app-name>/rollback` (the
+  agent path, deploy token) or the dashboard's Rollback button; message starts with `"Cannot roll back: the
   image is no longer available"`
 - cause: images are built locally on the platform's host and never pushed to a registry, and only the
   most recent handful are kept (see
@@ -212,8 +216,8 @@ now `.../customer-query`. Same data, same behavior, `type` now also accepts `"ot
 
 ### Changing memory doesn't take effect immediately
 - no `match` — a behavior to know about, not an error
-- cause: `PATCH .../memory` only **persists** the new value in the dashboard's database. It does not push
-  a config change to the already-running app.
+- cause: saving a new memory limit only **persists** the value. It does not push a config change to the
+  already-running app.
 - fix: the new limit takes effect the next time the app's configuration is regenerated — a fresh deploy
   (`POST /apps`), a rollback, or a custom-domain change all do this. If you just need the new memory limit
   applied with no code change, roll back to the **current** version — that re-applies the current
@@ -223,9 +227,10 @@ now `.../customer-query`. Same data, same behavior, `type` now also accepts `"ot
 - no `match` — a behavior to know about, not an error
 - cause: env vars are baked into the app's configuration at deploy time, not pushed live to an already-running
   container
-- fix: after `PUT .../env-vars`, trigger a new deploy (`POST /apps`, even with unchanged source) for the app
-  to actually see the new values — see `docs.md`'s
-  [Environment variables](docs.md#environment-variables) section for the exact steps
+- fix: after writing an env var, call `POST /api/apps/<app-name>/env-vars/apply` — or trigger a new deploy
+  (`POST /apps`, even with unchanged source) — for the app to actually see the new values. Both work; apply
+  is faster because it skips the build. See `docs.md`'s
+  [Environment variables](docs.md#environment-variables) section for the exact calls
 
 ## Platform-level constraints (apply to every app, always true — not failures)
 

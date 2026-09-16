@@ -6,18 +6,22 @@ Embarko deploys apps from source to a live URL, and gives each company a
 dashboard/API to manage what's running: environment variables, memory
 allocation, deployment history, rollback, and custom domains.
 
-**Most day-to-day management — env vars, memory, rollback, custom domains,
-monitoring, deleting a project — happens directly in the dashboard**
-(`https://embarko.ai/app`), and that's what the sections below walk
-through. Deploying itself always goes through the **Deploy API**
-(`https://ship.embarko.ai/apps...`) — there's no separate
-upload-through-the-dashboard flow, so this is what an agent, CI pipeline,
-or your own script uses to actually ship code.
+**Deploying always goes through the Deploy API**
+(`https://ship.embarko.ai/apps`) — there's no upload-through-the-dashboard
+flow, so this is what an agent, CI pipeline, or your own script uses to
+actually ship code.
 
-Everything the dashboard does is also available directly as a **Platform
-API** (`https://ship.embarko.ai/api/...`) for anyone building their own
-tooling instead of using the dashboard — not the focus of this doc, since
-it walks through the dashboard, but it exists if you want it.
+**Most management after that can be done the same way**, with the same deploy
+token, through the app control plane
+(`https://ship.embarko.ai/api/apps/<app-name>`): environment variables,
+rollback, and deployment history. Each section below gives both the API call
+and the dashboard equivalent, so an agent doesn't have to hand the work back
+to a person.
+
+Four things are dashboard-only today — **custom domains, memory allocation,
+deleting a project, and analytics**. Those sections say so.
+[`GET /capabilities`](#capabilities) is the authoritative answer either way:
+every feature carries a `via` field naming who can invoke it.
 
 A few things that apply everywhere below:
 - **Projects auto-create on first deploy.** No dashboard step is required
@@ -101,9 +105,11 @@ can do a thing itself or has to hand it to a person.
   "runtime": { "port_env": "PORT", "bind_address": "0.0.0.0", "dockerfile": "rejected" },
   "persistence": { "data_dir_env": "DATA_DIR", "survives_redeploy": true, "survives_node_loss": false },
   "features": {
-    "deploy":   { "status": "available", "via": ["agent", "dashboard"] },
-    "rollback": { "status": "available", "via": ["dashboard"] },
-    "backups":  { "status": "unavailable" }
+    "deploy":         { "status": "available", "via": ["agent", "dashboard"] },
+    "env_vars":       { "status": "available", "via": ["agent", "dashboard"] },
+    "rollback":       { "status": "available", "via": ["agent", "dashboard"] },
+    "custom_domains": { "status": "available", "via": ["dashboard"] },
+    "backups":        { "status": "unavailable" }
   }
 }
 ```
@@ -257,23 +263,46 @@ allocation has ever been created for this app yet"}`.
 
 ## [Environment variables](#environment-variables)
 
-Set through the dashboard, then **redeploy** — env vars are baked into the
-app's configuration at deploy time, they don't reach an already-running
-container on their own (see
-[`troubleshoot.md`](troubleshoot.md#env-var-changes-need-a-redeploy-to-reach-the-running-app)):
+Available to an agent as well as a person. The control plane lives at
+`https://ship.embarko.ai/api/apps/<app-name>` and takes the same deploy token:
 
-1. Open your project in the dashboard and go to its **Environment
-   Variables** section.
-2. Add, edit, or remove a variable (key/value) — keys must match
-   `^[A-Za-z_][A-Za-z0-9_]*$`.
-3. Click **Save**.
-4. **Redeploy** the app — saving alone only stores the change; the running
-   app only picks up new values on its next deploy. If you don't have new
-   code to ship, redeploy your current source again as-is.
+| operation | request |
+| --- | --- |
+| list keys | `GET /env-vars` |
+| replace all | `PUT /env-vars` |
+| set one | `PUT /env-vars/<key>` |
+| delete one | `DELETE /env-vars/<key>` |
+| apply to the running app | `POST /env-vars/apply` |
+
+```bash
+curl -X PUT "https://ship.embarko.ai/api/apps/my-app/env-vars/STRIPE_KEY" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"value": "sk_live_..."}'
+
+curl -X POST "https://ship.embarko.ai/api/apps/my-app/env-vars/apply" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN"
+```
+
+Keys must match `^[A-Za-z_][A-Za-z0-9_]*$`.
+
+Two things behave differently from a typical API here:
+
+- **Values are write-only.** `GET /env-vars` returns the keys, never the
+  values — a secret the user set cannot be read back out, by you or by
+  anyone else with the token.
+- **A write alone doesn't reach the running app.** Env vars are baked into
+  the app's configuration at deploy time, so a new value sits stored until
+  you call `POST /env-vars/apply` or deploy again (see
+  [`troubleshoot.md`](troubleshoot.md#env-var-changes-need-a-redeploy-to-reach-the-running-app)).
+
+In the dashboard, the same thing: open the project's **Environment
+Variables** section, edit, **Save**, then redeploy.
 
 ## [Memory allocation](#memory-allocation)
 
 Default is 256MB (512MB if an embedded DB like PGlite is auto-detected).
+**Dashboard-only** — there is no API for this, so an agent has to ask the user.
 
 1. Open your project in the dashboard and go to its **Memory** section.
 2. Enter the new limit in MB and save.
@@ -286,13 +315,22 @@ with no rebuild.
 
 ## [Rollback](#rollback)
 
-One click, no rebuild — reruns a past successful build's image under the
-current config (current env vars and custom domains, not whatever they were
-at the time of that old deploy):
+No rebuild — reruns a past successful build's image under the current config
+(current env vars and custom domains, not whatever they were at the time of
+that old deploy). Available to an agent as well as a person:
 
-1. Open your project's **Deployments** history in the dashboard.
-2. Find the past successful deployment you want.
-3. Click **Rollback** next to it.
+```bash
+curl "https://ship.embarko.ai/api/apps/my-app/deployments" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN"
+
+curl -X POST "https://ship.embarko.ai/api/apps/my-app/rollback" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN"
+```
+
+`GET /deployments` lists the history and `GET /deployments/<id>` is one entry,
+so you can pick a target and then poll it. In the dashboard: open the
+project's **Deployments** history, find the successful deployment, and click
+**Rollback** next to it.
 
 You'll see it confirmed right away, but **applying it takes a little
 while** — same as a regular deploy, switching the app over isn't instant.
@@ -311,7 +349,8 @@ target image was cleaned from the host.
 ## [Custom domain mapping](#custom-domains)
 
 Point your own domain at a deployed app, instead of (or alongside) its
-default `<app-name>.app.embarko.ai` URL.
+default `<app-name>.app.embarko.ai` URL. **Dashboard-only** — an agent has to
+hand this to the user, and the DNS step needs them anyway.
 
 1. Open your project in the dashboard, go to **Custom Domains**, and enter
    your domain (e.g. `app.yourdomain.com`).
@@ -398,8 +437,8 @@ Open your project in the dashboard:
 
 ## [Deleting a project](#deleting-a-project)
 
-Open your project in the dashboard, go to **Settings**, and click **Delete
-project**.
+**Dashboard-only.** Open your project in the dashboard, go to **Settings**,
+and click **Delete project**.
 
 Tears down the running app (its container, routing, and image) as
 well as the dashboard record — this is not reversible.
