@@ -11,7 +11,7 @@ import { API_BASE } from '../../lib/api';
 // browser can't reach.
 export const runtime = 'nodejs';
 
-const TYPES = ['feature', 'feedback'];
+const TYPES = ['feature', 'feedback', 'other'];
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (typeof type !== 'string' || !TYPES.includes(type)) {
-    return NextResponse.json({ error: 'Choose feature or feedback' }, { status: 400 });
+    return NextResponse.json({ error: 'Choose feedback, feature, or other' }, { status: 400 });
   }
 
   let res: Response;
