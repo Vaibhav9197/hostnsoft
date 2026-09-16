@@ -41,7 +41,7 @@ Report the live URL only once the skill's deploy exits successfully — an
 accepted upload is not a running app.
 
 When a deploy fails, match the reported error `code` against the skill's
-`scripts/troubleshoot.md` (or https://embarko.ai/troubleshoot), fix it, and run
+`scripts/troubleshoot.md` (or https://embarko.ai/docs/troubleshoot), fix it, and run
 the same command again — don't retry blindly and don't work around it with raw
 API calls.
 

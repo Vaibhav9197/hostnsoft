@@ -59,7 +59,7 @@ const components = {
     <strong className="font-semibold text-neutral-950">{children}</strong>
   ),
   a: ({ href, children }: { href?: string; children?: ReactNode }) => {
-    /* A link to a sibling doc points at its raw .md upstream; send it to that
+    /* A link to a sibling doc points at its raw .md file; send it to that
        doc's page here instead of handing the reader a file download. */
     const to = localizeDocHref(href);
     return (
@@ -252,7 +252,7 @@ function TocBlock({
 }
 
 interface DocViewProps {
-  markdown: string | null;
+  markdown: string;
   toc: TocEntry[];
   /** Which of DOCS is being shown, so the switcher can mark it. */
   activeSlug: string;
@@ -310,18 +310,11 @@ export function DocView({ markdown, toc, activeSlug }: DocViewProps) {
           </nav>
 
           <div className="min-w-0 max-w-2xl">
-            {markdown ? (
-              <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
-                {markdown}
-              </ReactMarkdown>
-            ) : (
-              <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-6">
-                <h1 className="text-xl font-bold text-neutral-950">Documentation is unavailable</h1>
-                <p className="mt-2 text-sm text-neutral-600">
-                  We couldn&rsquo;t load the docs just now. Please refresh in a moment.
-                </p>
-              </div>
-            )}
+            {/* No "unavailable" fallback: the markdown is bundled from
+                content/docs/, so there is no fetch left to fail. */}
+            <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+              {markdown}
+            </ReactMarkdown>
           </div>
 
           <nav className="hidden xl:block" aria-label="On this page">

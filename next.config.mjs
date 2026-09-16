@@ -9,6 +9,19 @@ const nextConfig = {
       { source: "/doc", destination: "/docs", permanent: true },
     ];
   },
+
+  /* The published docs live in this repo as markdown under content/docs/ and
+     are imported as raw strings. They can't be read off disk at request time:
+     production is a Cloudflare Worker via OpenNext, which has no filesystem.
+     Bundling them as source means the markdown ships inside the build and
+     rendering a doc costs no IO at all.
+
+     `next dev` and `opennextjs-cloudflare build` both run webpack, so this one
+     rule covers development and production. */
+  webpack(config) {
+    config.module.rules.push({ test: /\.md$/, type: "asset/source" });
+    return config;
+  },
 };
 
 /* Loads the workerd runtime into `next dev` so getCloudflareContext() can hand

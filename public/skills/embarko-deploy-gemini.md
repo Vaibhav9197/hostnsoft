@@ -39,7 +39,7 @@ upload is not a running app.
 
 If you cannot install or run the skill in this environment, the full API and
 error reference is at **https://embarko.ai/docs**, and the troubleshooting
-reference at **https://embarko.ai/troubleshoot**. Read those rather than
+reference at **https://embarko.ai/docs/troubleshoot**. Read those rather than
 guessing at the API.
 
 Requirements for any app deployed here: it must read its port from the `PORT`

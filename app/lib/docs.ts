@@ -1,20 +1,20 @@
-// The public docs are authored in hostnsoft-api and served as raw markdown, so
-// the site renders whatever is live there rather than keeping its own copy in
-// sync by hand.
+// The public docs are authored as markdown in this repo, under content/docs/,
+// one file per entry in DOCS below. They used to be fetched from
+// hostnsoft-api at render time; they're now part of the build, so a docs
+// change ships with a site deploy and a reader never waits on an upstream
+// request.
 //
-// This has to run on the server: the endpoints send
-// `access-control-allow-origin: https://embarko.ai`, so a fetch from the
-// browser is blocked on every other origin (localhost included).
+// The markdown is imported as a raw string (see the webpack rule in
+// next.config.mjs). It can't be read from disk instead: production is a
+// Cloudflare Worker, which has no filesystem at request time.
 
-const DOCS_ORIGIN =
-  process.env.NEXT_PUBLIC_DOCS_ORIGIN ?? "https://ship.embarko.ai/api/public";
-
-// Re-fetch at most every 5 minutes. Docs change rarely, and a stale-by-minutes
-// page beats putting an upstream request in front of every visitor.
-const REVALIDATE_SECONDS = 300;
+import docsMd from "../../content/docs/docs.md";
+import troubleshootMd from "../../content/docs/troubleshoot.md";
+import limitationsMd from "../../content/docs/limitations-and-recommendations.md";
+import hackathonsMd from "../../content/docs/hackathons.md";
 
 export interface DocMeta {
-  /** The markdown file's basename upstream, e.g. "docs" for docs.md. */
+  /** The file's basename under content/docs/, e.g. "docs" for docs.md. */
   slug: string;
   /** Where it lives on this site. */
   path: string;
@@ -24,8 +24,8 @@ export interface DocMeta {
 }
 
 /**
- * Every doc we publish. The upstream file name is the slug, which is what lets
- * the cross-document links below be rewritten without a second mapping.
+ * Every doc we publish. The file name is the slug, which is what lets the
+ * cross-document links below be rewritten without a second mapping.
  */
 export const DOCS: DocMeta[] = [
   {
@@ -36,17 +36,21 @@ export const DOCS: DocMeta[] = [
   },
   {
     slug: "troubleshoot",
-    path: "/troubleshoot",
+    path: "/docs/troubleshoot",
     title: "Troubleshooting",
     description: "Real deploy failures, what causes them, and how to fix each one.",
   },
   {
+    // The only entry whose route isn't its slug: the file name is worth being
+    // explicit, a 30-character URL isn't.
     slug: "limitations-and-recommendations",
-    path: "/limitations-and-recommendations",
+    path: "/docs/limitations",
     title: "Limitations & recommendations",
     description: "Confirmed platform constraints, each paired with what to do about it.",
   },
   {
+    // Top-level on purpose. It reads as a landing page for event organisers,
+    // not as reference material, and it gets shared on its own.
     slug: "hackathons",
     path: "/hackathons",
     title: "Hackathons",
@@ -58,25 +62,30 @@ export function docBySlug(slug: string): DocMeta | undefined {
   return DOCS.find((d) => d.slug === slug);
 }
 
-export function docUrl(slug: string): string {
-  return `${DOCS_ORIGIN}/${slug}.md`;
-}
+/** The markdown itself, keyed by slug. Every slug in DOCS must appear here. */
+const MARKDOWN: Record<string, string> = {
+  docs: docsMd,
+  troubleshoot: troubleshootMd,
+  "limitations-and-recommendations": limitationsMd,
+  hackathons: hackathonsMd,
+};
 
 /**
- * The docs link to each other by absolute markdown URL — following one as-is
- * would hand the reader a raw .md file instead of the sibling page. Swap any
- * link to a doc we publish for its route here; leave every other link alone.
+ * The docs link to each other by markdown file name — `troubleshoot.md`, or
+ * `docs.md#memory-allocation`. Following one as-is would 404, or hand the
+ * reader a raw file. Swap any link to a doc we publish for its route here;
+ * leave every other link alone.
+ *
+ * Absolute links to the old hostnsoft-api origin are still matched: they
+ * appear in docs written before the markdown moved into this repo, and a
+ * reader shouldn't be sent off-site to read a page that is right here.
  */
 export function localizeDocHref(href: string | undefined): string | undefined {
   if (!href) return href;
-  const m = new RegExp(`^${escapeRegExp(DOCS_ORIGIN)}/([a-z0-9-]+)\\.md(#.*)?$`, "i").exec(href);
+  const m = /^(?:https?:\/\/[^/]+(?:\/[^/]*)*\/)?([a-z0-9-]+)\.md(#.*)?$/i.exec(href);
   if (!m) return href;
   const target = docBySlug(m[1]);
   return target ? `${target.path}${m[2] ?? ""}` : href;
-}
-
-function escapeRegExp(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 export interface TocEntry {
@@ -125,18 +134,10 @@ export function extractToc(markdown: string): TocEntry[] {
 }
 
 /**
- * Fetch one published doc. Returns null when upstream is unreachable or
- * answers non-2xx, so the page can say so instead of erroring out.
+ * The markdown for one published doc, or undefined if the slug isn't one we
+ * publish. Nothing can fail at runtime here — the content is in the bundle, so
+ * a missing file is a build error rather than a broken page.
  */
-export async function fetchDoc(slug: string): Promise<string | null> {
-  try {
-    const res = await fetch(docUrl(slug), {
-      next: { revalidate: REVALIDATE_SECONDS },
-      signal: AbortSignal.timeout(10_000),
-    });
-    if (!res.ok) return null;
-    return await res.text();
-  } catch {
-    return null;
-  }
+export function docMarkdown(slug: string): string | undefined {
+  return MARKDOWN[slug];
 }
