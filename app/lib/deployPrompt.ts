@@ -21,11 +21,10 @@ import { variantForPath } from "./variants";
  *  docs send it straight back to the script (fetch, read, run) — so the skill
  *  is still the deploy path, just reached through a door that opens.
  *
- *  It also states the token posture up front — deploy anonymously, ask for an
- *  email only after there's a live URL. Without that line the agent reads the
- *  docs' own quick start and blocks on "get a deploy token" before it has
- *  packaged anything, turning a zero-friction first deploy into a signup
- *  wall. */
+ *  It also states the credential posture up front, because without it the
+ *  agent reads the docs' own quick start and blocks on obtaining a token
+ *  before it has packaged anything. What that posture should be depends on
+ *  who is copying — see `build` below. */
 
 /** Stands in for the visitor's landing-page arm wherever a real one isn't
  *  known yet — server render, and the docs page before hydration. */
@@ -35,31 +34,45 @@ const VARIANT_PLACEHOLDER = "<alpha|beta|gamma|delta>";
  *  forwards it as the `lp_variant` header) so a deploy can be attributed back
  *  to the landing page that produced it.
  *
- *  `appName` names an app that already exists, so a prompt copied from inside
- *  one redeploys that app rather than standing up a second copy on a second
- *  subdomain. Omitted on the marketing pages, where there is no app yet. */
+ *  Three credential situations, and the right instruction is different in
+ *  each — getting this wrong is what turns a 30-second trial into a signup
+ *  wall, or points a redeploy at the wrong app:
+ *
+ *  - **Neither `appName` nor `token`** — the marketing pages. Nobody has an
+ *    account yet, and the whole pitch is that they don't need one. Deploy
+ *    anonymously, then ask for an email once there's a live URL.
+ *  - **`token`** — copied from the tokens page while the raw token is on
+ *    screen. Use it; deploying anonymously here would strand the app on a
+ *    24-hour expiry the owner didn't ask for.
+ *  - **`appName`** — copied from inside an existing app. That app is already
+ *    claimed, so an anonymous deploy can't update it; the agent should reach
+ *    for the credential the environment already has. */
 function build(variantLine: string, appName?: string | null, token?: string | null): string {
   /* Named explicitly even though the skill can pick a name: the skill only
      knows the folder it is run from, and the platform treats a name it hasn't
      seen as a brand-new app. */
   const nameLine = appName
-    ? `\nDeploy it as the existing Embarko app "${appName}" — that exact name, so it updates that app instead of creating a new one.`
+    ? `\nRedeploy it as the existing Embarko app "${appName}" — that exact name, so it updates that app instead of standing up a second one on a second subdomain.`
     : "";
+
   /* Names both places the skill looks — the environment, and the credential
      file it falls back to — so the agent stores the token once and every later
      deploy is authenticated without the owner being asked again. */
-  const tokenLine = token
-    ? `\nUse this Embarko deploy token: ${token}
-Set it as DEPLOY_TOKEN in the environment before running the deploy, and save it to ~/.embarko/credentials so future deploys use it automatically. Do not deploy anonymously.`
-    : "";
-  return `Embarko is Cloud for small apps.
-Deploy this app to Embarko.
+  let credentialLines: string;
+  if (token) {
+    credentialLines = `Use this Embarko deploy token: ${token}
+Set it as DEPLOY_TOKEN and save it to ~/.embarko/credentials so later deploys reuse it. Don't deploy anonymously.`;
+  } else if (appName) {
+    credentialLines = `That app is already claimed, so this needs our deploy token: use DEPLOY_TOKEN or ~/.embarko/credentials if either is already set, and ask me for it only if neither is.`;
+  } else {
+    credentialLines = `Deploy anonymously first — no token, no account — then give me the live URL.
+Only once it's live, ask me for my email: Embarko mails back a token that makes the app permanent.`;
+  }
 
-Install the Embarko deploy skill and follow it:
-npx skills add embarko-ai/skill --skill embarko-deploy -g${nameLine}${tokenLine}
+  return `Deploy this app to Embarko — cloud hosting for small apps. No Dockerfile, no signup.
 
-If npx is unavailable, run the same deploy script directly instead:
-curl -fsSL https://embarko.ai/skills/embarko-deploy.sh -o /tmp/embarko-deploy.sh && bash /tmp/embarko-deploy.sh
+Read https://embarko.ai/docs and follow it. Nothing to install.${nameLine}
+${credentialLines}
 ${variantLine}
 Faster, if your tools let you install one: npx skills add embarko-ai/skill --skill embarko-deploy -g`;
 }
