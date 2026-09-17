@@ -11,8 +11,12 @@ history, rollback, and custom domains.
 flow, so this is what an agent, CI pipeline, or your own script uses to
 actually ship code.
 
-**Most management after that can be done the same way**, with the same deploy
-token, through the app control plane
+**Deploying needs no credential at all** — see
+[Quick start](#quick-start). A deploy token is what makes an app permanent and
+lets you manage it afterwards; it is not a precondition for getting a live URL.
+
+**Most management after the first deploy can be done the same way**, with a
+deploy token, through the app control plane
 (`https://ship.embarko.ai/api/apps/<app-name>`): environment variables,
 rollback, and deployment history. Each section below gives both the API call
 and the dashboard equivalent, so an agent doesn't have to hand the work back
@@ -25,8 +29,9 @@ every feature carries a `via` field naming who can invoke it.
 
 A few things that apply everywhere below:
 - **Projects auto-create on first deploy.** No dashboard step is required
-  beforehand — the first deploy of a new app name creates its project under
-  your token's company automatically.
+  beforehand. With a token, the first deploy of a new app name creates its
+  project under that token's company; without one it creates an unclaimed app
+  you can claim later (see [Anonymous deploys](#anonymous-deploys)).
 - **App names are unique platform-wide**, not just within your company — an
   app name is also its live subdomain (`<app-name>.app.embarko.ai`). If
   another company already used the exact name you're deploying,
@@ -40,15 +45,15 @@ For every error/edge case and known platform constraint, see
 
 ## [Quick start](#quick-start)
 
-**1. Get a deploy token** — see [Authentication](#authentication).
+Nothing to sign up for and no credential to fetch. Deploy first, get a live
+URL, and decide about a token afterwards.
 
-**2. Package and deploy:**
+**1. Package and deploy:**
 
 ```bash
 tar -czf /tmp/my-app.tar.gz --exclude=node_modules --exclude=.git -C /path/to/app .
 
 curl -X POST "https://ship.embarko.ai/apps" \
-  -H "Authorization: Bearer $DEPLOY_TOKEN" \
   -H "X-App-Name: my-app" \
   -H "X-App-Version: $(git rev-parse --short HEAD)" \
   -F "source=@/tmp/my-app.tar.gz"
@@ -61,15 +66,23 @@ background:
 { "accepted": true, "statusUrl": "https://ship.embarko.ai/apps/my-app/status", "logsUrl": "https://ship.embarko.ai/apps/my-app/logs" }
 ```
 
-**3. Poll until it's live:**
+**2. Poll until it's live** — no credential needed for an app deployed this
+way:
 
 ```bash
-curl "https://ship.embarko.ai/apps/my-app/status" -H "Authorization: Bearer $DEPLOY_TOKEN"
+curl "https://ship.embarko.ai/apps/my-app/status"
 ```
 
 Wait for `deploy.status` to be `"success"` (or `"failed"` — check `.../logs`
 if so). Once successful, your app is live at `https://my-app.app.embarko.ai`.
 Full details on both endpoints: [Checking deploy status & logs](#status-and-logs).
+
+**3. Keep it, when you're ready.** A deploy with no credential is real and
+live, but it is torn down after 24 hours. Redeploying the same `X-App-Name`
+with a token claims it permanently — see [Authentication](#authentication).
+That step is worth doing once the app is worth keeping; it is not worth
+blocking the first deploy on, and an agent shouldn't ask the user for a
+token before there is anything to look at.
 
 ## [Your app's requirements](#your-apps-requirements)
 
@@ -136,9 +149,38 @@ around it.
 
 ## [Authentication](#authentication)
 
-Every deploy is authenticated one of two ways:
+**A deploy does not require a credential.** Omitting `Authorization` is a
+supported, first-class path — not a degraded mode — and it is the right way to
+get an app live for the first time. What a token buys is permanence and
+management: an app deployed without one is torn down after 24 hours, and the
+control-plane calls further down (env vars, rollback, history) need one.
+
+If you are an agent doing this on someone's behalf: deploy first, show them
+the URL, and raise the token only when they want to keep the app. Asking for a
+credential before anything is running turns a one-minute trial into a signup.
+
+### [Anonymous (no token) deploys](#anonymous-deploys)
+
+Omit the `Authorization` header entirely to deploy without an account first —
+useful for trying the platform before committing to one. This creates an
+**unclaimed ("orphan") project** that:
+- Gets a `24h` expiry — after that, the app and its container image are
+  torn down automatically.
+- Shows a live countdown banner injected into the app's own pages (HTML apps
+  only — see [`troubleshoot.md`](troubleshoot.md#the-in-app-will-be-deleted-banner-doesnt-show-up)).
+- Can be **claimed** at any point before expiry by redeploying the exact same
+  `X-App-Name` **with** a valid token — this cancels the expiry and the
+  project behaves like any other project from then on, with no trace of
+  having been anonymous.
+
+A present-but-invalid token is always a hard `401`, never silently treated
+as anonymous — only a completely absent header opts into this path.
 
 ### [Deploy tokens](#deploy-tokens)
+
+Needed to claim an app, and for everything under
+[Environment variables](#environment-variables),
+[Rollback](#rollback) and [Showcase](#showcase).
 
 ```
 Authorization: Bearer <token>
@@ -154,8 +196,9 @@ Authorization: Bearer <token>
 3. `export DEPLOY_TOKEN="..."` (or store it in a local credentials file,
    e.g. `~/.embarko/credentials`, `chmod 600`).
 
-**By email, no browser needed** — the route to prefer when an AI agent is
-doing the work, since it needs nothing but an email address:
+**By email, no browser needed** — once a token is actually needed, this is
+the route to prefer when an AI agent is doing the work, since it needs nothing
+but an email address:
 
 ```bash
 curl -X POST "https://ship.embarko.ai/api/public/deploy-tokens/request" \
@@ -177,23 +220,6 @@ existing one back.
 Deploy tokens are company-wide (not scoped to one project) and authenticate
 deploys only — they don't sign in to the dashboard itself.
 
-### [Anonymous (no token) deploys](#anonymous-deploys)
-
-Omit the `Authorization` header entirely to deploy without an account first —
-useful for trying the platform before committing to one. This creates an
-**unclaimed ("orphan") project** that:
-- Gets a `24h` expiry — after that, the app and its container image are
-  torn down automatically.
-- Shows a live countdown banner injected into the app's own pages (HTML apps
-  only — see [`troubleshoot.md`](troubleshoot.md#the-in-app-will-be-deleted-banner-doesnt-show-up)).
-- Can be **claimed** at any point before expiry by redeploying the exact same
-  `X-App-Name` **with** a valid token — this cancels the expiry and the
-  project behaves like any other project from then on, with no trace of
-  having been anonymous.
-
-A present-but-invalid token is always a hard `401`, never silently treated
-as anonymous — only a completely absent header opts into this path.
-
 ## [Deploying / redeploying](#deploy)
 
 `POST /apps` (same endpoint for the first deploy and every redeploy after —
@@ -208,6 +234,7 @@ just upload new source under the same `X-App-Name`):
 Body: multipart, field `source`, a `.tar.gz` of your app's source.
 
 ```bash
+# Drop the Authorization line for an anonymous deploy — see above.
 curl -X POST "https://ship.embarko.ai/apps" \
   -H "Authorization: Bearer $DEPLOY_TOKEN" \
   -H "X-App-Name: my-app" \
@@ -234,6 +261,10 @@ doesn't own it), not a `401`.
 ### [Status](#status)
 
 ```bash
+# An unclaimed anonymous deploy needs no header at all:
+curl "https://ship.embarko.ai/apps/my-app/status"
+
+# Once claimed, its owning company's token is required:
 curl "https://ship.embarko.ai/apps/my-app/status" -H "Authorization: Bearer $DEPLOY_TOKEN"
 ```
 
@@ -263,6 +294,7 @@ deploy's outcome.
 ### [Logs](#logs)
 
 ```bash
+# Drop the header while the app is still an unclaimed anonymous deploy.
 curl "https://ship.embarko.ai/apps/my-app/logs" -H "Authorization: Bearer $DEPLOY_TOKEN"
 curl "https://ship.embarko.ai/apps/my-app/logs?stream=stderr" -H "Authorization: Bearer $DEPLOY_TOKEN"
 ```

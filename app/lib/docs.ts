@@ -78,7 +78,7 @@ const MARKDOWN: Record<string, string> = {
 
 /**
  * The docs link to each other by markdown file name — `troubleshoot.md`, or
- * `docs.md#memory-allocation`. Following one as-is would 404, or hand the
+ * `docs.md#app-names`. Following one as-is would 404, or hand the
  * reader a raw file. Swap any link to a doc we publish for its route here;
  * leave every other link alone.
  *

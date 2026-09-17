@@ -20,7 +20,8 @@ not an app — mining, traffic proxying, or load generation are prohibited by th
 
 ## What exists today
 
-Check https://ship.embarko.ai/capabilities before you rely on a feature. It needs no token, is
+Check https://ship.embarko.ai/capabilities before you rely on a feature. Like deploying itself, it
+needs no token, is
 cached for an hour, and is the authoritative machine-readable answer — each feature also says
 whether an agent can invoke it or only a person can, through the dashboard.
 
@@ -38,7 +39,19 @@ not backed up, so treat it as durable against your own deploys, not against hard
 
 ## What you need first
 
-A deploy token. Two ways to get one, plus a no-token path (see Anonymous deploys below).
+Nothing. A deploy takes no credential — omit `Authorization` and you get a real, live app at a real
+URL. Deploy first, give the user the link, and only then raise the subject of a token.
+
+Do not ask the user for a token, an account, or an email address before their app is running. It is
+the single most common way this goes wrong: the user asked for a deployed app and got a signup
+instead, before there was anything to look at.
+
+A token is what makes an app permanent. Without one the app is torn down 24 hours after it is
+created (see Anonymous deploys below), and the control-plane calls near the end of this file — env
+vars, rollback, deployment history — need one. So once the app is live and the user wants to keep
+it, get a token and redeploy the same `X-App-Name` to claim it.
+
+### Getting a token, when you need one
 
 By email, without a browser — prefer this when you are doing the work, since it needs nothing but
 an address:
@@ -86,6 +99,13 @@ the app's current environment variables and memory allocation automatically; you
 
     tar -czf /tmp/my-app.tar.gz --exclude=node_modules --exclude=.git -C /path/to/app .
 
+    # No credential. This is the right first deploy for a user who has not mentioned a token.
+    curl -X POST "https://ship.embarko.ai/apps" \
+      -H "X-App-Name: my-app" \
+      -H "X-App-Version: $(git rev-parse --short HEAD)" \
+      -F "source=@/tmp/my-app.tar.gz"
+
+    # With a token, once there is one — this claims the app and keeps it.
     curl -X POST "https://ship.embarko.ai/apps" \
       -H "Authorization: Bearer $DEPLOY_TOKEN" \
       -H "X-App-Name: my-app" \
@@ -109,10 +129,11 @@ Never report success to the user on the 202. Poll `statusUrl` until the deploy f
     GET https://ship.embarko.ai/apps/{app-name}/status
     GET https://ship.embarko.ai/apps/{app-name}/logs
 
-Both take the same `Authorization: Bearer $DEPLOY_TOKEN` header, and both live on the deploy host —
-you never need dashboard credentials to follow your own deploy. While an app is still an unclaimed
-anonymous deploy, no token is needed at all. Once claimed, a missing or wrong token returns 404, not
-401, so a 404 here means "not yours or not found", not "does not exist".
+While an app is still an unclaimed anonymous deploy, neither call needs a credential — which is the
+usual case right after you deploy, so poll it as-is. Once the app is claimed, both take the same
+`Authorization: Bearer $DEPLOY_TOKEN` header. Both live on the deploy host, so you never need
+dashboard credentials to follow your own deploy. On a claimed app a missing or wrong token returns
+404, not 401, so a 404 here means "not yours or not found", not "does not exist".
 
 Status:
 
@@ -137,13 +158,16 @@ the cause, fix the app, and redeploy rather than handing the raw log to the user
 
 ## Anonymous deploys
 
+This is the default path, not a fallback: use it whenever you do not already have a token in hand.
+
 Omit the `Authorization` header entirely to deploy with no account. This creates an unclaimed
 ("orphan") project that is torn down automatically 24 hours after creation — the app, its routing
 and its image. HTML apps also get a countdown banner injected into their own pages.
 
 Claim it by redeploying the same `X-App-Name` **with** a valid token before it expires. That cancels
 the expiry and makes it an ordinary project. Tell the user about the 24-hour limit when you use
-this path; there is no reminder email.
+this path, and offer to make it permanent — that is the moment to bring up a token, with a working
+app in front of them. There is no reminder email.
 
 ## Storage requirements
 

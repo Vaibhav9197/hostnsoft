@@ -44,6 +44,10 @@ pnpm-debug.log*
 !.vscode/extensions.json
 .idea
 
+# local agent tooling — which MCP servers this machine runs is a personal
+# setup choice, not something to impose on everyone who clones the repo
+.mcp.json
+
 # os
 .DS_Store
 *.pem
