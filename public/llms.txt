@@ -32,7 +32,7 @@ Not built yet — do not design an app around these, and do not tell the user th
 file storage, a login/auth building block, a managed secrets store, automatic backups, scheduled
 jobs, background workers. Anything `/capabilities` reports as `"unavailable"` is genuinely absent.
 
-There is also no managed database. The app embeds its own (SQLite or PGlite) and writes it under
+There is also no managed database. The app embeds its own (SQLite, via `better-sqlite3`) and writes it under
 `DATA_DIR`, as described below. That data survives redeploys but is stored on one machine and is
 not backed up, so treat it as durable against your own deploys, not against hardware loss.
 
@@ -154,7 +154,6 @@ before any build runs.
 Persist data instead with:
 
 - `better-sqlite3` — SQLite, for key-value and document-shaped data.
-- `@electric-sql/pglite` — Postgres, for relational data that needs joins.
 
 Either way, write to a path under the `DATA_DIR` environment variable, and create subdirectories
 with `{ recursive: true }` on startup rather than assuming they exist. `DATA_DIR` is the only path

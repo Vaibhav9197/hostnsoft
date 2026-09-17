@@ -84,8 +84,8 @@ Full details on both endpoints: [Checking deploy status & logs](#status-and-logs
   [`limitations-and-recommendations.md`](limitations-and-recommendations.md#only-data_dir-survives-a-redeploy)
   for the full explanation and a concrete example of getting this wrong.
 - **Don't use `window.storage`** — a Claude Artifacts sandbox API that
-  doesn't exist here. Use SQLite (`better-sqlite3`) or PGlite
-  (`@electric-sql/pglite`) under `DATA_DIR` instead.
+  doesn't exist here. Use SQLite (`better-sqlite3`) under `DATA_DIR`
+  instead.
 
 ## [Capabilities](#capabilities)
 
@@ -302,7 +302,7 @@ Variables** section, edit, **Save**, then redeploy.
 
 ## [Memory allocation](#memory-allocation)
 
-Default is 256MB (512MB if an embedded DB like PGlite is auto-detected).
+Default is 256MB for every app.
 **Dashboard-only** — there is no API for this, so an agent has to ask the user.
 
 1. Open your project in the dashboard and go to its **Memory** section.
