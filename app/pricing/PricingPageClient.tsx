@@ -82,7 +82,9 @@ const planDetails = (plan: BillingPlan) => {
 const FALLBACK_PLANS: BillingPlan[] = [
   { lago_id: "fallback_free", name: "Free", code: "embarko_free", interval: "monthly", amount_cents: 0, amount_currency: "USD" },
   { lago_id: "fallback_creator", name: "Creator", code: "embarko_creator", interval: "monthly", amount_cents: 1500, amount_currency: "USD" },
+  { lago_id: "fallback_creator_annual", name: "Creator", code: "embarko_creator_annual", interval: "yearly", amount_cents: 10800, amount_currency: "USD" },
   { lago_id: "fallback_team", name: "Team", code: "embarko_team", interval: "monthly", amount_cents: 3900, amount_currency: "USD" },
+  { lago_id: "fallback_team_annual", name: "Team", code: "embarko_team_annual", interval: "yearly", amount_cents: 27600, amount_currency: "USD" },
 ];
 
 export function PricingPageClient({ plans: fetched }: { plans: BillingPlan[] }) {

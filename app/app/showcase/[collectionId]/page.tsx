@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Check, Copy } from "lucide-react";
 
+import { COPIED_LABEL, CopyPromptButton } from "../../../components/CopyPromptButton";
 import { ConfirmDialog, type ConfirmRequest } from "../../../components/console/ConfirmDialog";
 import {
   Alert,
@@ -17,11 +18,12 @@ import {
   Skeleton,
   Tag,
 } from "../../../components/console/kit";
-import { Button } from "../../../components/ui/button";
+import { Button, buttonVariants } from "../../../components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../components/ui/table";
 import { showcaseApi } from "../../../lib/hnsApi";
 import { HnsError } from "../../../lib/client";
 import { formatDate } from "../../../lib/format";
+import { showcaseListPrompt } from "../../../lib/showcasePrompt";
 import { useSession } from "../../../lib/session";
 import type { ShowcaseCollectionDetail, ShowcaseListing } from "../../../lib/types";
 
@@ -202,42 +204,42 @@ export default function ShowcaseCollectionPage() {
 
       {/* ------------------------------------------------------ sharing */}
       {detail && (
-        <Panel padded className="flex flex-col gap-4">
-          <div>
-            <PanelTitle>{isBoard ? "Invite people to list their apps" : "Share your page"}</PanelTitle>
-            <p className="mt-1 text-[0.9rem] text-muted-foreground">
-              {isBoard ? (
+        <Panel padded className="flex flex-col gap-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <PanelTitle>{isBoard ? "Get apps on this board" : "List an app here"}</PanelTitle>
+              <p className="mt-1 text-[0.9rem] text-muted-foreground">
+                {isBoard
+                  ? "Share the prompt — anyone pastes it into their AI and their app appears here."
+                  : "Paste the prompt into your AI and it lists your app on this page."}
+              </p>
+            </div>
+            <CopyPromptButton
+              text={showcaseListPrompt(detail)}
+              className={buttonVariants()}
+              copiedChildren={
                 <>
-                  Anyone on Embarko can list a deployed app here: they open <b>Showcase → List an app</b> in
-                  their own console and pick this page. The invite link lands them there with it
-                  preselected. Listings appear here immediately.
+                  <Check aria-hidden="true" />
+                  {COPIED_LABEL}
                 </>
-              ) : (
-                <>
-                  This is your company’s own page. Only apps from this company can be listed on it — use{" "}
-                  <b>List an app</b> to add one.
-                </>
-              )}
-            </p>
+              }
+            >
+              <Copy aria-hidden="true" />
+              Copy Showcase prompt
+            </CopyPromptButton>
           </div>
 
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-elevated px-4 py-3">
-              <code className="min-w-0 flex-1 break-all font-mono text-[0.85rem] text-foreground">
+          <div className="flex flex-col gap-2 border-t border-border pt-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 text-[0.85rem]">
+              <code className="min-w-0 break-all font-mono text-muted-foreground">
                 {typeof window === "undefined" ? `/showcase/${detail.slug}` : `${window.location.origin}/showcase/${detail.slug}`}
               </code>
-              <Button variant="outline" size="sm" onClick={() => copy("page")}>
-                {copied === "page" ? "Copied" : "Copy page link"}
-              </Button>
+              <LinkButton onClick={() => copy("page")}>{copied === "page" ? "Copied" : "Copy page link"}</LinkButton>
             </div>
             {isBoard && (
-              <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border px-4 py-3">
-                <code className="min-w-0 flex-1 break-all font-mono text-[0.8rem] text-muted-foreground">
-                  {typeof window === "undefined" ? "" : inviteLink(detail.slug)}
-                </code>
-                <Button size="sm" onClick={() => copy("link")}>
-                  {copied === "link" ? "Copied" : "Copy invite link"}
-                </Button>
+              <div className="flex flex-wrap items-center justify-between gap-3 text-[0.85rem]">
+                <span className="text-muted-foreground">Prefer a form? Send the invite link instead.</span>
+                <LinkButton onClick={() => copy("link")}>{copied === "link" ? "Copied" : "Copy invite link"}</LinkButton>
               </div>
             )}
           </div>
