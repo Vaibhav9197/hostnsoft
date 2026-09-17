@@ -167,7 +167,7 @@ export function ListAppForm({ initialPage = "" }: { initialPage?: string }) {
         <PageHeader title="Listed." subtitle={<>{done.name} is now on {done.collection.title}.</>} />
         <div className="flex flex-wrap gap-2.5">
           <Button asChild>
-            <a href={`/showcase/apps/${done.slug}`} target="_blank" rel="noreferrer">
+            <a href={`/showcase/app/${done.slug}`} target="_blank" rel="noreferrer">
               See its Showcase page
               <ArrowUpRight aria-hidden="true" />
             </a>

@@ -293,7 +293,7 @@ export default function ShowcaseCollectionPage() {
                       <>
                         <span className="px-1.5 text-[0.78rem] text-faint">·</span>
                         <a
-                          href={`/showcase/apps/${p.slug}`}
+                          href={`/showcase/app/${p.slug}`}
                           target="_blank"
                           rel="noreferrer"
                           className="text-[0.78rem] text-muted-foreground hover:text-foreground"

@@ -10,15 +10,16 @@ import { ConfirmDialog, type ConfirmRequest } from "../../../../components/conso
 import { Alert, LinkButton, Page, Panel, PanelTitle, Skeleton } from "../../../../components/console/kit";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
+import { Switch } from "../../../../components/ui/switch";
 import { projectsApi, showcaseApi } from "../../../../lib/hnsApi";
 import { formatDate } from "../../../../lib/format";
 import { useSession } from "../../../../lib/session";
 import { useProject } from "../../../../lib/useProject";
-import type { ShowcaseListing } from "../../../../lib/types";
+import type { ShowcaseListing, ShowcasePage } from "../../../../lib/types";
 
 export default function ProjectSettingsPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = use(params);
-  const { activeCompanyId } = useSession();
+  const { activeCompanyId, activeCompany, user } = useSession();
   const { project, error, reload } = useProject(activeCompanyId, projectId);
   const router = useRouter();
 
@@ -36,10 +37,22 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
   const [showcaseErr, setShowcaseErr] = useState<string | null>(null);
   const [confirmReq, setConfirmReq] = useState<ConfirmRequest | null>(null);
 
+  /* The company's own page: a single switch, no form. The listing is built
+     from the app's name, so there is nothing to ask for. */
+  const [companyPage, setCompanyPage] = useState<ShowcasePage | null>(null);
+  const [toggling, setToggling] = useState(false);
+  const companyListing = listings?.find((l) => l.collection.type === "company") ?? null;
+  const boardListings = listings?.filter((l) => l.collection.type !== "company") ?? null;
+
   const loadListings = useCallback(async () => {
     if (!activeCompanyId) return;
     try {
-      setListings(await showcaseApi.listMySubmissions(activeCompanyId, projectId));
+      const [mine, pages] = await Promise.all([
+        showcaseApi.listMySubmissions(activeCompanyId, projectId),
+        showcaseApi.listPages(activeCompanyId),
+      ]);
+      setListings(mine);
+      setCompanyPage(pages.find((p) => p.type === "company") ?? null);
     } catch (e) {
       setListings([]);
       setShowcaseErr(e instanceof Error ? e.message : "Couldn’t load showcase listings.");
@@ -49,6 +62,32 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
   useEffect(() => {
     loadListings();
   }, [loadListings]);
+
+  async function toggleCompanyShowcase(on: boolean) {
+    if (!activeCompanyId || !project) return;
+    setToggling(true);
+    try {
+      if (on) {
+        if (!companyPage) throw new Error("Your company page isn’t ready yet. Try again in a moment.");
+        await showcaseApi.submit(activeCompanyId, {
+          collectionSlug: companyPage.slug,
+          projectId,
+          name: project.name,
+          tagline: project.name,
+          creatorName: (user?.name?.trim() || activeCompany?.companyName || "Embarko user").slice(0, 80),
+        });
+        toast.success("Showcased on your company page");
+      } else if (companyListing) {
+        await showcaseApi.withdraw(activeCompanyId, companyListing.id);
+        toast.success("Removed from your company page");
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn’t update the showcase.");
+    } finally {
+      await loadListings();
+      setToggling(false);
+    }
+  }
 
   function askWithdraw(l: ShowcaseListing) {
     setConfirmReq({
@@ -176,12 +215,45 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
         </div>
         {showcaseErr && <Alert className="mt-3">{showcaseErr}</Alert>}
         {listings === null && <Skeleton className="mt-4 h-10" aria-hidden="true" />}
-        {listings && listings.length === 0 && (
-          <p className="mt-4 text-[0.92rem] text-muted-foreground">Not showcased anywhere yet.</p>
+        {listings && (
+          <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-4">
+            <div className="min-w-0">
+              <label htmlFor="company-showcase" className="text-[0.92rem] font-medium text-foreground">
+                Show on your company page
+              </label>
+              <p className="text-[0.8rem] text-muted-foreground">
+                {companyPage ? (
+                  <a
+                    href={`/showcase/${companyPage.slug}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 font-mono hover:underline"
+                  >
+                    /showcase/{companyPage.slug}
+                    <ArrowUpRight aria-hidden="true" className="size-3" />
+                  </a>
+                ) : (
+                  "Your company’s public page"
+                )}
+                {" · uses the app’s name, nothing to fill in"}
+                {companyListing?.isPrivate && " · hidden by organiser"}
+              </p>
+            </div>
+            <Switch
+              id="company-showcase"
+              checked={companyListing !== null}
+              onCheckedChange={toggleCompanyShowcase}
+              disabled={toggling || (!companyListing && !companyPage)}
+              aria-label="Show on your company page"
+            />
+          </div>
         )}
-        {listings && listings.length > 0 && (
+        {boardListings && boardListings.length === 0 && (
+          <p className="mt-4 text-[0.8rem] text-muted-foreground">Not on any public board.</p>
+        )}
+        {boardListings && boardListings.length > 0 && (
           <ul className="mt-4 divide-y divide-border">
-            {listings.map((l) => (
+            {boardListings.map((l) => (
               <li key={l.id} className="flex flex-wrap items-center justify-between gap-3 py-2.5">
                 <div className="min-w-0">
                   <a

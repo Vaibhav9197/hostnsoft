@@ -5,7 +5,7 @@ import type { ShowcaseApp } from "../lib/showcase";
 /* The marketing pages' measure and buttons. Copied as constants rather than
    imported from v3/page.tsx: that module is a landing-page variant behind
    middleware and may be replaced, and Showcase should not break when it is. */
-export const WRAP = "mx-auto w-full max-w-[1120px] px-8 max-[640px]:px-5";
+export const WRAP = "mx-auto w-full max-w-[74rem]";
 
 const BTN =
   "inline-flex items-center gap-2 rounded-[8px] px-[18px] py-[10px] text-sm font-semibold transition active:scale-[0.97]";
@@ -134,7 +134,7 @@ export function Creator({ app }: { app: ShowcaseApp }) {
 export function AppCard({ app }: { app: ShowcaseApp }) {
   return (
     <Link
-      href={`/showcase/apps/${app.slug}`}
+      href={`/showcase/app/${app.slug}`}
       className="group flex flex-col gap-4 rounded-[14px] border border-border bg-card p-4 transition hover:border-[var(--line-strong)]"
     >
       <AppPreview app={app} className="aspect-[16/10]" />

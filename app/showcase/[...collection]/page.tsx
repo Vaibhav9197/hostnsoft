@@ -11,7 +11,7 @@ import { ShareRow } from "../share";
 
 /**
  * A showcase page: /showcase/walkover, /showcase/iit-indore-26. A company's
- * own page or a public board. `/apps/...` is a real directory and matches
+ * own page or a public board. `/app/...` is a real directory and matches
  * first. A catch-all so deeper paths 404 in this layout.
  */
 

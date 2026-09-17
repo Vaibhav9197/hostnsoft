@@ -260,7 +260,7 @@ function Listings({ onError }: { onError: (m: string | null) => void }) {
                       Open app
                     </a>
                     {live && (
-                      <a href={`/showcase/apps/${l.slug}`} target="_blank" rel="noreferrer" className="underline underline-offset-2">
+                      <a href={`/showcase/app/${l.slug}`} target="_blank" rel="noreferrer" className="underline underline-offset-2">
                         Showcase page
                       </a>
                     )}

@@ -146,27 +146,28 @@ export default function ShowcasePage() {
 
   function PageRow({ c }: { c: ShowcaseCollection }) {
     return (
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 py-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-base font-bold text-foreground">{c.title}</span>
-            {c.type === "company" ? <Tag tone="ok">your company page</Tag> : <Tag>public board</Tag>}
+            <span className="font-semibold text-foreground">{c.title}</span>
+            {c.type === "company" ? <Tag tone="ok">Company page</Tag> : <Tag>Public board</Tag>}
           </div>
-          <a
-            href={`/showcase/${c.slug}`}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-1 inline-flex items-center gap-1 font-mono text-[0.8rem] text-muted-foreground hover:text-foreground"
-          >
-            /showcase/{c.slug}
-            <ArrowUpRight aria-hidden="true" className="size-3.5" />
-          </a>
-          <p className="mt-2 text-[0.85rem] text-muted-foreground">
-            {c.counts.publicCount} live · {c.counts.total} listed · created {formatDate(c.createdAt)}
-            {c.type === "company" && " · only your own apps can be listed here"}
-          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 text-[0.82rem] text-muted-foreground">
+            <a
+              href={`/showcase/${c.slug}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 font-mono hover:text-foreground"
+            >
+              /showcase/{c.slug}
+              <ArrowUpRight aria-hidden="true" className="size-3.5" />
+            </a>
+            <span>
+              {c.counts.publicCount} live · {c.counts.total} listed
+            </span>
+          </div>
         </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <Button asChild variant="outline" size="sm">
             <Link href={`/app/showcase/${c.id}`}>Manage</Link>
           </Button>
@@ -184,7 +185,7 @@ export default function ShowcasePage() {
     <Page>
       <PageHeader
         title="Showcase"
-        subtitle="Your company’s public page, public boards you run, and your deployed apps listed anywhere on Showcase."
+        subtitle="Where your apps appear publicly."
         actions={
           <Button asChild>
             <Link href="/app/showcase/submit">
@@ -198,15 +199,9 @@ export default function ShowcasePage() {
       {error && <Alert>{error}</Alert>}
 
       {/* ------------------------------------------------------ your pages */}
-      <Panel padded className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <PanelTitle>Your showcase pages</PanelTitle>
-            <p className="mt-1 text-[0.9rem] text-muted-foreground">
-              Every company has its own page at /showcase/&lt;slug&gt;. Create a public board for a hackathon or
-              demo day — it’s live at once, and anyone on Embarko can list their deployed apps there.
-            </p>
-          </div>
+      <Panel padded className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <PanelTitle>Your pages</PanelTitle>
           {!showForm && (
             <Button variant="outline" size="sm" onClick={() => setShowForm(true)}>
               <Plus aria-hidden="true" />
@@ -218,7 +213,11 @@ export default function ShowcasePage() {
         {collections === null && <Skeleton className="h-[80px]" aria-hidden="true" />}
 
         {showForm && (
-          <form className="flex flex-col gap-3 rounded-md border border-border p-4" onSubmit={create}>
+          <form className="my-2 flex flex-col gap-3 rounded-md border border-border p-4" onSubmit={create}>
+            <p className="text-[0.85rem] text-muted-foreground">
+              A public board is live at once, and anyone on Embarko can list their apps there — good for a
+              hackathon or demo day.
+            </p>
             <div className="flex flex-wrap gap-2.5">
               <Input
                 className="min-w-[220px] flex-1"
@@ -257,27 +256,22 @@ export default function ShowcasePage() {
           </form>
         )}
 
-        {companyPage && <PageRow c={companyPage} />}
         {collections !== null && !companyPage && (
-          <p className="text-[0.85rem] text-muted-foreground">
+          <p className="py-3 text-[0.85rem] text-muted-foreground">
             Your company page is being set up — sign out and back in if it doesn’t appear.
           </p>
         )}
-        {boards.map((c) => (
-          <div key={c.id} className="border-t border-border pt-4">
-            <PageRow c={c} />
-          </div>
-        ))}
+        <div className="divide-y divide-border">
+          {companyPage && <PageRow c={companyPage} />}
+          {boards.map((c) => (
+            <PageRow key={c.id} c={c} />
+          ))}
+        </div>
       </Panel>
 
       {/* ------------------------------------------------- your listed apps */}
       <Panel padded className="flex flex-col gap-4">
-        <div>
-          <PanelTitle>Your listed apps</PanelTitle>
-          <p className="mt-1 text-[0.9rem] text-muted-foreground">
-            Deployed apps from this company that a member has listed on a showcase page.
-          </p>
-        </div>
+        <PanelTitle>Your listed apps</PanelTitle>
 
         {mine === null && <Skeleton className="h-[80px]" aria-hidden="true" />}
 
@@ -328,7 +322,7 @@ export default function ShowcasePage() {
                     {l.isPrivate ? (
                       <span className="text-muted-foreground">Hidden by organiser</span>
                     ) : (
-                      <a href={`/showcase/apps/${l.slug}`} target="_blank" rel="noreferrer" className="text-success hover:underline">
+                      <a href={`/showcase/app/${l.slug}`} target="_blank" rel="noreferrer" className="text-success hover:underline">
                         Live
                       </a>
                     )}
