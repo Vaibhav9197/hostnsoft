@@ -18,8 +18,8 @@ rollback, and deployment history. Each section below gives both the API call
 and the dashboard equivalent, so an agent doesn't have to hand the work back
 to a person.
 
-Four things are dashboard-only today — **custom domains, memory allocation,
-deleting a project, and analytics**. Those sections say so.
+Three things are dashboard-only today — **custom domains, deleting a project,
+and analytics**. Those sections say so.
 [`GET /capabilities`](#capabilities) is the authoritative answer either way:
 every feature carries a `via` field naming who can invoke it.
 
@@ -198,8 +198,8 @@ curl -X POST "https://ship.embarko.ai/apps" \
   -F "source=@/tmp/my-app.tar.gz"
 ```
 
-Redeploying picks up your **current** env vars and memory allocation (see
-below) automatically — you don't need to resend them.
+Redeploying picks up your **current** env vars and memory allocation
+automatically — you don't need to resend them.
 
 ## [Checking deploy status & logs](#status-and-logs)
 
@@ -299,20 +299,6 @@ Two things behave differently from a typical API here:
 
 In the dashboard, the same thing: open the project's **Environment
 Variables** section, edit, **Save**, then redeploy.
-
-## [Memory allocation](#memory-allocation)
-
-Default is 256MB for every app.
-**Dashboard-only** — there is no API for this, so an agent has to ask the user.
-
-1. Open your project in the dashboard and go to its **Memory** section.
-2. Enter the new limit in MB and save.
-
-This only **persists** the new value — it takes effect on the next deploy,
-rollback, or custom-domain change, not immediately. If you don't have a new
-build to ship, the fastest way to apply a memory change alone is rolling
-back to the **current** version (see below) — that re-applies the configuration
-with no rebuild.
 
 ## [Rollback](#rollback)
 

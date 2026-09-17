@@ -23,18 +23,11 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
   const router = useRouter();
 
   const [name, setName] = useState("");
-  const [memory, setMemory] = useState("");
   const [savingName, setSavingName] = useState(false);
-  const [savingMem, setSavingMem] = useState(false);
-  /* Validation, not an outcome: this one belongs under the input it is about,
-     where the reader is already looking, rather than in a toast that appears
-     in the corner after nothing has happened. Outcomes go to toasts. */
-  const [memErr, setMemErr] = useState<string | null>(null);
-  /* Both fields read as plain text until asked for. Settings is somewhere you
+  /* The name reads as plain text until asked for. Settings is somewhere you
      come to check what the app is called far more often than to change it, and
      a page of open inputs invites edits nobody came to make. */
   const [editingName, setEditingName] = useState(false);
-  const [editingMem, setEditingMem] = useState(false);
   const [confirm, setConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
 
@@ -79,7 +72,6 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
   useEffect(() => {
     if (project) {
       setName(project.name);
-      setMemory(String(project.memoryMb));
     }
   }, [project]);
 
@@ -96,30 +88,6 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
       toast.error(e instanceof Error ? e.message : "Couldn’t rename the app.");
     } finally {
       setSavingName(false);
-    }
-  }
-
-  async function saveMemory(e: React.FormEvent) {
-    e.preventDefault();
-    if (!activeCompanyId) return;
-    const mb = Number(memory);
-    if (!Number.isInteger(mb) || mb <= 0) {
-      setMemErr("Memory has to be a whole number greater than 0.");
-      return;
-    }
-    setMemErr(null);
-    setSavingMem(true);
-    try {
-      await projectsApi.setMemory(activeCompanyId, projectId, mb);
-      toast.success("Memory saved", {
-        description: "It applies the next time your AI deploys — nothing changes right now.",
-      });
-      setEditingMem(false);
-      await reload();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Couldn’t save the memory setting.");
-    } finally {
-      setSavingMem(false);
     }
   }
 
@@ -189,41 +157,6 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
           </form>
         </Field>
 
-        <Field
-          label="Memory"
-          value={`${project.memoryMb} MB`}
-          editing={editingMem}
-          onEdit={() => { setMemory(String(project.memoryMb)); setMemErr(null); setEditingMem(true); }}
-        >
-          <p className="mt-1 text-[0.92rem] text-muted-foreground">
-            How much room your app has to work in. Most apps are happy at 256 MB — raise it only if yours
-            runs into trouble. A new number takes effect the next time your AI deploys.
-          </p>
-          {/* noValidate so our own message shows instead of the browser's
-              bubble: that bubble is unstyled, vanishes on the next click, and
-              isn't tied to the field by aria-describedby. The rules it would
-              have enforced are enforced in saveMemory instead. */}
-          <form className="mt-2.5 flex flex-wrap gap-2.5" onSubmit={saveMemory} noValidate>
-            <Input
-              className="min-w-[220px] flex-1 font-mono"
-              type="number"
-              min={1}
-              value={memory}
-              onChange={(e) => { setMemory(e.target.value); setMemErr(null); }}
-              aria-label="Memory in MB"
-              aria-invalid={!!memErr || undefined}
-              aria-describedby={memErr ? "memory-error" : undefined}
-              autoFocus
-            />
-            <Button type="submit" disabled={savingMem || memory === String(project.memoryMb)}>{savingMem ? "Saving…" : "Save"}</Button>
-            <Button type="button" variant="outline" onClick={() => { setMemory(String(project.memoryMb)); setMemErr(null); setEditingMem(false); }}>Cancel</Button>
-          </form>
-          {memErr && (
-            <p id="memory-error" className="mt-1.5 text-[0.82rem] text-destructive">
-              {memErr}
-            </p>
-          )}
-        </Field>
       </Panel>
 
       <Panel padded>
