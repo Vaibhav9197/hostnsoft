@@ -10,7 +10,7 @@ import { SupportForm } from "../components/SupportForm";
 // POST /public/customer-query), just embedded directly on the page instead
 // of behind a click.
 export const metadata: Metadata = {
-  title: "Support | Embarko",
+  title: "Support",
   description: "Get help with Embarko, or send feedback and feature requests.",
 };
 

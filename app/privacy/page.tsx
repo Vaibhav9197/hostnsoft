@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { A, DocumentPage, Fill, Item, List, P, Section, Term } from "../components/DocumentPage";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | Embarko",
+  title: "Privacy Policy",
   description: "What Embarko collects, why, and how long we keep it.",
 };
 

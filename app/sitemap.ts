@@ -20,13 +20,14 @@ import { SITE } from "./lib/site";
  * middleware and would compete with it in search.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
-
+  // No lastModified on purpose. The only value available at build time is the
+  // build time itself, which stamps every page as changed on every deploy.
+  // Google learns to ignore a date that is always fresh; omitting it is more
+  // honest than that.
   // The docs are the pages we most want indexed, and three of the four are
   // linked from nowhere in the site chrome — the sitemap is how they are found.
   const docs = DOCS.map((doc) => ({
     url: `${SITE}${doc.path}`,
-    lastModified: now,
     changeFrequency: "weekly" as const,
     priority: 0.9,
   }));
@@ -46,8 +47,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     ...pages.map(([path, priority, changeFrequency]) => ({
       url: `${SITE}${path}`,
-      lastModified: now,
-      changeFrequency,
+        changeFrequency,
       priority,
     })),
     ...docs,

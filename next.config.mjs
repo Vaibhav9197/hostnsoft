@@ -4,6 +4,20 @@ import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 const nextConfig = {
   async redirects() {
     return [
+      // www.embarko.ai is bound to the same Worker as embarko.ai (see the
+      // routes in wrangler.jsonc), so without this it serves a second full
+      // copy of the site. Every page already names the apex host as its
+      // canonical, but Search Console still reported the www copies as
+      // "Duplicate without user-selected canonical" — a redirect is the signal
+      // Google actually acts on. Apex is the canonical host: it is what SITE in
+      // app/lib/site.ts, the sitemap and robots.txt all say.
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.embarko.ai" }],
+        destination: "https://embarko.ai/:path*",
+        permanent: true,
+      },
+
       // The docs used to live at /doc. The deploy prompt, llms.txt and older
       // shared links all point at the singular form, so keep it working.
       { source: "/doc", destination: "/docs", permanent: true },

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { LANDING_METADATA } from "@/app/lib/landingMetadata";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./v4.css";
 
@@ -16,23 +16,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Embarko — Instant hosting for every app you build with AI",
-  description:
-    "Embarko gives the apps you build with AI a home online. Copy one prompt and ask your agent to deploy.",
-  keywords: ["AI app hosting", "AI agent deployment", "deploy apps built with AI", "Embarko"],
-  openGraph: {
-    type: "website",
-    siteName: "Embarko",
-    title: "Instant hosting for every app you build with AI",
-    description: "Copy one prompt and ask your agent to deploy.",
-  },
-  twitter: {
-    card: "summary",
-    title: "Instant hosting for every app you build with AI",
-    description: "Copy one prompt and ask your agent to deploy.",
-  },
-};
+// Shared with the other arms — see app/lib/landingMetadata.ts.
+export const metadata = LANDING_METADATA;
 
 export default function V4Layout({ children }: { children: React.ReactNode }) {
   return (

@@ -20,7 +20,7 @@ export function docMetadata(slug: string): Metadata {
   const meta = docBySlug(slug);
   if (!meta) return {};
   return {
-    title: `${meta.title} — Embarko`,
+    title: meta.title,
     description: meta.description,
   };
 }

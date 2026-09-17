@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { listPublicPlans } from "../lib/publicApi";
 import { PricingPageClient } from "./PricingPageClient";
+
+export const metadata: Metadata = {
+  title: "Pricing",
+  description:
+    "Start hosting for free. Embarko plans scale with the apps your AI builds — every plan includes a live URL, a database and persistent storage.",
+};
 
 export const dynamic = "force-dynamic";
 

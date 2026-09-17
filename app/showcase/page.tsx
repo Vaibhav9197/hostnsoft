@@ -10,7 +10,7 @@ import { BTN_GHOST, BTN_PRIMARY, PromptSteps, WRAP } from "./kit";
 import { SearchGallery } from "./SearchGallery";
 
 export const metadata: Metadata = {
-  title: "Showcase — See what people are building",
+  title: "Showcase — See what people are building with AI",
   description: "Apps built with AI. Hosted on Embarko.",
 };
 

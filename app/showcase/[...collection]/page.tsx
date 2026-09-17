@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!found) return {};
 
   return {
-    title: `${found.collection.title} — Embarko Showcase`,
+    title: `${found.collection.title} — Showcase`,
     description: found.collection.intro ?? `${found.apps.length} projects built.`,
     /* A page with nothing on it yet is a thin page. It exists, works and can
        be shared — search engines are just asked to wait until there is

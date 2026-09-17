@@ -99,9 +99,7 @@ export default function Home() {
   useEffect(() => {
     trackPageView();
   }, []);
-  const structuredData = { '@context': 'https://schema.org', '@type': 'WebApplication', name: 'Embarko', applicationCategory: 'BusinessApplication', operatingSystem: 'Web', description: 'Instant hosting for every app you build with AI.' };
   return <main className="site-page">
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
     <SiteHeader />
     <section id="top" className="hero" aria-labelledby="hero-title"><div className="hero-intro"><p className="eyebrow"><Sparkles aria-hidden="true" /> Hosting for apps already built by your agent</p><h1 id="hero-title">Instant hosting for every app you build with AI</h1><div className="hero-action"><CopyPromptButton /></div><Steps /></div><p className="hero-note">Your agent builds it. Embarko hosts it.</p></section>
     <DeployScene /><LiveScene /><HostingScene /><AppGallery /><AgentScene /><WorldScene /><section className="benefit-scene"><p>Spend your time building.<br />Not hosting.</p><SceneCta>Copy the deploy prompt</SceneCta></section><FinalScene />

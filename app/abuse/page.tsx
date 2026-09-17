@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { A, Code, DocumentPage, Item, List, P, Section } from "../components/DocumentPage";
 
 export const metadata: Metadata = {
-  title: "Report Abuse | Embarko",
+  title: "Report Abuse",
   description: "How to report a site or app hosted on Embarko.",
 };
 

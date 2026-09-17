@@ -14,9 +14,22 @@ export const metadata: Metadata = {
   // this, the same page reached with a tracking parameter or a trailing slash
   // can be treated as a separate, competing URL.
   alternates: { canonical: "./" },
-  title: "Embarko — Deploy any app. Get a live URL.",
+  // Every page names itself ("Pricing", "Security") and the template adds the
+  // brand, so search results read consistently across the site. Before this,
+  // pages spelled it three ways — "X | Embarko", "X — Embarko", or no brand.
+  // The homepage opts out with an absolute title, since it leads with the brand.
+  title: {
+    default: "Embarko — Deploy any app. Get a live URL.",
+    template: "%s · Embarko",
+  },
   description:
     "Managed hosting that builds your app automatically — no Dockerfile, no config. Deploy from your terminal or your AI agent, and get a live URL with a database and persistent storage built in.",
+  // Defaults for link previews on every page that does not set its own. The
+  // image itself comes from app/opengraph-image.tsx, which Next wires in here
+  // automatically. Pages that set openGraph replace this whole block, so the
+  // homepage repeats siteName in app/lib/landingMetadata.ts.
+  openGraph: { type: "website", siteName: "Embarko" },
+  twitter: { card: "summary_large_image" },
   // The generated icon set lives under /public/assets rather than at the root,
   // so it has to be declared here — Next's app/favicon.ico convention won't
   // pick it up. Declaring it on the root layout covers the console too, which
@@ -30,6 +43,34 @@ export const metadata: Metadata = {
     apple: "/assets/apple-touch-icon.png",
   },
   manifest: "/assets/site.webmanifest",
+};
+
+/* Site-wide structured data. Organization is what lets Google attach the logo
+   and name to results for the brand; SoftwareApplication describes the product
+   and that it can be started for free. Emitted once here rather than per page:
+   it is true on every page, and a per-arm copy on the landing pages meant
+   three of the four arms had none. */
+const STRUCTURED_DATA = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE}/#organization`,
+      name: "Embarko",
+      url: SITE,
+      logo: `${SITE}/assets/android-chrome-512x512.png`,
+    },
+    {
+      "@type": "SoftwareApplication",
+      name: "Embarko",
+      url: SITE,
+      applicationCategory: "DeveloperApplication",
+      operatingSystem: "Web",
+      description: "Instant hosting for every app you build with AI.",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      publisher: { "@id": `${SITE}/#organization` },
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -48,6 +89,10 @@ export default function RootLayout({
         <GoogleTagManager />
       </head>
       <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}
+        />
         <GoogleTagManagerNoScript />
         <PageViewTracker />
         <ConnectorTokenPickup />

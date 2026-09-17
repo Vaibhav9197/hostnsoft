@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const app = await getApp(slug);
   if (!app) return {};
   return {
-    title: `${app.name} — Embarko Showcase`,
+    title: `${app.name} — Showcase`,
     description: app.tagline,
     openGraph: {
       title: app.name,

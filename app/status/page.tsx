@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { A, DocumentPage, Fill, P, Section } from "../components/DocumentPage";
 
 export const metadata: Metadata = {
-  title: "Status | Embarko",
+  title: "Status",
   description: "Current operational status of the Embarko platform.",
 };
 
