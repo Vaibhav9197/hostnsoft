@@ -48,9 +48,10 @@ for the platform's real constraints and how to design around them —
 - fix: raise the memory limit, **then redeploy or roll back** — setting it only persists the new value, it
   does not push it to the running app (see
   [Changing memory doesn't take effect immediately](#changing-memory-doesnt-take-effect-immediately) below).
-  Memory is **dashboard-only**: an agent cannot change it with a deploy token, so ask the user to open the
-  project's **Memory** section and set it. Shrinking the app's own footprint — shipping a production start
-  command instead of a dev server, or dropping an unused embedded DB — is the part an agent can do alone.
+  Memory is not something you can change with a deploy token, and the dashboard's own control for it is
+  gone for now — so there is currently no self-serve way to raise it. Shrinking the app's own footprint is
+  the fix available today: ship a production start command instead of a dev server, or drop an unused
+  embedded DB.
 
 ### Crash loop exhausted
 - match: `"Not Restarting"`, `"Exceeded allowed attempts"`

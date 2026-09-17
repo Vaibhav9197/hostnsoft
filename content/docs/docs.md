@@ -3,8 +3,8 @@
 ## [Overview](#overview)
 
 Embarko deploys apps from source to a live URL, and gives each company a
-dashboard/API to manage what's running: environment variables, memory
-allocation, deployment history, rollback, and custom domains.
+dashboard/API to manage what's running: environment variables, deployment
+history, rollback, and custom domains.
 
 **Deploying always goes through the Deploy API**
 (`https://ship.embarko.ai/apps`) — there's no upload-through-the-dashboard
@@ -30,7 +30,7 @@ A few things that apply everywhere below:
 - **App names are unique platform-wide**, not just within your company — an
   app name is also its live subdomain (`<app-name>.app.embarko.ai`). If
   another company already used the exact name you're deploying,
-  `code: "app_name_taken"`.
+  `code: "app_name_taken"`. See [App names](#app-names) for the rules.
 - **Every non-2xx response has a `code` field.** Branch on `code`, not on the
   human-readable `error` string, which can change without notice. Full list
   in [`troubleshoot.md`](troubleshoot.md).
@@ -86,6 +86,23 @@ Full details on both endpoints: [Checking deploy status & logs](#status-and-logs
 - **Don't use `window.storage`** — a Claude Artifacts sandbox API that
   doesn't exist here. Use SQLite (`better-sqlite3`) under `DATA_DIR`
   instead.
+
+## [App names](#app-names)
+
+An app name is also its live subdomain, so it has to be a valid hostname
+label. `GET /capabilities` reports these under `limits`, and they are what
+`X-App-Name` is checked against:
+
+| Rule | Value |
+|---|---|
+| Characters | lowercase letters, numbers and dashes (`^[a-z0-9-]+$`) |
+| Length | 3–63 characters |
+| Scope | unique platform-wide, not per company |
+
+Some names are reserved by the platform — `ship`, `api`, `www`, `login`,
+`docs`, `admin` and `mail` among them. That list is longer than those
+examples, so treat a rejection as authoritative rather than assuming a name
+is free because it isn't listed here.
 
 ## [Capabilities](#capabilities)
 
@@ -185,7 +202,7 @@ just upload new source under the same `X-App-Name`):
 | Header | Required | Notes |
 |---|---|---|
 | `Authorization` | no | `Bearer <token>` — omit for an anonymous deploy |
-| `X-App-Name` | yes | lowercase letters/numbers/dashes only, unique platform-wide |
+| `X-App-Name` | yes | see [App names](#app-names) |
 | `X-App-Version` | no | defaults to a timestamp; pass a git SHA or semver tag for a meaningful history — never reuse a version tag for different code |
 
 Body: multipart, field `source`, a `.tar.gz` of your app's source.
@@ -454,8 +471,8 @@ since it requires no authentication at all.
 ## [Monitoring your app](#monitoring)
 
 Open your project in the dashboard:
-- **Overview** — current health, latest deployment, and memory allocation
-  at a glance.
+- **Overview** — current health, latest deployment, and recent traffic at a
+  glance.
 - **Deployments** — full deployment history.
 - **Logs** — recent output from the app (a snapshot, not a live stream —
   see

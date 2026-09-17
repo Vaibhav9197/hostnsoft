@@ -165,8 +165,7 @@ no durable file storage beyond this.
 - Listen on `process.env.PORT`, bound to `0.0.0.0` — not a hardcoded port, not localhost only.
 - No Dockerfile. Builds are auto-detected by Railpack from the source; a Dockerfile is rejected.
   Stick to a conventional project layout for the language.
-- Default memory is 256MB, or 512MB when an embedded database is detected. Exceeding it is an
-  OOM kill (exit code 137), not throttling.
+- Memory is 256MB for every app. Exceeding it is an OOM kill (exit code 137), not throttling.
 
 ## Errors
 
@@ -221,13 +220,15 @@ It answers 202 and applies in the background, like a deploy — poll the deploym
 is no longer `in_progress`. Only the last few images are kept per app; a target that has been pruned
 returns 422 `rollback_image_unavailable`, whose `retainCount` says how far back you can still go.
 
-These four are not available to you, only to the user in the dashboard. Ask them rather than
+These three are not available to you, only to the user in the dashboard. Ask them rather than
 attempting it:
 
 - Custom domains.
-- Memory allocation. Takes effect on the next deploy or rollback, not immediately.
 - Deleting an app.
 - Analytics.
+
+Memory allocation is not available to either of you right now — `capabilities` still reports it as
+a dashboard feature, but that control has been removed. Reduce the app's footprint instead.
 
 Do not guess at any of this. `https://ship.embarko.ai/capabilities` is the authoritative list and
 its `via` field says, per feature, whether you can do it or only a person can.
