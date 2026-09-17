@@ -333,6 +333,47 @@ doesn't rewrite history. See
 [`troubleshoot.md`](troubleshoot.md#rollback-target-image-unavailable) if the
 target image was cleaned from the host.
 
+## [Showcase](#showcase)
+
+List a deployed app on an [Embarko Showcase](/showcase) page — a public
+board, or the company's own reserved page. Available to an agent as well
+as a person, with the same deploy token and app-name addressing as
+everything above:
+
+```bash
+curl -X PUT "https://ship.embarko.ai/api/apps/my-app/showcase" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "collectionSlug": "iit-indore-2026",
+    "name": "My App",
+    "tagline": "One line on what it does",
+    "creatorName": "Jane Doe",
+    "whatItDoes": "A short paragraph on what it does.",
+    "whyBuilt": "A short paragraph on why it was built.",
+    "builtWith": "Claude",
+    "category": "Productivity",
+    "tags": ["ai", "productivity"],
+    "screenshotUrl": "https://...",
+    "videoUrl": "https://..."
+  }'
+```
+
+`collectionSlug`, `name`, `tagline`, and `creatorName` are required;
+everything else is optional. `collectionSlug` is the board's slug from its
+URL (`/showcase/<slug>`) — a public board, or your own company page, which
+exists from signup. `404 SHOWCASE_COLLECTION_UNKNOWN` for an unknown slug;
+`403 SHOWCASE_COLLECTION_PRIVATE` if it's another company's page.
+
+Calling this again for the same app and board **updates** the existing
+listing instead of erroring — there's no separate edit endpoint, so fixing
+a tagline or swapping a screenshot is just calling it again with new
+values. `201` on first listing, `200` on update, both with the listing
+(including its `/showcase/<slug>/<app-slug>` page).
+
+In the dashboard, the same thing: open the project, go to **List on
+Showcase**, pick a page, and fill in the same details.
+
 ## [Custom domain mapping](#custom-domains)
 
 Point your own domain at a deployed app, instead of (or alongside) its
