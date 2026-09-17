@@ -28,6 +28,10 @@ export const PAT_COOKIE = "hns_pat"; // MSG91 proxy_auth_token — the login ses
 
 const PAT_MAX_AGE = 30 * 24 * 60 * 60; // 30 days
 
+/** An upload is a file transfer plus the deploy service accepting it, so it
+ *  gets its own budget rather than the 10s every read is held to. */
+const UPLOAD_TIMEOUT_MS = 120_000;
+
 function cookieOpts(maxAge: number) {
   return {
     httpOnly: true,
@@ -166,6 +170,61 @@ export async function proxy(
   });
 
   return toNextResponse(res);
+}
+
+/**
+ * Forwards a source archive to the deploy endpoint as the signed-in person.
+ *
+ * Separate from `proxy` for two reasons. The body is a file, not a string, so
+ * it can't go through the JSON path — and an upload plus a build handshake
+ * takes far longer than the 10s every other call is capped at, which would
+ * abort a perfectly healthy deploy of anything but a tiny app.
+ *
+ * The PAT goes up with an X-Company-Id, which the deploy endpoint requires
+ * because a PAT — unlike a deploy token — isn't scoped to one company. It is
+ * deliberately NOT swapped for a deploy token first: a deploy token is a
+ * long-lived, company-wide secret, and one should only exist because somebody
+ * asked for one to use outside the browser.
+ */
+export async function uploadToDeploy(opts: {
+  source: Blob;
+  fileName: string;
+  appName: string;
+  companyId: string;
+  appVersion?: string;
+}): Promise<NextResponse> {
+  const proxyToken = await readProxyToken();
+  if (!proxyToken) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const form = new FormData();
+  /* The field name the deploy service reads, matching the deploy script. */
+  form.append("source", opts.source, opts.fileName);
+
+  try {
+    const res = await fetch(`${DEPLOY_BASE}/apps`, {
+      method: "POST",
+      headers: {
+        proxy_auth_token: proxyToken,
+        "X-Company-Id": opts.companyId,
+        "X-App-Name": opts.appName,
+        ...(opts.appVersion ? { "X-App-Version": opts.appVersion } : {}),
+      },
+      /* No Content-Type set by hand — fetch writes it, with the multipart
+         boundary it generated, which can't be known here. */
+      body: form,
+      cache: "no-store",
+      redirect: "manual",
+      signal: AbortSignal.timeout(UPLOAD_TIMEOUT_MS),
+    });
+    return toNextResponse(res);
+  } catch {
+    return NextResponse.json(
+      { error: "Couldn\u2019t reach the deploy service. Your app wasn\u2019t uploaded." },
+      { status: 502 },
+    );
+  }
 }
 
 // --- auth-specific helpers (cookie side effects live here) -------------------

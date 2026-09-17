@@ -1,0 +1,302 @@
+/**
+ * Packs what the browser can offer into what the deploy endpoint accepts.
+ *
+ * The endpoint takes one thing: a gzipped tar, posted as multipart `source`
+ * (see public/skills/embarko-deploy.sh, which is the reference implementation
+ * every agent deploy already goes through). A person at a keyboard has a
+ * folder, or a zip — so this converts both, and passes an existing tarball
+ * through untouched.
+ *
+ * Everything here is native: CompressionStream and DecompressionStream do the
+ * gzip and the inflate, and tar and zip are simple enough formats to read and
+ * write directly. A packing library would be a dependency shipped to every
+ * visitor for a screen most of them never open.
+ *
+ * Client-only — it touches File, Blob and the streams API.
+ */
+
+/** Never shipped. The same list the deploy script excludes, so an upload and an
+ *  agent deploy of the same folder produce the same app. */
+const EXCLUDED_DIRS = new Set([
+  ".git",
+  "node_modules",
+  ".next",
+  "dist",
+  "venv",
+  "__pycache__",
+]);
+
+/** Archive noise from the OS rather than the project. */
+const EXCLUDED_FILES = new Set([".DS_Store", "Thumbs.db"]);
+
+/** Past this, the upload is more likely a mistake — a folder someone picked
+ *  with its build output still in it — than a real app. It also keeps the
+ *  request inside what the Worker in front of the deploy service will take. */
+export const MAX_PACKED_BYTES = 100 * 1024 * 1024;
+
+export type PackEntry = { path: string; data: Uint8Array };
+
+/** A Uint8Array is a valid BlobPart at runtime, but TypeScript only accepts one
+ *  backed by a plain ArrayBuffer — and a `subarray` view is typed against the
+ *  wider ArrayBufferLike. Copying to satisfy that would double the memory an
+ *  upload holds, so the cast is kept here, once. */
+const asPart = (bytes: Uint8Array): BlobPart => bytes as unknown as BlobPart;
+
+/** Whether a path inside the archive is one we ship. */
+function isExcluded(path: string): boolean {
+  const parts = path.split("/");
+  if (parts.some((p) => EXCLUDED_DIRS.has(p))) return true;
+  /* __MACOSX is what macOS's own Compress puts beside the real entries; it is
+     resource-fork metadata, never source. */
+  if (parts[0] === "__MACOSX") return true;
+  return EXCLUDED_FILES.has(parts[parts.length - 1]);
+}
+
+// --------------------------------------------------------------------- tar
+
+const BLOCK = 512;
+
+function writeOctal(buf: Uint8Array, offset: number, length: number, value: number) {
+  /* ustar numeric fields are octal, NUL-terminated, right-aligned and zero
+     padded — length-1 digits plus the terminator. */
+  const text = value.toString(8).padStart(length - 1, "0");
+  for (let i = 0; i < length - 1; i++) buf[offset + i] = text.charCodeAt(i);
+  buf[offset + length - 1] = 0;
+}
+
+function writeAscii(buf: Uint8Array, offset: number, max: number, value: string) {
+  const bytes = new TextEncoder().encode(value);
+  if (bytes.length > max) throw new Error(`Path too long for a tar header: ${value}`);
+  buf.set(bytes, offset);
+}
+
+/**
+ * One 512-byte ustar header.
+ *
+ * Paths over 100 bytes go in the `prefix` field, which is how ustar carries
+ * them without the GNU long-name extension — a deep node_modules-free source
+ * tree still hits this regularly (`src/components/console/…`).
+ */
+function tarHeader(path: string, size: number, mtime: number): Uint8Array {
+  const head = new Uint8Array(BLOCK);
+
+  let name = path;
+  let prefix = "";
+  if (new TextEncoder().encode(path).length > 100) {
+    const cut = path.lastIndexOf("/", path.length - 100);
+    if (cut <= 0) throw new Error(`Path too long to store in a tar archive: ${path}`);
+    prefix = path.slice(0, cut);
+    name = path.slice(cut + 1);
+  }
+
+  writeAscii(head, 0, 100, name);
+  writeOctal(head, 100, 8, 0o644); // mode
+  writeOctal(head, 108, 8, 0); // uid
+  writeOctal(head, 116, 8, 0); // gid
+  writeOctal(head, 124, 12, size);
+  writeOctal(head, 136, 12, Math.floor(mtime / 1000));
+  head[156] = "0".charCodeAt(0); // typeflag: regular file
+  writeAscii(head, 257, 6, "ustar");
+  head[263] = head[264] = "0".charCodeAt(0); // version "00"
+  if (prefix) writeAscii(head, 345, 155, prefix);
+
+  /* The checksum is computed with its own field read as spaces, then written
+     back into it — six octal digits, NUL, space. */
+  for (let i = 148; i < 156; i++) head[i] = 32;
+  let sum = 0;
+  for (let i = 0; i < BLOCK; i++) sum += head[i];
+  const checksum = sum.toString(8).padStart(6, "0");
+  for (let i = 0; i < 6; i++) head[148 + i] = checksum.charCodeAt(i);
+  head[154] = 0;
+  head[155] = 32;
+
+  return head;
+}
+
+/** Pads a file's bytes out to the next 512-byte boundary. */
+function padding(size: number): Uint8Array {
+  const remainder = size % BLOCK;
+  return new Uint8Array(remainder === 0 ? 0 : BLOCK - remainder);
+}
+
+/** Gzips a stream of parts with the platform's own compressor. */
+async function gzip(parts: BlobPart[]): Promise<Blob> {
+  const stream = new Blob(parts).stream().pipeThrough(new CompressionStream("gzip"));
+  return await new Response(stream).blob();
+}
+
+/**
+ * Entries in, one .tar.gz out.
+ *
+ * Paths are stored relative with a leading "./", which is what `tar -C dir .`
+ * produces — the form the build side already reads from every agent deploy.
+ */
+export async function tarGz(entries: PackEntry[]): Promise<Blob> {
+  const mtime = Date.now();
+  const parts: BlobPart[] = [];
+
+  for (const entry of entries) {
+    parts.push(asPart(tarHeader(`./${entry.path}`, entry.data.length, mtime)));
+    parts.push(asPart(entry.data));
+    parts.push(asPart(padding(entry.data.length)));
+  }
+  /* Two zero blocks close the archive. Without them tar reads the stream as
+     truncated and refuses it. */
+  parts.push(asPart(new Uint8Array(BLOCK * 2)));
+
+  return gzip(parts);
+}
+
+// --------------------------------------------------------------------- zip
+
+function u16(view: DataView, offset: number) {
+  return view.getUint16(offset, true);
+}
+function u32(view: DataView, offset: number) {
+  return view.getUint32(offset, true);
+}
+
+/** Raw DEFLATE, or a stored entry copied straight out. */
+async function inflate(data: Uint8Array, method: number): Promise<Uint8Array> {
+  if (method === 0) return data;
+  if (method !== 8) throw new Error(`Unsupported zip compression method: ${method}`);
+  const stream = new Blob([asPart(data)])
+    .stream()
+    .pipeThrough(new DecompressionStream("deflate-raw"));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+/**
+ * Reads a zip into entries, via its central directory.
+ *
+ * The central directory is read rather than the local headers walked, because
+ * a local header may declare sizes of zero and defer the real ones to a data
+ * descriptor after the payload — the central directory always has them.
+ */
+export async function readZip(file: File): Promise<PackEntry[]> {
+  const buf = new Uint8Array(await file.arrayBuffer());
+  const view = new DataView(buf.buffer);
+
+  /* The end-of-central-directory record sits at the very end, behind a comment
+     of up to 64KB, so it is found by scanning backwards for its signature. */
+  let eocd = -1;
+  for (let i = buf.length - 22; i >= 0 && i >= buf.length - 22 - 0xffff; i--) {
+    if (u32(view, i) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error("That doesn’t look like a zip file.");
+
+  const count = u16(view, eocd + 10);
+  let offset = u32(view, eocd + 16);
+
+  const entries: PackEntry[] = [];
+  for (let i = 0; i < count; i++) {
+    if (u32(view, offset) !== 0x02014b50) throw new Error("This zip file is damaged.");
+    const method = u16(view, offset + 10);
+    const compressedSize = u32(view, offset + 20);
+    const nameLength = u16(view, offset + 28);
+    const extraLength = u16(view, offset + 30);
+    const commentLength = u16(view, offset + 32);
+    const localOffset = u32(view, offset + 42);
+    const name = new TextDecoder().decode(buf.subarray(offset + 46, offset + 46 + nameLength));
+    offset += 46 + nameLength + extraLength + commentLength;
+
+    /* A trailing slash is a directory entry; tar gets its structure from the
+       file paths themselves, so there is nothing to carry over. */
+    if (name.endsWith("/") || isExcluded(name)) continue;
+
+    /* The local header's own name and extra lengths are not required to match
+       the central directory's, so the payload offset is read from it. */
+    const localNameLength = u16(view, localOffset + 26);
+    const localExtraLength = u16(view, localOffset + 28);
+    const start = localOffset + 30 + localNameLength + localExtraLength;
+    entries.push({
+      path: name,
+      data: await inflate(buf.subarray(start, start + compressedSize), method),
+    });
+  }
+  return entries;
+}
+
+// -------------------------------------------------------------------- entry
+
+/** An app name the deploy endpoint will take: lowercase, digits and dashes. */
+export function toAppName(raw: string): string {
+  return raw
+    .replace(/\.(tar\.gz|tgz|zip)$/i, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+}
+
+/**
+ * Strips the single wrapping folder a zip or a folder pick usually has.
+ *
+ * Both hand back paths led by the folder's own name ("my-app/package.json"),
+ * but the build expects to find the manifest at the root. Only stripped when
+ * every entry shares that one prefix — a zip of several projects side by side
+ * keeps its shape, and fails honestly rather than deploying one of them.
+ */
+export function stripCommonRoot(entries: PackEntry[]): { entries: PackEntry[]; root: string | null } {
+  if (entries.length === 0) return { entries, root: null };
+  const first = entries[0].path.split("/")[0];
+  if (!entries.every((e) => e.path.startsWith(`${first}/`))) return { entries, root: null };
+  return {
+    entries: entries.map((e) => ({ ...e, path: e.path.slice(first.length + 1) })),
+    root: first,
+  };
+}
+
+export type Packed = { blob: Blob; appName: string; fileCount: number };
+
+/** True for something already in the shape the endpoint wants. */
+export function isTarball(file: File): boolean {
+  return /\.(tar\.gz|tgz)$/i.test(file.name);
+}
+
+/**
+ * A dropped file — zip or tarball — ready to upload.
+ *
+ * A tarball is passed through without being opened: it is already the wire
+ * format, and repacking it would only risk changing something.
+ */
+export async function packFile(file: File): Promise<Packed> {
+  if (isTarball(file)) {
+    return { blob: file, appName: toAppName(file.name), fileCount: 0 };
+  }
+  const { entries, root } = stripCommonRoot(await readZip(file));
+  if (entries.length === 0) throw new Error("That zip file has nothing in it to deploy.");
+  return {
+    blob: await tarGz(entries),
+    /* The folder inside the zip names the app before the zip itself does:
+       "my-app.zip" and "archive (3).zip" are equally likely, and only one of
+       them is a name anybody meant. */
+    appName: toAppName(root ?? file.name),
+    fileCount: entries.length,
+  };
+}
+
+/**
+ * A picked folder, ready to upload.
+ *
+ * `webkitRelativePath` is what carries the structure — a plain `File.name` is
+ * just the leaf, so the tree has to be rebuilt from it.
+ */
+export async function packFolder(files: File[]): Promise<Packed> {
+  const kept = files.filter((f) => !isExcluded(f.webkitRelativePath || f.name));
+  if (kept.length === 0) throw new Error("That folder has nothing in it to deploy.");
+
+  const entries: PackEntry[] = [];
+  for (const file of kept) {
+    entries.push({
+      path: file.webkitRelativePath || file.name,
+      data: new Uint8Array(await file.arrayBuffer()),
+    });
+  }
+  const stripped = stripCommonRoot(entries);
+  return {
+    blob: await tarGz(stripped.entries),
+    appName: toAppName(stripped.root ?? "app"),
+    fileCount: stripped.entries.length,
+  };
+}
