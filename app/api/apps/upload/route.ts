@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { uploadToDeploy } from "../../../lib/api";
+import { appNameError } from "../../../lib/appName";
 
 // POST /api/apps/upload — deploy an app from a file the browser packed.
 //
@@ -14,9 +15,6 @@ export const runtime = "nodejs";
 /** Matches the packer's own ceiling, enforced again here because a limit the
  *  browser applies is a courtesy, not a control. */
 const MAX_BYTES = 100 * 1024 * 1024;
-
-/** What the deploy endpoint accepts as an app name. */
-const APP_NAME = /^[a-z0-9][a-z0-9-]*$/;
 
 export async function POST(req: NextRequest) {
   const form = await req.formData().catch(() => null);
@@ -38,11 +36,11 @@ export async function POST(req: NextRequest) {
       { status: 413 },
     );
   }
-  if (!APP_NAME.test(appName)) {
-    return Response.json(
-      { error: "An app name can only use lowercase letters, numbers and dashes." },
-      { status: 400 },
-    );
+  /* The same rules the field applies, checked again: a limit the browser
+     enforces is a courtesy, not a control. */
+  const nameError = appNameError(appName);
+  if (nameError) {
+    return Response.json({ error: nameError }, { status: 400 });
   }
   /* Required by the deploy endpoint, not optional here: a PAT isn't scoped to
      one company, so without this the upload can't say where the app belongs. */

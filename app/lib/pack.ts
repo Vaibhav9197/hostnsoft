@@ -15,6 +15,8 @@
  * Client-only — it touches File, Blob and the streams API.
  */
 
+import { APP_NAME_MAX } from "./appName";
+
 /** Never shipped. The same list the deploy script excludes, so an upload and an
  *  agent deploy of the same folder produce the same app. */
 const EXCLUDED_DIRS = new Set([
@@ -219,14 +221,20 @@ export async function readZip(file: File): Promise<PackEntry[]> {
 
 // -------------------------------------------------------------------- entry
 
-/** An app name the deploy endpoint will take: lowercase, digits and dashes. */
+/**
+ * A folder or archive name, reshaped into something the endpoint can take.
+ *
+ * Best-effort only: it can't invent length a short name doesn't have, and it
+ * doesn't know the reserved list. `appNameError` is what decides — this just
+ * removes the characters that could never be valid.
+ */
 export function toAppName(raw: string): string {
   return raw
     .replace(/\.(tar\.gz|tgz|zip)$/i, "")
     .toLowerCase()
     .replace(/[^a-z0-9-]+/g, "-")
     .replace(/^-+|-+$/g, "")
-    .slice(0, 60);
+    .slice(0, APP_NAME_MAX);
 }
 
 /**

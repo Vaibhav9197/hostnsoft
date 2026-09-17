@@ -6,6 +6,7 @@ import { FolderUp, UploadCloud } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { MAX_PACKED_BYTES, isTarball, packFile, packFolder, toAppName, type Packed } from "@/app/lib/pack";
+import { appNameError } from "@/app/lib/appName";
 
 /**
  * Deploy by handing over the app itself, rather than asking an agent to.
@@ -86,7 +87,7 @@ export function UploadDeployPanel({
   );
 
   async function deploy() {
-    if (phase.step !== "ready" || !companyId) return;
+    if (phase.step !== "ready" || !companyId || nameError) return;
     const packed = phase.packed;
     setPhase({ step: "uploading", packed });
 
@@ -117,6 +118,11 @@ export function UploadDeployPanel({
   }
 
   const busy = phase.step === "packing" || phase.step === "uploading";
+  /* Shown under the field rather than waited for: a name the endpoint will
+     refuse is knowable here, and finding out after an upload has been packed
+     and sent is the slowest possible way to learn it. A redeploy's name came
+     from the platform, so it is never the uploader's problem to fix. */
+  const nameError = appSlug ? null : appNameError(name);
 
   return (
     <div className="flex flex-col gap-3">
@@ -198,12 +204,16 @@ export function UploadDeployPanel({
                 disabled={phase.step === "uploading"}
                 aria-label="App name"
               />
-              <span className="text-xs text-muted-foreground">
-                It becomes the address: <span className="font-mono">{name || "your-app"}.app.embarko.ai</span>
-              </span>
+              {nameError ? (
+                <span className="text-xs text-destructive">{nameError}</span>
+              ) : (
+                <span className="text-xs text-muted-foreground">
+                  It becomes the address: <span className="font-mono">{name}.app.embarko.ai</span>
+                </span>
+              )}
             </label>
           )}
-          <Button type="button" disabled={phase.step === "uploading" || !name || !companyId} onClick={deploy}>
+          <Button type="button" disabled={phase.step === "uploading" || !!nameError || !companyId} onClick={deploy}>
             {phase.step === "uploading" ? "Deploying…" : "Deploy"}
           </Button>
         </div>
