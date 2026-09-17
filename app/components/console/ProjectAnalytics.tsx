@@ -1,8 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Bar, BarChart, XAxis } from "recharts";
 
 import { Alert, Fact, FactGrid, Skeleton } from "./kit";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart";
+import type { ChartConfig } from "../ui/chart";
 import { HnsError } from "../../lib/client";
 import { ANALYTICS_UNAVAILABLE, analyticsApi } from "../../lib/hnsApi";
 import type { AnalyticsRange, ProjectAnalytics as Analytics } from "../../lib/types";
@@ -28,6 +31,15 @@ const RANGES: { value: AnalyticsRange; label: string }[] = [
   { value: "all", label: "All time" },
 ];
 
+/* --info rather than --accent: --accent is plain black, so the two segments
+   separated only by opacity and a colour the rest of the console uses for
+   every control. A hue of its own is what makes the error share legible.
+   Both tokens already carry a dark-theme value, so neither is restated here. */
+const TRAFFIC_CONFIG = {
+  ok: { label: "Requests", color: "var(--info)" },
+  errors: { label: "Errors", color: "var(--danger)" },
+} satisfies ChartConfig;
+
 function formatCount(n: number): string {
   return n.toLocaleString();
 }
@@ -48,13 +60,16 @@ function bucketLabel(iso: string, range: AnalyticsRange): string {
 /**
  * Requests per bucket, errors stacked on top in the error colour.
  *
- * Plain divs rather than a charting library: this is one series of counts, and
- * a dependency would cost more than the twelve lines it replaces.
+ * `ok` is derived rather than returned: the API gives requests and errors, and
+ * stacking those two directly would double-count every failed request into the
+ * column height.
  */
 function TrafficChart({ series, range }: { series: Analytics["traffic"]["series"]; range: AnalyticsRange }) {
-  /* Scale to the tallest bucket, never to zero — an all-zero series would
-     divide by nothing and every bar would be NaN tall. */
-  const peak = Math.max(1, ...series.map((p) => p.requests));
+  const data = series.map((point) => ({
+    bucketStart: point.bucketStart,
+    ok: point.requests - point.errors,
+    errors: point.errors,
+  }));
 
   return (
     /* The grid row is as tall as the taller Top paths card beside it, so the
@@ -62,35 +77,46 @@ function TrafficChart({ series, range }: { series: Analytics["traffic"]["series"
        sit on the bottom edge of the card wherever that lands. */
     <div className="flex flex-col rounded-xl border border-border bg-card p-4">
       <div className="font-mono text-[0.66rem] uppercase tracking-[0.1em] text-faint">Requests</div>
-      <div className="mt-3 flex min-h-[8rem] flex-1 items-end gap-px" role="img" aria-label="Requests over time">
-        {series.map((point) => {
-          const height = (point.requests / peak) * 100;
-          const errorShare = point.requests > 0 ? (point.errors / point.requests) * 100 : 0;
-          return (
-            <div
-              key={point.bucketStart}
-              /* h-full is load-bearing: with items-end the column would shrink
-                 to its content, leaving the bar's percentage height no basis
-                 to resolve against and every bar 0px tall. */
-              className="flex h-full min-w-0 flex-1 flex-col justify-end"
-              /* The only per-bucket detail on a chart this small; a tooltip
-                 would need a library and a focus story to match it. */
-              title={`${bucketLabel(point.bucketStart, range)} — ${formatCount(point.requests)} requests, ${formatCount(point.errors)} errors`}
-            >
-              {/* Solid tokens, no /alpha: the palette is var()-based, and
-                  Tailwind cannot build an alpha from an arbitrary var colour —
-                  bg-primary/25 silently renders nothing at all. */}
-              <div className="w-full rounded-t-[2px] bg-primary opacity-30" style={{ height: `${Math.max(height, 2)}%` }}>
-                <div className="w-full rounded-t-[2px] bg-destructive" style={{ height: `${errorShare}%` }} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <div className="mt-2 flex justify-between font-mono text-[0.66rem] text-faint">
-        <span>{series.length > 0 ? bucketLabel(series[0].bucketStart, range) : ""}</span>
-        <span>{series.length > 0 ? bucketLabel(series[series.length - 1].bucketStart, range) : ""}</span>
-      </div>
+      <ChartContainer
+        config={TRAFFIC_CONFIG}
+        /* aspect-video is ChartContainer's default and would fix the height to
+           the card's width; this chart instead fills whatever the row gives it. */
+        className="mt-3 aspect-auto min-h-[8rem] w-full flex-1"
+      >
+        <BarChart accessibilityLayer data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
+          <XAxis
+            dataKey="bucketStart"
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            /* 24h is 24 buckets and 90d is 90: let recharts drop the ticks that
+               would collide rather than picking an interval per range. */
+            interval="preserveStartEnd"
+            minTickGap={24}
+            tickFormatter={(iso: string) => bucketLabel(iso, range)}
+          />
+          <ChartTooltip
+            cursor={false}
+            content={
+              <ChartTooltipContent
+                labelFormatter={(_, payload) =>
+                  bucketLabel(String(payload?.[0]?.payload?.bucketStart ?? ""), range)
+                }
+                formatter={(value, name) => [
+                  `${formatCount(Number(value))} `,
+                  TRAFFIC_CONFIG[name as keyof typeof TRAFFIC_CONFIG]?.label ?? name,
+                ]}
+              />
+            }
+          />
+          {/* Stacked in this order so errors sit on top of the column, as the
+              eye reads a failure rate off the tip of each bar. */}
+          {/* Held back from solid so a wall of 90 bars stays calm; errors are
+              full strength because they are the thing worth looking at. */}
+          <Bar dataKey="ok" stackId="requests" fill="var(--color-ok)" fillOpacity={0.7} />
+          <Bar dataKey="errors" stackId="requests" fill="var(--color-errors)" radius={[2, 2, 0, 0]} />
+        </BarChart>
+      </ChartContainer>
     </div>
   );
 }
