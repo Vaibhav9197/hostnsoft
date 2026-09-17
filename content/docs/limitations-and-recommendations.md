@@ -17,11 +17,14 @@ incident where the kernel killed one container without affecting its
 neighbors). CPU, by contrast, is a **relative share, not a ceiling** — a
 CPU-heavy neighbor app can degrade your app's performance under contention.
 
-**Recommendation:** size `memoryMb` to your app's real peak usage with
-headroom (see [`docs.md`](docs.md#memory-allocation)), and treat memory as
-the limit you can actually rely on. Don't build anything latency-sensitive
-that assumes guaranteed CPU throughput — add timeouts and retries around
-CPU-bound work rather than assuming consistent performance.
+**Recommendation:** build for the 256MB every app gets, and treat memory as
+the limit you can actually rely on. Raising it is not self-serve today — there
+is no agent-facing call for it and the dashboard's control has been removed —
+so the lever you have is the app's own footprint: a production start command
+rather than a dev server, and no embedded database you aren't using. Don't
+build anything latency-sensitive that assumes guaranteed CPU throughput either
+— add timeouts and retries around CPU-bound work rather than assuming
+consistent performance.
 
 ### Disk usage isn't quota-enforced, including under `DATA_DIR`
 Nothing currently stops an app from writing far more to disk than its own
