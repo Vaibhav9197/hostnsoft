@@ -103,7 +103,7 @@ export default function ProjectsPage() {
         open={creating}
         onClose={() => setCreating(false)}
         title="Deploy an app"
-        description="Copy this and paste it into your AI agent. It deploys your app, and the app shows up here on its own subdomain — nothing to fill in first."
+        description="Hand the prompt to your AI agent, or upload the app yourself. Either way it lands here on its own subdomain."
       />
 
       {error && <Alert>{error}</Alert>}

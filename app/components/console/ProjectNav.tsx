@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { ArrowLeft, Copy, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, RotateCw } from "lucide-react";
 
 import { Button } from "@/app/components/ui/button";
 import { DeployPromptDialog } from "@/app/components/console/DeployPromptDialog";
@@ -90,9 +90,12 @@ export function ProjectNav({ projectId }: { projectId: string }) {
             "https://undefined.app.embarko.ai" is worse than no link. */}
         {project && (
           <div className="flex flex-wrap items-center gap-2">
+            {/* Named for the outcome, not the mechanism: copying a prompt is
+                one of the two ways through this button now, and the reader
+                came here to ship a new version either way. */}
             <Button variant="outline" onClick={() => setPromptOpen(true)}>
-              <Copy />
-              Copy deploy prompt
+              <RotateCw />
+              Redeploy this app
             </Button>
             <Button asChild>
               <a href={`https://${project.slug}.app.embarko.ai`} target="_blank" rel="noreferrer">
@@ -107,8 +110,8 @@ export function ProjectNav({ projectId }: { projectId: string }) {
       <DeployPromptDialog
         open={promptOpen}
         onClose={() => setPromptOpen(false)}
-        title="Deploy prompt"
-        description={`Copy this and paste it into your AI agent to deploy${project ? ` ${project.name}` : ""}.`}
+        title="Redeploy this app"
+        description={`Ship a new version of${project ? ` ${project.name}` : " this app"} — hand it to your AI agent, or upload it yourself.`}
         /* Names this app in the prompt, so the agent redeploys it instead of
            standing up a second one under a different name. */
         appSlug={project?.slug}
