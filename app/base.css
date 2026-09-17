@@ -140,8 +140,18 @@
     color: inherit;
     text-decoration: none;
   }
+  /* Tint the ground, never repaint the text. Pinning selected text to --ink
+     is right on the page but erases it on any inverted fill: the primary
+     button is bg-foreground/text-background, so --ink is exactly the colour
+     of the fill it sits on — selecting “Deploy an app” painted near-white on
+     near-white in dark mode (and near-black on black in light mode) and the
+     label vanished mid-drag.
+     Mixing currentColor derives the wash from whatever the selected text
+     already is, so it stays visible on the page, on a card and on an inverted
+     control without a per-surface override, and the text keeps its own colour
+     and contrast. Flat --accent-soft first as the pre-color-mix() fallback. */
   ::selection {
     background: var(--accent-soft);
-    color: var(--ink);
+    background: color-mix(in srgb, currentColor 22%, transparent);
   }
 }
