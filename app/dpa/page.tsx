@@ -4,6 +4,7 @@ import { A, DocumentPage, Fill, Item, List, P, Section, Term } from "../componen
 
 export const metadata: Metadata = {
   title: "Data Processing Agreement",
+  keywords: ["Embarko DPA","data processing agreement hosting","GDPR hosting"],
   description: "How Embarko processes personal data on your behalf.",
 };
 

@@ -4,6 +4,7 @@ import { A, DocumentPage, Fill, Item, List, P, Section, Term } from "../componen
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
+  keywords: ["Embarko privacy policy","hosting privacy"],
   description: "What Embarko collects, why, and how long we keep it.",
 };
 

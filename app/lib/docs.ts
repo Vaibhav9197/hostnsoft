@@ -21,6 +21,8 @@ export interface DocMeta {
   /** Sidebar label and <title>. */
   title: string;
   description: string;
+  /** Search terms for the page <meta name="keywords">. */
+  keywords: string[];
 }
 
 /**
@@ -31,12 +33,14 @@ export const DOCS: DocMeta[] = [
   {
     slug: "docs",
     path: "/docs",
+    keywords: ["Embarko docs","how to deploy an app with AI","deploy app from AI agent","Embarko deploy prompt"],
     title: "Documentation",
     description: "How to deploy an app to Embarko and manage it once it's live.",
   },
   {
     slug: "troubleshoot",
     path: "/docs/troubleshoot",
+    keywords: ["Embarko deploy failed","fix deployment error","troubleshoot app deploy","build failed hosting"],
     title: "Troubleshooting",
     description: "Real deploy failures, what causes them, and how to fix each one.",
   },
@@ -45,6 +49,7 @@ export const DOCS: DocMeta[] = [
     // explicit, a 30-character URL isn't.
     slug: "limitations-and-recommendations",
     path: "/docs/limitations",
+    keywords: ["Embarko limitations","hosting limits","what Embarko supports","app hosting constraints"],
     title: "Limitations & recommendations",
     description: "Confirmed platform constraints, each paired with what to do about it.",
   },
@@ -53,6 +58,7 @@ export const DOCS: DocMeta[] = [
     // not as reference material, and it gets shared on its own.
     slug: "hackathons",
     path: "/hackathons",
+    keywords: ["hackathon hosting","free hosting for hackathon","Embarko Pro hackathon","deploy hackathon project"],
     title: "Hackathons",
     description: "Free Embarko Pro for every participant, and a Showcase page for your event.",
   },

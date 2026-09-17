@@ -18,7 +18,17 @@ export const LANDING_METADATA: Metadata = {
   title: { absolute: "Embarko — Instant hosting for every app you build with AI" },
   description:
     "Embarko gives the apps you build with AI a home online. Copy one prompt, paste it into your AI agent, and get a live URL with a database and storage built in.",
-  keywords: ["AI app hosting", "AI agent deployment", "deploy apps built with AI", "Embarko"],
+  keywords: [
+    "Embarko",
+    "AI app hosting",
+    "deploy apps built with AI",
+    "hosting for vibe coded apps",
+    "deploy from Claude Code",
+    "deploy from Cursor",
+    "AI agent deployment",
+    "instant live URL",
+    "no config app hosting",
+  ],
   openGraph: {
     type: "website",
     siteName: "Embarko",

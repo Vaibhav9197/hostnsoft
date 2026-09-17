@@ -11,6 +11,7 @@ import { SupportForm } from "../components/SupportForm";
 // of behind a click.
 export const metadata: Metadata = {
   title: "Support",
+  keywords: ["Embarko support","Embarko help","contact Embarko"],
   description: "Get help with Embarko, or send feedback and feature requests.",
 };
 

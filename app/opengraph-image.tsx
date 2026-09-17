@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 /**
@@ -11,6 +13,15 @@ import { ImageResponse } from "next/og";
 export const alt = "Embarko — Instant hosting for every app you build with AI";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+/* Read off disk rather than fetched from the live site, so the card renders
+   correctly on the very first deploy and never depends on a network call. This
+   route has no dynamic input, so Next prerenders it during `next build` on a
+   machine that has a filesystem; the Worker only ever serves the finished PNG. */
+function iconDataUri() {
+  const svg = readFileSync(join(process.cwd(), "public/assets/embarko-icon.svg"));
+  return `data:image/svg+xml;base64,${svg.toString("base64")}`;
+}
 
 export default function OpenGraphImage() {
   return new ImageResponse(
@@ -29,15 +40,7 @@ export default function OpenGraphImage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 18, fontSize: 40, fontWeight: 700 }}>
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: 16,
-              background: "#2563eb",
-              display: "flex",
-            }}
-          />
+          <img src={iconDataUri()} width={64} height={64} alt="" />
           Embarko
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>

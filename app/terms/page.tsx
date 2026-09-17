@@ -4,6 +4,7 @@ import { A, Code, DocumentPage, Fill, Item, List, P, Section, Term } from "../co
 
 export const metadata: Metadata = {
   title: "Terms of Service",
+  keywords: ["Embarko terms of service","hosting terms"],
   description: "The terms that govern your use of Embarko.",
 };
 

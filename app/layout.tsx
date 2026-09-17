@@ -30,6 +30,38 @@ export const metadata: Metadata = {
   // homepage repeats siteName in app/lib/landingMetadata.ts.
   openGraph: { type: "website", siteName: "Embarko" },
   twitter: { card: "summary_large_image" },
+  // Site-wide terms; pages with a sharper topic set their own list, which
+  // replaces this one. Google ignores this tag, but Bing and others still read
+  // it, and it costs nothing.
+  keywords: [
+    "Embarko",
+    "AI app hosting",
+    "deploy AI generated apps",
+    "hosting for AI agents",
+    "instant app deployment",
+    "managed hosting with database",
+    "get a live URL",
+  ],
+  applicationName: "Embarko",
+  authors: [{ name: "Embarko", url: SITE }],
+  creator: "Embarko",
+  publisher: "Embarko",
+  category: "technology",
+  // Explicit rather than assumed: index everything public, and let Google show
+  // full-size image previews and long snippets in results.
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  // Stops mobile browsers turning digits in prose into phone links.
+  formatDetection: { telephone: false },
   // The generated icon set lives under /public/assets rather than at the root,
   // so it has to be declared here — Next's app/favicon.ico convention won't
   // pick it up. Declaring it on the root layout covers the console too, which

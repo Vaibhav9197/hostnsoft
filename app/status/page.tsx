@@ -4,6 +4,7 @@ import { A, DocumentPage, Fill, P, Section } from "../components/DocumentPage";
 
 export const metadata: Metadata = {
   title: "Status",
+  keywords: ["Embarko status","Embarko uptime","is Embarko down"],
   description: "Current operational status of the Embarko platform.",
 };
 

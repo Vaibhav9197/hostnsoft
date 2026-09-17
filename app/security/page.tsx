@@ -4,6 +4,7 @@ import { A, Code, DocumentPage, Fill, Item, List, P, Section, Term } from "../co
 
 export const metadata: Metadata = {
   title: "Security",
+  keywords: ["Embarko security","secure app hosting","hosting data protection","isolated app hosting"],
   description: "How Embarko protects the apps and data it runs.",
 };
 

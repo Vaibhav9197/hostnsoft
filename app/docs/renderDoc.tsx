@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DocView } from "./DocView";
 import { docBySlug, docMarkdown, extractToc } from "../lib/docs";
+import { SITE } from "../lib/site";
 
 /**
  * Shared body for every published-doc route. The markdown is bundled from
@@ -13,7 +14,23 @@ export function renderDoc(slug: string) {
   const markdown = docMarkdown(slug);
   if (!meta || markdown === undefined) notFound();
 
-  return <DocView markdown={markdown} toc={extractToc(markdown)} activeSlug={slug} />;
+  /* Tells Google where this page sits in the site, so results can show
+     "Embarko › Docs › Troubleshooting" instead of a bare URL. */
+  const crumbs = [{ name: "Embarko", item: SITE }];
+  if (meta.path !== "/docs") crumbs.push({ name: "Documentation", item: `${SITE}/docs` });
+  crumbs.push({ name: meta.title, item: `${SITE}${meta.path}` });
+  const breadcrumbs = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: crumbs.map((c, i) => ({ "@type": "ListItem", position: i + 1, name: c.name, item: c.item })),
+  };
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }} />
+      <DocView markdown={markdown} toc={extractToc(markdown)} activeSlug={slug} />
+    </>
+  );
 }
 
 export function docMetadata(slug: string): Metadata {
@@ -22,5 +39,6 @@ export function docMetadata(slug: string): Metadata {
   return {
     title: meta.title,
     description: meta.description,
+    keywords: meta.keywords,
   };
 }

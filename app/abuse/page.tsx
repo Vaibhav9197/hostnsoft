@@ -4,6 +4,7 @@ import { A, Code, DocumentPage, Item, List, P, Section } from "../components/Doc
 
 export const metadata: Metadata = {
   title: "Report Abuse",
+  keywords: ["report abuse Embarko","report hosted app"],
   description: "How to report a site or app hosted on Embarko.",
 };
 
