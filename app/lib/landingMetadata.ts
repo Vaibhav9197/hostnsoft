@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 
+/** Same card as the root layout; see the note there on why it is a file. */
+const OG_IMAGE = { url: "/assets/opengraph.png", width: 1200, height: 630 };
+
 /**
  * The homepage's metadata, shared by every landing-page arm.
  *
@@ -34,10 +37,12 @@ export const LANDING_METADATA: Metadata = {
     siteName: "Embarko",
     title: "Instant hosting for every app you build with AI",
     description: "Copy one prompt and ask your agent to deploy.",
+    images: [OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
     title: "Instant hosting for every app you build with AI",
     description: "Copy one prompt and ask your agent to deploy.",
+    images: [OG_IMAGE],
   },
 };

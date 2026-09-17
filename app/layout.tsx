@@ -5,6 +5,14 @@ import { PageViewTracker } from "./components/analytics/PageViewTracker";
 import { ConnectorTokenPickup } from "./components/connector/ConnectorTokenPickup";
 import { SITE } from "./lib/site";
 
+/** The default link-preview card, 1200×630. */
+const OG_IMAGE = {
+  url: "/assets/opengraph.png",
+  width: 1200,
+  height: 630,
+  alt: "Embarko — Instant hosting for every app you build with AI",
+};
+
 export const metadata: Metadata = {
   // Resolves every relative URL in this metadata — including the canonical
   // below and any Open Graph image — against the live origin, so crawlers and
@@ -25,11 +33,14 @@ export const metadata: Metadata = {
   description:
     "Managed hosting that builds your app automatically — no Dockerfile, no config. Deploy from your terminal or your AI agent, and get a live URL with a database and persistent storage built in.",
   // Defaults for link previews on every page that does not set its own. The
-  // image itself comes from app/opengraph-image.tsx, which Next wires in here
-  // automatically. Pages that set openGraph replace this whole block, so the
-  // homepage repeats siteName in app/lib/landingMetadata.ts.
-  openGraph: { type: "website", siteName: "Embarko" },
-  twitter: { card: "summary_large_image" },
+  // card is a committed PNG, not a generated route: production is a Cloudflare
+  // Worker with no filesystem and no incremental cache, so a build-time
+  // `opengraph-image.tsx` was re-rendered on every request there and failed
+  // with a 500. A file under public/ is served as a static asset and cannot.
+  // Pages that set openGraph replace this whole block, so the homepage repeats
+  // it in app/lib/landingMetadata.ts.
+  openGraph: { type: "website", siteName: "Embarko", images: [OG_IMAGE] },
+  twitter: { card: "summary_large_image", images: [OG_IMAGE] },
   // Site-wide terms; pages with a sharper topic set their own list, which
   // replaces this one. Google ignores this tag, but Bing and others still read
   // it, and it costs nothing.
