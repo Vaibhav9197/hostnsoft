@@ -113,6 +113,16 @@ export const projectsApi = {
   rename: (companyId: string, projectId: string, name: string) =>
     hns<Project>(`/companies/${companyId}/projects/${projectId}`, { method: "PATCH", body: { name } }),
 
+  // PATCH /companies/:companyId/projects/:projectId/slug — change the app's
+  // web address. Only possible before the app has ever deployed; the old
+  // address stops working immediately and the freed name is re-claimable.
+  // Sends the slug literally — the API validates rather than slugifies, so
+  // don't "help" by transforming it here. Error `code`s worth branching on:
+  // app_name_taken, app_name_reserved, app_is_deployed, app_state_unknown,
+  // invalid_app_name, app_name_too_short, app_name_too_long.
+  changeSlug: (companyId: string, projectId: string, slug: string) =>
+    hns<Project>(`/companies/${companyId}/projects/${projectId}/slug`, { method: "PATCH", body: { slug } }),
+
   // PATCH /companies/:companyId/projects/:projectId/memory — set requested
   // memory in MB. Applies on next deploy only.
   setMemory: (companyId: string, projectId: string, memoryMb: number) =>
