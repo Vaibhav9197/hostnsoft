@@ -186,6 +186,13 @@ Needed to claim an app, and for everything under
 Authorization: Bearer <token>
 ```
 
+**Check for an existing token first.** Before requesting or asking for a
+new one, look for `$DEPLOY_TOKEN` in the environment and for a stored
+credential (e.g. `~/.embarko/credentials`). If either is already set, reuse
+it — an agent shouldn't re-request a token, or ask the user for one, when
+one is already available. When a new token is obtained, save it locally
+(`chmod 600`) so future deploys in the same environment reuse it too.
+
 1. Open your company's **Deploy tokens** page
    (`https://embarko.ai/app/tokens`) — it asks you to sign in, or to create
    an account, if you aren't already.
@@ -209,6 +216,12 @@ curl -X POST "https://ship.embarko.ai/api/public/deploy-tokens/request" \
 Always returns `202` — the token is emailed, never returned in the
 response, and an account and company are created automatically if that
 address doesn't have one. Rate limited per-email, per-IP and globally.
+
+The token only ever reaches that inbox. This call cannot return it to the
+caller, print it in a terminal, or hand it to whatever is making the
+request — including an AI agent — so there is nothing to relay back. Confirm
+the address is one the requester actually controls before calling this;
+whoever can read that inbox is whoever ends up with the token.
 
 **Rotating/revoking**: from the same page, **Rotate** issues a replacement
 under the same label — the old token keeps working for **one hour**
