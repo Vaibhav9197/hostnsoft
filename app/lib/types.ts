@@ -93,6 +93,28 @@ export interface Project {
  *  reads better at call sites that fetch a single project. */
 export type ProjectDetail = Project;
 
+/** 202 from PATCH .../slug for an app that is live: the move is running in
+ *  the background and its outcome comes from SlugChangeStatus, not here. */
+export interface SlugChangeAccepted {
+  moving: true;
+  from: string;
+  to: string;
+  statusUrl: string;
+}
+
+/** How a live address change ended. The server forgets it a while after it
+ *  finishes, so a poller that gets a 404 should read the project instead. */
+export type SlugChangeStatus = {
+  state: "in_progress" | "succeeded" | "failed";
+  from: string;
+  to: string;
+  startedAt: string;
+  finishedAt?: string;
+  /** Present only on "failed". */
+  code?: string;
+  reason?: string;
+};
+
 export interface EnvVar {
   id: string;
   projectId: string;

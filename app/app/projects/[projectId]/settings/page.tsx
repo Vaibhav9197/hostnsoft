@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Alert, Page, Panel, PanelTitle, Skeleton } from "../../../../components/console/kit";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
+import { HnsError } from "../../../../lib/client";
 import { projectsApi } from "../../../../lib/hnsApi";
 import { useSession } from "../../../../lib/session";
 import { refreshProjects, useProject } from "../../../../lib/useProject";
@@ -60,6 +61,32 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
     }
   }
 
+  /* Waits out a move that is already running, resolving to null on success
+     or to a sentence to show the user. Polls because the move outlasts any
+     single request: it can take minutes, and the proxy in front of the API
+     gives up after ten seconds.
+
+     A 404 means the server has forgotten the move, which for us is a
+     success: it only forgets finished ones, and a failure would still be
+     remembered. Anything still in progress when we stop polling is reported
+     as "still going" rather than as a failure, because it is neither. */
+  async function awaitSlugChange(companyId: string, id: string): Promise<string | null> {
+    const deadline = Date.now() + 6 * 60 * 1000;
+    while (Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 3000));
+      try {
+        const status = await projectsApi.slugChangeStatus(companyId, id);
+        if (status.state === "succeeded") return null;
+        if (status.state === "failed") return status.reason ?? "Couldn’t move your app.";
+      } catch (e) {
+        if (e instanceof HnsError && e.status === 404) return null;
+        /* A blip while polling says nothing about the move itself, which is
+           running on the server either way. Keep waiting. */
+      }
+    }
+    return "Your app is taking longer than usual to move. Refresh in a minute to see where it got to.";
+  }
+
   /* Why a confirmation and not just a Save: this is the one setting on the
      page whose old value other people may be holding. Nothing redirects, so
      the moment it changes the old address is simply gone. */
@@ -72,14 +99,29 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
       title: `Move this app to ${next}.app.embarko.ai?`,
       body: (
         <>
-          <code className="font-mono">{project.slug}.app.embarko.ai</code> stops working
-          straight away — there is no redirect, and the old address becomes
-          available for someone else to take. Anything pointing at it needs
-          updating: links you have shared, and the app name in any CI job or
-          saved agent prompt that deploys this app.
+          <p>
+            <code className="font-mono">{project.slug}.app.embarko.ai</code> stops working
+            straight away — there is no redirect, and the old address becomes
+            available for someone else to take. Anything pointing at it needs
+            updating: links you have shared, and the app name in any CI job or
+            saved agent prompt that deploys this app.
+          </p>
+          {/* Said plainly because it is an outage, and someone who reads
+              "changing a setting" will not expect one. What makes it slow —
+              stopping the app to move its stored data, then waiting on a
+              certificate for the new address — is not the user's problem;
+              how long they will be down, and that it is safe, is. */}
+          {hasDeployed && (
+            <p className="mt-2">
+              Your app will be <strong className="font-medium text-foreground">offline for a
+              few minutes</strong> while it moves, and it keeps everything it has
+              stored. Leave this page open. If anything goes wrong it is put
+              back exactly as it was.
+            </p>
+          )}
         </>
       ),
-      cta: "Change address",
+      cta: hasDeployed ? "Move the app" : "Change address",
       destructive: true,
       onConfirm: () => changeSlug(next),
     });
@@ -90,7 +132,20 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
     setSavingSlug(true);
     setSlugError(null);
     try {
-      await projectsApi.changeSlug(activeCompanyId, projectId, next);
+      const result = await projectsApi.changeSlug(activeCompanyId, projectId, next);
+
+      /* An app that never deployed is already done here. A live one has only
+         been accepted — moving it takes minutes, far longer than any request
+         in front of this survives, so the server hands back a 202 and the
+         outcome has to be collected separately. */
+      if (result && "moving" in result) {
+        const outcome = await awaitSlugChange(activeCompanyId, projectId);
+        if (outcome) {
+          setSlugError(outcome);
+          return;
+        }
+      }
+
       toast.success("Web address updated", { description: `Your app is now at ${next}.app.embarko.ai` });
       setEditingSlug(false);
       /* Not this page's reload(): the sidebar fetches the project separately
@@ -121,9 +176,10 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
   }
 
   /* `currentDeploymentId` rather than `status`: status is null only until the
-     first attempt, and a FAILED attempt still leaves nothing running, so it
-     would lock the address for exactly the people most likely to want to fix
-     a typo in it. This tracks what the API checks. */
+     first attempt, and a FAILED attempt still leaves nothing running, so this
+     tells apart the two kinds of address change. For an app that never
+     deployed it is instant; for a live one it is a migration with real
+     downtime. This tracks what the API checks. */
   const hasDeployed = Boolean(project?.currentDeploymentId);
 
   if (error) return <Page><Alert>{error}</Alert></Page>;
@@ -178,27 +234,18 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
           </form>
         </Field>
 
-        {/* Editable only before the first deploy. After that the address is
-            fixed, so the pencil is hidden rather than left there to fail: on
-            hostnsoft-deploy this name is also the Nomad job, the image, the
-            data directory on the host and the certificate. The server refuses
-            it either way — this only keeps the UI from offering it. */}
         <Field
           label="Web address"
           value={`${project.slug}.app.embarko.ai`}
-          locked={hasDeployed}
-          hint={
-            hasDeployed
-              ? "Fixed once an app has deployed — its container, stored data and certificate all live under this address."
-              : undefined
-          }
           editing={editingSlug}
           onEdit={() => { setSlug(project.slug); setSlugError(null); setEditingSlug(true); }}
         >
           <p className="mt-1 text-[0.92rem] text-muted-foreground">
             Where your app is served, and the app name you deploy with. Lowercase
-            letters, digits and hyphens. You can change this until the app’s
-            first deploy, after which it is fixed.
+            letters, digits and hyphens.{" "}
+            {hasDeployed
+              ? "Moving a live app takes it offline for a few minutes, so it’s limited to one change a week."
+              : "Changing it now is instant, because this app hasn’t deployed yet."}
           </p>
           <form className="mt-2.5 flex flex-wrap items-center gap-2.5" onSubmit={askChangeSlug}>
             <Input
@@ -218,7 +265,9 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
               autoCorrect="off"
             />
             <span className="font-mono text-[0.9rem] text-muted-foreground">.app.embarko.ai</span>
-            <Button type="submit" disabled={savingSlug || !slug.trim() || slug.trim() === project.slug}>{savingSlug ? "Saving…" : "Save"}</Button>
+            <Button type="submit" disabled={savingSlug || !slug.trim() || slug.trim() === project.slug}>
+              {savingSlug ? (hasDeployed ? "Moving…" : "Saving…") : "Save"}
+            </Button>
             <Button type="button" variant="outline" onClick={() => { setSlug(project.slug); setSlugError(null); setEditingSlug(false); }}>Cancel</Button>
           </form>
           {slugError && <Alert className="mt-2.5">{slugError}</Alert>}
