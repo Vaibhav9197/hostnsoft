@@ -11,6 +11,7 @@ import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { CopyPromptButton, COPIED_LABEL } from '../components/CopyPromptButton';
 import { FeatureShowcase } from '../components/FeatureShowcase';
+import { EuropeanHosting, WhyEmbarko } from '../components/WhyEmbarko';
 
 /**
  * Atmospheric backdrop.
@@ -775,6 +776,12 @@ export default function EmbarkoV1() {
       </section>
 
       {/* SCENE 13: FINAL FRAME */}
+      {/* Why Embarko + European hosting, as two scenes. min-h-[100dvh] and the
+          centring here are what make them beats in the snap sequence rather
+          than short bands the scroll flies past. */}
+      <WhyEmbarko className="flex min-h-[100dvh] flex-col justify-center px-6 py-20" />
+      <EuropeanHosting className="flex min-h-[100dvh] flex-col justify-center px-6 py-20" />
+
       <section className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-6 py-20">
         {/* Mirror of the opening: there the light sat above, here it rises from below. */}
         <SkyBackdrop

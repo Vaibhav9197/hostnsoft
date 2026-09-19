@@ -6,6 +6,9 @@ import { AGENTS, agentIconSrc } from '../lib/agents';
 import { CopyPromptButton, COPIED_LABEL } from '../components/CopyPromptButton';
 import { trackPageView, trackCTA, trackDeployment } from '../lib/tracking';
 import { SiteHeader } from '../components/SiteHeader';
+import { EuropeanHosting, TrustStrip, WhyEmbarko } from '../components/WhyEmbarko';
+import { SiteFooter } from '../components/SiteFooter';
+import { Dialog, DialogContent, DialogTitle } from '../components/ui/dialog';
 
 /* Looping "watch it deploy" timeline shown on step 1. A single elapsed-ms
    counter drives every derived phase, rather than nested timers, so the whole
@@ -72,6 +75,8 @@ function TrafficLights() {
 
 export default function EmbarkoV2() {
   const [step, setStep] = useState(0);
+  const [trustOpen, setTrustOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => {
     // Track page view
@@ -150,19 +155,96 @@ export default function EmbarkoV2() {
           /* Hero's headline needs a wider column than the demo steps to hold two lines. */
           className={`eb-in m-auto w-full ${step === 0 ? 'max-w-[1180px]' : 'max-w-[1000px]'}`}
         >
-          {step === 0 && <Hero onNext={() => setStep(1)} />}
+          {step === 0 && <Hero onNext={() => setStep(1)} onTrust={() => setTrustOpen(true)} />}
           {step === 1 && <CopyStep onNext={() => setStep(2)} />}
           {step === 2 && <ChatStep />}
         </div>
       </div>
 
+      {/* Bottom right, opposite the back button's bottom-centre. Same opaque
+          fill and ring as that button: this deck scrolls under both, and a
+          translucent pill lets the content read straight through it. */}
+      <button
+        onClick={() => setMoreOpen(true)}
+        className="absolute bottom-8 right-8 z-20 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] text-black/60 shadow-[0_2px_10px_rgba(0,0,0,0.08)] ring-1 ring-black/10 transition hover:text-black hover:ring-black/20"
+      >
+        More
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
+      </button>
+
+      <TrustDialog open={trustOpen} onOpenChange={setTrustOpen} />
+      <MoreDialog open={moreOpen} onOpenChange={setMoreOpen} />
     </main>
+  );
+}
+
+/* ── dialogs ───────────────────────────────────────────────
+
+   /v2 is a single 100dvh deck with `overflow-hidden`, so unlike the other
+   three versions it has nowhere to put a long section or a footer. Both live
+   in dialogs instead: the trust chip opens the first, "More" opens the second.
+
+   Both get `max-h-[86dvh] overflow-y-auto` because their content is taller
+   than a laptop viewport — without it the dialog grows past the screen and the
+   bottom is unreachable. */
+
+/* Centred with `inset-0 m-auto` rather than the base component's
+   `left-1/2 top-1/2 -translate-1/2`. That transform centring stacks with the
+   `translate` the open animation sets — a separate CSS property from
+   `transform`, so the two compose instead of overriding — and the pair lands
+   the box at -100%/-100% instead of -50%/-50%. The 460px default is narrow
+   enough that nobody noticed; at this width the dialog ends up off-screen.
+   Auto margins need no transform, so there is nothing left to stack with. */
+const DIALOG = [
+  'inset-0 m-auto h-fit translate-x-0 translate-y-0',
+  'w-[calc(100vw-2rem)] max-w-[900px] max-h-[86dvh] overflow-y-auto',
+  'p-0 gap-0 bg-white',
+].join(' ');
+
+function TrustDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className={DIALOG}>
+        {/* The heading the dialog is announced by. WhyEmbarko prints its own
+            visible "Why Embarko" h2, so this one is for screen readers only —
+            two identical visible headings would just be a duplicate. */}
+        <DialogTitle className="sr-only">Why Embarko</DialogTitle>
+        {/* bg-transparent beats the sections' own surfaces via tailwind-merge;
+            see the cn() note in WhyEmbarko.tsx. */}
+        <WhyEmbarko
+          className="bg-transparent px-9 pb-10 pt-11 max-[640px]:px-6"
+          wrapClassName="max-w-none px-0"
+        />
+        <EuropeanHosting
+          className="border-t border-gray-200 bg-gray-50 px-9 py-10 max-[640px]:px-6"
+          wrapClassName="max-w-none px-0"
+        />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function MoreDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className={DIALOG}>
+        <DialogTitle className="sr-only">More from Embarko</DialogTitle>
+        {/* SiteFooter owns its own top border and py-16; the measure is dropped
+            to the dialog's padding so the columns are not centred inside a
+            1120px column they do not have room for. */}
+        <div className="[&>footer]:border-t-0 [&>footer]:py-10">
+          <SiteFooter measure="w-full px-9 max-[640px]:px-6" />
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
 /* ── step 0 · hero ─────────────────────────────────────── */
 
-function Hero({ onNext }: { onNext: () => void }) {
+function Hero({ onNext, onTrust }: { onNext: () => void; onTrust: () => void }) {
   return (
     <div className="text-center">
       <h1 className="mx-auto max-w-[18ch] text-[52px] font-semibold leading-[1.1] tracking-[-0.045em] sm:text-[74px] md:text-[100px]">
@@ -199,6 +281,13 @@ function Hero({ onNext }: { onNext: () => void }) {
           Hand it to your agent
         </li>
       </ol>
+
+      {/* The EU/ISO claim in its one-line form. /v2 is a three-beat deck with
+          no room for the full section, and this is the fact worth carrying
+          into the first screen anyway. */}
+      <div className="mt-7">
+        <TrustStrip onClick={onTrust} />
+      </div>
     </div>
   );
 }
@@ -458,7 +547,6 @@ function ChatStep() {
           ))}
         </ul>
       </div>
-
 
     </div>
   );

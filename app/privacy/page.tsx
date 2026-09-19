@@ -129,7 +129,10 @@ export default function PrivacyPage() {
 
       <Section title="Where your data is held">
         <P>
-          Embarko&apos;s infrastructure runs in <Fill>primary region(s)</Fill>. Where personal data
+          Customer apps and the storage they write run in the European Union, on infrastructure
+          certified to ISO/IEC 27001 by the provider that operates that region. This website and the
+          console run separately, in <Fill>region(s) for embarko.ai and the console</Fill>. Where
+          personal data
           moves outside the region it was collected in, we rely on{" "}
           <Fill>transfer mechanism — e.g. Standard Contractual Clauses</Fill>.
         </P>

@@ -41,12 +41,12 @@ Report the live URL only once the skill's deploy exits successfully — an
 accepted upload is not a running app.
 
 When a deploy fails, match the reported error `code` against the skill's
-`scripts/troubleshoot.md` (or https://embarko.ai/docs/troubleshoot), fix it, and run
+`scripts/troubleshoot.md` (or https://embarko.ai/docs/troubleshoot.md), fix it, and run
 the same command again — don't retry blindly and don't work around it with raw
 API calls.
 
 Full platform reference, if you need anything the skill doesn't cover:
-**https://embarko.ai/docs**.
+**https://embarko.ai/docs/docs.md**.
 
 Requirements for any app deployed here: it must read its port from the `PORT`
 environment variable, bind to `0.0.0.0` (not `localhost`), and have no

@@ -21,6 +21,21 @@ export default function SecurityPage() {
         </P>
       </Section>
 
+      <Section title="Where your app runs">
+        <P>
+          Embarko runs your app, and the storage it writes under <Code>DATA_DIR</Code>, in EU
+          datacenters, on infrastructure certified to ISO/IEC 27001 — the international standard for
+          information-security management, audited by an external body rather than self-declared.
+        </P>
+        <P>
+          To be exact about whose certificate that is: it is held by the infrastructure provider that
+          operates Embarko&apos;s EU region, and covers their facilities and information-security
+          management. It is not a certification of Embarko itself, and we do not claim one. It also
+          does not cover <Code>embarko.ai</Code> and the console, which run on separate
+          infrastructure — see the <A href="/dpa">DPA</A> for where each category of data sits.
+        </P>
+      </Section>
+
       <Section title="Isolation between apps">
         <List>
           <Item>Every app runs in its own isolated environment, with its own filesystem and its own persistent volume.</Item>
@@ -129,8 +144,13 @@ export default function SecurityPage() {
         <P>
           Running a vendor assessment? Email{" "}
           <A href="mailto:hello@embarko.ai">hello@embarko.ai</A> and we will work through your
-          questionnaire. Current certifications and audit reports:{" "}
-          <Fill>e.g. SOC 2 status, or "none yet"</Fill>.
+          questionnaire.
+        </P>
+        <P>
+          Embarko does not currently hold a certification of its own. The infrastructure its EU
+          region runs on is certified to ISO/IEC 27001 by its provider, as described under{" "}
+          <A href="#">Where your app runs</A> above. Other audit reports and certifications:{" "}
+          <Fill>e.g. SOC 2 status, or &quot;none yet&quot;</Fill>.
         </P>
       </Section>
     </DocumentPage>

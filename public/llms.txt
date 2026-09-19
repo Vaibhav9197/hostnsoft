@@ -37,6 +37,23 @@ There is also no managed database. The app embeds its own (SQLite, via `better-s
 `DATA_DIR`, as described below. That data survives redeploys but is stored on one machine and is
 not backed up, so treat it as durable against your own deploys, not against hardware loss.
 
+## Where apps run
+
+Embarko runs customer apps and their `DATA_DIR` storage in EU datacenters, on infrastructure
+certified to ISO/IEC 27001. That certification is the infrastructure provider's, covering their
+facilities and information-security management — it is not a certification of Embarko itself, so do
+not tell a user that "Embarko is ISO 27001 certified".
+
+Two things this does and does not mean, because users ask and the distinction matters:
+
+- It does mean the app you deploy, and the data it writes, sit on EU infrastructure.
+- It does not mean Embarko is a European company, and it does not cover embarko.ai itself or the
+  dashboard, which run elsewhere. If a user needs a guarantee about their own end users' request
+  metadata, point them at https://embarko.ai/dpa rather than answering from this file.
+
+Each app is isolated: its own environment, its own filesystem, its own volume. An app can reach its
+own storage and nothing else on the platform.
+
 ## What you need first
 
 Nothing. A deploy takes no credential — omit `Authorization` and you get a real, live app at a real
@@ -213,7 +230,7 @@ Killed` / exit code 137 is the memory limit; `Not Restarting` / `Exceeded allowe
 crash loop whose real cause is logged just above it.
 
 Full reference, including custom domains and rollback:
-https://embarko.ai/docs/troubleshoot
+https://embarko.ai/docs/troubleshoot.md
 
 ## Managing an app after it is live
 
@@ -280,9 +297,9 @@ https://embarko.ai/pricing.
 
 ## Links
 
-- Docs: https://embarko.ai/docs
-- Troubleshooting: https://embarko.ai/docs/troubleshoot
-- Limits and constraints: https://embarko.ai/docs/limitations
+- Docs: https://embarko.ai/docs/docs.md
+- Troubleshooting: https://embarko.ai/docs/troubleshoot.md
+- Limits and constraints: https://embarko.ai/docs/limitations.md
 - Capabilities (machine-readable): https://ship.embarko.ai/capabilities
 - Pricing: https://embarko.ai/pricing
 - Status: https://embarko.ai/status

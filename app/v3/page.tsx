@@ -9,11 +9,13 @@ import { CopyPromptButton, COPIED_LABEL } from "../components/CopyPromptButton";
 import { FeatureShowcase } from "../components/FeatureShowcase";
 import { SiteFooter } from "../components/SiteFooter";
 import { SiteHeader } from "../components/SiteHeader";
+import { EuropeanHosting, WhyEmbarko } from "../components/WhyEmbarko";
 
 /* In-page anchors for the header's centre slot — this page is long enough that
    jumping between sections matters. */
 const NAV_LINKS = [
   { href: "#how", label: "How it works" },
+  { href: "#why", label: "Why Embarko" },
   { href: "#included", label: "What's included" },
   { href: "#examples", label: "Examples" },
   { href: "#agents", label: "Agents" },
@@ -679,10 +681,12 @@ export default function EmbarkoV3() {
       <SiteHeader links={NAV_LINKS} />
       <Hero />
       <HowItWorks />
+      <WhyEmbarko tone="token" />
       <PromptSection />
       <Included />
       <Examples />
       <Agents />
+      <EuropeanHosting tone="token" />
       <FinalCta />
       <SiteFooter />
     </main>

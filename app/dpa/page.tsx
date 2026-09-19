@@ -16,8 +16,13 @@ const SUB_PROCESSORS = [
   { name: "Stripe", purpose: "Card payments and stored payment methods", location: "United States" },
   { name: "Lago", purpose: "Subscription and usage metering", location: <Fill>region</Fill> },
   { name: "Google (Tag Manager)", purpose: "Website and console analytics", location: "United States" },
-  { name: <Fill>compute provider</Fill>, purpose: "Running and building customer apps", location: <Fill>region</Fill> },
-  { name: <Fill>storage provider</Fill>, purpose: "App file storage and backups", location: <Fill>region</Fill> },
+  /* Region is settled — these run in the EU, on ISO/IEC 27001 certified
+     infrastructure. The provider's NAME is still a placeholder: Article 28(2)
+     requires sub-processors to be identified, so this has to be filled in
+     before launch even though the marketing pages deliberately leave the
+     provider unnamed. */
+  { name: <Fill>compute provider</Fill>, purpose: "Running and building customer apps", location: "European Union" },
+  { name: <Fill>storage provider</Fill>, purpose: "App file storage and backups", location: "European Union" },
   { name: <Fill>email provider</Fill>, purpose: "Transactional email", location: <Fill>region</Fill> },
 ];
 

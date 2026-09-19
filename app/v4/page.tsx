@@ -9,6 +9,7 @@ import { CopyPromptButton as SharedCopyPromptButton, COPIED_LABEL } from '../com
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { FeatureShowcase } from '../components/FeatureShowcase';
+import { EuropeanHosting, WhyEmbarko } from '../components/WhyEmbarko';
 
 const agents = [
   { name: 'Claude', icon: siClaude },
@@ -102,7 +103,7 @@ export default function Home() {
   return <main className="site-page">
     <SiteHeader />
     <section id="top" className="hero" aria-labelledby="hero-title"><div className="hero-intro"><p className="eyebrow"><Sparkles aria-hidden="true" /> Hosting for apps already built by your agent</p><h1 id="hero-title">Instant hosting for every app you build with AI</h1><div className="hero-action"><CopyPromptButton /></div><Steps /></div><p className="hero-note">Your agent builds it. Embarko hosts it.</p></section>
-    <DeployScene /><LiveScene /><HostingScene /><AppGallery /><AgentScene /><WorldScene /><section className="benefit-scene"><p>Spend your time building.<br />Not hosting.</p><SceneCta>Copy the deploy prompt</SceneCta></section><FinalScene />
+    <DeployScene /><LiveScene /><HostingScene /><WhyEmbarko /><AppGallery /><AgentScene /><WorldScene /><EuropeanHosting /><section className="benefit-scene"><p>Spend your time building.<br />Not hosting.</p><SceneCta>Copy the deploy prompt</SceneCta></section><FinalScene />
     <SiteFooter />
   </main>;
 }

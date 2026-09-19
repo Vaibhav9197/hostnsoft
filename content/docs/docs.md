@@ -43,6 +43,43 @@ A few things that apply everywhere below:
 For every error/edge case and known platform constraint, see
 [`troubleshoot.md`](troubleshoot.md) — this doc only covers the happy path.
 
+## [Where your app runs](#where-your-app-runs)
+
+Embarko runs your app, and the storage it writes under `DATA_DIR`, in **EU
+datacenters**, on infrastructure certified to **ISO/IEC 27001** — the
+international standard for information-security management, audited by an
+external body rather than self-declared.
+
+One distinction worth being exact about, because it is the one most hosting
+pages blur:
+
+> The ISO/IEC 27001 certificate is held by the infrastructure provider that
+> operates Embarko's EU region. It covers their facilities and their
+> information-security management. It is not a certification of Embarko itself.
+
+What that gives you:
+
+- **EU region.** Your app and its data sit on infrastructure located in the
+  European Union.
+- **Isolation.** Each app gets its own environment, its own filesystem and its
+  own volume. An app can reach its own storage under `DATA_DIR` and nothing
+  else on the platform — no path to another customer's app, data, or secrets.
+- **Encryption.** Traffic is served over HTTPS on `*.app.embarko.ai` and on
+  connected custom domains. Data is encrypted in transit, and at rest by the
+  storage provider. Environment variables are encrypted under a separate key
+  and exposed only to your own app's runtime.
+- **GDPR terms in writing.** You are the controller for the personal data your
+  app processes; Embarko is your processor. See the [DPA](/dpa).
+
+What it does **not** cover: `embarko.ai` itself and the dashboard, which run on
+separate infrastructure. If your own compliance review needs the boundary drawn
+precisely, the [DPA](/dpa) and [Privacy Policy](/privacy) are the documents to
+read — not this page.
+
+Note also that per-app storage is **not backed up**. It survives your own
+redeploys, which is a different guarantee from surviving hardware loss. See
+[Limitations](limitations-and-recommendations.md).
+
 ## [Quick start](#quick-start)
 
 Nothing to sign up for and no credential to fetch. Deploy first, get a live

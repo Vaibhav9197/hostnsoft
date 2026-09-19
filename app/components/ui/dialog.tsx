@@ -28,7 +28,12 @@ function DialogOverlay({ className, ...props }: DialogPrimitive.Backdrop.Props) 
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
       className={cn(
-        "fixed inset-0 z-[100] bg-black/68 backdrop-blur-[4px] data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        // bg-black/[0.68], not bg-black/68: Tailwind only generates opacity
+        // modifiers that exist in the theme scale, which steps 60 -> 70. `/68`
+        // matched nothing, so no rule was emitted and this backdrop rendered
+        // fully transparent — the blur was the only thing anyone ever saw.
+        // Arbitrary-value syntax keeps the 0.68 that was intended.
+        "fixed inset-0 z-[100] bg-black/[0.68] backdrop-blur-[4px] data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
         className,
       )}
       {...props}

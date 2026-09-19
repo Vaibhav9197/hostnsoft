@@ -161,3 +161,39 @@ export function extractToc(markdown: string): TocEntry[] {
 export function docMarkdown(slug: string): string | undefined {
   return MARKDOWN[slug];
 }
+
+/**
+ * Resolves a raw-markdown filename to the doc it names, for the `.md` routes.
+ *
+ * A doc can be addressed two ways, because its page URL and its file name are
+ * not always the same word — /docs/limitations is
+ * limitations-and-recommendations.md. Both spellings resolve:
+ *
+ *   limitations.md                      (last segment of the page path)
+ *   limitations-and-recommendations.md  (the file's own name)
+ *
+ * Returns undefined for anything not ending in `.md` and for any name that
+ * isn't a doc we publish, so a caller can 404 on both without special-casing.
+ */
+export function docFileToSlug(file: string): string | undefined {
+  if (!file.endsWith(".md")) return undefined;
+  const name = file.slice(0, -".md".length);
+
+  const bySlug = DOCS.find((d) => d.slug === name);
+  if (bySlug) return bySlug.slug;
+
+  /* e.g. "limitations" from the path "/docs/limitations". */
+  const byPath = DOCS.find((d) => d.path.split("/").pop() === name);
+  return byPath?.slug;
+}
+
+/** Every filename the `.md` routes answer to, for generateStaticParams(). */
+export function docFileNames(): string[] {
+  const names = new Set<string>();
+  for (const doc of DOCS) {
+    names.add(`${doc.slug}.md`);
+    const leaf = doc.path.split("/").pop();
+    if (leaf) names.add(`${leaf}.md`);
+  }
+  return [...names];
+}
