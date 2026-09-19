@@ -204,3 +204,12 @@ That is the UX we should design around.
 **The panel shows the app and its state. The AI agent does the hosting work.**
 
 If a screen exposes more infrastructure than necessary, simplify it.
+
+## SEO
+
+Every public page (anything reachable without signing in — marketing, docs,
+pricing, showcase, legal) must follow [docs/SEO.md](docs/SEO.md): unique
+title and description, keywords, correct robots/canonical behavior, and no
+generated Open Graph image routes (production has no filesystem or
+incremental cache to render them — use a committed static image instead).
+Read it before adding or changing a public page.
