@@ -4,6 +4,7 @@ import { Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ConfirmDialog, type ConfirmRequest } from "../../../../components/console/ConfirmDialog";
 import { Alert, Page, Panel, PanelTitle, Skeleton } from "../../../../components/console/kit";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
@@ -35,6 +36,7 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
      field that is still open ("that name is taken"), and a toast slides away
      while you are re-reading the input. */
   const [slugError, setSlugError] = useState<string | null>(null);
+  const [confirmReq, setConfirmReq] = useState<ConfirmRequest | null>(null);
   const [confirm, setConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
 
@@ -296,6 +298,7 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
         </div>
       </Panel>
 
+      <ConfirmDialog request={confirmReq} onClose={() => setConfirmReq(null)} />
     </Page>
   );
 }
