@@ -16,10 +16,10 @@ export function showcaseListPrompt(board: { slug: string; title: string; type: "
 
   return `List this app on ${where}.
 
-If it isn't deployed to Embarko yet, deploy it first: read https://embarko.ai/docs and follow it.
+If it isn't deployed to Embarko yet, deploy it first: read https://embarko.ai/docs/docs.md and follow it.
 Use my deploy token — DEPLOY_TOKEN or ~/.embarko/credentials if either is set; if neither is, ask me for one from https://embarko.ai/app/tokens.
 
-Then list it on that board: read https://embarko.ai/docs#showcase for how to call the Showcase API with
+Then list it on that board: read https://embarko.ai/docs/docs.md#showcase for how to call the Showcase API with
 board slug "${board.slug}" and these details, inferring what you can from the project and asking me for the rest:
 - name and a one-line tagline
 - what it does, and why it was built (a short paragraph each)
