@@ -314,11 +314,14 @@ export function ListAppForm({ initialPage = "" }: { initialPage?: string }) {
               required
             />
           </Field>
-          <Field label="More about it" hint="Optional">
+          <Field
+            label="More about it"
+            hint="Optional — this is the page's description. A few real sentences beat a one-liner."
+          >
             <textarea
               className={`${textarea} resize-none`}
-              rows={3}
-              maxLength={600}
+              rows={6}
+              maxLength={4000}
               value={whatItDoes}
               onChange={(e) => setWhatItDoes(e.target.value)}
             />

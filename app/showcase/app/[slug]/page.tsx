@@ -5,9 +5,56 @@ import { ArrowRight } from "lucide-react";
 
 import { SiteHeader } from "../../../components/SiteHeader";
 import { SiteFooter } from "../../../components/SiteFooter";
-import { getApp } from "../../../lib/showcase";
+import { SITE } from "../../../lib/site";
+import { getApp, type ShowcaseApp } from "../../../lib/showcase";
 import { AppPreview, BTN_GHOST, BTN_PRIMARY, Creator, LABEL, WRAP } from "../../kit";
 import { ShareRow } from "../../share";
+
+/* youtu.be/<id> and youtube.com/watch?v=<id> are what the submit form's plain
+   URL field actually receives — creators paste whatever's in their browser's
+   address bar, never an embed link. Only these two get a playable embed;
+   anything else (Vimeo, Loom, a direct .mp4) still gets a working "Watch the
+   video" link, just not an inline player. */
+function youtubeEmbedUrl(videoUrl: string): string | null {
+  try {
+    const url = new URL(videoUrl);
+    if (url.hostname === "youtu.be") return `https://www.youtube.com/embed${url.pathname}`;
+    if (url.hostname.endsWith("youtube.com") && url.searchParams.get("v")) {
+      return `https://www.youtube.com/embed/${url.searchParams.get("v")}`;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+/* SoftwareApplication schema for this one app — Organization/WebApplication
+   already cover the site in the root layout, this is the per-app entity.
+   Search and AI answer engines (Perplexity, ChatGPT search, Google's AI
+   Overviews) both lean on structured data to describe a specific thing
+   accurately rather than paraphrasing prose, which is why this exists
+   separately from the visible copy below rather than instead of it.
+
+   tagline is required at submission and short — the more useful signal for
+   both a search snippet and a schema description. whatItDoes only backs it
+   up on the rare listing predating that requirement; nothing here can
+   produce an empty description, since name is always assigned and tagline
+   always exists whenever whatItDoes might not. */
+function structuredData(app: ShowcaseApp) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: app.name,
+    description: app.tagline || app.whatItDoes || app.name,
+    url: `${SITE}/showcase/app/${app.slug}`,
+    image: app.screenshotUrl || undefined,
+    applicationCategory: app.category || undefined,
+    dateCreated: app.createdAt,
+    author: { "@type": "Person", name: app.creatorName },
+    ...(app.builtWith ? { softwareRequirements: app.builtWith } : {}),
+    ...(app.videoUrl ? { video: { "@type": "VideoObject", name: `${app.name} demo`, contentUrl: app.videoUrl } } : {}),
+  };
+}
 
 /* Rendered per request, not prerendered. These pages read D1, and the binding
    only exists inside a request — `getCloudflareContext()` throws during the
@@ -23,9 +70,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const app = await getApp(slug);
   if (!app) return {};
+  /* tagline is required at submission, short, and to the point — the
+     stronger element for a search snippet than a longer free-text field.
+     whatItDoes is optional and only fills in on a listing without one. */
+  const description = app.tagline || app.whatItDoes || undefined;
   return {
     title: `${app.name} — Showcase`,
-    description: app.tagline,
+    description,
+    keywords: [app.name, app.category, app.builtWith, ...app.tags].filter(
+      (v): v is string => !!v,
+    ),
     openGraph: {
       title: app.name,
       description: app.tagline,
@@ -45,6 +99,10 @@ export default async function ShowcaseAppPage({ params }: Props) {
 
   return (
     <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData(app)) }}
+      />
       <SiteHeader />
 
       <article className="py-[72px] max-[900px]:py-12">
@@ -72,6 +130,36 @@ export default async function ShowcaseAppPage({ params }: Props) {
           </div>
 
           <AppPreview app={app} className="mt-12 aspect-[16/9] max-[720px]:aspect-[4/3]" />
+
+          {/* Collected on the submit form since it shipped, never shown until
+              now. A playable demo is both a better reason to stay on the page
+              and, per the schema above, a second indexable asset for it. */}
+          {app.videoUrl && (
+            <section className="mt-10">
+              <h2 className="text-[19px] font-semibold">Demo</h2>
+              {youtubeEmbedUrl(app.videoUrl) ? (
+                <div className="mt-4 aspect-video overflow-hidden rounded-[12px] border border-border">
+                  <iframe
+                    src={youtubeEmbedUrl(app.videoUrl)!}
+                    title={`${app.name} demo`}
+                    className="h-full w-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    loading="lazy"
+                  />
+                </div>
+              ) : (
+                <a
+                  href={app.videoUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-block text-[15px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                >
+                  Watch the video →
+                </a>
+              )}
+            </section>
+          )}
 
           {/* Kept short on purpose — this is a page about an app, not a case
               study. Each block only renders when the creator wrote one. */}

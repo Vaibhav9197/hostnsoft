@@ -120,13 +120,25 @@ generic Organization schema doesn't cover:
 - Docs pages emit `BreadcrumbList` in `app/docs/renderDoc.tsx` — follow that
   pattern (one `<script type="application/ld+json">`, computed from the
   page's real path) for any other page with a clear hierarchy.
-- A Showcase app page is a good candidate for `SoftwareApplication` or
-  `CreativeWork` schema scoped to that one app, if you add one — don't put
-  it in the root layout.
+- Showcase app pages emit `SoftwareApplication` schema in
+  `app/showcase/app/[slug]/page.tsx`, scoped to that one app (name,
+  description, author, category, video) — follow that pattern for any other
+  page that represents one specific real-world thing rather than a section
+  of the site.
 
 Never hand-write JSON-LD with a template string. Build the object and
 `JSON.stringify` it, so it can't be broken by an unescaped quote in a title
 or description.
+
+**Use every field you actually capture.** A field collected on a submit form
+but never rendered on the public page (Showcase's `videoUrl` sat unused for
+weeks) is invisible to both users and crawlers — collecting it accomplished
+nothing. Before adding a new field to any content model, check whether an
+existing one is already going unrendered; the fix is often "show what's
+already there," not "collect more." The same applies to text length limits:
+`whatItDoes` was capped at 600 characters when it is the page's actual
+description, not a caption. If a "description"-shaped field is capped short
+enough that a real paragraph doesn't fit, the cap is the bug.
 
 ## 7. The `/v1../v4` landing-page A/B test is one page, not four
 
