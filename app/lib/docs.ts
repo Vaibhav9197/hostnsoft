@@ -8,6 +8,12 @@
 // next.config.mjs). It can't be read from disk instead: production is a
 // Cloudflare Worker, which has no filesystem at request time.
 
+import overviewMd from "../../content/docs/overview.md";
+import capabilitiesMd from "../../content/docs/capabilities.md";
+import quickstartMd from "../../content/docs/agent-quickstart.md";
+import escalationMd from "../../content/docs/escalation.md";
+import playbookMd from "../../content/docs/agent-playbook.md";
+import apiMd from "../../content/docs/api.md";
 import docsMd from "../../content/docs/docs.md";
 import troubleshootMd from "../../content/docs/troubleshoot.md";
 import limitationsMd from "../../content/docs/limitations-and-recommendations.md";
@@ -30,6 +36,74 @@ export interface DocMeta {
  * cross-document links below be rewritten without a second mapping.
  */
 export const DOCS: DocMeta[] = [
+  {
+    // First on purpose: the conceptual layer. An agent handed only this page
+    // should be able to say what Embarko is, what it does, what it does not
+    // do yet, and whether a given app belongs here — without reading any API
+    // reference. Everything else in DOCS assumes that context; this page
+    // assumes nothing.
+    slug: "overview",
+    path: "/docs/overview",
+    keywords: ["what is Embarko","cloud hosting for AI agents","hosting for vibe coded apps","deploy app built by AI"],
+    title: "Overview",
+    description: "What Embarko is, what it does, and which apps belong on it.",
+  },
+  {
+    // The capability manifest. One entry per feature, each answering the
+    // same four questions (what / when / how / limits), so an agent can
+    // decide whether a thing is possible before writing code against it.
+    // GET /capabilities is the machine-readable twin and wins on conflict.
+    slug: "capabilities",
+    path: "/docs/capabilities",
+    keywords: ["Embarko capabilities","what can Embarko do","Embarko features list","Embarko limits"],
+    title: "Capabilities",
+    description: "Every Embarko capability: what it is, when to use it, how, and its limits.",
+  },
+  {
+    // The autonomous-operation contract: per action, its auth, parameters,
+    // response shape, states, errors, what is retryable and what repeating
+    // it does. Separate from docs.md because the audience differs — docs.md
+    // teaches the happy path, this is what an agent consults mid-run when
+    // something returned a code it has to decide about.
+    slug: "api",
+    path: "/docs/api",
+    keywords: ["Embarko API reference","deploy API contract","Embarko error codes","agent API integration"],
+    title: "API contract",
+    description: "Every Embarko action: auth, parameters, responses, states, errors and retry rules.",
+  },
+  {
+    // Procedures rather than reference. Agents follow an ordered recipe far
+    // more reliably than they assemble one from endpoint docs, so each entry
+    // here runs start to finish, including the decision points (what to do
+    // when a step fails) and when it is legitimate to interrupt the user.
+    slug: "agent-playbook",
+    path: "/docs/agent-playbook",
+    keywords: ["Embarko agent playbook","how to deploy step by step","AI agent deploy procedure","fix failed deployment"],
+    title: "Agent playbook",
+    description: "Step-by-step procedures for deploying, updating, fixing, rolling back and configuring apps.",
+  },
+  {
+    // The escalation boundary. The product promise is that the human never
+    // has to operate a cloud, and that promise is kept or broken one
+    // question at a time — so the list of what an agent must decide itself
+    // is written down rather than left to judgement.
+    slug: "escalation",
+    path: "/docs/escalation",
+    keywords: ["when to ask the user","AI agent escalation policy","autonomous deployment rules","agent human handoff"],
+    title: "When to involve the human",
+    description: "What an agent must decide itself, and the five cases where it should ask the user.",
+  },
+  {
+    // The happy path alone, kept deliberately short. It is the page an
+    // agent reaches first from llms.txt, and its job is to get an app live
+    // without the agent reading anything else. Every other outcome is a
+    // link out to the playbook.
+    slug: "agent-quickstart",
+    path: "/docs/agent-quickstart",
+    keywords: ["deploy app quickly","Embarko quickstart","AI agent deploy steps","deploy without account"],
+    title: "Agent quickstart",
+    description: "The shortest path from an app on disk to a live URL, with no account or token.",
+  },
   {
     slug: "docs",
     path: "/docs",
@@ -70,6 +144,12 @@ export function docBySlug(slug: string): DocMeta | undefined {
 
 /** The markdown itself, keyed by slug. Every slug in DOCS must appear here. */
 const MARKDOWN: Record<string, string> = {
+  overview: overviewMd,
+  capabilities: capabilitiesMd,
+  api: apiMd,
+  "agent-playbook": playbookMd,
+  escalation: escalationMd,
+  "agent-quickstart": quickstartMd,
   docs: docsMd,
   troubleshoot: troubleshootMd,
   "limitations-and-recommendations": limitationsMd,

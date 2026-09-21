@@ -1,5 +1,58 @@
 # Embarko Documentation
 
+**New here? Read [the overview](overview.md) first.** It says what Embarko
+is, what it does and doesn't do yet, and which apps belong on it — no API
+syntax, readable on its own. This page is the reference: the deploy API,
+environment variables, rollback, custom domains, and the error paths.
+
+## [Read this first (agent contract)](#agent-contract)
+
+If you are an AI agent deploying on someone's behalf, these ten lines are the
+load-bearing ones. Everything below this section is detail.
+
+1. **Deploy first, credential later.** `POST https://ship.embarko.ai/apps`
+   with no `Authorization` header works and gives a live URL. Never ask the
+   user for a token before anything is deployed.
+2. **An anonymous app is deleted after 24 hours.** Say this when you report
+   the URL. Redeploying the same `X-App-Name` *with* a token claims it
+   permanently.
+3. **`202` is not "live".** Poll the response's `statusUrl` until
+   `deploy.status` is `"success"` or `"failed"`. Only report the URL after
+   `"success"`.
+4. **The app must read `PORT` and bind `0.0.0.0`.** Not a hardcoded port, not
+   `localhost`. No Dockerfile.
+5. **Only `DATA_DIR` survives a redeploy.** Anything else written at runtime
+   is gone on the next deploy.
+6. **Budget 256MB of memory.** It is hard-enforced (OOM kill, exit 137) and
+   there is no self-serve way to raise it today. Ship a production start
+   command, not a dev server.
+7. **One deploy is one app**, and the app's manifest must sit at the root of
+   what you package — a repo with a frontend and a backend is two deploys.
+   See [`422 app_nested_in_subdirectory`](troubleshoot.md#422-app_nested_in_subdirectory).
+8. **The app name is the public subdomain**, unique across the whole platform
+   and `^[a-z0-9-]{3,63}$`. Slugify prose names. A collision is
+   `409 app_name_taken` — pick another name, don't retry.
+9. **Never package secrets.** Exclude `.env*` from the tarball and set real
+   secrets as [environment variables](#environment-variables) after the app
+   exists.
+10. **Branch on the `code` field, not the `error` string**, and on failure
+    look that code up in [`troubleshoot.md`](troubleshoot.md) before changing
+    anything. Don't retry blindly and don't hand-roll API calls around a
+    failing step.
+
+### [The five things you'll be asked to do](#common-tasks)
+
+| The user says | What you do |
+| --- | --- |
+| "Deploy this app." | [Quick start](#quick-start) — package, `POST /apps`, poll `statusUrl`, report the URL. |
+| "The deployment failed." | [Diagnosing a failed deploy](#diagnosing-a-failure) — status, then logs, then the `code` in [`troubleshoot.md`](troubleshoot.md), then fix and redeploy. |
+| "Add a custom domain." | [Custom domains](#custom-domains) — dashboard-only. Walk the user through it; the DNS step needs them regardless. |
+| "Roll it back." | [Rollback](#rollback) — list deployments, pick the last good one, roll back, poll until it's applied. |
+| "Change a setting / API key." | [Environment variables](#environment-variables) — write it, then `POST /env-vars/apply`, or it won't reach the running app. |
+
+A shorter, single-file version of everything below — written for agents — is
+at [`https://embarko.ai/llms.txt`](/llms.txt).
+
 ## [Overview](#overview)
 
 Embarko deploys apps from source to a live URL, and gives each company a
@@ -45,40 +98,77 @@ For every error/edge case and known platform constraint, see
 
 ## [Where your app runs](#where-your-app-runs)
 
-Embarko runs your app, and the storage it writes under `DATA_DIR`, in **EU
-datacenters**, on infrastructure certified to **ISO/IEC 27001** — the
-international standard for information-security management, audited by an
-external body rather than self-declared.
+### [Where it runs](#regions)
 
-One distinction worth being exact about, because it is the one most hosting
-pages blur:
+Your app runs on **managed infrastructure certified to ISO/IEC 27001**, in a
+region chosen by Embarko.
 
-> The ISO/IEC 27001 certificate is held by the infrastructure provider that
-> operates Embarko's EU region. It covers their facilities and their
-> information-security management. It is not a certification of Embarko itself.
+**Region selection is not available.** There is no region parameter on any
+API call and no setting in the dashboard, so an agent should never ask the
+user to choose one or send a region field. The ability to choose is a
+planned feature.
 
-What that gives you:
+**The region an app runs in is not guaranteed** and may change. Your app's
+compute and its `DATA_DIR` volume always live together — they are never
+split — but which region that is, is not something the platform commits to
+today.
 
-- **EU region.** Your app and its data sit on infrastructure located in the
-  European Union.
-- **Isolation.** Each app gets its own environment, its own filesystem and its
-  own volume. An app can reach its own storage under `DATA_DIR` and nothing
-  else on the platform — no path to another customer's app, data, or secrets.
-- **Encryption.** Traffic is served over HTTPS on `*.app.embarko.ai` and on
-  connected custom domains. Data is encrypted in transit, and at rest by the
-  storage provider. Environment variables are encrypted under a separate key
-  and exposed only to your own app's runtime.
-- **GDPR terms in writing.** You are the controller for the personal data your
-  app processes; Embarko is your processor. See the [DPA](/dpa).
+If data residency matters for the app you are deploying — personal data
+under GDPR, or a sector rule about where records may be held — **check the
+[DPA](/dpa) before deploying**, and tell the user rather than assuming. Do
+not tell a user their app runs in a particular country.
 
-What it does **not** cover: `embarko.ai` itself and the dashboard, which run on
-separate infrastructure. If your own compliance review needs the boundary drawn
-precisely, the [DPA](/dpa) and [Privacy Policy](/privacy) are the documents to
-read — not this page.
+### [Isolation](#isolation)
 
-Note also that per-app storage is **not backed up**. It survives your own
-redeploys, which is a different guarantee from surviving hardware loss. See
-[Limitations](limitations-and-recommendations.md).
+Each app gets its own environment, its own filesystem and its own volume. An
+app can reach its own storage under `DATA_DIR` and nothing else on the
+platform — there is no path to another customer's app, data, or secrets.
+
+One caveat, stated plainly because it affects how you build: **network
+isolation between containers has not been verified**. Don't treat "it's
+internal" as a security boundary — authenticate and encrypt anything
+sensitive, and see
+[Limitations](limitations-and-recommendations.md#network-isolation-between-different-apps-containers-is-unverified).
+
+### [Encryption](#encryption)
+
+Traffic is served over HTTPS on `*.app.embarko.ai` and on connected custom
+domains, with certificates issued and renewed automatically. Data is
+encrypted in transit, and at rest by the storage provider. Environment
+variables are encrypted under a separate key and exposed only to your own
+app's runtime.
+
+### [Durability](#durability)
+
+Storage under `DATA_DIR` survives every redeploy and restart. It is **not
+backed up** — that is a different guarantee from surviving hardware loss,
+and there is no snapshot or restore today. Automatic backups are in
+progress. See [Limitations](limitations-and-recommendations.md).
+
+### [Data protection and GDPR](#gdpr)
+
+You are the controller for the personal data your app processes; Embarko is
+your processor, under a DPA built on Article 28. See the [DPA](/dpa).
+
+The infrastructure Embarko runs on is certified to **ISO/IEC 27001**, the
+international standard for information-security management — audited by an
+external body rather than self-declared. One distinction matters here, and
+most hosting pages blur it:
+
+> The ISO/IEC 27001 certificate is held by the infrastructure provider
+> Embarko runs on. It covers their facilities and their information-security
+> management. **It is not a certification of Embarko itself**, and "Embarko
+> is ISO 27001 certified" is not a true statement.
+
+### [What this does not cover](#boundary)
+
+`embarko.ai` itself and the dashboard run on separate infrastructure and are
+outside the boundary described above. The certification covers the
+infrastructure provider's facilities — it says nothing about where your data
+is located, which is a separate question and a separate document.
+
+If a compliance review needs the boundary drawn precisely, the [DPA](/dpa)
+and [Privacy Policy](/privacy) are the documents to read — not this page.
 
 ## [Quick start](#quick-start)
 
@@ -368,6 +458,68 @@ healthy, since the most common reason to check logs is a build/runtime
 failure. If nothing's deployed yet: `{"available": false, "reason": "No
 allocation has ever been created for this app yet"}`.
 
+### [Diagnosing a failed deploy](#diagnosing-a-failure)
+
+When a deploy fails, work in this order rather than redeploying and hoping.
+The same steps cover both kinds of failure — the request being rejected
+outright, and the build or the app failing afterwards.
+
+**1. If `POST /apps` itself returned a non-2xx**, the deploy never started.
+Read the `code` field in the response body and look it up in
+[`troubleshoot.md`](troubleshoot.md). These are rejections with an exact
+cause — `invalid_app_name`, `app_name_taken`, `unsupported_storage_pattern`,
+`no_manifest_at_root`, `app_nested_in_subdirectory`, `unauthorized` — not
+something to retry. Several of them tell you the fix in the response itself:
+`foundNestedAt` and `deployThisInstead` name the folder you should have
+packaged.
+
+**2. Otherwise poll status and read `errorDetail`:**
+
+```bash
+curl "https://ship.embarko.ai/apps/my-app/status"
+```
+
+`deploy.status` of `"failed"` means the build or the first run failed.
+`errorDetail` names what happened. If it is still `"in_progress"`, nothing
+has failed yet — keep polling.
+
+**3. Read the logs.** This works even when the build failed and no container
+ever started: the response falls back to build output, marked
+`source: "build"` with a `note` saying so, and that is where the actual
+failing command is named.
+
+```bash
+curl "https://ship.embarko.ai/apps/my-app/logs?stream=stderr"
+curl "https://ship.embarko.ai/apps/my-app/logs"
+```
+
+(Add `-H "Authorization: Bearer $DEPLOY_TOKEN"` once the app is claimed.)
+
+Three log lines mislead if read alone:
+
+- `exit code: 127` is **command not found** in the build image — the build
+  tool isn't in the app's dependencies, or the real app lives in a
+  subdirectory that was never installed. A trailing `docker-import … no such
+  file or directory` line is a cascade, not the cause.
+- `"OOM Killed"` / `Exit Code: 137` is the 256MB memory limit.
+- `"Not Restarting"` / `"Exceeded allowed attempts"` is a crash loop whose
+  real cause is logged *above* it — scroll up rather than reporting this line.
+
+**4. Fix the app, then redeploy the same `X-App-Name`.** A redeploy resets the
+restart counter. Match what you found against
+[`troubleshoot.md`](troubleshoot.md) before changing anything speculative.
+
+The most common causes, roughly in the order they occur: the app binds
+`localhost` or a hardcoded port instead of `0.0.0.0` and `PORT`; the repo
+root delegates its build into a subdirectory, so one deploy was attempted for
+what is really two apps; a dev server shipped as the production start command
+(slow, then OOM-killed); the app writes outside `DATA_DIR` and crashes with
+`ENOENT` on the next deploy; and a static site packaged without an
+`index.html` at the root.
+
+Report the cause to the user in their terms and fix it yourself where you
+can — handing over a raw log is not an answer.
+
 ## [Environment variables](#environment-variables)
 
 Available to an agent as well as a person. The control plane lives at
@@ -412,18 +564,24 @@ No rebuild — reruns a past successful build's image under the current config
 (current env vars and custom domains, not whatever they were at the time of
 that old deploy). Available to an agent as well as a person:
 
+Two steps: list the history, then roll back to the deployment you picked.
+The deployment's id goes in the URL — that is what decides which version
+comes back.
+
 ```bash
+# 1. Find the deployment to return to (newest first).
 curl "https://ship.embarko.ai/api/apps/my-app/deployments" \
   -H "Authorization: Bearer $DEPLOY_TOKEN"
 
-curl -X POST "https://ship.embarko.ai/api/apps/my-app/rollback" \
+# 2. Roll back to it, by its id.
+curl -X POST \
+  "https://ship.embarko.ai/api/apps/my-app/deployments/<deploymentId>/rollback" \
   -H "Authorization: Bearer $DEPLOY_TOKEN"
 ```
 
-`GET /deployments` lists the history and `GET /deployments/<id>` is one entry,
-so you can pick a target and then poll it. In the dashboard: open the
-project's **Deployments** history, find the successful deployment, and click
-**Rollback** next to it.
+`GET /deployments/<id>` returns one entry, which is also how you poll the
+rollback afterwards. In the dashboard: open the project's **Deployments**
+history, find the successful deployment, and click **Rollback** next to it.
 
 You'll see it confirmed right away, but **applying it takes a little
 while** — same as a regular deploy, switching the app over isn't instant.

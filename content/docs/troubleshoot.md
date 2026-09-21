@@ -243,8 +243,8 @@ now `.../customer-query`. Same data, same behavior, `type` now also accepts `"ot
 ## Rollback
 
 ### Rollback target image unavailable
-- match: HTTP 422, `"code":"rollback_image_unavailable"`, from `POST /api/apps/<app-name>/rollback` (the
-  agent path, deploy token) or the dashboard's Rollback button; message starts with `"Cannot roll back: the
+- match: HTTP 422, `"code":"rollback_image_unavailable"`, from
+  `POST /api/apps/<app-name>/deployments/<deploymentId>/rollback` (the agent path, deploy token) or the dashboard's Rollback button; message starts with `"Cannot roll back: the
   image is no longer available"`
 - cause: images are built locally on the platform's host and never pushed to a registry, and only the
   most recent handful are kept (see
