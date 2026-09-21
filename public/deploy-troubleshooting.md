@@ -21,6 +21,14 @@ look for in a response body or `GET .../logs` output) → `cause` → `fix`.
 - cause: `X-App-Name` is also the live subdomain — must be unique across the whole platform, not just your account
 - fix: pick a different `X-App-Name`, or claim the existing orphan with a real token before its 24h expiry
 
+### 422 no_manifest_at_root
+- match: `"code":"no_manifest_at_root"` in the 422 response
+- cause: the uploaded archive's app files are nested inside a subfolder instead of sitting at its top
+  level (e.g. an extra wrapping folder from how the zip was created) — the build only looks at the
+  archive root for a manifest or `index.html`
+- fix: re-package so the manifest sits at the archive's top level, then redeploy; check the response's
+  `detail`/`foundNestedAt` fields for exactly where one was found
+
 ## Runtime crashes (build succeeded, app failed after)
 
 ### OOM killed

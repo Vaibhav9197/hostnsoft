@@ -33,6 +33,19 @@ for the platform's real constraints and how to design around them —
 - cause: `X-App-Name` is also the live subdomain — must be unique across the whole platform, not just your account
 - fix: pick a different `X-App-Name`, or claim the existing orphan with a real token before its 24h expiry
 
+### 422 no_manifest_at_root
+- match: `"code":"no_manifest_at_root"` in the 422 response, or (before this check existed) a generic build
+  failure with a non-zero/unusual exit code and no real install/compile output before it
+- cause: the uploaded archive's app files are nested inside a subfolder instead of sitting at its top
+  level — the platform's build only looks at the archive root for a manifest
+  (`package.json`/`requirements.txt`/`pyproject.toml`/`go.mod`/`Gemfile`/`composer.json`/`Cargo.toml`) or
+  `index.html`. A single wrapping folder (e.g. a zip that already contained one top-level folder) is
+  corrected automatically; anything more ambiguous than that returns this error instead of guessing
+- fix: check the response's `detail`/`foundNestedAt` fields for exactly where a manifest was found, if
+  anywhere, then re-package so it sits at the archive's top level and redeploy. The `embarko-deploy` skill's
+  `deploy.sh` also checks for this locally and fails before uploading anything, naming the exact inner
+  folder to point it at instead
+
 ### 502 app_name_check_failed
 - match: `"code":"app_name_check_failed"`
 - cause: a transient internal error while checking name availability
