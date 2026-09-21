@@ -17,6 +17,12 @@
 # Both artifacts here are generated. Never edit them in public/skills/ —
 # edit the skill repo, push, and re-run this.
 #
+# Forgetting to re-run it is caught: .githooks/pre-push blocks a push whose
+# committed public/skills/ no longer matches the published skill repo. That
+# hook compares the .skill bundle's CONTENTS, not its bytes — this script
+# rebuilds the zip every run and zip stores mtimes, so the file legitimately
+# changes even when nothing in it did.
+#
 # The per-tool .md files in public/skills/ are NOT generated: they're short
 # pointers to the skill and the docs, with nothing protocol-level left in
 # them to drift.

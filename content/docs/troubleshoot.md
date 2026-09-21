@@ -46,10 +46,46 @@ for the platform's real constraints and how to design around them —
   `deploy.sh` also checks for this locally and fails before uploading anything, naming the exact inner
   folder to point it at instead
 
+### 422 app_nested_in_subdirectory
+- match: `"code":"app_nested_in_subdirectory"` in the 422 response
+- cause: there **is** a `package.json` at the archive root, but it declares no dependencies of its own
+  and delegates the build to a subdirectory — `"build": "npm --prefix frontend run build"`, a
+  `cd frontend && …` script, or a `workspaces` entry. This is the ordinary frontend/backend repo
+  layout, deployed from the repo root by mistake. Dependencies are only ever installed at the archive
+  root, so the subdirectory's `node_modules` is never created and the delegated build dies on a
+  missing command (exit code 127) minutes into the build
+- fix: deploy the subdirectory itself — the response's `deployThisInstead` field names it (e.g.
+  `frontend`). Upload that folder directly, or run `./scripts/deploy.sh ./frontend <app-name>`.
+  **One deploy is one app**: a repo holding both a frontend and a backend needs two deploys under two
+  app names
+
 ### 502 app_name_check_failed
 - match: `"code":"app_name_check_failed"`
 - cause: a transient internal error while checking name availability
 - fix: safe to retry as-is; no need to change anything about the request
+
+## Build failures (the build started and failed)
+
+### Build logs are available even when the build failed
+- no `match` — this is where to look first for anything in this section
+- cause: a failed build never starts a container, so for a long time `GET .../logs` had nothing to
+  return and a failed deploy was effectively undiagnosable from the outside
+- fix: `GET .../logs` now falls back to the **build** output when no runtime logs exist yet. The
+  response carries `source: "build"` and a `note` saying so. This is where the actual failing command
+  is named — read it before guessing at anything below
+
+### "npm run build" did not complete successfully: exit code: 127
+- match: `exit code: 127`, usually followed by a line like
+  `open /var/lib/docker/tmp/docker-import-… : no such file or directory`
+- cause: exit 127 is **"command not found"** inside the build image. `npm` itself ran fine — the binary
+  *the build script called* is missing. Two common reasons: the build tool isn't listed in the app's
+  `dependencies`/`devDependencies` at all, or the root `package.json` delegates the build into a
+  subdirectory whose dependencies were never installed (see
+  [422 app_nested_in_subdirectory](#422-app_nested_in_subdirectory) above — that shape is now rejected
+  before the build starts). The trailing `docker-import` line is only a cascade: the build produced no
+  image, so importing it failed too — it is not the real error
+- fix: read `GET .../logs`, which names the missing command outright. Then either add that tool to the
+  app's own dependencies, or deploy the subdirectory that actually owns it
 
 ## Runtime crashes (build succeeded, app failed after)
 

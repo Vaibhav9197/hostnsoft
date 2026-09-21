@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+# Blocks a push whose committed public/skills/ artifacts no longer match the
+# published skill repo they're generated from.
+#
+# Why this VERIFIES instead of regenerating: a pre-push hook runs after the
+# commit is already made, so anything it regenerates lands in the working
+# tree *unpushed* — you'd push the stale bytes anyway and only find the fix
+# sitting uncommitted afterwards. Failing loudly, before the push, is the
+# only shape that actually prevents shipping a stale skill.
+#
+# Why it compares the .skill bundle's CONTENTS rather than its bytes: that
+# file is a zip, and zip stores each entry's mtime. Re-running the sync with
+# nothing changed upstream still produces a different file, so a byte
+# comparison (or a `git diff --quiet` after a sync) would fail on every push
+# forever. Confirmed in practice: identical 18779 bytes in, 18779 bytes out,
+# zero content change, different file.
+#
+# Escape hatch: SKIP_SKILL_SYNC_CHECK=1 git push
+# Offline is never a hard block — an unreachable GitHub warns and allows.
+
+set -euo pipefail
+
+if [[ -n "${SKIP_SKILL_SYNC_CHECK:-}" ]]; then
+  echo "pre-push: SKIP_SKILL_SYNC_CHECK set — skipping skill-asset freshness check."
+  exit 0
+fi
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+PUBLIC_SKILLS="${REPO_ROOT}/public/skills"
+SKILL_SLUG="${SKILL_SLUG:-embarko-ai/skill}"
+SKILL_REF="${SKILL_REF:-main}"
+
+# Nothing to check in a checkout that doesn't carry these artifacts.
+[[ -f "${PUBLIC_SKILLS}/embarko-deploy.sh" ]] || exit 0
+
+if ! command -v unzip >/dev/null 2>&1; then
+  echo "pre-push: unzip not available — skipping skill-asset freshness check." >&2
+  exit 0
+fi
+
+WORK=$(mktemp -d)
+trap 'rm -rf "${WORK}"' EXIT
+
+# Same source and endpoint as scripts/sync-skill-assets.sh, deliberately:
+# this check is only meaningful if it reads exactly what the sync writes.
+if ! curl -fsSL --connect-timeout 5 "https://codeload.github.com/${SKILL_SLUG}/tar.gz/${SKILL_REF}" \
+     | tar -xz -C "${WORK}" 2>/dev/null; then
+  echo "pre-push: couldn't reach GitHub to verify skill assets — allowing push." >&2
+  echo "          Re-run 'npm run sync:skill' yourself if the skill repo has moved." >&2
+  exit 0
+fi
+
+SOURCE=$(find "${WORK}" -maxdepth 1 -mindepth 1 -type d | head -1)
+if [[ -z "${SOURCE}" || ! -f "${SOURCE}/SKILL.md" ]]; then
+  echo "pre-push: downloaded skill source looks wrong — allowing push." >&2
+  exit 0
+fi
+
+# Rebuild the exact tree sync-skill-assets.sh stages into the bundle, so the
+# comparison below is against what a real sync would produce.
+mkdir -p "${WORK}/expected/embarko-deploy"
+cp "${SOURCE}/SKILL.md" "${SOURCE}/README.md" "${WORK}/expected/embarko-deploy/"
+cp -R "${SOURCE}/scripts" "${WORK}/expected/embarko-deploy/scripts"
+
+mkdir -p "${WORK}/committed"
+if ! unzip -q "${PUBLIC_SKILLS}/embarko-deploy.skill" -d "${WORK}/committed" 2>/dev/null; then
+  echo "pre-push: couldn't read public/skills/embarko-deploy.skill — allowing push." >&2
+  exit 0
+fi
+
+STALE=0
+if ! cmp -s "${SOURCE}/scripts/deploy.sh" "${PUBLIC_SKILLS}/embarko-deploy.sh"; then
+  STALE=1
+fi
+if ! diff -rq "${WORK}/expected/embarko-deploy" "${WORK}/committed/embarko-deploy" >/dev/null 2>&1; then
+  STALE=1
+fi
+
+if (( STALE )); then
+  SHA=$(curl -fsSL "https://api.github.com/repos/${SKILL_SLUG}/commits/${SKILL_REF}" 2>/dev/null \
+        | sed -n 's/.*"sha": "\([0-9a-f]\{40\}\)".*/\1/p' | head -1)
+  echo "" >&2
+  echo "PUSH BLOCKED: public/skills/ is out of date with ${SKILL_SLUG}@${SKILL_REF}${SHA:+ (${SHA:0:7})}." >&2
+  echo "" >&2
+  echo "  Those files are generated from the skill repo, and what's committed here no" >&2
+  echo "  longer matches it — pushing now ships a stale skill to embarko.ai." >&2
+  echo "" >&2
+  echo "  What changed:" >&2
+  diff -rq "${WORK}/expected/embarko-deploy" "${WORK}/committed/embarko-deploy" 2>&1 \
+    | sed 's/^/    /' >&2 || true
+  cmp -s "${SOURCE}/scripts/deploy.sh" "${PUBLIC_SKILLS}/embarko-deploy.sh" \
+    || echo "    Files embarko-deploy.sh and the skill's scripts/deploy.sh differ" >&2
+  echo "" >&2
+  echo "  Fix:" >&2
+  echo "    npm run sync:skill" >&2
+  echo "    git add public/skills && git commit -m 'chore: sync skill assets' && git push" >&2
+  echo "" >&2
+  echo "  If the skill repo change isn't pushed yet, push THAT first — this check" >&2
+  echo "  reads the published repo, not your local ../hostnsoft-skill checkout." >&2
+  echo "" >&2
+  echo "  Override (not recommended): SKIP_SKILL_SYNC_CHECK=1 git push" >&2
+  echo "" >&2
+  exit 1
+fi
+
+echo "pre-push: public/skills/ is in sync with ${SKILL_SLUG}@${SKILL_REF}."
+exit 0

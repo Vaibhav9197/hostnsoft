@@ -29,6 +29,24 @@ look for in a response body or `GET .../logs` output) → `cause` → `fix`.
 - fix: re-package so the manifest sits at the archive's top level, then redeploy; check the response's
   `detail`/`foundNestedAt` fields for exactly where one was found
 
+### 422 app_nested_in_subdirectory
+- match: `"code":"app_nested_in_subdirectory"` in the 422 response
+- cause: the root `package.json` declares no dependencies of its own and delegates the build to a
+  subdirectory (`"build": "npm --prefix frontend run build"`, `cd frontend && …`, or `workspaces`) —
+  dependencies are only installed at the archive root, so the delegated build fails on a missing command
+- fix: deploy the subdirectory itself; the response's `deployThisInstead` field names it. One deploy
+  is one app — a frontend and a backend are two separate deploys
+
+## Build failures (the build started and failed)
+
+### "npm run build" did not complete successfully: exit code: 127
+- match: `exit code: 127`, often with a trailing `docker-import … no such file or directory` line
+- cause: exit 127 is "command not found" inside the build image — the binary the build script called
+  isn't installed (missing from dependencies, or the real app is in a subdirectory whose dependencies
+  were never installed). The `docker-import` line is cascade, not the cause
+- fix: `GET .../logs` now returns **build** logs (`source: "build"`) when a build failed, and names the
+  missing command directly
+
 ## Runtime crashes (build succeeded, app failed after)
 
 ### OOM killed
