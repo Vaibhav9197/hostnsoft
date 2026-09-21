@@ -9,6 +9,7 @@ import { SITE } from "../../../lib/site";
 import { categorySlug, getApp, type ShowcaseApp } from "../../../lib/showcase";
 import { AppPreview, BTN_GHOST, BTN_PRIMARY, Creator, LABEL, WRAP } from "../../kit";
 import { ShareRow } from "../../share";
+import { ShowcaseBreadcrumbs } from "../../breadcrumbs";
 
 /* youtu.be/<id> and youtube.com/watch?v=<id> are what the submit form's plain
    URL field actually receives — creators paste whatever's in their browser's
@@ -103,6 +104,14 @@ export default async function ShowcaseAppPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData(app)) }}
       />
+      <ShowcaseBreadcrumbs
+        trail={[
+          ...(app.category
+            ? [{ name: app.category, path: `/showcase/category/${categorySlug(app.category)}` }]
+            : []),
+          { name: app.name, path: `/showcase/app/${app.slug}` },
+        ]}
+      />
       <SiteHeader />
 
       <article className="py-[72px] max-[900px]:py-12">
@@ -122,7 +131,10 @@ export default async function ShowcaseAppPage({ params }: Props) {
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-3">
-            <a href={app.appUrl} target="_blank" rel="noreferrer" className={BTN_PRIMARY}>
+            {/* Creator-submitted URLs are user-generated content: `nofollow ugc`
+                keeps a listing from passing our link equity to whatever was
+                pasted into the form. */}
+            <a href={app.appUrl} target="_blank" rel="noreferrer nofollow ugc" className={BTN_PRIMARY}>
               Open app
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </a>
@@ -152,7 +164,7 @@ export default async function ShowcaseAppPage({ params }: Props) {
                 <a
                   href={app.videoUrl}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noreferrer nofollow ugc"
                   className="mt-3 inline-block text-[15px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
                 >
                   Watch the video →

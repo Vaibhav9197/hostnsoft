@@ -8,6 +8,7 @@ import { SiteFooter } from "../../../components/SiteFooter";
 import { categoryFromSlug, listAppsInCategory } from "../../../lib/showcase";
 import { AppCard, BTN_GHOST, BTN_PRIMARY, WRAP } from "../../kit";
 import { ShareRow } from "../../share";
+import { ShowcaseBreadcrumbs } from "../../breadcrumbs";
 
 /**
  * A category page: /showcase/category/ai-tool. Every public app in one
@@ -47,6 +48,7 @@ export default async function CategoryPage({ params }: Props) {
 
   return (
     <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased">
+      <ShowcaseBreadcrumbs trail={[{ name: category, path: `/showcase/category/${slug}` }]} />
       <SiteHeader />
 
       <header className="py-[72px] max-[900px]:py-12">

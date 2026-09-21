@@ -8,6 +8,7 @@ import { SiteFooter } from "../../components/SiteFooter";
 import { getCollectionWithApps } from "../../lib/showcase";
 import { AppCard, BTN_GHOST, BTN_PRIMARY, WRAP } from "../kit";
 import { ShareRow } from "../share";
+import { ShowcaseBreadcrumbs } from "../breadcrumbs";
 
 /**
  * A showcase page: /showcase/walkover, /showcase/iit-indore-26. A company's
@@ -35,7 +36,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${found.collection.title} — Showcase`,
-    description: found.collection.intro ?? `${found.apps.length} projects built.`,
+    description:
+      found.collection.intro ??
+      `${found.apps.length} ${found.apps.length === 1 ? "app" : "apps"} built with AI and hosted on Embarko, collected on the ${found.collection.title} showcase.`,
+    keywords: [found.collection.title, `${found.collection.title} apps`, "apps built with AI", "Embarko showcase"],
     /* A page with nothing on it yet is a thin page. It exists, works and can
        be shared — search engines are just asked to wait until there is
        something to index. */
@@ -52,6 +56,7 @@ export default async function CollectionPage({ params }: Props) {
 
   return (
     <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased">
+      <ShowcaseBreadcrumbs trail={[{ name: meta.title, path: `/showcase/${encodeURIComponent(meta.slug)}` }]} />
       <SiteHeader />
 
       <header className="py-[72px] max-[900px]:py-12">
