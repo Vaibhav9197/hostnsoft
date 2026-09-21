@@ -82,6 +82,20 @@ releases) and redeploy fresh from it instead of rolling back to it.
 
 ## Build & runtime customization
 
+### Built for stateless web request/response apps, not background workers
+Every app runs as a single long-lived process listening on `PORT` — there's
+no separate worker/job primitive, no documented support for jobs that run
+past a request's lifetime, and no per-app control over concurrency or
+instance count. The default memory footprint assumes the same thing: a web
+app, not a RAM-heavy processing job.
+
+**Recommendation:** if your workload is really a background worker — video
+or image processing, jobs measured in minutes rather than seconds, or
+anything needing system binaries beyond what Railpack auto-installs (ffmpeg,
+headless Chromium, etc.) — don't try to fit it into an Embarko app today.
+Run that piece on infrastructure built for it and have your Embarko-hosted
+app call out to it, rather than doing the work in-process.
+
 ### The build system auto-detects; there's no custom Dockerfile support
 Apps are built with [Railpack](https://railpack.com), which auto-detects
 your language/runtime from source — there's no way to supply your own

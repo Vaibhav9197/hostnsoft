@@ -88,13 +88,20 @@ URL, and decide about a token afterwards.
 **1. Package and deploy:**
 
 ```bash
-tar -czf /tmp/my-app.tar.gz --exclude=node_modules --exclude=.git -C /path/to/app .
+tar -czf /tmp/my-app.tar.gz --exclude=node_modules --exclude=.git --exclude='.env*' -C /path/to/app .
 
 curl -X POST "https://ship.embarko.ai/apps" \
   -H "X-App-Name: my-app" \
   -H "X-App-Version: $(git rev-parse --short HEAD)" \
   -F "source=@/tmp/my-app.tar.gz"
 ```
+
+**Never ship secrets in the tarball.** The `--exclude='.env*'` above only
+protects you if your secrets actually live in `.env`-named files — keep all
+API keys, tokens, and credentials there (not in some other config file) so
+this exclude pattern catches them. Real secrets belong in
+[Environment variables](#environment-variables), set through the API or
+dashboard after the app exists, never uploaded as part of the source.
 
 You'll get a `202` immediately — the build/deploy itself continues in the
 background:
