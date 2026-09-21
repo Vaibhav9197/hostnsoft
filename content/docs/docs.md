@@ -22,8 +22,12 @@ rollback, and deployment history. Each section below gives both the API call
 and the dashboard equivalent, so an agent doesn't have to hand the work back
 to a person.
 
-Three things are dashboard-only today — **custom domains, deleting a project,
-and analytics**. Those sections say so.
+**Custom domains**, **analytics**, **renaming**, and **deleting a project**
+are all agent-callable now (the DNS record for a custom domain still needs
+a person at their own registrar, but the register/verify/delete calls
+around it don't). Deleting is irreversible with no backup, so the agent
+path requires an explicit confirmation on top of the deploy token — see
+[Deleting a project](#deleting-a-project).
 [`GET /capabilities`](#capabilities) is the authoritative answer either way:
 every feature carries a `via` field naming who can invoke it.
 
@@ -182,7 +186,10 @@ can do a thing itself or has to hand it to a person.
     "deploy":         { "status": "available", "via": ["agent", "dashboard"] },
     "env_vars":       { "status": "available", "via": ["agent", "dashboard"] },
     "rollback":       { "status": "available", "via": ["agent", "dashboard"] },
-    "custom_domains": { "status": "available", "via": ["dashboard"] },
+    "custom_domains": { "status": "available", "via": ["agent", "dashboard"] },
+    "analytics":      { "status": "available", "via": ["agent", "dashboard"] },
+    "rename_app":     { "status": "available", "via": ["agent", "dashboard"] },
+    "delete_app":     { "status": "available", "via": ["agent", "dashboard"] },
     "backups":        { "status": "unavailable" }
   }
 }
@@ -483,31 +490,49 @@ Showcase**, pick a page, and fill in the same details.
 ## [Custom domain mapping](#custom-domains)
 
 Point your own domain at a deployed app, instead of (or alongside) its
-default `<app-name>.app.embarko.ai` URL. **Dashboard-only** — an agent has to
-hand this to the user, and the DNS step needs them anyway.
+default `<app-name>.app.embarko.ai` URL. Available to an agent as well as a
+person — **except the DNS record itself**, which only the domain's owner
+can create with their own DNS provider; nothing here gets around that step.
 
-1. Open your project in the dashboard, go to **Custom Domains**, and enter
-   your domain (e.g. `app.yourdomain.com`).
-2. You'll see the exact DNS record to create. A **subdomain** (like
-   `app.yourdomain.com`) gets a `CNAME` to a dedicated platform hostname. An
-   **apex/root domain** (`yourdomain.com`, no subdomain) can't use `CNAME`
-   under standard DNS rules — you'll get an `A` record to the platform's
-   origin IP instead, which means it bypasses any CDN/proxy you'd normally
-   put in front of it (see
-   [`troubleshoot.md`](troubleshoot.md#apex-root-domains-lose-your-cdnproxy-in-front-of-them)).
-3. Create that exact DNS record with your DNS provider. If using
-   Cloudflare, make sure it's set to **DNS only** (grey cloud), not
-   **Proxied** (orange cloud) — a proxied record will never verify, see
-   [`troubleshoot.md`](troubleshoot.md#verify-stuck-on-not-resolving-yet-despite-a-correct-looking-record).
-4. Click **Verify** — safe to click repeatedly until DNS propagates.
-   Routing only activates once this confirms DNS actually resolves
-   correctly — nothing is activated at step 1.
-5. Once active, the domain shows status **Active** in the same **Custom
-   Domains** list.
+**By API**, same deploy token and app-name addressing as env vars/rollback:
 
-**Removing a domain** (click **Remove** next to it) tears down just that
-domain's routing/certificate — your app's default `*.app.embarko.ai` URL is
-never affected.
+```bash
+curl -X POST "https://ship.embarko.ai/apps/my-app/domains" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"domain": "app.yourdomain.com"}'
+```
+
+Returns the exact DNS record to create. A **subdomain** (like
+`app.yourdomain.com`) gets a `CNAME` to a dedicated platform hostname. An
+**apex/root domain** (`yourdomain.com`, no subdomain) can't use `CNAME`
+under standard DNS rules — you'll get an `A` record to the platform's
+origin IP instead, which means it bypasses any CDN/proxy you'd normally
+put in front of it (see
+[`troubleshoot.md`](troubleshoot.md#apex-root-domains-lose-your-cdnproxy-in-front-of-them)).
+Hand that record to whoever controls the domain's DNS — an agent can't
+create it on their behalf.
+
+Once the record exists (and has propagated), verify it:
+
+```bash
+curl -X POST "https://ship.embarko.ai/apps/my-app/domains/app.yourdomain.com/verify" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN"
+```
+
+Safe to call repeatedly while DNS propagates — routing only activates once
+this confirms DNS actually resolves correctly, not at the register step.
+`GET /apps/my-app/domains` lists what's registered; `DELETE
+/apps/my-app/domains/app.yourdomain.com` removes just that domain's
+routing/certificate, never touching the app's default `*.app.embarko.ai`
+URL.
+
+**In the dashboard**, the same flow: open your project, go to **Custom
+Domains**, enter the domain, follow the same DNS instructions, and click
+**Verify**. If using Cloudflare, make sure the record is set to **DNS
+only** (grey cloud), not **Proxied** (orange cloud) — a proxied record will
+never verify, see
+[`troubleshoot.md`](troubleshoot.md#verify-stuck-on-not-resolving-yet-despite-a-correct-looking-record).
 
 Custom domains require port 80 reachable for certificate issuance — see
 [`troubleshoot.md`](troubleshoot.md#custom-domain-activation-requires-port-80-reachable)
@@ -559,23 +584,68 @@ since it requires no authentication at all.
 
 ## [Monitoring your app](#monitoring)
 
-Open your project in the dashboard:
+**By API**, available to an agent as well as a person, same deploy token
+and app-name addressing as everything else above:
+
+```bash
+curl "https://ship.embarko.ai/apps/my-app/analytics?range=7d" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN"
+```
+
+`range` is one of `24h`, `7d`, `30d`, `90d`, or `all` (default `24h`).
+Returns request traffic (status-code breakdown, total requests) and
+CPU/memory usage over that range. `503`, not a fabricated empty result,
+if the analytics subsystem is temporarily unreachable — different from
+genuinely zero traffic.
+
+**In the dashboard**, open your project:
 - **Overview** — current health, latest deployment, and recent traffic at a
   glance.
 - **Deployments** — full deployment history.
 - **Logs** — recent output from the app (a snapshot, not a live stream —
   see
   [`limitations-and-recommendations.md`](limitations-and-recommendations.md#logs-are-a-recent-snapshot-not-a-live-stream)).
-- **Analytics** — traffic and resource usage over a chosen range (`24h`,
-  `7d`, `30d`, `90d`, or `all`).
+- **Analytics** — the same data as the API call above, over the same
+  range options.
+
+## [Renaming a project](#renaming-a-project)
+
+Display name only — the app's slug, and so its live URL, never changes.
+Available to an agent as well as a person:
+
+```bash
+curl -X PATCH "https://ship.embarko.ai/apps/my-app" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "My App"}'
+```
+
+In the dashboard, the same thing: open your project, go to **Settings**,
+and update the name.
 
 ## [Deleting a project](#deleting-a-project)
 
-**Dashboard-only.** Open your project in the dashboard, go to **Settings**,
-and click **Delete project**.
+Tears down the running app (its container, routing, and image) as well as
+the dashboard record — **this is not reversible**, and there is no backup.
 
-Tears down the running app (its container, routing, and image) as
-well as the dashboard record — this is not reversible.
+Available to an agent as well as a person, but the deploy token alone
+isn't enough — you also have to resend the app's own name to confirm:
+
+```bash
+curl -X DELETE "https://ship.embarko.ai/apps/my-app" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"confirmAppName": "my-app"}'
+```
+
+Omitting `confirmAppName`, or getting it wrong, returns `400
+confirmation_required` and deletes nothing. An agent should always show
+the user what it's about to delete and get their go-ahead before sending
+this — the confirmation field guards against a misread instruction, not
+against an agent that's sure but wrong.
+
+In the dashboard, the same thing: open your project, go to **Settings**,
+and click **Delete project**.
 
 ## [Errors and known limitations](#errors)
 
