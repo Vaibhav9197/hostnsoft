@@ -33,6 +33,15 @@ export function showcaseSlug(value: string): string {
 export const categorySlug = showcaseSlug;
 export const tagSlug = showcaseSlug;
 
+/** A readable name for a URL segment nothing matched: "ai-tool-parakh" → "Ai Tool Parakh". */
+export function nameFromSlug(slug: string): string {
+  return slug
+    .split("-")
+    .filter(Boolean)
+    .map((w) => w[0].toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 /** The category a URL segment names, or null when it isn't one we know. */
 export function categoryFromSlug(slug: string): Category | null {
   return CATEGORIES.find((c) => categorySlug(c) === slug) ?? null;
