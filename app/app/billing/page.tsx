@@ -26,6 +26,7 @@ import { formatDate, formatMoney, intervalSuffix } from "../../lib/format";
 import { billingApi } from "../../lib/hnsApi";
 import { useSession } from "../../lib/session";
 import { cn } from "../../lib/utils";
+import { monthlyCents, planDetails, planFamily } from "../../lib/plans";
 import type { BillingPlan, PaymentMethod } from "../../lib/types";
 
 type PendingAction =
@@ -47,67 +48,6 @@ const errorMessage = (e: unknown, fallback: string) => (e instanceof Error ? e.m
 const price = (p: BillingPlan) => `${formatMoney(p.amount_cents, p.amount_currency)}${intervalSuffix(p.interval)}`;
 
 type Interval = "monthly" | "yearly";
-
-// Lago carries each billing period as its own plan (embarko_team and
-// embarko_team_annual). The page shows one period at a time, so plans are
-// compared by what they cost per month regardless of how they're billed.
-const MONTHS: Record<string, number> = { monthly: 1, yearly: 12, quarterly: 3, weekly: 1 / 4 };
-const monthlyCents = (p: BillingPlan) => p.amount_cents / (MONTHS[p.interval] ?? 1);
-
-// "free" | "creator" | "team" — the tier a plan belongs to, across periods.
-const planFamily = (plan: BillingPlan): string | null => {
-  const key = `${plan.code} ${plan.name}`.toLowerCase();
-  if (key.includes("free")) return "free";
-  if (key.includes("creator")) return "creator";
-  if (key.includes("team") || key.includes("pro")) return "team";
-  return null;
-};
-
-// Marketing copy for each plan, mirrored from the public pricing page. Lago
-// only carries a one-line description, so the feature lists live here and are
-// matched to plans by code (falls back to a keyword match on the name).
-const PLAN_DETAILS: Record<string, { headline: string; features: string[] }> = {
-  free: {
-    headline: "Make your first app real.",
-    features: [
-      "1 live app",
-      "Your own Embarko link",
-      "Share your app with anyone",
-      "Your app just works",
-      "Automatic updates",
-      "Safe and secure",
-      "Embarko branding",
-    ],
-  },
-  creator: {
-    headline: "For people who can’t stop building.",
-    features: [
-      "Up to 5 live apps",
-      "Use your own domain",
-      "Remove Embarko branding",
-      "Automatic backups",
-      "More usage",
-      "Faster performance",
-      "Everything taken care of automatically",
-    ],
-  },
-  team: {
-    headline: "For serious builders.",
-    features: [
-      "Up to 20 live apps",
-      "Much more usage",
-      "Advanced controls",
-      "Team access",
-      "Multiple versions of your apps",
-      "Priority support",
-    ],
-  },
-};
-
-const planDetails = (plan: BillingPlan) => {
-  const family = planFamily(plan);
-  return family ? PLAN_DETAILS[family] ?? null : null;
-};
 
 export default function BillingPage() {
   const { activeCompanyId, activeCompany, user } = useSession();

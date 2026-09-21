@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { DOCS } from "./lib/docs";
-import { categorySlug, listApps, listIndexableCollections } from "./lib/showcase";
+import { categorySlug, listApps, tagSlug, listIndexableCollections } from "./lib/showcase";
 import { SITE } from "./lib/site";
 
 /**
@@ -38,23 +38,29 @@ async function showcaseEntries(): Promise<MetadataRoute.Sitemap> {
     /* Only categories that currently hold a public app — the category page
        marks itself noindex when empty, so listing it would contradict that. */
     const categories = [...new Set(apps.map((a) => a.category).filter((c): c is string => !!c))];
+    const tags = [...new Set(apps.flatMap((a) => a.tags.map(tagSlug)).filter(Boolean))];
     return [
-      ...categories.map((c) => ({
-        url: `${SITE}/showcase/category/${categorySlug(c)}`,
-        changeFrequency: "daily" as const,
-        priority: 0.6,
-      })),
       ...collections.map((c) => ({
         url: `${SITE}/showcase/${encodeURIComponent(c.slug)}`,
         lastModified: c.createdAt,
         changeFrequency: "daily" as const,
-        priority: 0.6,
+        priority: 0.8,
       })),
       ...apps.map((app) => ({
         url: `${SITE}/showcase/app/${encodeURIComponent(app.slug)}`,
         lastModified: app.createdAt,
         changeFrequency: "weekly" as const,
         priority: 0.7,
+      })),
+      ...categories.map((c) => ({
+        url: `${SITE}/showcase/category/${categorySlug(c)}`,
+        changeFrequency: "daily" as const,
+        priority: 0.6,
+      })),
+      ...tags.map((t) => ({
+        url: `${SITE}/showcase/tag/${t}`,
+        changeFrequency: "daily" as const,
+        priority: 0.5,
       })),
     ];
   } catch (error) {
@@ -80,6 +86,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ["/pricing", 0.9, "weekly"],
     ["/showcase", 0.9, "daily"],
     ["/status", 0.6, "daily"],
+    ["/support", 0.5, "monthly"],
     ["/security", 0.6, "monthly"],
     ["/terms", 0.6, "yearly"],
     ["/privacy", 0.6, "yearly"],

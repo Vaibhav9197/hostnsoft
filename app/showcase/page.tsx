@@ -12,7 +12,8 @@ import { SearchGallery } from "./SearchGallery";
 export const metadata: Metadata = {
   title: "Showcase — See what people are building with AI",
   keywords: ["apps built with AI","AI generated apps examples","vibe coded apps","Embarko showcase"],
-  description: "Apps built with AI. Hosted on Embarko.",
+  description:
+    "Browse real apps people built with AI agents like Claude Code, Cursor and Codex, all live on Embarko. Open any of them, or list your own.",
 };
 
 /* Rendered per request, not prerendered. These pages read D1, and the binding

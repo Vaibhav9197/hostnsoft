@@ -1,4 +1,5 @@
 import { API_BASE } from "./api";
+import { nameFromSlug, tagSlug } from "./showcaseOptions";
 
 /**
  * Showcase reads for the public pages, from hostnsoft-api's open
@@ -14,6 +15,8 @@ export {
   TOOLS,
   categorySlug,
   categoryFromSlug,
+  nameFromSlug,
+  tagSlug,
   type Category,
   type Tool,
 } from "./showcaseOptions";
@@ -95,4 +98,22 @@ export async function listIndexableCollections(): Promise<Collection[]> {
 export async function listAppsInCategory(category: string): Promise<ShowcaseApp[]> {
   const apps = await listApps(200);
   return apps.filter((app) => app.category === category);
+}
+
+/* Tags are free text, so there is no fixed list to validate a slug against.
+   The display name is the spelling the most apps used, so "Education" wins
+   over "education" if that is how creators wrote it. A tag no app carries
+   still resolves, with an empty list and a name derived from the slug, so the
+   page can show "no apps yet" instead of a 404. */
+export async function listAppsWithTag(slug: string): Promise<{ tag: string; apps: ShowcaseApp[] }> {
+  const apps = (await listApps(200)).filter((app) => app.tags.some((t) => tagSlug(t) === slug));
+  if (apps.length === 0) return { tag: nameFromSlug(slug), apps };
+  const spellings = new Map<string, number>();
+  for (const app of apps) {
+    for (const t of app.tags) {
+      if (tagSlug(t) === slug) spellings.set(t, (spellings.get(t) ?? 0) + 1);
+    }
+  }
+  const tag = [...spellings.entries()].sort((a, b) => b[1] - a[1])[0][0];
+  return { tag, apps };
 }

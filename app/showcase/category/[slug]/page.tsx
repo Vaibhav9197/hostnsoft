@@ -1,18 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 
 import { SiteHeader } from "../../../components/SiteHeader";
 import { SiteFooter } from "../../../components/SiteFooter";
-import { categoryFromSlug, listAppsInCategory } from "../../../lib/showcase";
+import { categoryFromSlug, listAppsInCategory, nameFromSlug } from "../../../lib/showcase";
 import { AppCard, BTN_GHOST, BTN_PRIMARY, WRAP } from "../../kit";
 import { ShareRow } from "../../share";
+import { ShowcaseBreadcrumbs } from "../../breadcrumbs";
 
 /**
  * A category page: /showcase/category/ai-tool. Every public app in one
- * category, wherever it was listed from. `/category/...` is a real directory
- * so it matches before the `[...collection]` catch-all.
+ * category, wherever it was listed from. A slug that isn't a known category
+ * still resolves and shows an empty state instead of a 404.
+ * `/category/...` is a real directory so it matches before the
+ * `[...collection]` catch-all.
  */
 
 /* Per request, not prerendered: a build-time page would freeze the list. */
@@ -24,9 +26,9 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const category = categoryFromSlug(slug);
-  if (!category) return {};
-  const apps = await listAppsInCategory(category);
+  const known = categoryFromSlug(slug);
+  const category = known ?? nameFromSlug(slug);
+  const apps = known ? await listAppsInCategory(known) : [];
 
   return {
     title: `${category} apps — Showcase`,
@@ -40,13 +42,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CategoryPage({ params }: Props) {
   const { slug } = await params;
-  const category = categoryFromSlug(slug);
-  if (!category) notFound();
-
-  const apps = await listAppsInCategory(category);
+  const known = categoryFromSlug(slug);
+  const category = known ?? nameFromSlug(slug);
+  const apps = known ? await listAppsInCategory(known) : [];
 
   return (
     <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased">
+      <ShowcaseBreadcrumbs trail={[{ name: category, path: `/showcase/category/${slug}` }]} />
       <SiteHeader />
 
       <header className="py-[72px] max-[900px]:py-12">
@@ -85,7 +87,7 @@ export default async function CategoryPage({ params }: Props) {
             </div>
           ) : (
             <div className="rounded-[14px] border border-dashed border-border px-8 py-16 text-center">
-              <p className="text-[17px] font-medium">Nothing here yet.</p>
+              <p className="text-[17px] font-medium">No apps yet.</p>
               <p className="mx-auto mt-2 max-w-[44ch] text-[15px] leading-relaxed text-muted-foreground">
                 No {category} apps have been listed so far. Yours could be the first.
               </p>

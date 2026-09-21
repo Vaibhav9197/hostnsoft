@@ -25,9 +25,21 @@ export const TOOLS = ["Claude", "Codex", "Cursor", "Lovable", "Replit", "Other"]
 export type Category = (typeof CATEGORIES)[number];
 export type Tool = (typeof TOOLS)[number];
 
-/** URL segment for a category page: "AI Tool" → "ai-tool". */
-export function categorySlug(category: string): string {
-  return category.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+/** URL segment for a category or tag page: "AI Tool" → "ai-tool". */
+export function showcaseSlug(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+export const categorySlug = showcaseSlug;
+export const tagSlug = showcaseSlug;
+
+/** A readable name for a URL segment nothing matched: "ai-tool-parakh" → "Ai Tool Parakh". */
+export function nameFromSlug(slug: string): string {
+  return slug
+    .split("-")
+    .filter(Boolean)
+    .map((w) => w[0].toUpperCase() + w.slice(1))
+    .join(" ");
 }
 
 /** The category a URL segment names, or null when it isn't one we know. */

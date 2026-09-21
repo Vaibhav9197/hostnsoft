@@ -203,6 +203,21 @@ a crawlable 200. A second live host is exactly how the "Duplicate without
 user-selected canonical" Search Console issue happened before; it recurs
 identically for any new host that isn't handled the same way.
 
+## 11. User-submitted links get `rel="nofollow ugc"`
+
+Any URL a user typed into a form and we render as a link — a Showcase app's
+live URL, its video, the creator's profile — is user-generated content. Mark
+it `rel="noreferrer nofollow ugc"` so the site never vouches for, or passes
+link equity to, whatever was pasted. Links we chose ourselves (docs, partner
+sites) stay plain. See `app/showcase/app/[slug]/page.tsx`.
+
+## 12. Pages with a hierarchy emit `BreadcrumbList`
+
+Docs and every Showcase page (app, category, collection) emit breadcrumb
+JSON-LD so results can show "Embarko › Showcase › App" instead of a bare URL.
+Reuse `app/showcase/breadcrumbs.tsx` or the pattern in
+`app/docs/renderDoc.tsx` for any new section that sits under a parent page.
+
 ## Quick checklist for a new page
 
 - [ ] `metadata` (or `generateMetadata`) with a unique `title` (no "Embarko"
@@ -215,6 +230,8 @@ identically for any new host that isn't handled the same way.
       if the default card doesn't fit
 - [ ] Added to `app/sitemap.ts` if it's static; fetched safely if it's
       dynamic
+- [ ] User-submitted links carry `rel="nofollow ugc"`; pages under a parent
+      emit `BreadcrumbList`
 - [ ] Verify locally: `curl -s http://localhost:3000/your-path | grep -o '<title>[^<]*\|<meta name="description"[^>]*>\|<meta name="keywords"[^>]*>\|<link rel="canonical"[^>]*>'`
 
 ## Related
