@@ -1,10 +1,10 @@
 import { CheckCircle2, ChevronRight, Globe2, Lock, ShieldCheck } from "lucide-react";
 
-import { EU_HOSTING, WHY_EMBARKO } from "../lib/trust";
+import { INFRA_TRUST, WHY_EMBARKO } from "../lib/trust";
 import { cn } from "../lib/utils";
 
 /**
- * "Why Embarko" and the European hosting section.
+ * "Why Embarko" and the infrastructure-trust section.
  *
  * Both read their text from app/lib/trust.ts — see the long note at the top of
  * that file for what these claims are allowed to say. Nothing in here should
@@ -40,13 +40,15 @@ const TONES = {
   },
 } as const;
 
-/* One icon per EU point, keyed by id so reordering trust.ts cannot silently
-   pair the wrong icon with the wrong sentence. */
-const EU_ICONS = {
-  region: Globe2,
+/* One icon per trust point, keyed by id so reordering trust.ts cannot
+   silently pair the wrong icon with the wrong sentence. Every id in
+   INFRA_TRUST.points must appear here, or the icon lookup yields undefined
+   and the section throws at render. */
+const TRUST_ICONS = {
   iso: ShieldCheck,
-  gdpr: CheckCircle2,
   isolation: Lock,
+  encryption: Globe2,
+  gdpr: CheckCircle2,
 } as const;
 
 const WRAP = "mx-auto w-full max-w-[1120px] px-8 max-[640px]:px-5";
@@ -105,14 +107,17 @@ export function WhyEmbarko({
 }
 
 /**
- * The European hosting section. Four points, then the footnote that says whose
- * certificate it actually is.
+ * The infrastructure-trust section. Four points, then the footnote that says
+ * whose certificate it actually is.
+ *
+ * Was `EuropeanHosting`. Renamed with its data (trust.ts EU_HOSTING ->
+ * INFRA_TRUST) when the EU location claim was found to be false.
  *
  * The footnote is not fine print we are hiding behind — it is the part that
  * makes the claim above it checkable, so it renders at the same size as the
  * body copy rather than shrunk into a disclaimer.
  */
-export function EuropeanHosting({
+export function InfrastructureTrust({
   tone = "gray",
   id = "european-hosting",
   className = "py-[88px] max-[720px]:py-[60px]",
@@ -131,20 +136,20 @@ export function EuropeanHosting({
     <section id={id} className={cn("scroll-mt-16", t.inset, className)}>
       <div className={cn(WRAP, wrapClassName)}>
         <p className={`font-mono text-[11px] uppercase tracking-widest ${t.faint}`}>
-          {EU_HOSTING.eyebrow}
+          {INFRA_TRUST.eyebrow}
         </p>
         <h2
           className={`mt-4 text-[32px] font-semibold leading-tight tracking-[-0.015em] ${t.heading}`}
         >
-          {EU_HOSTING.title}
+          {INFRA_TRUST.title}
         </h2>
         <p className={`mt-3.5 max-w-[62ch] text-[17px] leading-relaxed ${t.muted}`}>
-          {EU_HOSTING.intro}
+          {INFRA_TRUST.intro}
         </p>
 
         <div className="mt-12 grid gap-x-10 gap-y-9 sm:grid-cols-2">
-          {EU_HOSTING.points.map((point) => {
-            const Icon = EU_ICONS[point.id as keyof typeof EU_ICONS];
+          {INFRA_TRUST.points.map((point) => {
+            const Icon = TRUST_ICONS[point.id as keyof typeof TRUST_ICONS];
             return (
               <div key={point.id} className="flex gap-3.5">
                 <Icon aria-hidden="true" className={`mt-0.5 size-[18px] shrink-0 ${t.icon}`} />
@@ -158,7 +163,7 @@ export function EuropeanHosting({
         </div>
 
         <p className={`mt-11 max-w-[68ch] border-t pt-6 text-[14px] leading-relaxed ${t.line} ${t.faint}`}>
-          {EU_HOSTING.footnote}
+          {INFRA_TRUST.footnote}
         </p>
       </div>
     </section>
@@ -190,7 +195,7 @@ export function TrustStrip({
     return (
       <p className={base}>
         <ShieldCheck aria-hidden="true" className="size-3.5" />
-        {EU_HOSTING.strip}
+        {INFRA_TRUST.strip}
       </p>
     );
   }
@@ -204,7 +209,7 @@ export function TrustStrip({
       className={cn(base, "transition hover:border-gray-400 hover:text-black")}
     >
       <ShieldCheck aria-hidden="true" className="size-3.5" />
-      {EU_HOSTING.strip}
+      {INFRA_TRUST.strip}
       <ChevronRight aria-hidden="true" className="size-3.5 opacity-60" />
     </button>
   );

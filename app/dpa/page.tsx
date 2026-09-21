@@ -16,13 +16,16 @@ const SUB_PROCESSORS = [
   { name: "Stripe", purpose: "Card payments and stored payment methods", location: "United States" },
   { name: "Lago", purpose: "Subscription and usage metering", location: <Fill>region</Fill> },
   { name: "Google (Tag Manager)", purpose: "Website and console analytics", location: "United States" },
-  /* Region is settled — these run in the EU, on ISO/IEC 27001 certified
-     infrastructure. The provider's NAME is still a placeholder: Article 28(2)
-     requires sub-processors to be identified, so this has to be filled in
-     before launch even though the marketing pages deliberately leave the
-     provider unnamed. */
-  { name: <Fill>compute provider</Fill>, purpose: "Running and building customer apps", location: "European Union" },
-  { name: <Fill>storage provider</Fill>, purpose: "App file storage and backups", location: "European Union" },
+  /* CORRECTED: these rows previously said "European Union". That was wrong —
+     the compute provider does not operate an EU region, so customer apps are
+     not processed in the EU. Both the NAME and the LOCATION are now
+     placeholders a human must resolve before launch: Article 28(2) requires
+     sub-processors to be identified, and Chapter V requires the processing
+     location plus a transfer mechanism where personal data leaves its region
+     of collection. The marketing pages deliberately leave the provider
+     unnamed; this document cannot. */
+  { name: <Fill>compute provider</Fill>, purpose: "Running and building customer apps", location: <Fill>region</Fill> },
+  { name: <Fill>storage provider</Fill>, purpose: "App file storage and backups", location: <Fill>region</Fill> },
   { name: <Fill>email provider</Fill>, purpose: "Transactional email", location: <Fill>region</Fill> },
 ];
 

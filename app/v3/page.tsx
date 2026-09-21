@@ -9,7 +9,7 @@ import { CopyPromptButton, COPIED_LABEL } from "../components/CopyPromptButton";
 import { FeatureShowcase } from "../components/FeatureShowcase";
 import { SiteFooter } from "../components/SiteFooter";
 import { SiteHeader } from "../components/SiteHeader";
-import { EuropeanHosting, WhyEmbarko } from "../components/WhyEmbarko";
+import { InfrastructureTrust, WhyEmbarko } from "../components/WhyEmbarko";
 
 /* In-page anchors for the header's centre slot — this page is long enough that
    jumping between sections matters. */
@@ -686,7 +686,7 @@ export default function EmbarkoV3() {
       <Included />
       <Examples />
       <Agents />
-      <EuropeanHosting tone="token" />
+      <InfrastructureTrust tone="token" />
       <FinalCta />
       <SiteFooter />
     </main>

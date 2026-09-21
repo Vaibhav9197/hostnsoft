@@ -14,10 +14,16 @@
  *
  * WHAT WE ARE ALLOWED TO SAY  (read before editing — this wording is deliberate)
  * -----------------------------------------------------------------------------
- * Embarko runs customer apps on a third-party European infrastructure
- * provider. That provider holds the ISO/IEC 27001 certification and operates
- * the EU region. Embarko itself is NOT certified, and Embarko's own legal
- * entity is not (yet) European.
+ * Embarko runs customer apps on third-party managed infrastructure. That
+ * provider holds the ISO/IEC 27001 certification. Embarko itself is NOT
+ * certified.
+ *
+ * CORRECTED: this file previously claimed customer apps run in EU
+ * datacenters. That is NOT true — the compute provider operates its regions
+ * outside the EU, and there is no EU region to place apps in. Every "runs in
+ * Europe" claim has been removed from this file and from the docs. Do not
+ * reintroduce a location claim of any kind until the platform team confirms,
+ * in writing, where apps actually land.
  *
  * Three sentences we must never write, and why:
  *
@@ -26,17 +32,15 @@
  *       covers their facilities and ISMS, not Embarko's.
  *
  *   "Embarko is a European company."
- *       Not established. The operating entity is still unresolved — see the
- *       <Fill> placeholders in app/terms and app/dpa. EU *hosting* is a fact;
- *       EU *incorporation* is not, and it is the incorporation that decides
- *       CLOUD Act exposure. Do not imply it.
+ *       Not established, and neither is EU hosting. The operating entity is
+ *       still unresolved — see the <Fill> placeholders in app/terms and
+ *       app/dpa.
  *
- *   "Your data never leaves the EU."
- *       Too broad. Customer apps and their storage run in the EU region, but
- *       this website and the console run on Cloudflare (see wrangler.jsonc),
- *       so request metadata and the A/B analytics table are not in that
- *       boundary. Every claim below is scoped to "your app and its data"
- *       on purpose. Keep it that way.
+ *   "Your data stays in the EU." / "Your app runs in Europe."
+ *       False. Customer apps run on infrastructure outside the EU. Scoping
+ *       the sentence more narrowly does not rescue it — there is no EU
+ *       region. Say nothing about location here; point at app/dpa, which is
+ *       where residency has to be stated precisely and reviewed by a human.
  *
  * The provider is intentionally unnamed in customer-facing copy, by product
  * decision. Note that this is a presentational choice only: a DPA has to name
@@ -80,10 +84,13 @@ export const WHY_EMBARKO: Pillar[] = [
       "Storage under DATA_DIR is kept between deploys, so the records your app wrote yesterday are still there after your agent ships again today.",
   },
   {
-    id: "european",
-    title: "A European home",
+    /* Was "A European home", claiming EU datacenters. Removed: apps do not
+       run in the EU. What survives is the certification, which is real and
+       is the provider's. */
+    id: "certified",
+    title: "Certified infrastructure",
     body:
-      "Your app and its data run in EU datacenters, on infrastructure certified to ISO/IEC 27001.",
+      "Your app runs on managed infrastructure certified to ISO/IEC 27001 — audited by an external body, not self-declared.",
   },
   {
     id: "reversible",
@@ -100,34 +107,28 @@ export const WHY_EMBARKO: Pillar[] = [
 ];
 
 /**
- * The European hosting story, broken out because it earns its own section on
- * the longer pages and a one-line strip on the shorter ones.
+ * The infrastructure-trust story, broken out because it earns its own section
+ * on the longer pages and a one-line strip on the shorter ones.
+ *
+ * Was EU_HOSTING / "Your app runs in Europe." Renamed and rewritten because
+ * the location claim was false — see the CORRECTED note at the top of this
+ * file. What is left is what can actually be stood behind: an externally
+ * audited certification, real isolation, and GDPR terms in writing. No
+ * sentence here says where an app runs, and none should be added.
  */
-export const EU_HOSTING = {
-  eyebrow: "EUROPEAN HOSTING",
-  title: "Your app runs in Europe.",
-  /** The section standfirst. Scoped to the app, deliberately — see above. */
+export const INFRA_TRUST = {
+  eyebrow: "INFRASTRUCTURE",
+  title: "Certified infrastructure, isolated by app.",
+  /** The section standfirst. Says nothing about location, deliberately. */
   intro:
-    "Where an app runs stops being a detail the moment it holds someone else's data. Embarko runs your app and its storage in EU datacenters, on infrastructure independently certified to ISO/IEC 27001.",
+    "Where an app runs stops being a detail the moment it holds someone else's data. Embarko runs your app on managed infrastructure independently certified to ISO/IEC 27001, and gives every app its own isolated environment.",
 
   points: [
-    {
-      id: "region",
-      title: "EU datacenters",
-      body:
-        "Your app, and the storage it writes under DATA_DIR, run on infrastructure located in the European Union.",
-    },
     {
       id: "iso",
       title: "ISO/IEC 27001 certified infrastructure",
       body:
         "The infrastructure Embarko runs on is certified to ISO/IEC 27001, the international standard for managing information security — audited by an external body, not self-declared.",
-    },
-    {
-      id: "gdpr",
-      title: "GDPR, in writing",
-      body:
-        "You are the controller for the personal data your app processes and Embarko is your processor, under a DPA built on Article 28.",
     },
     {
       id: "isolation",
@@ -142,6 +143,18 @@ export const EU_HOSTING = {
       body:
         "Each app runs in its own environment, with its own filesystem and its own persistent volume, separate from every other customer's app.",
     },
+    {
+      id: "encryption",
+      title: "Encrypted in transit",
+      body:
+        "Every app is served over HTTPS, with certificates issued and renewed automatically. Environment variables are encrypted under a separate key and exposed only to your own app's runtime.",
+    },
+    {
+      id: "gdpr",
+      title: "GDPR, in writing",
+      body:
+        "You are the controller for the personal data your app processes and Embarko is your processor, under a DPA built on Article 28.",
+    },
   ],
 
   /**
@@ -152,8 +165,8 @@ export const EU_HOSTING = {
    * someone checks.
    */
   footnote:
-    "ISO/IEC 27001 certification is held by the infrastructure provider that operates Embarko's EU region, and covers their facilities and information-security management.",
+    "ISO/IEC 27001 certification is held by the infrastructure provider Embarko runs on, and covers their facilities and information-security management. It is not a certification of Embarko itself. For where each category of data is processed, see the DPA.",
 
   /** Short form, for headers, footers and anywhere a whole section is too much. */
-  strip: "Runs in EU datacenters · ISO/IEC 27001 certified infrastructure",
+  strip: "ISO/IEC 27001 certified infrastructure · Every app isolated",
 } as const;

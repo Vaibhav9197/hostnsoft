@@ -6,7 +6,7 @@ import { AGENTS, agentIconSrc } from '../lib/agents';
 import { CopyPromptButton, COPIED_LABEL } from '../components/CopyPromptButton';
 import { trackPageView, trackCTA, trackDeployment } from '../lib/tracking';
 import { SiteHeader } from '../components/SiteHeader';
-import { EuropeanHosting, TrustStrip, WhyEmbarko } from '../components/WhyEmbarko';
+import { InfrastructureTrust, TrustStrip, WhyEmbarko } from '../components/WhyEmbarko';
 import { SiteFooter } from '../components/SiteFooter';
 import { Dialog, DialogContent, DialogTitle } from '../components/ui/dialog';
 
@@ -217,7 +217,7 @@ function TrustDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: 
           className="bg-transparent px-9 pb-10 pt-11 max-[640px]:px-6"
           wrapClassName="max-w-none px-0"
         />
-        <EuropeanHosting
+        <InfrastructureTrust
           className="border-t border-gray-200 bg-gray-50 px-9 py-10 max-[640px]:px-6"
           wrapClassName="max-w-none px-0"
         />

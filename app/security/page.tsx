@@ -23,16 +23,17 @@ export default function SecurityPage() {
 
       <Section title="Where your app runs">
         <P>
-          Embarko runs your app, and the storage it writes under <Code>DATA_DIR</Code>, in EU
-          datacenters, on infrastructure certified to ISO/IEC 27001 — the international standard for
+          Embarko runs your app, and the storage it writes under <Code>DATA_DIR</Code>, on managed
+          infrastructure certified to ISO/IEC 27001 — the international standard for
           information-security management, audited by an external body rather than self-declared.
         </P>
         <P>
-          To be exact about whose certificate that is: it is held by the infrastructure provider that
-          operates Embarko&apos;s EU region, and covers their facilities and information-security
-          management. It is not a certification of Embarko itself, and we do not claim one. It also
-          does not cover <Code>embarko.ai</Code> and the console, which run on separate
-          infrastructure — see the <A href="/dpa">DPA</A> for where each category of data sits.
+          To be exact about whose certificate that is: it is held by the infrastructure provider
+          Embarko runs on, and covers their facilities and information-security management. It is
+          not a certification of Embarko itself, and we do not claim one. It also does not cover{" "}
+          <Code>embarko.ai</Code> and the console, which run on separate infrastructure. A
+          certification is not a statement about where data is located — see the{" "}
+          <A href="/dpa">DPA</A> for where each category of data is processed.
         </P>
       </Section>
 
