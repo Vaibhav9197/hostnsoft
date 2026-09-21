@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { DOCS } from "./lib/docs";
-import { listApps, listIndexableCollections } from "./lib/showcase";
+import { categorySlug, listApps, listIndexableCollections } from "./lib/showcase";
 import { SITE } from "./lib/site";
 
 /**
@@ -35,7 +35,15 @@ async function showcaseEntries(): Promise<MetadataRoute.Sitemap> {
       listApps(SHOWCASE_LIMIT),
       listIndexableCollections(),
     ]);
+    /* Only categories that currently hold a public app — the category page
+       marks itself noindex when empty, so listing it would contradict that. */
+    const categories = [...new Set(apps.map((a) => a.category).filter((c): c is string => !!c))];
     return [
+      ...categories.map((c) => ({
+        url: `${SITE}/showcase/category/${categorySlug(c)}`,
+        changeFrequency: "daily" as const,
+        priority: 0.6,
+      })),
       ...collections.map((c) => ({
         url: `${SITE}/showcase/${encodeURIComponent(c.slug)}`,
         lastModified: c.createdAt,

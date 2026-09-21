@@ -9,7 +9,14 @@ import { API_BASE } from "./api";
 
 /* Form options live in showcaseOptions.ts (no server imports) and are
    re-exported here for the server pages. */
-export { CATEGORIES, TOOLS, type Category, type Tool } from "./showcaseOptions";
+export {
+  CATEGORIES,
+  TOOLS,
+  categorySlug,
+  categoryFromSlug,
+  type Category,
+  type Tool,
+} from "./showcaseOptions";
 
 export interface ShowcaseApp {
   id: string;
@@ -80,4 +87,12 @@ export async function getCollectionWithApps(
  *  one public app, so the discover rail never points at an empty page. */
 export async function listIndexableCollections(): Promise<Collection[]> {
   return (await read<Collection[]>("/public/showcase/collections")) ?? [];
+}
+
+/* The API has no category filter yet, so this reads the whole public list
+   (capped at its 200 maximum) and narrows here. Cheap at today's size; when
+   the Showcase outgrows one request this moves server-side. */
+export async function listAppsInCategory(category: string): Promise<ShowcaseApp[]> {
+  const apps = await listApps(200);
+  return apps.filter((app) => app.category === category);
 }

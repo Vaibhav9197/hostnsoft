@@ -24,3 +24,13 @@ export const TOOLS = ["Claude", "Codex", "Cursor", "Lovable", "Replit", "Other"]
 
 export type Category = (typeof CATEGORIES)[number];
 export type Tool = (typeof TOOLS)[number];
+
+/** URL segment for a category page: "AI Tool" → "ai-tool". */
+export function categorySlug(category: string): string {
+  return category.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+/** The category a URL segment names, or null when it isn't one we know. */
+export function categoryFromSlug(slug: string): Category | null {
+  return CATEGORIES.find((c) => categorySlug(c) === slug) ?? null;
+}

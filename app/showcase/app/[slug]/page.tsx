@@ -6,7 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { SiteHeader } from "../../../components/SiteHeader";
 import { SiteFooter } from "../../../components/SiteFooter";
 import { SITE } from "../../../lib/site";
-import { getApp, type ShowcaseApp } from "../../../lib/showcase";
+import { categorySlug, getApp, type ShowcaseApp } from "../../../lib/showcase";
 import { AppPreview, BTN_GHOST, BTN_PRIMARY, Creator, LABEL, WRAP } from "../../kit";
 import { ShareRow } from "../../share";
 
@@ -202,7 +202,14 @@ export default async function ShowcaseAppPage({ params }: Props) {
               {app.category && (
                 <div>
                   <p className={LABEL}>Category</p>
-                  <p className="mt-1.5 text-muted-foreground">{app.category}</p>
+                  <p className="mt-1.5">
+                    <Link
+                      href={`/showcase/category/${categorySlug(app.category)}`}
+                      className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                    >
+                      {app.category}
+                    </Link>
+                  </p>
                 </div>
               )}
 

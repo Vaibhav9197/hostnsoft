@@ -1,6 +1,9 @@
 import Link from "next/link";
 
 import type { ShowcaseApp } from "../lib/showcase";
+/* From showcaseOptions, not showcase: that module pulls in next/headers,
+   and this file is rendered by a client component (SearchGallery). */
+import { categorySlug } from "../lib/showcaseOptions";
 
 /* The marketing pages' measure and buttons. Copied as constants rather than
    imported from v3/page.tsx: that module is a landing-page variant behind
@@ -133,15 +136,30 @@ export function Creator({ app }: { app: ShowcaseApp }) {
  */
 export function AppCard({ app }: { app: ShowcaseApp }) {
   return (
-    <Link
-      href={`/showcase/app/${app.slug}`}
-      className="group flex flex-col gap-4 rounded-[14px] border border-border bg-card p-4 transition hover:border-[var(--line-strong)]"
-    >
+    <article className="group relative flex flex-col gap-4 rounded-[14px] border border-border bg-card p-4 transition hover:border-[var(--line-strong)]">
       <AppPreview app={app} className="aspect-[16/10]" />
       <div className="flex flex-1 flex-col">
         <div className="flex items-baseline justify-between gap-3">
-          <h3 className="text-[17px] font-semibold leading-tight">{app.name}</h3>
-          {app.category && <span className={`${LABEL} shrink-0`}>{app.category}</span>}
+          {/* The title link is stretched over the whole card, so the tile still
+              opens the app's page wherever it is clicked. The category sits
+              above it (z-10) as its own link: nesting one <a> inside another
+              is invalid HTML, and this keeps both clickable. */}
+          <h3 className="text-[17px] font-semibold leading-tight">
+            <Link
+              href={`/showcase/app/${app.slug}`}
+              className="after:absolute after:inset-0 after:rounded-[14px] after:content-['']"
+            >
+              {app.name}
+            </Link>
+          </h3>
+          {app.category && (
+            <Link
+              href={`/showcase/category/${categorySlug(app.category)}`}
+              className={`${LABEL} relative z-10 shrink-0 transition-colors hover:text-foreground`}
+            >
+              {app.category}
+            </Link>
+          )}
         </div>
         <p className="mt-1.5 line-clamp-2 text-[14.5px] leading-[1.55] text-muted-foreground">
           {app.tagline}
@@ -151,7 +169,7 @@ export function AppCard({ app }: { app: ShowcaseApp }) {
           {app.builtWith && <span className="text-muted-foreground"> · {app.builtWith}</span>}
         </p>
       </div>
-    </Link>
+    </article>
   );
 }
 
