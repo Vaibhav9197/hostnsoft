@@ -155,3 +155,15 @@
     background: color-mix(in srgb, currentColor 22%, transparent);
   }
 }
+
+/* Live-microphone pulse for the dictation button and its status dot. Its own
+   name, not "pulse": Tailwind's theme layer defines @keyframes pulse for
+   animate-pulse and would win over a same-named rule here. The console loads
+   this file, not globals.css, so console-only animations belong here. */
+@keyframes mic-pulse {
+  0%, 100% { opacity: 1 }
+  50% { opacity: .55 }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-mic-pulse] { animation: none }
+}

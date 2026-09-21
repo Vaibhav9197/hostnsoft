@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { MessageSquare } from "lucide-react";
 
 import { Button } from "../ui/button";
@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
+import { DictationButton, DictationStatus, useDictation } from "../ui/dictation";
 import { HnsError } from "../../lib/client";
 import { customerQueryApi } from "../../lib/hnsApi";
 import { useSession } from "../../lib/session";
@@ -23,9 +24,11 @@ import { useSession } from "../../lib/session";
  * session — so the whole thing is one choice and one box.
  */
 
+// Feature requests lead: that is what the header button invites, so the dialog
+// opens on the tab the user was already aiming at.
 const TYPES = [
-  { value: "feedback", label: "Feedback" },
   { value: "feature", label: "Request a feature" },
+  { value: "feedback", label: "Feedback" },
 ] as const;
 
 type QueryType = (typeof TYPES)[number]["value"];
@@ -33,25 +36,42 @@ type QueryType = (typeof TYPES)[number]["value"];
 export function HeaderContactButton() {
   const { activeCompanyId } = useSession();
   const [open, setOpen] = useState(false);
-  const [type, setType] = useState<QueryType>("feedback");
+  const [type, setType] = useState<QueryType>("feature");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Speech lands in the box as ordinary text, so it stays editable afterwards.
+  const appendTranscript = useCallback((text: string) => {
+    setMessage((current) => {
+      const needsSpace = current.length > 0 && !/\s$/.test(current);
+      return (current + (needsSpace ? " " : "") + text).slice(0, 2000);
+    });
+  }, []);
+  const dictation = useDictation({ onTranscript: appendTranscript });
+  const startDictation = dictation.start;
+  const stopDictation = dictation.stop;
+
   // Start clean every time it opens, including after a previous send.
   useEffect(() => {
     if (!open) return;
-    setType("feedback");
+    setType("feature");
     setMessage("");
     setBusy(false);
     setSent(false);
     setError(null);
   }, [open]);
 
+  // Never leave the mic live behind a closed dialog.
+  useEffect(() => {
+    if (!open) stopDictation();
+  }, [open, stopDictation]);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!activeCompanyId) return;
+    stopDictation();
     setBusy(true);
     setError(null);
     try {
@@ -65,7 +85,18 @@ export function HeaderContactButton() {
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)} aria-label="Request a feature">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => {
+          setOpen(true);
+          // Armed inside the click itself, not in an effect afterwards:
+          // browsers only start speech recognition — and the permission prompt
+          // behind it — from a real user gesture. Tap the mic to go quiet.
+          startDictation(true);
+        }}
+        aria-label="Request a feature"
+      >
         <MessageSquare aria-hidden="true" />
         {/* The plan chip shares this row on narrow screens. */}
         <span className="hidden sm:inline">Request a feature</span>
@@ -74,11 +105,11 @@ export function HeaderContactButton() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Get in touch</DialogTitle>
+            <DialogTitle>Build what you want</DialogTitle>
             <DialogDescription>
               {sent
                 ? "Thanks — we read every one of these."
-                : "Tell us what’s missing or what’s in your way. We’ll reply to your account email."}
+                : "This goes straight to the people building it — it’s how we decide what to work on next."}
             </DialogDescription>
           </DialogHeader>
 
@@ -120,9 +151,17 @@ export function HeaderContactButton() {
               </div>
 
               <div className="grid gap-1.5">
-                <label htmlFor="contact-message" className="text-sm font-semibold text-foreground">
-                  Message
-                </label>
+                <div className="flex items-center justify-between gap-2">
+                  <label htmlFor="contact-message" className="text-sm font-semibold text-foreground">
+                    Message
+                  </label>
+                  <DictationButton
+                    listening={dictation.listening}
+                    supported={dictation.supported}
+                    disabled={busy}
+                    onToggle={dictation.toggle}
+                  />
+                </div>
                 <textarea
                   id="contact-message"
                   value={message}
@@ -133,6 +172,7 @@ export function HeaderContactButton() {
                   placeholder="What would you like us to build or fix?"
                   className="w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 />
+                <DictationStatus state={dictation.state} interim={dictation.interim} />
               </div>
 
               <DialogFooter>
