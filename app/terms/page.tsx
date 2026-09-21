@@ -74,7 +74,45 @@ export default function TermsPage() {
         </P>
       </Section>
 
-      <Section title="5. Your app and your content">
+      <Section title="5. Fair use">
+        <P>
+          Embarko is designed for normal use of the apps deployed on the platform. Plans include
+          resources intended to support reasonable usage for the apps covered by your plan.
+        </P>
+        <P>We may limit, restrict, or suspend usage when an app or account:</P>
+        <List>
+          <Item>
+            Consumes substantially more compute, memory, storage, bandwidth, or other resources than
+            reasonably expected for its plan.
+          </Item>
+          <Item>Creates sustained or unusually high load that affects Embarko or other customers.</Item>
+          <Item>
+            Generates excessive automated requests, builds, deployments, logs, or other platform
+            activity.
+          </Item>
+          <Item>
+            Uses Embarko primarily as a general-purpose compute, storage, proxy, relay, or
+            traffic-generation service.
+          </Item>
+          <Item>Attempts to bypass plan limits, rate limits, or other platform controls.</Item>
+        </List>
+        <P>
+          Fair use is assessed based on the nature, duration, and impact of usage rather than a single
+          fixed threshold.
+        </P>
+        <P>
+          If an app regularly exceeds what is reasonably supported by its plan, we may ask you to move
+          to a more suitable plan or adjust the workload. Where reasonably possible, we will give you
+          an opportunity to do so before restricting the service.
+        </P>
+        <P>
+          This policy does not replace our acceptable use rules below or any specific limits stated
+          for a plan. We may take immediate action where necessary to protect Embarko, our
+          infrastructure, or other customers.
+        </P>
+      </Section>
+
+      <Section title="6. Your app and your content">
         <P>
           You own your app, your source code, and the data your app stores. We claim no rights to any
           of it. We store, build, run, and serve it solely to provide the service to you, and — where
@@ -86,7 +124,7 @@ export default function TermsPage() {
         </P>
       </Section>
 
-      <Section title="6. Acceptable use">
+      <Section title="7. Acceptable use">
         <P>You may not deploy or use an app on Embarko to:</P>
         <List>
           <Item>Do anything illegal under the law that applies to you or to us.</Item>
@@ -107,7 +145,7 @@ export default function TermsPage() {
         </P>
       </Section>
 
-      <Section title="7. Availability">
+      <Section title="8. Availability">
         <P>
           We work to keep Embarko and the apps on it available, and we publish incidents on our{" "}
           <A href="/status">status page</A>. We do not offer a contractual uptime guarantee on the
@@ -117,7 +155,7 @@ export default function TermsPage() {
         </P>
       </Section>
 
-      <Section title="8. Suspension, termination, and deletion">
+      <Section title="9. Suspension, termination, and deletion">
         <P>
           You can delete an app at any time from the console or the API, and you can close your
           account whenever you like. Deleting an app removes its running instance, its stored data,
@@ -131,7 +169,7 @@ export default function TermsPage() {
         </P>
       </Section>
 
-      <Section title="9. Warranties and liability">
+      <Section title="10. Warranties and liability">
         <P>
           Embarko is provided as-is, without warranties of any kind, express or implied. We are not
           liable for lost profits, lost data, or indirect or consequential damages arising from your
@@ -144,7 +182,7 @@ export default function TermsPage() {
         </P>
       </Section>
 
-      <Section title="10. Changes to these terms">
+      <Section title="11. Changes to these terms">
         <P>
           We may update these terms. When we do, we update the date at the top of this page, and for
           material changes we will notify account holders by email. Continuing to use Embarko after a
@@ -152,7 +190,7 @@ export default function TermsPage() {
         </P>
       </Section>
 
-      <Section title="11. Governing law">
+      <Section title="12. Governing law">
         <P>
           These terms, and any dispute arising out of them or out of your use of Embarko, are governed
           by the laws of <Fill>governing jurisdiction</Fill>, without regard to conflict-of-law rules,
@@ -162,7 +200,7 @@ export default function TermsPage() {
         </P>
       </Section>
 
-      <Section title="12. Contact">
+      <Section title="13. Contact">
         <P>
           Questions about these terms? Email <A href="mailto:hello@embarko.ai">hello@embarko.ai</A>.
         </P>
