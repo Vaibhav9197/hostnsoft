@@ -40,9 +40,10 @@ it.
 - **Certified infrastructure** — apps run on managed infrastructure
   certified to ISO/IEC 27001, with every app isolated from every other.
 
-Most of that is callable by the agent with a deploy token. Three things are
-dashboard-only and have to go back to the person: **custom domains, deleting
-an app, and analytics**.
+All of that is callable by the agent with a deploy token — including custom
+domains, analytics, renaming and deletion. The one step that needs the
+person is creating the DNS record for a custom domain, at their own
+registrar.
 
 ## [Not available yet](#not-yet)
 
@@ -210,7 +211,8 @@ Embarko      — builds it, runs it, serves it, keeps its data, and reports its 
 ```
 
 The person should never have to configure hosting. If a step needs them, it
-is one of the three dashboard-only things above, or a secret only they hold.
+is a DNS record at their registrar, a secret only they hold, money, or
+confirming something destructive.
 
 ## [Where to go next](#next)
 

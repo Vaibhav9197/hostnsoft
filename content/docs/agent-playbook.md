@@ -258,35 +258,118 @@ redeploy, and tell the user to rotate it.
 
 ## [Add a custom domain](#add-custom-domain)
 
-**You cannot do this one.** There is no API, and the DNS record must be
-created in the user's own registrar account. Your job is to make their part
-as short as possible.
+You do every step except one: **creating the DNS record**, which lives in
+the user's registrar account. Do your parts without asking, and give them a
+single, precise task.
 
-**1. Tell them up front** it's a dashboard task, and that a subdomain
-(`app.theirdomain.com`) is better than an apex (`theirdomain.com`) — an apex
-gets an `A` record straight to the origin and loses any CDN or DDoS proxy
-they had in front of it.
+**1. Advise on the shape first.** A subdomain (`app.theirdomain.com`) is
+better than an apex (`theirdomain.com`) — an apex gets an `A` record
+straight to the origin and loses any CDN or DDoS proxy in front of it. Say
+this before they pick.
 
-**2. Give them these steps:**
+**2. Register the domain** and read back the record it returns:
 
-1. Open the project in the dashboard → **Custom Domains**.
-2. Enter the domain.
-3. Copy the exact DNS record shown — a `CNAME` for a subdomain, an `A`
-   record for an apex.
-4. Create that record at their DNS provider. **On Cloudflare it must be
-   DNS-only (grey cloud), not Proxied (orange cloud)** — a proxied record
-   never verifies.
-5. Click **Verify**. Safe to click repeatedly while DNS propagates.
-6. Wait for status **Active**.
+```bash
+curl -X POST "https://ship.embarko.ai/apps/my-app/domains" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"domain": "app.yourdomain.com"}'
+```
 
-**3. If verification never succeeds**, the cause is almost always one of
-three: the record is proxied; the record doesn't match exactly; or port 80
-is blocked or redirected for that hostname (certificate issuance uses an
-HTTP-01 challenge and needs it open). See
+Nothing is live yet — registering only reserves it and tells you the record.
+
+**3. Give the user exactly that record**, spelled out: type, name, value.
+Add the one thing they will otherwise get wrong — **on Cloudflare it must be
+DNS-only (grey cloud), not Proxied (orange cloud)**, because a proxied
+record never verifies.
+
+**4. Verify, and keep verifying.** Safe to repeat while DNS propagates:
+
+```bash
+curl -X POST "https://ship.embarko.ai/apps/my-app/domains/app.yourdomain.com/verify" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN"
+```
+
+Routing activates only when this confirms. Poll it rather than asking the
+user whether they have finished.
+
+**5. If it never verifies**, the cause is almost always one of three: the
+record is proxied; it doesn't match exactly; or port 80 is blocked or
+redirected for that hostname (certificate issuance uses an HTTP-01 challenge
+and needs it open). See
 [troubleshoot.md](troubleshoot.md#verify-stuck-on-not-resolving-yet-despite-a-correct-looking-record).
 
-**4. Nothing breaks meanwhile.** The default
-`<app-name>.app.embarko.ai` URL keeps working, before and after.
+**6. Confirm it works**, then tell them. The default
+`<app-name>.app.embarko.ai` URL keeps working throughout and afterwards.
+
+`GET /apps/<name>/domains` lists what's registered;
+`DELETE /apps/<name>/domains/<domain>` removes one without touching the
+default URL.
+
+---
+
+## [Delete an app](#delete-app)
+
+Irreversible, with no backup. The API can do it; the judgement is still
+yours to escalate.
+
+**1. Confirm with the user first, naming the app and what goes with it** —
+the running app, its URL, and all data under `DATA_DIR`. Do not infer this
+from a vague instruction.
+
+**2. Delete, resending the name as confirmation:**
+
+```bash
+curl -X DELETE "https://ship.embarko.ai/apps/my-app" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"confirmAppName": "my-app"}'
+```
+
+`400 confirmation_required` means the name was missing or wrong, and
+nothing was deleted.
+
+**3. Tell them the name is released** — someone else can now take that
+subdomain.
+
+---
+
+## [Rename an app](#rename-app)
+
+**1. Know what changes.** The **display name** only. The slug is the live
+URL and does not move — if they want a different address, that is a new
+deploy under a new name, or a [custom domain](#add-custom-domain). Say so
+before doing it, or they will expect the URL to follow.
+
+**2. Rename:**
+
+```bash
+curl -X PATCH "https://ship.embarko.ai/apps/my-app" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "My App"}'
+```
+
+**3. Keep using the original slug** for every other call.
+
+---
+
+## [Report how an app is doing](#analytics)
+
+**1. Fetch the traffic and resource usage:**
+
+```bash
+curl "https://ship.embarko.ai/apps/my-app/analytics?range=7d" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN"
+```
+
+`range` is `24h`, `7d`, `30d`, `90d` or `all` (default `24h`).
+
+**2. A `503` is not zero traffic.** It means the analytics subsystem is
+unreachable. Say that, rather than reporting the app had no visitors.
+
+**3. Summarise in their terms** — requests, errors, whether it is near its
+memory ceiling — not raw numbers.
 
 ---
 

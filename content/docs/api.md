@@ -457,16 +457,36 @@ any prose page, including this one.
 
 ---
 
-## [Not available through the API](#dashboard-only)
+## [Manage a live app](#manage)
 
-No endpoint exists for these. Do not search for one; hand the task to the
-user with the steps from [Capabilities](capabilities.md):
+All on the deploy host, all with a deploy token.
 
-- **Custom domains** — and the DNS step needs the user regardless.
-- **Deleting an app** — irreversible, with no backup to restore from.
-- **Analytics** — dashboard screen only.
-- **Changing memory** — no agent call, and the dashboard control has been
-  removed. Reduce the app's own footprint instead.
+| Action | Call | Notes |
+| --- | --- | --- |
+| Register a custom domain | `POST /apps/<name>/domains` `{"domain": "..."}` | Returns the DNS record to create |
+| List domains | `GET /apps/<name>/domains` | |
+| Verify a domain | `POST /apps/<name>/domains/<domain>/verify` | Safe to repeat while DNS propagates |
+| Remove a domain | `DELETE /apps/<name>/domains/<domain>` | Never affects the default URL |
+| Analytics | `GET /apps/<name>/analytics?range=7d` | `24h`/`7d`/`30d`/`90d`/`all`, default `24h` |
+| Rename (display name) | `PATCH /apps/<name>` `{"name": "My App"}` | Slug and URL never change |
+| Delete the app | `DELETE /apps/<name>` `{"confirmAppName": "<name>"}` | Irreversible, no backup |
+
+Four behaviours worth stating outright:
+
+- **You cannot create the DNS record.** Register and verify are yours;
+  the record itself lives in the user's registrar account. Hand them what
+  `POST /domains` returns and wait.
+- **Analytics returns `503` when the subsystem is unreachable.** That is
+  not zero traffic — do not report it as such.
+- **Rename changes the display name only.** The slug is the URL and does
+  not move. A different URL means a different app.
+- **Delete requires `confirmAppName` in the body.** Omitting it or getting
+  it wrong is `400 confirmation_required` and deletes nothing. Get the
+  user's explicit go-ahead before sending it — see
+  [escalation](escalation.md#destructive).
+
+The only thing with no API at all is **changing memory**: no agent call, and
+the dashboard control has been removed. Reduce the app's footprint instead.
 
 ---
 

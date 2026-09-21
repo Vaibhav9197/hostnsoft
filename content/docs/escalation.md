@@ -48,10 +48,11 @@ it into the source.
 
 ### [2. DNS ownership requires human action](#dns)
 
-A [custom domain](agent-playbook.md#add-custom-domain) needs a record
-created in *their* registrar account, which only they can sign into. Give
-them the exact record and the exact steps. Don't make them work out the
-rest.
+You can register and verify a [custom domain](agent-playbook.md#add-custom-domain)
+yourself. What you cannot do is create the DNS record — that lives in *their*
+registrar account, which only they can sign into. Register the domain, hand
+them the exact record the API returns, and call verify once they confirm.
+Don't make them work out the rest.
 
 ### [3. Billing or payment approval is required](#billing)
 
@@ -62,9 +63,11 @@ working".
 ### [4. A destructive action needs confirmation](#destructive)
 
 Deleting an app is irreversible and there is **no backup to restore from**.
-Confirm explicitly before recommending it, and note that you cannot perform
-it — it is dashboard-only. The same care applies to anything that discards
-data under `DATA_DIR`.
+You *can* perform it — `DELETE /apps/<name>` with a `confirmAppName` field —
+which is exactly why the rule matters: show the user what you are about to
+delete and get an explicit yes first. The confirmation field guards against
+a misread instruction, not against an agent that is confident and wrong. The
+same care applies to anything that discards data under `DATA_DIR`.
 
 ### [5. A genuinely consequential decision you cannot infer](#judgement)
 

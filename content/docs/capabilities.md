@@ -15,8 +15,10 @@ Entries marked **NOT AVAILABLE YET** are planned but absent. Planned is not
 present: an app that needs one today cannot use it. Each says what to do
 instead.
 
-Three capabilities are **dashboard-only** — custom domains, deleting an app,
-and analytics. An agent cannot perform these; hand them to the user.
+Almost everything here is agent-callable with a deploy token, including
+custom domains, analytics, renaming and deletion. **One step is not:**
+creating the DNS record for a custom domain, which only the domain's owner
+can do at their own registrar.
 
 The calls below use two base URLs on the same host:
 
@@ -106,8 +108,10 @@ company holds the name you get `409 app_name_taken`, and the only correct
 response is to choose a different name. That error does *not* mean "your app
 already exists"; redeploying your own app is an ordinary success. Some names
 are reserved (`ship`, `api`, `www`, `login`, `docs`, `admin`, `mail`, and
-others) — treat a rejection as authoritative. Renaming is not supported:
-a different name is a different app.
+others) — treat a rejection as authoritative. The **slug cannot change**: a
+different slug is a different app, on a different URL. The app's *display
+name* can be changed with `PATCH /apps/<name>` — see
+[Renaming an app](#rename) — but that never moves the URL.
 
 ---
 
@@ -391,17 +395,34 @@ URL.
 
 **When:** The user asks for it, and owns the domain.
 
-**How:** **You cannot do this — it is dashboard-only**, and the DNS step
-needs the user regardless. Give them these steps: project → **Custom
-Domains** → enter the domain → create the exact DNS record shown → **Verify**
-→ wait for **Active**. A subdomain gets a `CNAME`; an apex gets an `A`
-record.
+**How:** Agent-callable, apart from the DNS record itself. Register the
+domain, hand the returned record to the domain's owner, then verify:
 
-**Limitations:** Dashboard-only, no API. On Cloudflare the record must be
-**DNS-only (grey cloud)** — a proxied record never verifies. An apex domain
-bypasses any CDN or DDoS proxy the user had in front of it, so prefer a
-subdomain. Certificate issuance uses an HTTP-01 challenge and needs **port
-80 reachable and unredirected**. Nothing activates until Verify succeeds.
+```bash
+# 1. Register it — returns the exact DNS record to create.
+curl -X POST "https://ship.embarko.ai/apps/my-app/domains" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"domain": "app.yourdomain.com"}'
+
+# 2. After the owner creates that record and it propagates:
+curl -X POST "https://ship.embarko.ai/apps/my-app/domains/app.yourdomain.com/verify" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN"
+```
+
+`GET /apps/my-app/domains` lists what's registered;
+`DELETE /apps/my-app/domains/<domain>` removes one.
+
+**Limitations:** **You cannot create the DNS record** — only whoever
+controls the domain can, at their DNS provider. That is the one step that
+goes back to the user, and nothing gets around it. A subdomain gets a
+`CNAME`; an apex gets an `A` record, which bypasses any CDN or DDoS proxy
+in front of it, so prefer a subdomain. On Cloudflare the record must be
+**DNS-only (grey cloud)** — a proxied record never verifies. Verify is safe
+to call repeatedly while DNS propagates; routing activates only when it
+confirms. Certificate issuance uses an HTTP-01 challenge and needs **port 80
+reachable and unredirected**. Removing a domain never affects the default
+`*.app.embarko.ai` URL.
 
 ---
 
@@ -647,13 +668,51 @@ be deliberate.
 
 **When:** The user explicitly asks to remove an app permanently.
 
-**How:** **You cannot do this — it is dashboard-only.** The user opens the
-project → **Settings** → **Delete project**. Confirm they mean it before
-recommending it.
+**How:** Agent-callable, but the token alone is not enough — you must
+resend the app's own name to confirm:
 
-**Limitations:** Dashboard-only, no API. **Irreversible, and there is no
-backup to restore from** — the app's `DATA_DIR` data is destroyed with it.
-The app name is released, so someone else can take it.
+```bash
+curl -X DELETE "https://ship.embarko.ai/apps/my-app" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"confirmAppName": "my-app"}'
+```
+
+Omitting `confirmAppName`, or getting it wrong, returns
+`400 confirmation_required` and deletes nothing.
+
+**Limitations:** **Irreversible, and there is no backup to restore from** —
+the app's `DATA_DIR` data is destroyed with it, and the name is released for
+anyone to take. **Always show the user exactly what you are about to delete
+and get their go-ahead first.** The `confirmAppName` field guards against a
+misread instruction, not against an agent that is confident and wrong — see
+[When to involve the human](escalation.md#destructive).
+
+---
+
+## [24b. Renaming an app](#rename)
+
+**What:** Change an app's **display name** — what the dashboard shows. The
+slug, and therefore the live URL, never changes.
+
+**Why:** An app slugged `my-app` in a hurry can still be presented as
+"Customer Portal" without redeploying or moving its URL.
+
+**When:** The user dislikes the displayed name, or it was auto-derived.
+
+**How:**
+
+```bash
+curl -X PATCH "https://ship.embarko.ai/apps/my-app" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "My App"}'
+```
+
+**Limitations:** Display name only. **The URL does not move** — if the user
+wants a different address, that is a new deploy under a new name (and a
+different app), or a [custom domain](#custom-domains). Keep addressing every
+other call by the original slug.
 
 ---
 
@@ -707,8 +766,9 @@ rejected for a reason the [error table](api.md#deploy) doesn't explain.
 Anything plan-related — upgrading, paying, changing a limit — is the user's
 decision and needs their approval.
 
-**Limitations:** There is no agent-facing endpoint for a company's current
-usage or remaining quota. Public unauthenticated endpoints have their own
+**Limitations:** There is no agent-facing endpoint for a company's plan or
+remaining quota — [analytics](#analytics) reports one app's traffic, not the
+account's limits. Public unauthenticated endpoints have their own
 separate limits: token requests 5/hour per email and 10/hour per IP;
 anonymous feedback 10/email, 20/IP and 500/hour globally.
 
@@ -748,9 +808,13 @@ characters.
 
 ### [Analytics](#analytics)
 
-**What:** Traffic and resource usage over `24h`, `7d`, `30d`, `90d` or
-`all`. **How:** **Dashboard-only** — point the user at their project's
-**Analytics** tab. **Limitations:** No API, no metrics export, no alerting.
+**What:** Request traffic (total and by status code) and CPU/memory usage.
+**When:** The user asks how the app is doing, or you are diagnosing load.
+**How:** `GET /apps/<name>/analytics?range=7d` with a deploy token — `range`
+is `24h`, `7d`, `30d`, `90d` or `all` (default `24h`). The same data is on
+the dashboard's **Analytics** tab. **Limitations:** Returns `503` if the
+analytics subsystem is unreachable — that is not zero traffic, so do not
+report it as such. No alerting and no metrics export.
 
 ---
 
@@ -775,9 +839,10 @@ characters.
 | Resource defaults (256MB, 1 process) | Fixed | — |
 | Agent / API authentication | Available | Agent |
 | Showcase listing | Available | Agent |
-| Custom domains | Available | **Dashboard only** |
-| Delete application | Available | **Dashboard only** |
-| Analytics | Available | **Dashboard only** |
+| Rename (display name) | Available | Agent |
+| Custom domains | Available | Agent (DNS record: user) |
+| Delete application | Available | Agent (confirmation required) |
+| Analytics | Available | Agent |
 | Account / project limits | Plan-based | User |
 | Backups and restore | **Not available** — in progress | — |
 | Application authentication (end users) | **Not available** — in progress | — |

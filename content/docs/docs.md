@@ -46,7 +46,7 @@ load-bearing ones. Everything below this section is detail.
 | --- | --- |
 | "Deploy this app." | [Quick start](#quick-start) — package, `POST /apps`, poll `statusUrl`, report the URL. |
 | "The deployment failed." | [Diagnosing a failed deploy](#diagnosing-a-failure) — status, then logs, then the `code` in [`troubleshoot.md`](troubleshoot.md), then fix and redeploy. |
-| "Add a custom domain." | [Custom domains](#custom-domains) — dashboard-only. Walk the user through it; the DNS step needs them regardless. |
+| "Add a custom domain." | [Custom domains](#custom-domains) — register and verify it yourself; only the DNS record needs the user. |
 | "Roll it back." | [Rollback](#rollback) — list deployments, pick the last good one, roll back, poll until it's applied. |
 | "Change a setting / API key." | [Environment variables](#environment-variables) — write it, then `POST /env-vars/apply`, or it won't reach the running app. |
 
@@ -265,7 +265,7 @@ It answers the questions you need settled *before* writing an app: the
 runtime contract (`PORT`, `0.0.0.0`, no Dockerfile), what survives a
 redeploy and what doesn't, how to obtain a credential, the memory defaults,
 and which features exist. Each feature also says **who can invoke it** —
-some are dashboard-only today, so an agent can tell in advance whether it
+each names who can invoke it, so an agent can tell in advance whether it
 can do a thing itself or has to hand it to a person.
 
 ```json
