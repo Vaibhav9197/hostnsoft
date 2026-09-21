@@ -6,7 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { SiteHeader } from "../../../components/SiteHeader";
 import { SiteFooter } from "../../../components/SiteFooter";
 import { SITE } from "../../../lib/site";
-import { categorySlug, getApp, type ShowcaseApp } from "../../../lib/showcase";
+import { categorySlug, getApp, tagSlug, type ShowcaseApp } from "../../../lib/showcase";
 import { AppPreview, BTN_GHOST, BTN_PRIMARY, Creator, LABEL, WRAP } from "../../kit";
 import { ShareRow } from "../../share";
 import { ShowcaseBreadcrumbs } from "../../breadcrumbs";
@@ -228,9 +228,19 @@ export default async function ShowcaseAppPage({ params }: Props) {
               {app.tags.length > 0 && (
                 <div>
                   <p className={LABEL}>Tags</p>
-                  {/* Text, not links. A tag only becomes a page once there is
-                      enough behind it to be worth one. */}
-                  <p className="mt-1.5 text-muted-foreground">{app.tags.join(" · ")}</p>
+                  <p className="mt-1.5 text-muted-foreground">
+                    {app.tags.map((tag, i) => (
+                      <span key={tag}>
+                        {i > 0 && " · "}
+                        <Link
+                          href={`/showcase/tag/${tagSlug(tag)}`}
+                          className="underline underline-offset-2 hover:text-foreground"
+                        >
+                          {tag}
+                        </Link>
+                      </span>
+                    ))}
+                  </p>
                 </div>
               )}
 
