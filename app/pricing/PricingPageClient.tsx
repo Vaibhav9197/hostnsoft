@@ -8,74 +8,14 @@ import { SiteFooter } from "../components/SiteFooter";
 import { LoginModal } from "../components/LoginModal";
 import { cn } from "../lib/utils";
 import { formatMoney } from "../lib/format";
+import { monthlyCents, planDetails as sharedPlanDetails, planFamily, type PlanDetails } from "../lib/plans";
 import type { BillingPlan } from "../lib/types";
 
 type Interval = "monthly" | "yearly";
 
-// Lago carries each billing period as its own plan (e.g. embarko_team and
-// embarko_team_annual). Plans are compared by cost-per-month regardless of
-// how they're billed, so a monthly and yearly catalogue line up correctly.
-const MONTHS: Record<string, number> = { monthly: 1, yearly: 12, quarterly: 3, weekly: 1 / 4 };
-const monthlyCents = (p: BillingPlan) => p.amount_cents / (MONTHS[p.interval] ?? 1);
-
-// "free" | "creator" | "team" — the tier a plan belongs to, across periods.
-const planFamily = (plan: BillingPlan): string | null => {
-  const key = `${plan.code} ${plan.name}`.toLowerCase();
-  if (key.includes("free")) return "free";
-  if (key.includes("creator")) return "creator";
-  if (key.includes("team") || key.includes("pro")) return "team";
-  return null;
-};
-
-// Marketing copy for each plan, matched to plans by code/name. Lago only
-// carries a one-line description, so the feature lists live here.
-const PLAN_DETAILS: Record<string, { headline: string; features: string[]; cta: string; badge?: string; highlighted?: boolean }> = {
-  free: {
-    headline: "Make your first app real.",
-    features: [
-      "1 live app",
-      "Your own Embarko link",
-      "Share your app with anyone",
-      "Your app just works",
-      "Automatic updates",
-      "Safe and secure",
-      "Embarko branding",
-    ],
-    cta: "Start for free",
-  },
-  creator: {
-    headline: "For people who can't stop building.",
-    features: [
-      "Up to 5 live apps",
-      "Use your own domain",
-      "Remove Embarko branding",
-      "Automatic backups",
-      "More usage",
-      "Faster performance",
-      "Everything taken care of automatically",
-    ],
-    cta: "Start building",
-    badge: "Most popular",
-    highlighted: true,
-  },
-  team: {
-    headline: "For serious builders.",
-    features: [
-      "Up to 20 live apps",
-      "Much more usage",
-      "Advanced controls",
-      "Team access",
-      "Multiple versions of your apps",
-      "Priority support",
-    ],
-    cta: "Get Team",
-  },
-};
-
-const planDetails = (plan: BillingPlan) => {
-  const family = planFamily(plan);
-  return (family ? PLAN_DETAILS[family] : null) ?? { headline: plan.description ?? "", features: [], cta: "Choose plan" };
-};
+// A plan outside the known tiers still renders, with Lago's description.
+const planDetails = (plan: BillingPlan): PlanDetails =>
+  sharedPlanDetails(plan) ?? { headline: plan.description ?? "", features: [], cta: "Choose plan" };
 
 // Fallback shown only if the public plans read fails or returns nothing —
 // so the page never renders empty while the API catalogue is unreachable.

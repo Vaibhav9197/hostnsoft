@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 
 import type { ShowcaseApp } from "../lib/showcase";
 /* From showcaseOptions, not showcase: that module pulls in next/headers,
@@ -164,10 +165,23 @@ export function AppCard({ app }: { app: ShowcaseApp }) {
         <p className="mt-1.5 line-clamp-2 text-[14.5px] leading-[1.55] text-muted-foreground">
           {app.tagline}
         </p>
-        <p className="mt-3 text-[13px] text-muted-foreground">
-          by <span className="text-foreground">{app.creatorName}</span>
-          {app.builtWith && <span className="text-muted-foreground"> · {app.builtWith}</span>}
-        </p>
+        <div className="mt-3 flex items-center justify-between gap-3 text-[13px] text-muted-foreground">
+          <p className="min-w-0 truncate">
+            by <span className="text-foreground">{app.creatorName}</span>
+            {app.builtWith && <span className="text-muted-foreground"> · {app.builtWith}</span>}
+          </p>
+          {/* Straight to the running app, skipping its Showcase page. Above
+              the stretched title link (z-10) so the click lands here. */}
+          <a
+            href={app.appUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="relative z-10 inline-flex shrink-0 items-center gap-1 font-medium text-foreground transition-colors hover:text-[var(--accent-2)]"
+          >
+            Open app
+            <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5" />
+          </a>
+        </div>
       </div>
     </article>
   );
