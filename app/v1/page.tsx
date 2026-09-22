@@ -782,7 +782,10 @@ export default function EmbarkoV1() {
       <WhyEmbarko className="flex min-h-[100dvh] flex-col justify-center px-6 py-20" />
       <InfrastructureTrust className="flex min-h-[100dvh] flex-col justify-center px-6 py-20" />
 
-      <section className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-6 py-20">
+      {/* The footer lives inside this last scene rather than after it: the
+          closing beat snaps into view already carrying the bottom of the site,
+          so nobody has to scroll past a finished page to reach the links. */}
+      <section className="relative flex min-h-[100dvh] flex-col overflow-hidden px-6 pt-20">
         {/* Mirror of the opening: there the light sat above, here it rises from below. */}
         <SkyBackdrop
           src="/atmosphere/sky-dawn.jpg"
@@ -791,7 +794,8 @@ export default function EmbarkoV1() {
           opacity={0.7}
           fade="from-white via-white/60 to-white/10"
         />
-        <div className="relative z-10 max-w-4xl space-y-12 text-center">
+        <div className="relative z-10 flex flex-1 flex-col items-center justify-center">
+        <div className="max-w-4xl space-y-12 text-center">
           <h2 className="text-4xl font-bold sm:text-5xl md:text-7xl">Your AI already built it.</h2>
           <h3 className="text-3xl font-light text-gray-600 sm:text-4xl md:text-6xl">Let it ship it.</h3>
           <div className="space-y-6 border-t border-gray-200 pt-12">
@@ -802,8 +806,12 @@ export default function EmbarkoV1() {
             </div>
           </div>
         </div>
+        </div>
+        {/* -mx-6 undoes the section's own gutter so the footer keeps its own. */}
+        <div className="relative z-10 -mx-6">
+          <SiteFooter />
+        </div>
       </section>
-        <SiteFooter />
       </div>
     </>
   );

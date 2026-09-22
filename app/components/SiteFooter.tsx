@@ -12,85 +12,76 @@ import Link from "next/link";
  * narrow text pages, say — pass their own.
  */
 
-/** Same column as the landing pages' WRAP (app/v3/page.tsx). */
-const MARKETING_MEASURE = "mx-auto w-full max-w-[1120px] px-8 max-[640px]:px-5";
+/* Full-bleed rather than the landing pages' 1120px column: the footer is a
+   rule across the bottom of the page, and two short rows of links pinned to
+   the far edges read as the page's frame instead of one more section. */
+const MARKETING_MEASURE = "w-full px-8 max-[640px]:px-5";
 
-const COLUMNS = [
-  {
-    heading: "Product",
-    links: [
-      { label: "Docs", href: "/docs" },
-      { label: "Pricing", href: "/pricing" },
-      /* { label: "Status", href: "/status" }, */
-      { label: "llms.txt", href: "/llms.txt", external: true },
-    ],
-  },
-  {
-    heading: "Legal",
-    links: [
-      { label: "Terms", href: "/terms" },
-      { label: "Privacy", href: "/privacy" },
-      { label: "DPA", href: "/dpa" },
-    ],
-  },
-  {
-    heading: "Company",
-    links: [
-      { label: "Security", href: "/security" },
-      { label: "Abuse", href: "/abuse" },
-      { label: "Contact", href: "/support" },
-    ],
-  },
+/* One row of links rather than headed columns: four links did not need three
+   headings and three columns of chrome to be found. */
+const NAV_LINKS = [
+  { label: "Docs", href: "/docs" },
+  { label: "Pricing", href: "/pricing" },
+  /* { label: "Status", href: "/status" }, */
+  /* A static file in /public, so a plain anchor — Link would route it. */
+  { label: "llms.txt", href: "/llms.txt", external: true },
+  { label: "Contact", href: "/support" },
+] as const;
+
+/* The bottom-bar repeat of the policy pages: regulators and payment providers
+   look for these on every page, and a reader scanning the fine print looks at
+   the fine print, not back up at a column. */
+const LEGAL_LINKS = [
+  { label: "Terms", href: "/terms" },
+  { label: "Privacy", href: "/privacy" },
+  { label: "DPA", href: "/dpa" },
+  { label: "Security", href: "/security" },
+  { label: "Abuse", href: "/abuse" },
 ] as const;
 
 export function SiteFooter({ measure = MARKETING_MEASURE }: { measure?: string }) {
   return (
-    <footer className="border-t border-border py-16">
+    <footer className="py-8">
       <div className={measure}>
-        <div className="grid gap-10 sm:grid-cols-[1fr_auto_auto_auto] sm:gap-16">
-          <div>
-            <span className="inline-flex items-center gap-1.5 text-lg font-semibold tracking-tight text-foreground">
-              {/* Same mark as the header; decorative, the wordmark reads it out. */}
-              <img src="/assets/embarko-icon.svg" alt="" aria-hidden="true" className="size-5 rounded" />
-              Embarko
-            </span>
-            <p className="mt-3 max-w-[24ch] text-sm leading-relaxed text-muted-foreground">
-              Hosting for the apps your AI builds.
-            </p>
-          </div>
+        <div className="flex flex-wrap items-center justify-between gap-x-10 gap-y-4">
+          <span className="inline-flex items-center gap-1.5 text-lg font-semibold tracking-tight text-foreground">
+            {/* Same mark as the header; decorative, the wordmark reads it out. */}
+            <img src="/assets/embarko-icon.svg" alt="" aria-hidden="true" className="size-5 rounded" />
+            Embarko
+          </span>
 
-          {COLUMNS.map((column) => (
-            <div key={column.heading}>
-              <p className="font-mono text-[11px] uppercase tracking-widest text-faint">
-                {column.heading}
-              </p>
-              <ul className="mt-3 space-y-2">
-                {column.links.map((link) => (
-                  <li key={link.label}>
-                    {"external" in link && link.external ? (
-                      <a
-                        href={link.href}
-                        className="text-sm text-muted-foreground transition hover:text-foreground"
-                      >
-                        {link.label}
-                      </a>
-                    ) : (
-                      <Link
-                        href={link.href}
-                        className="text-sm text-muted-foreground transition hover:text-foreground"
-                      >
-                        {link.label}
-                      </Link>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <nav aria-label="Footer" className="flex flex-wrap items-center gap-x-6 gap-y-2">
+            {NAV_LINKS.map((link) =>
+              "external" in link && link.external ? (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="text-sm text-muted-foreground transition hover:text-foreground"
+                >
+                  {link.label}
+                </a>
+              ) : (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-sm text-muted-foreground transition hover:text-foreground"
+                >
+                  {link.label}
+                </Link>
+              ),
+            )}
+          </nav>
         </div>
 
-        <div className="mt-10 border-t border-border pt-6 text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Embarko — hosting for AI-built apps
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-border pt-4 text-sm text-muted-foreground">
+          <span>© {new Date().getFullYear()} Embarko — hosting for AI-built apps</span>
+          <nav aria-label="Legal" className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            {LEGAL_LINKS.map((link) => (
+              <Link key={link.href} href={link.href} className="transition hover:text-foreground">
+                {link.label}
+              </Link>
+            ))}
+          </nav>
         </div>
       </div>
     </footer>

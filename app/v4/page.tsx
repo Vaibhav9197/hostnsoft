@@ -93,7 +93,10 @@ function WorldScene() {
 }
 
 function FinalScene() {
-  return <section className="final-scene" id="ready"><div><h2>Got an app ready?</h2><p>Copy the prompt. Let your agent put it online.</p><CopyPromptButton /><Steps /></div></section>;
+  /* The footer sits inside this scene, as on /v1: the closing beat already
+     carries the bottom of the site, so nobody scrolls past a finished page
+     to reach the links. */
+  return <section className="final-scene" id="ready"><div className="final-copy"><h2>Got an app ready?</h2><p>Copy the prompt. Let your agent put it online.</p><CopyPromptButton /><Steps /></div><SiteFooter /></section>;
 }
 
 export default function Home() {
@@ -104,6 +107,5 @@ export default function Home() {
     <SiteHeader />
     <section id="top" className="hero" aria-labelledby="hero-title"><div className="hero-intro"><p className="eyebrow"><Sparkles aria-hidden="true" /> Hosting for apps already built by your agent</p><h1 id="hero-title">Instant hosting for every app you build with AI</h1><div className="hero-action"><CopyPromptButton /></div><Steps /></div><p className="hero-note">Your agent builds it. Embarko hosts it.</p></section>
     <DeployScene /><LiveScene /><HostingScene /><WhyEmbarko /><AppGallery /><AgentScene /><WorldScene /><InfrastructureTrust /><section className="benefit-scene"><p>Spend your time building.<br />Not hosting.</p><SceneCta>Copy the deploy prompt</SceneCta></section><FinalScene />
-    <SiteFooter />
   </main>;
 }

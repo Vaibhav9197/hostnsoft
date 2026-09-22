@@ -304,7 +304,7 @@ export function PricingPageClient({ plans: fetched }: { plans: BillingPlan[] }) 
       </section>
 
       {/* Final CTA Section */}
-      <section className="px-6 py-24 border-t border-border">
+      <section className="px-6 py-24">
         <div className="mx-auto max-w-[74rem] text-center">
           <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
             Your next idea<br />
