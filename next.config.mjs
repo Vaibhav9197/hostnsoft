@@ -34,6 +34,20 @@ const nextConfig = {
         destination: "/docs/limitations",
         permanent: true,
       },
+
+      // /deploy-troubleshooting.md was a second, hand-maintained copy of the
+      // troubleshooting reference, served as a static file from public/ and
+      // linked from nothing in this repo. It had drifted: it still told
+      // agents to raise memory with `PATCH .../memory`, which is not a thing
+      // you can do, and named the pre-deploymentId rollback path. Every entry
+      // it had exists in content/docs/troubleshoot.md in a better form.
+      // Redirected rather than dropped because it was publicly reachable for
+      // months and an agent may hold the URL.
+      {
+        source: "/deploy-troubleshooting.md",
+        destination: "/docs/troubleshoot.md",
+        permanent: true,
+      },
     ];
   },
 
