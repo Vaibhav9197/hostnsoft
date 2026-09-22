@@ -1,12 +1,11 @@
 import { ThemeProvider } from "../lib/theme";
 
-/* Same theme script and provider as the console layout, reading the same
-   localStorage key — so the choice a platform admin makes in one panel is the
-   one they get in the other, and /admin never lands in the opposite theme. */
+/* Same theme script and provider as the console layout — both follow the OS,
+   so /admin never lands in the opposite theme to the panel it was opened
+   from. */
 const THEME_SCRIPT = `(function(){try{
-var p=localStorage.getItem("embarko-theme");
-if(p!=="light"&&p!=="dark")p=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";
-document.documentElement.setAttribute("data-theme",p);
+document.documentElement.setAttribute("data-theme",
+  window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
 }catch(e){}})();`;
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

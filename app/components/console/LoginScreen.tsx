@@ -45,7 +45,6 @@ export function LoginScreen() {
       window.initVerification({
         referenceId: REFERENCE_ID,
         type: "authorization",
-        theme: "light",
         // Redirect variant: MSG91 lands back on /app with the token appended;
         // SessionProvider consumes it. Works alongside the success callback.
         addInfo: {
