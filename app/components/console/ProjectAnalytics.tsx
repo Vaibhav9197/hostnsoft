@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Bar, BarChart, XAxis } from "recharts";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
 import { Alert, Fact, FactGrid, Skeleton } from "./kit";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart";
@@ -35,6 +35,16 @@ const RANGES: { value: AnalyticsRange; label: string }[] = [
    separated only by opacity and a colour the rest of the console uses for
    every control. A hue of its own is what makes the error share legible.
    Both tokens already carry a dark-theme value, so neither is restated here. */
+/* Named for what the visitor got, not the status class. "Errors" is reserved
+   for 5xx — the only bucket that means the app itself is at fault; 4xx is
+   mostly bots probing /wp-admin and is not something to alarm the owner. */
+const STATUS_BUCKETS = [
+  { value: "2xx", label: "Served fine" },
+  { value: "3xx", label: "Redirected" },
+  { value: "4xx", label: "Not found" },
+  { value: "5xx", label: "App errors" },
+] as const;
+
 const TRAFFIC_CONFIG = {
   ok: { label: "Requests", color: "var(--info)" },
   errors: { label: "Errors", color: "var(--danger)" },
@@ -73,8 +83,7 @@ function TrafficChart({ series, range }: { series: Analytics["traffic"]["series"
 
   return (
     /* The grid row is as tall as the taller Top paths card beside it, so the
-       plot area takes the slack instead of leaving it under the axis: the bars
-       sit on the bottom edge of the card wherever that lands. */
+       plot area takes the slack instead of leaving it under the axis. */
     <div className="flex flex-col rounded-xl border border-border bg-card p-4">
       <div className="font-mono text-[0.66rem] uppercase tracking-[0.1em] text-faint">Requests</div>
       <ChartContainer
@@ -83,7 +92,12 @@ function TrafficChart({ series, range }: { series: Analytics["traffic"]["series"
            the card's width; this chart instead fills whatever the row gives it. */
         className="mt-3 aspect-auto min-h-[8rem] w-full flex-1"
       >
-        <BarChart accessibilityLayer data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
+        {/* A line rather than stacked bars: a quiet app is a flat run at zero
+            with a spike where the traffic actually was, and that shape is what
+            the reader is looking for. Bars gave every idle hour equal ink. */}
+        <LineChart accessibilityLayer data={data} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
+          {/* Horizontal only: the vertical rules would fight the dots. */}
+          <CartesianGrid vertical={false} strokeDasharray="3 3" />
           <XAxis
             dataKey="bucketStart"
             tickLine={false}
@@ -94,6 +108,15 @@ function TrafficChart({ series, range }: { series: Analytics["traffic"]["series"
             interval="preserveStartEnd"
             minTickGap={24}
             tickFormatter={(iso: string) => bucketLabel(iso, range)}
+          />
+          {/* The scale is the point of a line chart — without it a spike has no
+              size. Narrow enough not to steal width from the plot. */}
+          <YAxis
+            tickLine={false}
+            axisLine={false}
+            width={40}
+            allowDecimals={false}
+            tickFormatter={(value: number) => formatCount(value)}
           />
           <ChartTooltip
             cursor={false}
@@ -109,13 +132,25 @@ function TrafficChart({ series, range }: { series: Analytics["traffic"]["series"
               />
             }
           />
-          {/* Stacked in this order so errors sit on top of the column, as the
-              eye reads a failure rate off the tip of each bar. */}
-          {/* Held back from solid so a wall of 90 bars stays calm; errors are
-              full strength because they are the thing worth looking at. */}
-          <Bar dataKey="ok" stackId="requests" fill="var(--color-ok)" fillOpacity={0.7} />
-          <Bar dataKey="errors" stackId="requests" fill="var(--color-errors)" radius={[2, 2, 0, 0]} />
-        </BarChart>
+          {/* Dots only while the run is short enough for them to read as points
+              rather than a thick line. */}
+          <Line
+            dataKey="ok"
+            type="linear"
+            stroke="var(--color-ok)"
+            strokeWidth={2}
+            dot={data.length <= 32 ? { r: 3, strokeWidth: 0, fill: "var(--color-ok)" } : false}
+            activeDot={{ r: 4 }}
+          />
+          <Line
+            dataKey="errors"
+            type="linear"
+            stroke="var(--color-errors)"
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ r: 4 }}
+          />
+        </LineChart>
       </ChartContainer>
     </div>
   );
@@ -246,11 +281,18 @@ export function ProjectAnalytics({
             </div>
           )}
 
-          <div className="grid gap-1 text-[0.8rem] text-faint sm:grid-cols-4">
-            {(["2xx", "3xx", "4xx", "5xx"] as const).map((bucket) => (
-              <span key={bucket} className="font-mono">
-                {bucket} · {formatCount(traffic.statusBreakdown[bucket])}
-              </span>
+          {/* "2xx · 119" is a status class, which means nothing to the person
+              whose AI built this app. Each one is named for what happened to
+              the visitor instead, with the raw class kept as a title for the
+              reader who does know what it means. */}
+          <div className="grid gap-3 text-[0.8rem] sm:grid-cols-4">
+            {STATUS_BUCKETS.map((bucket) => (
+              <div key={bucket.value} title={`HTTP ${bucket.value}`}>
+                <div className="text-faint">{bucket.label}</div>
+                <div className="font-mono text-foreground">
+                  {formatCount(traffic.statusBreakdown[bucket.value])}
+                </div>
+              </div>
             ))}
           </div>
         </>

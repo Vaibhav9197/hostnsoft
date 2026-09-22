@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { ArrowLeft, ExternalLink, RotateCw } from "lucide-react";
+import { ArrowLeft, Copy, ExternalLink } from "lucide-react";
 
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/app/components/ui/tooltip";
 import { Button } from "@/app/components/ui/button";
 import { DeployPromptDialog } from "@/app/components/console/DeployPromptDialog";
 import { HealthPill } from "@/app/components/console/HealthPill";
@@ -90,13 +91,25 @@ export function ProjectNav({ projectId }: { projectId: string }) {
             "https://undefined.app.embarko.ai" is worse than no link. */}
         {project && (
           <div className="flex flex-wrap items-center gap-2">
-            {/* Named for the outcome, not the mechanism: copying a prompt is
-                one of the two ways through this button now, and the reader
-                came here to ship a new version either way. */}
-            <Button variant="outline" onClick={() => setPromptOpen(true)}>
-              <RotateCw />
-              Redeploy this app
-            </Button>
+            {/* Says who does the work: the button hands the job to the
+                reader's AI agent (or an upload), it does not itself rebuild
+                anything. "Redeploy this app" read like a server action. */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" onClick={() => setPromptOpen(true)}>
+                    <Copy />
+                    Prompt to update this app
+                  </Button>
+                </TooltipTrigger>
+                {/* Says the two things the label can't: the prompt is for the
+                    agent, and it updates this app rather than creating another. */}
+                <TooltipContent className="max-w-[240px]">
+                  Copy this and give it to your AI agent — it ships your new code to this
+                  same app, on the same URL.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <Button asChild>
               <a href={`https://${project.slug}.app.embarko.ai`} target="_blank" rel="noreferrer">
                 Open live URL
@@ -110,8 +123,8 @@ export function ProjectNav({ projectId }: { projectId: string }) {
       <DeployPromptDialog
         open={promptOpen}
         onClose={() => setPromptOpen(false)}
-        title="Redeploy this app"
-        description={`Ship a new version of${project ? ` ${project.name}` : " this app"} — hand it to your AI agent, or upload it yourself.`}
+        title="Prompt to update this app"
+        description={`Ship a new version of${project ? ` ${project.name}` : " this app"} — copy the prompt for your AI agent, or upload it yourself.`}
         /* Names this app in the prompt, so the agent redeploys it instead of
            standing up a second one under a different name. */
         appSlug={project?.slug}
