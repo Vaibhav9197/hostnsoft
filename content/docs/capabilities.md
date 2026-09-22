@@ -1,6 +1,6 @@
 # Capabilities
 
-Everything Embarko can do, one entry each, in your agent's order of need.
+Everything Embarko can do, one entry each, in the order an agent needs it.
 Every entry answers the same five questions: **what** it is, **why** it
 exists, **when** to use it, **how** to use it, and its **limitations**.
 
@@ -29,7 +29,7 @@ The calls below use two base URLs on the same host:
 
 ---
 
-## [1. Deploy application](#deploy)
+## [Deploy application](#deploy)
 
 **What:** Upload an app's source and get it built, running and served at a
 live HTTPS URL.
@@ -62,7 +62,7 @@ and no custom build pipeline. Never package secrets.
 
 ---
 
-## [2. Redeploy / update application](#redeploy)
+## [Redeploy / update application](#redeploy)
 
 **What:** Ship a new version of an app that already exists.
 
@@ -87,7 +87,7 @@ repeat but not free.
 
 ---
 
-## [3. Application / project identity](#identity)
+## [Application / project identity](#identity)
 
 **What:** `X-App-Name` is the app's identity — and simultaneously its public
 subdomain. There is no separate project id, and no create-a-project step.
@@ -115,7 +115,7 @@ name* can be changed with `PATCH /apps/<name>` — see
 
 ---
 
-## [4. Deployment status](#status)
+## [Deployment status](#status)
 
 **What:** The outcome of the most recent deploy attempt, plus the app's
 current running state.
@@ -143,7 +143,7 @@ logs.
 
 ---
 
-## [5. Build errors](#build-errors)
+## [Build errors](#build-errors)
 
 **What:** The output of a build that failed before the app ever started.
 
@@ -172,7 +172,7 @@ runs and surface as `422` codes on the deploy call instead — see
 
 ---
 
-## [6. Runtime errors and logs](#logs)
+## [Runtime errors and logs](#logs)
 
 **What:** The tail of the running app's `stdout` and `stderr`.
 
@@ -200,7 +200,7 @@ to your own service.
 
 ---
 
-## [7. Database](#database)
+## [Database](#database)
 
 **What:** The app embeds its own database — SQLite via `better-sqlite3` —
 and writes the file under `DATA_DIR`, which survives every redeploy.
@@ -231,7 +231,7 @@ Artifacts sandbox API and is rejected at deploy time with
 
 ---
 
-## [8. Persistent file storage](#file-storage)
+## [Persistent file storage](#file-storage)
 
 **What today:** Files written under `DATA_DIR` persist across redeploys.
 That covers user uploads, generated files and caches.
@@ -256,7 +256,7 @@ it, no signed URLs, no lifecycle rules. Large media is a poor fit.
 
 ---
 
-## [9. Secrets and app setup](#secrets)
+## [Secrets and app setup](#secrets)
 
 **What:** Per-app environment variables, encrypted at rest and exposed only
 to that app's runtime.
@@ -290,7 +290,7 @@ rotation, no versioning, no sharing between apps.
 
 ---
 
-## [10. Scheduled jobs](#scheduled-jobs)
+## [Scheduled jobs](#scheduled-jobs)
 
 **NOT AVAILABLE YET.** Planned. There is no cron, no timer, and no way to
 have Embarko invoke your app on a schedule.
@@ -313,7 +313,7 @@ report a scheduled feature as working because the route exists.
 
 ---
 
-## [11. Background jobs and workers](#workers)
+## [Background jobs and workers](#workers)
 
 **NOT AVAILABLE YET.** Planned. There is no worker process, no queue, and no
 supported way to run work that outlives the request that started it.
@@ -337,7 +337,7 @@ of finishing.
 
 ---
 
-## [12. Public HTTP endpoints and webhook routes](#http-endpoints)
+## [Public HTTP endpoints and webhook routes](#http-endpoints)
 
 **What:** Every path on the app's URL reaches the app. Routing is the app's
 own business — including routes that exist to receive webhooks from Stripe,
@@ -366,7 +366,7 @@ documented; do not design around a particular value until they are.
 
 ---
 
-## [13. Default Embarko domain](#default-domain)
+## [Default Embarko domain](#default-domain)
 
 **What:** Every app is served at `https://<app-name>.app.embarko.ai` from
 its first deploy.
@@ -386,7 +386,7 @@ is attached.
 
 ---
 
-## [14. Custom domains](#custom-domains)
+## [Custom domains](#custom-domains)
 
 **What:** The user's own domain in front of the app, alongside the default
 URL.
@@ -426,7 +426,7 @@ reachable and unredirected**. Removing a domain never affects the default
 
 ---
 
-## [15. Automatic HTTPS](#https)
+## [Automatic HTTPS](#https)
 
 **What:** TLS certificates are issued and renewed automatically, for both
 `*.app.embarko.ai` and connected custom domains.
@@ -443,7 +443,7 @@ is encrypted in transit; at rest it is encrypted by the storage provider.
 
 ---
 
-## [16. Application authentication (end-user login)](#app-auth)
+## [Application authentication (end-user login)](#app-auth)
 
 **NOT AVAILABLE YET.** Actively in progress.
 
@@ -468,7 +468,7 @@ integration, no session handling, no user store.
 
 ---
 
-## [17. Access protection (private apps)](#access-protection)
+## [Access protection (private apps)](#access-protection)
 
 **NOT AVAILABLE YET.** Planned.
 
@@ -489,7 +489,7 @@ otherwise.
 
 ---
 
-## [18. Deployment history](#history)
+## [Deployment history](#history)
 
 **What:** The durable record of every deploy: its id, its version, when it
 ran, and whether it succeeded.
@@ -516,7 +516,7 @@ entries are just timestamps, and never reuse a tag for different code.
 
 ---
 
-## [19. Rollback](#rollback)
+## [Rollback](#rollback)
 
 **What:** Put an earlier successful build back in service — a pointer flip
 onto an image that already exists, with no rebuild.
@@ -552,7 +552,7 @@ does **not** restore data: `DATA_DIR` is untouched.
 
 ---
 
-## [20. Backups and restore](#backups)
+## [Backups and restore](#backups)
 
 **NOT AVAILABLE YET.** Actively in progress.
 
@@ -577,7 +577,7 @@ never data. Deleting an app destroys its data irreversibly.
 
 ---
 
-## [21. Application health](#health)
+## [Application health](#health)
 
 **What:** The `health` object in the status response, describing the app's
 current running state independently of the last deploy's outcome.
@@ -608,7 +608,7 @@ readiness/liveness check can be configured per app. Branch only on
 
 ---
 
-## [22. Application isolation and security](#isolation)
+## [Application isolation and security](#isolation)
 
 **What:** Each app runs in its own environment, with its own filesystem and
 its own volume, on managed infrastructure certified to ISO/IEC 27001.
@@ -633,7 +633,7 @@ encrypt anything sensitive. Filesystem and storage isolation are real.
 
 ---
 
-## [23. Resource and runtime defaults](#resources)
+## [Resource and runtime defaults](#resources)
 
 **What:** What every app gets without asking: 256MB of memory, a shared CPU
 allocation, one process, and a runtime auto-detected from the source by
@@ -659,7 +659,7 @@ which is an obligation, not headroom.
 
 ---
 
-## [24. Delete application](#delete)
+## [Delete application](#delete)
 
 **What:** Tear down the running app, its routing, its image and its record.
 
@@ -690,7 +690,7 @@ misread instruction, not against an agent that is confident and wrong — see
 
 ---
 
-## [24b. Renaming an app](#rename)
+## [Renaming an app](#rename)
 
 **What:** Change an app's **display name** — what the dashboard shows. The
 slug, and therefore the live URL, never changes.
@@ -716,7 +716,7 @@ other call by the original slug.
 
 ---
 
-## [25. Agent / API authentication](#agent-auth)
+## [Agent / API authentication](#agent-auth)
 
 **What:** How *you* authenticate to Embarko: a company-wide deploy token,
 `Authorization: Bearer <token>`. Distinct from
@@ -750,7 +750,7 @@ anonymous.
 
 ---
 
-## [26. Account and project limits](#limits)
+## [Account and project limits](#limits)
 
 **What:** How many apps a company can run at once, and what usage is
 included, are set by its plan.
