@@ -167,3 +167,16 @@
 @media (prefers-reduced-motion: reduce) {
   [data-mic-pulse] { animation: none }
 }
+
+/* MSG91's proxy-auth widget (loaded on the login, connector-login and
+   user-management screens) injects its own global stylesheet with a
+   same-named `.text-success { color: var(--color-common-green) !important; }`
+   rule. `--color-common-green` is never defined on this site, so that rule
+   wins the cascade and silently turns every `.text-success` element — the
+   pricing page's "Save X%", status pills, live-app badges — grey for the rest
+   of the session, on any page, once that widget has loaded once. This
+   restates our own colour with `!important` and higher specificity (the
+   `html` prefix) so ours wins regardless of which stylesheet loads last. */
+html .text-success {
+  color: var(--ok) !important;
+}

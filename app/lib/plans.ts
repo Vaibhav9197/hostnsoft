@@ -57,8 +57,10 @@ export const PLAN_DETAILS: Record<string, PlanDetails> = {
   creator: {
     headline: "For people who can't stop building.",
     features: [
-      "Up to 5 live apps",
-      "Database included",
+      {
+        text: "Up to 5 dynamic apps",
+        tooltip: "Includes data storage for each app.",
+      },
       "Use your own domain",
       "Remove Embarko branding",
       "Automatic backups",
@@ -73,8 +75,10 @@ export const PLAN_DETAILS: Record<string, PlanDetails> = {
   team: {
     headline: "For serious builders.",
     features: [
-      "Up to 20 live apps",
-      "Database included",
+      {
+        text: "Up to 20 dynamic apps",
+        tooltip: "Includes data storage for each app.",
+      },
       "Much more usage",
       "Advanced controls",
       "Team access",
