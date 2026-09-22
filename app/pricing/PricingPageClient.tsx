@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowRight, Check, Lightbulb, Cpu, Zap } from "lucide-react";
+import { ArrowRight, Check, Info, Lightbulb, Cpu, Zap } from "lucide-react";
 import { Button } from "../components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../components/ui/tooltip";
 import { Header } from "../components/Header";
 import { SiteFooter } from "../components/SiteFooter";
 import { LoginModal } from "../components/LoginModal";
@@ -185,12 +186,26 @@ export function PricingPageClient({ plans: fetched }: { plans: BillingPlan[] }) 
                     </Button>
 
                     <div className="space-y-3 flex-1">
-                      {details.features.map((feature) => (
-                        <div key={feature} className="flex items-start gap-3">
-                          <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                          <span className="text-sm text-foreground">{feature}</span>
-                        </div>
-                      ))}
+                      {details.features.map((feature) => {
+                        const text = typeof feature === "string" ? feature : feature.text;
+                        const tooltip = typeof feature === "string" ? undefined : feature.tooltip;
+                        return (
+                          <div key={text} className="flex items-start gap-3">
+                            <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                            <span className="text-sm text-foreground">{text}</span>
+                            {tooltip && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger aria-label={tooltip}>
+                                    <Info className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-[220px]">{tooltip}</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 );

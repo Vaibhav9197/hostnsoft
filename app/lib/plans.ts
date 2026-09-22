@@ -22,9 +22,15 @@ export const planFamily = (plan: BillingPlan): string | null => {
   return null;
 };
 
+export interface PlanFeature {
+  text: string;
+  /** Plain-language explanation shown behind an (i) icon — no jargon like "database". */
+  tooltip?: string;
+}
+
 export interface PlanDetails {
   headline: string;
-  features: string[];
+  features: (string | PlanFeature)[];
   cta: string;
   badge?: string;
   highlighted?: boolean;
@@ -35,6 +41,10 @@ export const PLAN_DETAILS: Record<string, PlanDetails> = {
     headline: "Make your first app real.",
     features: [
       "Unlimited static websites",
+      {
+        text: "1 dynamic app",
+        tooltip: "Includes data storage for 1 app.",
+      },
       "Your own Embarko link",
       "Share your app with anyone",
       "Your app just works",

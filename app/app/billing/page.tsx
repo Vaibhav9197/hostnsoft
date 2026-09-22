@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CalendarClock, Check, CreditCard, ExternalLink, Star } from "lucide-react";
+import { CalendarClock, Check, CreditCard, ExternalLink, Info, Star } from "lucide-react";
 
 import {
   Alert,
@@ -20,6 +20,7 @@ import {
 import { ConfirmDialog } from "../../components/console/ConfirmDialog";
 import { Button } from "../../components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../components/ui/tooltip";
 import { useBilling } from "../../lib/billing";
 import { HnsError } from "../../lib/client";
 import { formatDate, formatMoney, intervalSuffix } from "../../lib/format";
@@ -363,12 +364,26 @@ export default function BillingPage() {
                     )}
                     {details ? (
                       <ul className="mt-5 flex flex-1 flex-col gap-2 border-t border-border pt-4">
-                        {details.features.map((f) => (
-                          <li key={f} className="flex items-start gap-2 text-[0.88rem] text-foreground/90">
-                            <Check className="mt-[3px] size-3.5 shrink-0 text-foreground" aria-hidden="true" />
-                            {f}
-                          </li>
-                        ))}
+                        {details.features.map((f) => {
+                          const text = typeof f === "string" ? f : f.text;
+                          const tooltip = typeof f === "string" ? undefined : f.tooltip;
+                          return (
+                            <li key={text} className="flex items-start gap-2 text-[0.88rem] text-foreground/90">
+                              <Check className="mt-[3px] size-3.5 shrink-0 text-foreground" aria-hidden="true" />
+                              <span>{text}</span>
+                              {tooltip && (
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger aria-label={tooltip}>
+                                      <Info className="mt-[3px] size-3.5 shrink-0 text-muted-foreground" />
+                                    </TooltipTrigger>
+                                    <TooltipContent className="max-w-[220px]">{tooltip}</TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              )}
+                            </li>
+                          );
+                        })}
                       </ul>
                     ) : (
                       <p className="mt-2 flex-1 text-[0.9rem] leading-relaxed text-muted-foreground">{plan.description}</p>
