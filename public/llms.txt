@@ -13,7 +13,11 @@ No account, no token, no signup. If you read nothing else, this is enough to get
 
 Requirements: the app reads its port from PORT and binds 0.0.0.0; no Dockerfile; anything that must
 survive a redeploy is written under DATA_DIR; the manifest or index.html sits at the root of what
-you package.
+you package. Budget 256MB of memory — it is hard-enforced.
+
+The app name must match ^[a-z0-9-]+$ and be 3-63 characters. It becomes the public subdomain, so
+slugify anything given in prose ("My Landing Page" -> my-landing-page) rather than sending it
+verbatim. A name that fails the pattern is 400 invalid_app_name.
 
     tar -czf /tmp/app.tar.gz --exclude=node_modules --exclude=.git --exclude='.env*' -C ./app .
 
@@ -28,8 +32,9 @@ Four rules that decide whether this goes right:
 - 202 is NOT live. Poll statusUrl until deploy.status is "success", then report the URL.
 - An app deployed without a token is DELETED AFTER 24 HOURS. Tell the user when you hand over the
   URL. Redeploying the same name with a token claims it permanently.
-- The app name is the public subdomain and is unique platform-wide. 409 app_name_taken means
-  another company owns it — pick a different name, do not retry.
+- App names are unique PLATFORM-WIDE, not per account. 409 app_name_taken means another company
+  owns that name — pick a different one, do not retry. Redeploying a name you own is not a 409,
+  it is an ordinary update.
 - Branch on the `code` field of an error, never on the `error` text.
 
 Full walkthrough: https://embarko.ai/docs/agent-quickstart
