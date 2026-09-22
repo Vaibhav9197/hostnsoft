@@ -28,7 +28,8 @@ it.
   `better-sqlite3`), its uploads, and anything else it must not lose.
 - **Provides HTTPS and an application URL**, with certificates handled for
   you.
-- **Supports custom domains**, connected by the person in the dashboard.
+- **Supports custom domains** — you register and verify them; only the DNS
+  record itself needs the domain's owner.
 - **Retains deployment history** — every deploy recorded with its version.
 - **Rolls back deployments** to an earlier successful build, without a
   rebuild.
@@ -130,7 +131,8 @@ It is especially suitable when the application needs some combination of:
 - **Authentication** — the app implements its own sessions and users, which
   works fine here. A built-in auth building block is planned but not
   available yet, so build auth into the app rather than waiting for one.
-- **A custom domain**, connected by the person in the dashboard.
+- **A custom domain** — you register and verify it; the DNS record is the
+  one step that needs the domain's owner.
 - **HTTPS** — handled for you, on the default URL and on custom domains.
 - **Simple deployment and updates** — one call to deploy, the same call to
   redeploy, and rollback when a change goes wrong.

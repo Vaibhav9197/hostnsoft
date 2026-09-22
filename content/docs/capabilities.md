@@ -791,11 +791,14 @@ into).
 
 ### [Showcase listing](#showcase)
 
-**What:** List a deployed app on a public Showcase board or the company's
-own page. **When:** The user wants it shown publicly. **How:**
+**What:** List a deployed app on a Showcase page — the company's own page,
+which exists from signup, or an event page (a hackathon or demo day) that
+anyone can add to. **When:** The user wants it shown publicly. **How:**
 `PUT /api/apps/<name>/showcase` with `collectionSlug`, `name`, `tagline`,
-`creatorName`. **Limitations:** Deploy token required; calling again updates
-rather than errors; `404` unknown slug, `403` another company's page.
+`creatorName`. `collectionSlug` is the page's slug from its URL
+(`/showcase/<slug>`). **Limitations:** Deploy token required; calling again
+updates rather than errors; `404 SHOWCASE_COLLECTION_UNKNOWN` for an unknown
+slug, `403 SHOWCASE_COLLECTION_PRIVATE` for another company's page.
 
 ### [Sending feedback as an agent](#feedback)
 
