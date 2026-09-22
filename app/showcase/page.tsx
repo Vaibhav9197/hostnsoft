@@ -59,9 +59,9 @@ function EmptyState() {
     <div className="pb-[88px] max-[900px]:pb-14">
       <div className={WRAP}>
         <div className="rounded-[14px] border border-dashed border-border px-8 py-16 text-center">
-          <p className="text-[17px] font-medium">The first projects are on their way.</p>
+          <p className="text-[17px] font-medium">The first apps are on their way.</p>
           <p className="mx-auto mt-2 max-w-[42ch] text-[15px] leading-relaxed text-muted-foreground">
-            If you have put something online with Embarko, list it from your console.
+            Deployed something on Embarko? List it and it gets a public page here.
           </p>
           <Link href="/app/showcase/submit" className={`${BTN_PRIMARY} mt-7`}>
             List your app

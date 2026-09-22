@@ -7,7 +7,7 @@ import { AppCard, LABEL, WRAP } from "./kit";
 
 /** Matches an app against a free-text query across every field the spec asks
  *  a visitor to be able to search by: name, description, creator, hashtags,
- *  category, the AI it was built with, and its board's name. */
+ *  category, the AI it was built with, and the name of the page it is on. */
 function matches(app: ShowcaseApp, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
@@ -60,11 +60,11 @@ export function SearchGallery({
     <section className="pb-[88px] max-[720px]:pb-[60px]" id="browse">
       <div className={WRAP}>
         <div className="grid grid-cols-[220px_1fr] gap-8 max-[860px]:grid-cols-1 max-[860px]:gap-6">
-          {/* Table-of-contents style directory of public boards. Sits beside
-              the results rather than above them, so picking a board doesn't
+          {/* Table-of-contents style directory of pages — companies' own pages and
+              event pages. Sits beside the results, so picking one doesn't
               cost the visitor their scroll position in the grid. */}
           <aside>
-            <p className={`${LABEL} mb-4`}>Boards</p>
+            <p className={`${LABEL} mb-4`}>Pages</p>
             <nav className="flex flex-col max-[860px]:flex-row max-[860px]:flex-wrap max-[860px]:gap-2">
               <button
                 type="button"
@@ -103,7 +103,7 @@ export function SearchGallery({
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search by name, creator, category, AI used, or board…"
+                placeholder="Search by name, creator, category, AI used, or page…"
                 className="w-full rounded-[10px] border border-border bg-elevated px-4 py-3 text-[15px] outline-none transition placeholder:text-muted-foreground focus:border-[var(--line-strong)]"
               />
             </label>
@@ -124,7 +124,7 @@ export function SearchGallery({
               <div className="mt-6 rounded-[14px] border border-dashed border-border px-8 py-16 text-center">
                 <p className="text-[17px] font-medium">Nothing matches yet.</p>
                 <p className="mx-auto mt-2 max-w-[44ch] text-[15px] leading-relaxed text-muted-foreground">
-                  Try a different name, creator, category, or board.
+                  Try a different name, creator, category, or page.
                 </p>
               </div>
             )}

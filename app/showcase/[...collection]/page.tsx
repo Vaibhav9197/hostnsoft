@@ -12,7 +12,7 @@ import { ShowcaseBreadcrumbs } from "../breadcrumbs";
 
 /**
  * A showcase page: /showcase/walkover, /showcase/iit-indore-26. A company's
- * own page or a public board. `/app/...` is a real directory and matches
+ * own page or an event page. `/app/...` is a real directory and matches
  * first. A catch-all so deeper paths 404 in this layout.
  */
 
@@ -71,8 +71,12 @@ export default async function CollectionPage({ params }: Props) {
           <h1 className="mt-6 max-w-[720px] text-[42px] font-semibold leading-[1.1] tracking-[-0.02em] max-[900px]:text-[32px]">
             {meta.title}
           </h1>
+          {/* Says which kind of page this is, so a visitor who landed here
+              from a share link knows what they are looking at. */}
           <p className="mt-4 text-[17px] text-muted-foreground">
-            {apps.length} {apps.length === 1 ? "project" : "projects"} built
+            {meta.type === "company"
+              ? `Apps built by ${meta.title}`
+              : `An event page — ${apps.length} ${apps.length === 1 ? "app" : "apps"} built and shared here`}
           </p>
 
           {meta.intro && (
@@ -82,11 +86,20 @@ export default async function CollectionPage({ params }: Props) {
           )}
 
           <div className="mt-9 flex flex-wrap items-center gap-3">
-            <Link href="/app/showcase/submit" className={BTN_PRIMARY}>
-              List your app here
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </Link>
-            <ShareRow title={`${meta.title} — ${apps.length} projects built`} />
+            {/* Only an event page takes anyone's app; a company page takes
+                that company's own, which it lists from its console. */}
+            {meta.type === "public" ? (
+              <Link href={`/app/showcase/submit?page=${encodeURIComponent(meta.slug)}`} className={BTN_PRIMARY}>
+                Add your app to this page
+                <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+            ) : (
+              <Link href="/showcase" className={BTN_GHOST}>
+                Browse the Showcase
+                <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+            )}
+            <ShareRow title={`${meta.title} — ${apps.length} ${apps.length === 1 ? "app" : "apps"} built with AI`} />
           </div>
         </div>
       </header>
@@ -104,14 +117,18 @@ export default async function CollectionPage({ params }: Props) {
                with the event, and the projects arrive over the following
                days. It says so rather than looking broken. */
             <div className="rounded-[14px] border border-dashed border-border px-8 py-16 text-center">
-              <p className="text-[17px] font-medium">Nothing here yet.</p>
+              <p className="text-[17px] font-medium">No apps here yet.</p>
               <p className="mx-auto mt-2 max-w-[44ch] text-[15px] leading-relaxed text-muted-foreground">
-                Apps appear here as soon as their owners list them from the Embarko console.
+                {meta.type === "public"
+                  ? "Apps appear here as soon as participants add them."
+                  : `Apps appear here as soon as ${meta.title} lists them.`}
               </p>
-              <Link href={`/app/showcase/submit?page=${encodeURIComponent(meta.slug)}`} className={`${BTN_GHOST} mt-7`}>
-                Be the first
-                <ArrowRight aria-hidden="true" className="h-4 w-4" />
-              </Link>
+              {meta.type === "public" && (
+                <Link href={`/app/showcase/submit?page=${encodeURIComponent(meta.slug)}`} className={`${BTN_GHOST} mt-7`}>
+                  Be the first
+                  <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                </Link>
+              )}
             </div>
           )}
         </div>
