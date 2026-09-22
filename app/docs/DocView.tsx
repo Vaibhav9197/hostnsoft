@@ -11,6 +11,20 @@ import { DOCS, localizeDocHref, slugify, type TocEntry } from "../lib/docs";
 /* Turn a heading's rendered children back into plain text, so an id can be
    derived from it. The source writes headings as self-links —
    `## [Overview](#overview)` — so children is usually a single anchor node. */
+/* The sidebar, grouped. Order comes from DOCS, so the reading order is set
+   in one place; a doc with no `group` is published and routed but kept out
+   of the nav (hackathons reads as a landing page, not reference). */
+const NAV_GROUPS: { title: string; docs: typeof DOCS }[] = DOCS.reduce(
+  (groups, doc) => {
+    if (!doc.group) return groups;
+    const existing = groups.find((g) => g.title === doc.group);
+    if (existing) existing.docs.push(doc);
+    else groups.push({ title: doc.group, docs: [doc] });
+    return groups;
+  },
+  [] as { title: string; docs: typeof DOCS }[],
+);
+
 function textOf(node: ReactNode): string {
   if (node == null || typeof node === "boolean") return "";
   if (typeof node === "string" || typeof node === "number") return String(node);
@@ -291,7 +305,7 @@ export function DocView({ markdown, toc, activeSlug }: DocViewProps) {
             would take its width out of the prose, so below xl the contents
             list stays under Guides where it used to live. */}
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_240px]">
-          <nav className="hidden lg:block" aria-label="Guides">
+          <nav className="hidden lg:block" aria-label="Documentation">
             {/* Scrolls on its own: the guides plus a long contents list runs
                 past a short viewport, and a sticky block that overflows just
                 hides its own tail. */}
@@ -301,25 +315,29 @@ export function DocView({ markdown, toc, activeSlug }: DocViewProps) {
                   Deliberately styled as filled rows, not rail entries: moving
                   between documents is a different act from moving within one,
                   and the two lists shouldn't read as one long menu. */}
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-neutral-500">
-                Guides
-              </p>
-              <div className="space-y-0.5">
-                {DOCS.map((d) => (
-                  <a
-                    key={d.slug}
-                    href={d.path}
-                    aria-current={d.slug === activeSlug ? "page" : undefined}
-                    className={`block rounded-lg px-3 py-2 text-sm leading-snug ${
-                      d.slug === activeSlug
-                        ? "bg-neutral-100 font-semibold text-neutral-950"
-                        : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-950"
-                    }`}
-                  >
-                    {d.title}
-                  </a>
-                ))}
-              </div>
+              {NAV_GROUPS.map((group, i) => (
+                <div key={group.title} className={i === 0 ? undefined : "mt-6"}>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-neutral-500">
+                    {group.title}
+                  </p>
+                  <div className="space-y-0.5">
+                    {group.docs.map((d) => (
+                      <a
+                        key={d.slug}
+                        href={d.path}
+                        aria-current={d.slug === activeSlug ? "page" : undefined}
+                        className={`block rounded-lg px-3 py-2 text-sm leading-snug ${
+                          d.slug === activeSlug
+                            ? "bg-neutral-100 font-semibold text-neutral-950"
+                            : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-950"
+                        }`}
+                      >
+                        {d.title}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ))}
 
               <TocBlock sections={sections} active={active} className="mt-8 xl:hidden" />
             </div>
