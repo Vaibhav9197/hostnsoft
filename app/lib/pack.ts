@@ -44,6 +44,27 @@ export type PackEntry = { path: string; data: Uint8Array };
  *  upload holds, so the cast is kept here, once. */
 const asPart = (bytes: Uint8Array): BlobPart => bytes as unknown as BlobPart;
 
+/**
+ * The excluded things a set of paths actually contains, by name.
+ *
+ * Purely for telling the person what was left out. node_modules in particular
+ * is the bulk of most folders someone picks, and an upload that says "49 files"
+ * for a project they know has thousands reads as broken unless something says
+ * the dependencies were dropped on purpose — the platform installs them at
+ * build time, so shipping them would only make the upload slower.
+ */
+export function excludedIn(paths: string[]): string[] {
+  const found = new Set<string>();
+  for (const path of paths) {
+    for (const part of path.split("/")) {
+      if (EXCLUDED_DIRS.has(part)) found.add(part);
+    }
+  }
+  /* Stable order, most-worth-mentioning first, rather than whatever order the
+     file system happened to hand over. */
+  return [...EXCLUDED_DIRS].filter((d) => found.has(d));
+}
+
 /** Whether a path inside the archive is one we ship. */
 function isExcluded(path: string): boolean {
   const parts = path.split("/");
@@ -175,7 +196,7 @@ async function inflate(data: Uint8Array, method: number): Promise<Uint8Array> {
  * a local header may declare sizes of zero and defer the real ones to a data
  * descriptor after the payload — the central directory always has them.
  */
-export async function readZip(file: File): Promise<PackEntry[]> {
+export async function readZip(file: File): Promise<{ entries: PackEntry[]; skipped: string[] }> {
   const buf = new Uint8Array(await file.arrayBuffer());
   const view = new DataView(buf.buffer);
 
@@ -191,6 +212,7 @@ export async function readZip(file: File): Promise<PackEntry[]> {
   let offset = u32(view, eocd + 16);
 
   const entries: PackEntry[] = [];
+  const names: string[] = [];
   for (let i = 0; i < count; i++) {
     if (u32(view, offset) !== 0x02014b50) throw new Error("This zip file is damaged.");
     const method = u16(view, offset + 10);
@@ -204,6 +226,7 @@ export async function readZip(file: File): Promise<PackEntry[]> {
 
     /* A trailing slash is a directory entry; tar gets its structure from the
        file paths themselves, so there is nothing to carry over. */
+    names.push(name);
     if (name.endsWith("/") || isExcluded(name)) continue;
 
     /* The local header's own name and extra lengths are not required to match
@@ -216,7 +239,7 @@ export async function readZip(file: File): Promise<PackEntry[]> {
       data: await inflate(buf.subarray(start, start + compressedSize), method),
     });
   }
-  return entries;
+  return { entries, skipped: excludedIn(names) };
 }
 
 // -------------------------------------------------------------------- entry
@@ -255,7 +278,20 @@ export function stripCommonRoot(entries: PackEntry[]): { entries: PackEntry[]; r
   };
 }
 
-export type Packed = { blob: Blob; appName: string; fileCount: number };
+export type Packed = {
+  blob: Blob;
+  appName: string;
+  fileCount: number;
+  /** Excluded folders that were actually there, so the panel can say they were
+   *  left out rather than leaving the file count looking wrong. */
+  skipped: string[];
+  /** The packed tree, kept so a problem below can be fixed without asking for
+   *  the folder again. Null for a tarball, which is passed through unopened. */
+  entries: PackEntry[] | null;
+  /** Set when this would have failed on the server or in the build. See
+   *  `inspect`. */
+  problem: PackProblem | null;
+};
 
 /** True for something already in the shape the endpoint wants. */
 export function isTarball(file: File): boolean {
@@ -270,9 +306,17 @@ export function isTarball(file: File): boolean {
  */
 export async function packFile(file: File): Promise<Packed> {
   if (isTarball(file)) {
-    return { blob: file, appName: toAppName(file.name), fileCount: 0 };
+    return {
+      blob: file,
+      appName: toAppName(file.name),
+      fileCount: 0,
+      skipped: [],
+      entries: null,
+      problem: null,
+    };
   }
-  const { entries, root } = stripCommonRoot(await readZip(file));
+  const zip = await readZip(file);
+  const { entries, root } = stripCommonRoot(zip.entries);
   if (entries.length === 0) throw new Error("That zip file has nothing in it to deploy.");
   return {
     blob: await tarGz(entries),
@@ -281,6 +325,9 @@ export async function packFile(file: File): Promise<Packed> {
        them is a name anybody meant. */
     appName: toAppName(root ?? file.name),
     fileCount: entries.length,
+    skipped: zip.skipped,
+    entries,
+    problem: inspect(entries),
   };
 }
 
@@ -291,6 +338,8 @@ export async function packFile(file: File): Promise<Packed> {
  * just the leaf, so the tree has to be rebuilt from it.
  */
 export async function packFolder(files: File[]): Promise<Packed> {
+  const paths = files.map((f) => f.webkitRelativePath || f.name);
+  const skipped = excludedIn(paths);
   const kept = files.filter((f) => !isExcluded(f.webkitRelativePath || f.name));
   if (kept.length === 0) throw new Error("That folder has nothing in it to deploy.");
 
@@ -306,5 +355,162 @@ export async function packFolder(files: File[]): Promise<Packed> {
     blob: await tarGz(stripped.entries),
     appName: toAppName(stripped.root ?? "app"),
     fileCount: stripped.entries.length,
+    skipped,
+    entries: stripped.entries,
+    problem: inspect(stripped.entries),
+  };
+}
+
+// ------------------------------------------------------------- preflight
+
+/**
+ * The manifests the platform's build looks for at the archive root, in the
+ * same order the deploy script lists them.
+ */
+const MANIFESTS = [
+  "package.json",
+  "requirements.txt",
+  "pyproject.toml",
+  "go.mod",
+  "Gemfile",
+  "composer.json",
+  "Cargo.toml",
+];
+
+/**
+ * What's wrong with a packed upload, when it is wrong in a way that is
+ * knowable here.
+ *
+ * Both shapes are the same mistake seen from two sides — "the app to deploy is
+ * in a subdirectory" — and both fail on the server minutes into a build, with
+ * an error that doesn't name the cause. `dir` is the folder to deploy instead,
+ * which is what makes them fixable in one click rather than one explanation.
+ */
+export type PackProblem =
+  /** Nothing buildable at the root, but a manifest one level down. */
+  | { kind: "nested"; dir: string }
+  /** A root package.json with no dependencies that hands its build to a
+   *  subfolder — the ordinary frontend/backend repo, deployed from the top. */
+  | { kind: "delegates"; dir: string };
+
+const decode = (bytes: Uint8Array) => new TextDecoder().decode(bytes);
+
+function fileAt(entries: PackEntry[], path: string): PackEntry | undefined {
+  return entries.find((e) => e.path === path);
+}
+
+/**
+ * Mirrors detectDelegatingRoot in the server's detect-manifest-root.js (and
+ * the same check in public/skills/embarko-deploy.sh) — keep the three in step.
+ */
+function delegatesTo(entries: PackEntry[]): string | null {
+  const root = fileAt(entries, "package.json");
+  if (!root) return null;
+
+  let pkg: {
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+    scripts?: Record<string, string>;
+    workspaces?: string[] | { packages?: string[] };
+  };
+  try {
+    pkg = JSON.parse(decode(root.data));
+  } catch {
+    return null;
+  }
+
+  /* A root that installs something of its own is a real app, whatever else its
+     scripts do. */
+  const deps =
+    Object.keys(pkg.dependencies ?? {}).length +
+    Object.keys(pkg.devDependencies ?? {}).length;
+  if (deps > 0) return null;
+
+  const patterns = [
+    /--prefix[= ]+(\S+)/,
+    /--cwd[= ]+(\S+)/,
+    /--dir[= ]+(\S+)/,
+    /(?:^|&&|;|\|)\s*cd\s+([^\s&;|]+)/,
+  ];
+  const candidates: string[] = [];
+  for (const name of ["build", "start"]) {
+    const text = pkg.scripts?.[name];
+    if (typeof text !== "string") continue;
+    for (const p of patterns) {
+      const m = p.exec(text);
+      if (m) candidates.push(m[1]);
+    }
+  }
+  const ws = Array.isArray(pkg.workspaces)
+    ? pkg.workspaces
+    : Array.isArray(pkg.workspaces?.packages)
+      ? pkg.workspaces.packages
+      : [];
+  for (const w of ws) if (typeof w === "string") candidates.push(w);
+
+  for (const raw of candidates) {
+    const dir = raw.replace(/^\.\//, "").replace(/\/+$/, "");
+    if (!dir || dir === "." || dir.includes("..") || dir.startsWith("/")) continue;
+    if (fileAt(entries, `${dir}/package.json`)) return dir;
+  }
+  return null;
+}
+
+/** Nothing buildable at the root, but exactly the thing one level down. */
+function nestedIn(entries: PackEntry[]): string | null {
+  const rootHasApp =
+    MANIFESTS.some((m) => fileAt(entries, m)) || !!fileAt(entries, "index.html");
+  if (rootHasApp) return null;
+
+  const wanted = new Set([...MANIFESTS, "index.html"]);
+  for (const entry of entries) {
+    const parts = entry.path.split("/");
+    if (parts.length !== 2) continue;
+    if (wanted.has(parts[1])) return parts[0];
+  }
+  return null;
+}
+
+/**
+ * Everything worth refusing before an upload leaves the browser.
+ *
+ * The server rejects both of these too (`no_manifest_at_root` and
+ * `app_nested_in_subdirectory`), and the build would fail on them anyway — but
+ * only after the archive has been packed, sent and queued. Catching them here
+ * means the panel can name the folder to deploy instead while the person is
+ * still looking at the picker.
+ */
+export function inspect(entries: PackEntry[]): PackProblem | null {
+  const nested = nestedIn(entries);
+  if (nested) return { kind: "nested", dir: nested };
+  const delegates = delegatesTo(entries);
+  if (delegates) return { kind: "delegates", dir: delegates };
+  return null;
+}
+
+/** Everything under `dir`, lifted to the archive root — the one-click fix for
+ *  either problem above. */
+export function reroot(entries: PackEntry[], dir: string): PackEntry[] {
+  const prefix = `${dir}/`;
+  return entries
+    .filter((e) => e.path.startsWith(prefix))
+    .map((e) => ({ ...e, path: e.path.slice(prefix.length) }));
+}
+
+/**
+ * Re-packs an upload from the folder its problem named — the "deploy that
+ * instead" path. The name follows the folder, because that is now the app.
+ */
+export async function packSubdirectory(packed: Packed, dir: string): Promise<Packed> {
+  if (!packed.entries) throw new Error("There is nothing to re-pack here.");
+  const entries = reroot(packed.entries, dir);
+  if (entries.length === 0) throw new Error(`There is nothing inside ${dir}/ to deploy.`);
+  return {
+    blob: await tarGz(entries),
+    appName: toAppName(dir),
+    fileCount: entries.length,
+    skipped: packed.skipped,
+    entries,
+    problem: inspect(entries),
   };
 }

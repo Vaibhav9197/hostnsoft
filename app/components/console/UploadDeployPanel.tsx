@@ -1,11 +1,20 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { FolderUp, UploadCloud } from "lucide-react";
+import { AlertTriangle, FolderUp, UploadCloud } from "lucide-react";
 
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { MAX_PACKED_BYTES, isTarball, packFile, packFolder, toAppName, type Packed } from "@/app/lib/pack";
+import {
+  MAX_PACKED_BYTES,
+  isTarball,
+  packFile,
+  packFolder,
+  packSubdirectory,
+  toAppName,
+  type Packed,
+} from "@/app/lib/pack";
 import { appNameError } from "@/app/lib/appName";
 
 /**
@@ -87,7 +96,7 @@ export function UploadDeployPanel({
   );
 
   async function deploy() {
-    if (phase.step !== "ready" || !companyId || nameError) return;
+    if (phase.step !== "ready" || !companyId || nameError || phase.packed.problem) return;
     const packed = phase.packed;
     setPhase({ step: "uploading", packed });
 
@@ -117,6 +126,26 @@ export function UploadDeployPanel({
     }
   }
 
+  /* Re-packs from the folder the problem named, and takes its name — the
+     subfolder is the app now, so "my-repo" is the wrong label for it. A
+     redeploy keeps the name it is deploying over. */
+  async function deployInstead(dir: string) {
+    if (phase.step !== "ready") return;
+    const current = phase.packed;
+    setPhase({ step: "packing" });
+    try {
+      const packed = await packSubdirectory(current, dir);
+      setPhase({ step: "ready", packed });
+      setName(appSlug ?? packed.appName);
+    } catch (e) {
+      setPhase({
+        step: "error",
+        message: e instanceof Error ? e.message : "Couldn’t re-pack that folder.",
+      });
+    }
+  }
+
+  const problem = phase.step === "ready" ? phase.packed.problem : null;
   const busy = phase.step === "packing" || phase.step === "uploading";
   /* Shown under the field rather than waited for: a name the endpoint will
      refuse is knowable here, and finding out after an upload has been packed
@@ -186,8 +215,48 @@ export function UploadDeployPanel({
           <p className="text-xs text-muted-foreground">
             {formatSize(phase.packed.blob.size)} packed
             {phase.packed.fileCount > 0 && ` · ${phase.packed.fileCount} files`}
+            {/* Named rather than silently dropped: a project with thousands of
+                files packing to 49 looks broken unless something says the
+                dependencies were left out on purpose. The platform installs
+                them at build time, so sending them would only make the upload
+                slower. */}
+            {phase.packed.skipped.length > 0 &&
+              ` · ${phase.packed.skipped.join(", ")} left out`}
             {isTarball(phase.packed.blob as File) && " · already a tarball, sent as-is"}
           </p>
+          {/* The same two things the server refuses and the deploy script
+              checks for locally, caught before anything is sent — both are
+              "the app is in a subdirectory", and both otherwise fail minutes
+              into a build with an error that names something else entirely.
+              The fix is one button because the folder to deploy is already
+              packed and named. */}
+          {problem && (
+            <Alert className="border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-50">
+              <AlertTriangle aria-hidden="true" />
+              <AlertTitle>
+                The app to deploy is in a subdirectory,{" "}
+                <span className="font-mono">{problem.dir}/</span>
+              </AlertTitle>
+              <AlertDescription>
+                <p>
+                  {problem.kind === "delegates"
+                    ? "The folder you picked has no dependencies of its own and hands its build to that one, so the build would fail."
+                    : "The folder you picked has nothing to build at its top level."}{" "}
+                  One deploy is one app — if this also holds a separate backend, deploy
+                  that on its own.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-1"
+                  onClick={() => deployInstead(problem.dir)}
+                >
+                  Deploy <span className="font-mono">{problem.dir}/</span> instead
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Fixed on a redeploy: changing it here wouldn't update this app,
               it would quietly create a different one. */}
           {appSlug ? (
@@ -213,7 +282,11 @@ export function UploadDeployPanel({
               )}
             </label>
           )}
-          <Button type="button" disabled={phase.step === "uploading" || !!nameError || !companyId} onClick={deploy}>
+          <Button
+            type="button"
+            disabled={phase.step === "uploading" || !!nameError || !companyId || !!problem}
+            onClick={deploy}
+          >
             {phase.step === "uploading" ? "Deploying…" : "Deploy"}
           </Button>
         </div>
