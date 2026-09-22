@@ -1,13 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowRight, Check, Info, Lightbulb, Cpu, Zap } from "lucide-react";
+import { ArrowRight, Check, Copy, Info, Lightbulb, Cpu, Zap } from "lucide-react";
 import { Button } from "../components/ui/button";
+import { CopyPromptButton, COPIED_LABEL } from "../components/CopyPromptButton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../components/ui/tooltip";
 import { Header } from "../components/Header";
 import { SiteFooter } from "../components/SiteFooter";
 import { LoginModal } from "../components/LoginModal";
 import { cn } from "../lib/utils";
+import { agentIconSrc } from "../lib/agents";
 import { formatMoney } from "../lib/format";
 import { monthlyCents, planDetails as sharedPlanDetails, planFamily, type PlanDetails } from "../lib/plans";
 import type { BillingPlan } from "../lib/types";
@@ -177,8 +179,8 @@ export function PricingPageClient({ plans: fetched }: { plans: BillingPlan[] }) 
                     <Button
                       onClick={() => setLoginOpen(true)}
                       className={cn(
-                        "w-full mb-8 h-11 font-semibold",
-                        details.highlighted ? "bg-blue-600 text-white hover:bg-blue-700" : "border-border hover:bg-elevated",
+                        "w-full mb-8 h-11 rounded-[15px] font-semibold",
+                        details.highlighted ? "bg-[#111] text-white hover:bg-black" : "border-border hover:bg-elevated",
                       )}
                       variant={details.highlighted ? "default" : "outline"}
                     >
@@ -284,21 +286,47 @@ export function PricingPageClient({ plans: fetched }: { plans: BillingPlan[] }) 
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {/* `icon` names a mark in public/agenticons; GPT and Codex share
+                OpenAI's, which is the mark both ship under. */}
             {[
-              { name: "Claude Code", detail: "Skill file" },
-              { name: "Cursor", detail: "Rules file" },
-              { name: "Bolt", detail: "Export & deploy" },
-              { name: "Lovable", detail: "One-click" },
-              { name: "Replit", detail: "Direct deploy" },
-              { name: "v0", detail: "Export & deploy" },
-              { name: "GPT", detail: "Export code" },
-              { name: "Codex", detail: "Export code" },
+              { name: "Claude Code", detail: "Skill file", icon: "claudecode" },
+              { name: "Cursor", detail: "Rules file", icon: "cursor" },
+              { name: "Bolt", detail: "Export & deploy", icon: "bolt" },
+              { name: "Lovable", detail: "One-click", icon: "lovable" },
+              { name: "Replit", detail: "Direct deploy", icon: "replit" },
+              { name: "v0", detail: "Export & deploy", icon: "v0" },
+              { name: "GPT", detail: "Export code", icon: "codex" },
+              { name: "Codex", detail: "Export code", icon: "codex" },
             ].map((tool) => (
               <div key={tool.name} className="p-4 border border-border/50 bg-card hover:border-primary/40 hover:bg-primary/5 transition-all duration-300">
-                <div className="text-sm font-semibold text-foreground mb-1">{tool.name}</div>
+                <div className="mb-2 flex items-center gap-2">
+                  {/* Decorative: the tool's name is right beside it. */}
+                  <img
+                    src={agentIconSrc(tool.icon)}
+                    alt=""
+                    aria-hidden="true"
+                    className="size-4 shrink-0"
+                  />
+                  <div className="text-sm font-semibold text-foreground">{tool.name}</div>
+                </div>
                 <div className="text-xs text-muted-foreground">{tool.detail}</div>
               </div>
             ))}
+          </div>
+
+          {/* The reader has just found their own tool in the grid; the prompt
+              is the next thing they need, not a scroll further down. */}
+          <div className="mt-10 text-center">
+            <CopyPromptButton
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-[15px] bg-[#111] px-8 text-base font-semibold text-white transition hover:bg-black"
+              copiedChildren={<><Check className="h-4 w-4" aria-hidden="true" />{COPIED_LABEL}</>}
+            >
+              <Copy className="h-4 w-4" aria-hidden="true" />
+              Copy the deploy prompt
+            </CopyPromptButton>
+            <p className="mt-4 text-sm text-muted-foreground">
+              Paste it into your AI agent and ask it to deploy.
+            </p>
           </div>
         </div>
       </section>
@@ -313,12 +341,18 @@ export function PricingPageClient({ plans: fetched }: { plans: BillingPlan[] }) 
           <p className="text-xl text-muted-foreground mb-12 max-w-xl mx-auto leading-relaxed">
             Build it with AI. Ship it with Embarko.
           </p>
-          <Button
-            onClick={() => setLoginOpen(true)}
-            className="bg-blue-600 text-white hover:bg-blue-700 px-8 h-12 text-base font-semibold"
+          {/* The next step is the agent's, not a signup form: nobody creates an
+              Embarko app by hand, so the closing CTA hands over the prompt. */}
+          <CopyPromptButton
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-[15px] bg-[#111] px-8 text-base font-semibold text-white transition hover:bg-black"
+            copiedChildren={<><Check className="h-4 w-4" aria-hidden="true" />{COPIED_LABEL}</>}
           >
-            Start for free <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
+            <Copy className="h-4 w-4" aria-hidden="true" />
+            Copy the deploy prompt
+          </CopyPromptButton>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Paste it into your AI agent and ask it to deploy.
+          </p>
         </div>
       </section>
 

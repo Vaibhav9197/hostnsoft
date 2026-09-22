@@ -80,7 +80,7 @@ function AppGallery() {
     if (className === 'album-card') return <><i className="album-tile one" /><i className="album-tile two" /><i className="album-tile three" /><i className="album-tile four" /></>;
     return <><span className="notes-title">Sprint notes</span><i className="notes-line one" /><i className="notes-line two" /><i className="notes-line three" /><span className="notes-people"><i /><i /></span></>;
   }
-  return <section className="scene gallery-scene" id="examples"><div className="gallery-intro"><h2>Whatever your agent builds.</h2><p>Embarko gives it a home online.</p><SceneCta>Copy the deploy prompt</SceneCta></div><div className="gallery-rail" aria-label="Examples of apps hosted on Embarko">{cards.map(([title, description, className]) => <article className={'gallery-card ' + className} key={title}><div className="gallery-preview" aria-hidden="true"><Preview className={className} /></div><div className="gallery-card-copy"><p>{title}</p><span>{description}</span><LiveMark /></div></article>)}</div></section>;
+  return <section className="scene gallery-scene" id="examples"><div className="gallery-intro"><h2>Whatever your agent builds.</h2><p>Embarko gives it a home online.</p><CopyPromptButton compact /></div><div className="gallery-rail" aria-label="Examples of apps hosted on Embarko">{cards.map(([title, description, className]) => <article className={'gallery-card ' + className} key={title}><div className="gallery-preview" aria-hidden="true"><Preview className={className} /></div><div className="gallery-card-copy"><p>{title}</p><span>{description}</span><LiveMark /></div></article>)}</div></section>;
 }
 
 function AgentScene() {
@@ -106,6 +106,6 @@ export default function Home() {
   return <main className="site-page">
     <SiteHeader />
     <section id="top" className="hero" aria-labelledby="hero-title"><div className="hero-intro"><p className="eyebrow"><Sparkles aria-hidden="true" /> Hosting for apps already built by your agent</p><h1 id="hero-title">Instant hosting for every app you build with AI</h1><div className="hero-action"><CopyPromptButton /></div><Steps /></div><p className="hero-note">Your agent builds it. Embarko hosts it.</p></section>
-    <DeployScene /><LiveScene /><HostingScene /><WhyEmbarko /><AppGallery /><AgentScene /><WorldScene /><InfrastructureTrust /><section className="benefit-scene"><p>Spend your time building.<br />Not hosting.</p><SceneCta>Copy the deploy prompt</SceneCta></section><FinalScene />
+    <DeployScene /><LiveScene /><HostingScene /><WhyEmbarko /><AppGallery /><AgentScene /><WorldScene /><InfrastructureTrust /><section className="benefit-scene"><p>Spend your time building.<br />Not hosting.</p><CopyPromptButton compact /></section><FinalScene />
   </main>;
 }
