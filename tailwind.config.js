@@ -75,10 +75,18 @@ export default {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
         },
+        /* A bar sliding across its track, for work with no percentage to
+           report — a build, where the only honest thing to say is "still
+           going". Travels the full width and back out, so it never rests. */
+        sweep: {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(400%)" },
+        },
       },
       animation: {
         "fade-up": "fade-up 0.6s cubic-bezier(0.16,1,0.3,1) both",
         float: "float 9s ease-in-out infinite",
+        sweep: "sweep 1.4s cubic-bezier(0.4,0,0.2,1) infinite",
       },
     },
   },

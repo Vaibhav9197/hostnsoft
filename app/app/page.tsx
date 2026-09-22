@@ -26,24 +26,63 @@ export default function ProjectsPage() {
   // const [name, setName] = useState("");
   // const [busy, setBusy] = useState(false);
 
-  const load = useCallback(async () => {
+  /* `quiet` keeps the current cards on screen while re-reading the list. The
+     first load has nothing to show and wants the skeletons; a refresh after a
+     deploy already has cards, and blanking them to skeletons reads as if the
+     apps went away. */
+  const load = useCallback(async (quiet = false) => {
     if (!activeCompanyId) {
       setProjects([]);
       return;
     }
-    setProjects(null);
+    if (!quiet) setProjects(null);
     setError(null);
     try {
       const data = await projectsApi.list(activeCompanyId);
       setProjects(data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn’t load your apps.");
+      /* A failed poll keeps the cards it already has — `error` replaces them,
+         and one blip mid-build is not a reason to take the grid away from
+         someone watching it. */
+      if (!quiet) setError(e instanceof Error ? e.message : "Couldn’t load your apps.");
     }
   }, [activeCompanyId]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  /* An upload returns as soon as the build is queued, and the app can take a
+     moment to show up in the list. Without this the page looked unchanged
+     after a successful deploy and the only way to see the new app was a manual
+     refresh. Re-read straight away, then a couple more times — once a card
+     exists, the watch below takes over and follows the build to the end. */
+  const refreshAfterDeploy = useCallback(() => {
+    load(true);
+    for (const ms of [2000, 5000]) setTimeout(() => load(true), ms);
+  }, [load]);
+
+  /* A build runs on for minutes after the deploy request comes back. Following
+     it here is what lets the card go Deploying → Starting → Running in front of
+     you instead of being a thing you have to refresh to find out about.
+
+     Every five seconds rather than every second: this is a grid of apps someone
+     is glancing at, not a build log, and the states it moves through are
+     minutes apart. Read off the list already on screen, so a page of settled
+     apps never polls, and capped so a stuck build doesn't leave an interval
+     running all day. */
+  const settling = projects?.some(
+    (p) => p.status === "in_progress" || p.health === "starting",
+  ) ?? false;
+  useEffect(() => {
+    if (!settling) return;
+    const tick = setInterval(() => load(true), 5000);
+    const giveUp = setTimeout(() => clearInterval(tick), 10 * 60 * 1000);
+    return () => {
+      clearInterval(tick);
+      clearTimeout(giveUp);
+    };
+  }, [settling, load]);
 
   /* Parked, not deleted: apps are created by deploying to them, so the dialog
      hands over the prompt instead of a name field. Restore this together with
@@ -104,6 +143,7 @@ export default function ProjectsPage() {
         onClose={() => setCreating(false)}
         title="Deploy an app"
         description="Hand the prompt to your AI agent, or upload the app yourself. Either way it lands here on its own subdomain."
+        onDeployed={refreshAfterDeploy}
       />
 
       {error && <Alert>{error}</Alert>}
@@ -146,8 +186,23 @@ export default function ProjectsPage() {
                  it off the sky, and a third edge on top of those made a grid of
                  apps read as a table. Hover keeps the lift and the deeper
                  shadow, so the affordance survives losing the border. */
-              className="group flex flex-col gap-3.5 rounded-lg bg-card p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
+              className="group relative flex flex-col gap-3.5 overflow-hidden rounded-lg bg-card p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
             >
+              {/* A bar sweeping across the top of the card while a build runs.
+                  The pill's pulsing dot is the precise signal, but it is 8px in
+                  a corner — this is the one somebody notices from across the
+                  grid without looking for it, which is the whole point of
+                  showing progress at all. Absolute and clipped by the card, so
+                  it costs the layout nothing and vanishes when the deploy
+                  lands. */}
+              {p.status === "in_progress" && (
+                <span
+                  className="pointer-events-none absolute inset-x-0 top-0 h-0.5 overflow-hidden bg-muted"
+                  aria-hidden="true"
+                >
+                  <span className="block h-full w-1/4 animate-sweep bg-primary" />
+                </span>
+              )}
               {/* The initial leads, the way an app icon does everywhere else,
                   which frees the top-right for the one thing you open this
                   page to find out. Health holds a fixed position across every
@@ -161,7 +216,11 @@ export default function ProjectsPage() {
                   <h3 className="text-base font-bold text-foreground truncate">{p.name}</h3>
                   <p className="text-sm text-muted-foreground truncate">{p.slug}.app.embarko.ai</p>
                 </div>
-                <HealthPill health={p.health} className="mt-1" />
+                <HealthPill
+                  health={p.health}
+                  deploying={p.status === "in_progress"}
+                  className="mt-1"
+                />
               </div>
 
               {/* `updatedAt` is when the project record last changed, which is

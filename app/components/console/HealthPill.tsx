@@ -14,9 +14,10 @@ type Tone = "live" | "offline" | "attention";
 
 const TONES: Record<ProjectHealth, { label: string; tone: Tone }> = {
   running: { label: "Running", tone: "live" },
-  /* Deliberately not its own state. A deploy in flight resolves on its own
-     within seconds, and a third colour that means "wait" only adds a thing to
-     interpret. */
+  /* Deliberately not its own colour. A deploy in flight resolves on its own,
+     and a third colour that means "wait" only adds a thing to interpret — it
+     gets motion instead, which reads as "working" without being a fourth
+     status to learn. */
   starting: { label: "Starting", tone: "offline" },
   crashed: { label: "Needs attention", tone: "attention" },
   stopped: { label: "Not online", tone: "offline" },
@@ -44,15 +45,30 @@ const CHROME: Record<Tone, string> = {
 
 export function HealthPill({
   health,
+  /** A deploy is running right now. Overrides health, because "Not online" is
+   *  true but useless while a build is in flight — the app is not online *yet*,
+   *  and the thing to say is that something is happening. The API only moves
+   *  `health` once the allocation exists, which can be a minute or more after
+   *  the deploy starts, so without this the card sits there looking idle. */
+  deploying = false,
   variant = "plain",
   className,
 }: {
   health: ProjectHealth;
+  deploying?: boolean;
   variant?: "plain" | "pill";
   className?: string;
 }) {
-  const { label, tone } = TONES[health] ?? TONES.unknown;
+  const resolved = TONES[health] ?? TONES.unknown;
+  const { label, tone } = deploying ? { label: "Deploying", tone: "offline" as const } : resolved;
   const style = STYLES[tone];
+
+  /* Motion is the whole signal for a state that means "wait" — the word alone
+     is indistinguishable from a resting state at a glance, and this is the one
+     moment somebody is actually watching the card. It gets the foreground ink
+     rather than the faint grey the other offline states use: a pulse nobody
+     can see is the same as no pulse. */
+  const working = deploying || health === "starting";
 
   return (
     /* The dot is decorative — the word carries the meaning. Colour alone must
@@ -64,12 +80,26 @@ export function HealthPill({
         variant === "pill"
           ? cn("rounded-full border px-2.5 py-0.5 font-mono text-[0.72rem] font-semibold", CHROME[tone])
           : "text-xs font-medium",
-        style.text,
+        working ? "text-foreground" : style.text,
         className,
       )}
     >
-      <span className={cn("size-1.5 shrink-0 rounded-full", style.dot)} aria-hidden="true" />
+      {/* A ring expanding out of the dot, rather than the dot fading in place.
+          Fading a 6px grey dot in and out is a change almost nobody notices;
+          something moving outwards is caught by peripheral vision, which is
+          the point — the reader is looking at the app name, not the pill. */}
+      {working ? (
+        <span className="relative flex size-2.5 shrink-0 items-center justify-center" aria-hidden="true">
+          <span className="absolute inline-flex size-2.5 animate-ping rounded-full bg-primary opacity-75" />
+          <span className="relative inline-flex size-2 rounded-full bg-primary" />
+        </span>
+      ) : (
+        <span className={cn("size-1.5 shrink-0 rounded-full", style.dot)} aria-hidden="true" />
+      )}
       {label}
+      {/* Says the same thing to a screen reader that the pulse says to a
+          sighted reader: this is not a settled state, come back to it. */}
+      {working && <span className="sr-only">, in progress</span>}
     </span>
   );
 }
