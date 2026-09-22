@@ -1,7 +1,7 @@
 import { ListAppForm } from "./ListAppForm";
 
 /* Three ways in: from the Showcase page or an app's row there ("List it" →
-   ?app=<id>), from an app's own settings (?app=<id>&from=settings, which
+   ?app=<id>), from an app's own Showcase tab (?app=<id>&from=app, which
    sends the person back there afterwards), and from an event page's invite
    link (?page=<slug>). Read server-side so the form needs no Suspense
    boundary for useSearchParams. */
@@ -16,7 +16,7 @@ export default async function ListAppPage({
     <ListAppForm
       initialPage={one(params.page)}
       initialApp={one(params.app)}
-      fromSettings={one(params.from) === "settings"}
+      fromApp={one(params.from) === "app"}
       startOnEvent={one(params.where) === "event"}
     />
   );

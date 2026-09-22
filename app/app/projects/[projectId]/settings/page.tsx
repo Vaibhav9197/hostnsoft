@@ -2,19 +2,14 @@
 
 import { Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { use, useCallback, useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowUpRight, Plus } from "lucide-react";
-import { ConfirmDialog, type ConfirmRequest } from "../../../../components/console/ConfirmDialog";
-import { Alert, LinkButton, Page, Panel, PanelTitle, Skeleton } from "../../../../components/console/kit";
+import { Alert, Page, Panel, PanelTitle, Skeleton } from "../../../../components/console/kit";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
-import { projectsApi, showcaseApi } from "../../../../lib/hnsApi";
-import { formatDate } from "../../../../lib/format";
+import { projectsApi } from "../../../../lib/hnsApi";
 import { useSession } from "../../../../lib/session";
 import { useProject } from "../../../../lib/useProject";
-import type { ShowcaseListing, ShowcasePage } from "../../../../lib/types";
 
 export default function ProjectSettingsPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = use(params);
@@ -30,54 +25,6 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
   const [editingName, setEditingName] = useState(false);
   const [confirm, setConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
-
-  /* Where this app is on Showcase. Removing takes effect at once. */
-  const [listings, setListings] = useState<ShowcaseListing[] | null>(null);
-  const [showcaseErr, setShowcaseErr] = useState<string | null>(null);
-  const [confirmReq, setConfirmReq] = useState<ConfirmRequest | null>(null);
-
-  /* The company's own page, named so the panel can say where the app is. */
-  const [companyPage, setCompanyPage] = useState<ShowcasePage | null>(null);
-  const companyListing = listings?.find((l) => l.collection.type === "company") ?? null;
-  const boardListings = listings?.filter((l) => l.collection.type !== "company") ?? null;
-
-  const loadListings = useCallback(async () => {
-    if (!activeCompanyId) return;
-    try {
-      const [mine, pages] = await Promise.all([
-        showcaseApi.listMySubmissions(activeCompanyId, projectId),
-        showcaseApi.listPages(activeCompanyId),
-      ]);
-      setListings(mine);
-      setCompanyPage(pages.find((p) => p.type === "company") ?? null);
-    } catch (e) {
-      setListings([]);
-      setShowcaseErr(e instanceof Error ? e.message : "Couldn’t load showcase listings.");
-    }
-  }, [activeCompanyId, projectId]);
-
-  useEffect(() => {
-    loadListings();
-  }, [loadListings]);
-
-  function askWithdraw(l: ShowcaseListing) {
-    setConfirmReq({
-      title: `Remove ${l.name} from ${l.collection.type === "company" ? "Showcase" : l.collection.title}?`,
-      body: "Its public page goes away straight away. You can list it again any time.",
-      cta: "Remove",
-      destructive: true,
-      onConfirm: async () => {
-        if (!activeCompanyId) return;
-        try {
-          await showcaseApi.withdraw(activeCompanyId, l.id);
-          await loadListings();
-          toast.success("Listing removed");
-        } catch (e) {
-          toast.error(e instanceof Error ? e.message : "Couldn’t remove that listing.");
-        }
-      },
-    });
-  }
 
   useEffect(() => {
     if (project) {
@@ -169,98 +116,6 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
 
       </Panel>
 
-      <Panel padded>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <PanelTitle>Showcase</PanelTitle>
-            <p className="mt-1 text-[0.92rem] text-muted-foreground">
-              Show this app in{" "}
-              <a href="/showcase" target="_blank" rel="noreferrer" className="underline underline-offset-2">
-                Embarko’s public gallery
-              </a>
-              . It gets a page of its own and appears on your company page.
-            </p>
-          </div>
-          {listings && listings.length === 0 && (
-            <Button asChild size="sm">
-              <Link href={`/app/showcase/submit?app=${encodeURIComponent(projectId)}&from=settings`}>
-                <Plus aria-hidden="true" />
-                List on Showcase
-              </Link>
-            </Button>
-          )}
-          {/* Already listed: an app can also sit on event pages, so the door
-              stays open. Aimed at the company page first if it is not there yet. */}
-          {listings && listings.length > 0 && (
-            <Button asChild variant="outline" size="sm">
-              <Link
-                href={`/app/showcase/submit?app=${encodeURIComponent(projectId)}&from=settings${companyListing ? "&where=event" : ""}`}
-              >
-                <Plus aria-hidden="true" />
-                {companyListing ? "Add to an event page" : "Add to your company page"}
-              </Link>
-            </Button>
-          )}
-        </div>
-        {showcaseErr && <Alert className="mt-3">{showcaseErr}</Alert>}
-        {listings === null && <Skeleton className="mt-4 h-10" aria-hidden="true" />}
-        {listings && (
-          <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-4">
-            <div className="min-w-0">
-              <p className="text-[0.92rem] font-medium text-foreground">
-                {listings.length === 0
-                  ? "Not on Showcase"
-                  : companyListing
-                    ? companyListing.isPrivate
-                      ? "On Showcase, hidden on your company page"
-                      : "On Showcase"
-                    : `On ${boardListings![0].collection.title}`}
-              </p>
-              <p className="text-[0.8rem] text-muted-foreground">
-                {listings.length === 0
-                  ? "Takes a minute. You say what it does; it’s live straight away."
-                  : "Live in the gallery" + (companyPage && companyListing ? ` and at embarko.ai/showcase/${companyPage.slug}` : "")}
-              </p>
-            </div>
-          </div>
-        )}
-        {listings && listings.length > 0 && (
-          <ul className="mt-2 divide-y divide-border">
-            {listings.map((l) => (
-              <li key={l.id} className="flex flex-wrap items-center justify-between gap-3 py-2.5">
-                <div className="min-w-0">
-                  <p className="text-[0.85rem] text-foreground">
-                    {l.collection.type === "company" ? "Your company page" : l.collection.title}
-                    {l.collection.type !== "company" && <span className="text-muted-foreground"> · event page</span>}
-                  </p>
-                  <p className="text-[0.8rem] text-muted-foreground">
-                    {l.isPrivate ? "Hidden by the organiser" : "Visible"}
-                    {" · added "}
-                    {formatDate(l.createdAt)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-4">
-                  {!l.isPrivate && (
-                    <a
-                      href={`/showcase/app/${l.slug}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-[0.84rem] font-semibold text-muted-foreground hover:text-foreground hover:underline"
-                    >
-                      View page
-                      <ArrowUpRight aria-hidden="true" className="size-3" />
-                    </a>
-                  )}
-                  <LinkButton danger onClick={() => askWithdraw(l)}>
-                    Remove
-                  </LinkButton>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Panel>
-
       <Panel padded tone="danger">
         <PanelTitle tone="danger">Remove this app</PanelTitle>
         {/* Removal is not instant: the app is taken off the list first and shut
@@ -282,7 +137,6 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
         </div>
       </Panel>
 
-      <ConfirmDialog request={confirmReq} onClose={() => setConfirmReq(null)} />
     </Page>
   );
 }

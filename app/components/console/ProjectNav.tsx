@@ -28,6 +28,9 @@ const SECTIONS = [
   { seg: "environment", label: "App setup" },
   { seg: "deployments", label: "Deployments" },
   { seg: "domain", label: "Domain" },
+  /* Its own tab: showing the app off is something people come to do, and it
+     was invisible as a panel inside Settings. */
+  { seg: "showcase", label: "Showcase" },
   { seg: "settings", label: "Settings" },
 ];
 

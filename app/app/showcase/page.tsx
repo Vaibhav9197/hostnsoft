@@ -337,10 +337,10 @@ function AppRow({
           </LinkButton>
         )}
         {/* On more than one page, "Remove" would have to guess which. The
-            app's settings list each page with its own Remove. */}
+            app's Showcase tab lists each page with its own Remove. */}
         {listed && listings.length > 1 && (
           <Link
-            href={`/app/projects/${encodeURIComponent(project.id)}/settings`}
+            href={`/app/projects/${encodeURIComponent(project.id)}/showcase`}
             className="text-[0.84rem] font-semibold text-muted-foreground hover:text-foreground hover:underline"
           >
             Manage

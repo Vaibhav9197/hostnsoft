@@ -643,8 +643,9 @@ a tagline or swapping a screenshot is just calling it again with new
 values. `201` on first listing, `200` on update, both with the listing
 (including its `/showcase/<slug>/<app-slug>` page).
 
-In the dashboard, the same thing: open **Showcase**, click **List an app**,
-pick the app and say what it does. It goes on your company page by default;
+In the dashboard, the same thing: open the app's **Showcase** tab (or
+**Showcase** from the account menu), click **List an app**, and say what it
+does. It goes on your company page by default;
 choose **An event page** to add it to a hackathon or demo-day page instead.
 
 ## [Custom domain mapping](#custom-domains)

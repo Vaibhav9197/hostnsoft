@@ -65,13 +65,13 @@ const SITE_HOST = "embarko.ai";
 export function ListAppForm({
   initialPage = "",
   initialApp = "",
-  fromSettings = false,
+  fromApp = false,
   startOnEvent = false,
 }: {
   initialPage?: string;
   initialApp?: string;
-  /** Opened from the app's own settings, so that is where "back" goes. */
-  fromSettings?: boolean;
+  /** Opened from the app's own Showcase tab, so that is where "back" goes. */
+  fromApp?: boolean;
   /** The app is already on the company page; the person came to add an event. */
   startOnEvent?: boolean;
 }) {
@@ -79,8 +79,8 @@ export function ListAppForm({
 
   /* Where the person came from, and goes back to. */
   const back =
-    fromSettings && initialApp
-      ? { href: `/app/projects/${encodeURIComponent(initialApp)}/settings`, label: "App settings" }
+    fromApp && initialApp
+      ? { href: `/app/projects/${encodeURIComponent(initialApp)}/showcase`, label: "Your app" }
       : { href: "/app/showcase", label: "Showcase" };
 
   const [pages, setPages] = useState<ShowcasePage[] | null>(null);
