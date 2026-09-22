@@ -78,6 +78,19 @@ function PreviewArt({ seed }: { seed: string }) {
 }
 
 /**
+ * Google Drive share links point at an HTML viewer page, not the image
+ * bytes, so they don't work in a plain `<img>` as-is. Rewritten to Drive's
+ * thumbnail endpoint, which serves the actual image and is what stays
+ * reliable for larger files (the older `uc?export=view` form can return an
+ * interstitial instead of the file). Anything else — including a direct
+ * image URL — passes through untouched.
+ */
+function resolveScreenshotUrl(url: string): string {
+  const match = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]+)/);
+  return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000` : url;
+}
+
+/**
  * One app's visual. `priority` is for the single hero image only — marking a
  * whole gallery as priority tells the browser nothing, since everything urgent
  * is nothing urgent.
@@ -98,7 +111,7 @@ export function AppPreview({
            a public form, and routing them through the optimiser would make this
            site fetch whatever a submitter points it at. */
         <img
-          src={app.screenshotUrl}
+          src={resolveScreenshotUrl(app.screenshotUrl)}
           alt={`${app.name} screenshot`}
           className="h-full w-full object-cover"
           loading="lazy"
