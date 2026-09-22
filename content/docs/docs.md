@@ -606,8 +606,9 @@ target image was cleaned from the host.
 
 ## [Showcase](#showcase)
 
-List a deployed app on an [Embarko Showcase](/showcase) page — a public
-board, or the company's own reserved page. Available to an agent as well
+List a deployed app on an [Embarko Showcase](/showcase) page — the
+company's own page (every company has one), or an event page anyone can
+add to. Available to an agent as well
 as a person, with the same deploy token and app-name addressing as
 everything above:
 
@@ -631,8 +632,8 @@ curl -X PUT "https://ship.embarko.ai/api/apps/my-app/showcase" \
 ```
 
 `collectionSlug`, `name`, `tagline`, and `creatorName` are required;
-everything else is optional. `collectionSlug` is the board's slug from its
-URL (`/showcase/<slug>`) — a public board, or your own company page, which
+everything else is optional. `collectionSlug` is the page's slug from its
+URL (`/showcase/<slug>`) — an event page, or your own company page, which
 exists from signup. `404 SHOWCASE_COLLECTION_UNKNOWN` for an unknown slug;
 `403 SHOWCASE_COLLECTION_PRIVATE` if it's another company's page.
 
@@ -642,8 +643,9 @@ a tagline or swapping a screenshot is just calling it again with new
 values. `201` on first listing, `200` on update, both with the listing
 (including its `/showcase/<slug>/<app-slug>` page).
 
-In the dashboard, the same thing: open the project, go to **List on
-Showcase**, pick a page, and fill in the same details.
+In the dashboard, the same thing: open **Showcase**, click **List an app**,
+pick the app and say what it does. It goes on your company page by default;
+choose **An event page** to add it to a hackathon or demo-day page instead.
 
 ## [Custom domain mapping](#custom-domains)
 

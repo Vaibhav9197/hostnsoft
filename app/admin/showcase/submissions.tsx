@@ -17,7 +17,7 @@ type Filter = ShowcaseType | "all";
 
 const FILTERS: { value: Filter; label: string }[] = [
   { value: "all", label: "All" },
-  { value: "public", label: "Public boards" },
+  { value: "public", label: "Event pages" },
   { value: "company", label: "Company pages" },
 ];
 

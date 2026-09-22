@@ -67,9 +67,11 @@ fails.
 
 ### 5. Projects join your Showcase
 
-Participants submit their live app to Embarko Showcase and select your
-hackathon. Their project appears on your event page, so judges and your
-community have one place to browse everything built during the event.
+Send participants your event page's invite link from the Embarko console.
+They pick their live app, say what it does, and it appears on your event
+page — or they paste the page's Showcase prompt into their AI agent and it
+does the same. Judges and your community get one place to browse everything
+built during the event.
 
 ## [Keep Embarko Pro free for 1 year](#keep-embarko-pro-free-for-1-year)
 

@@ -10,7 +10,6 @@ import { ConfirmDialog, type ConfirmRequest } from "../../../../components/conso
 import { Alert, LinkButton, Page, Panel, PanelTitle, Skeleton } from "../../../../components/console/kit";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
-import { Switch } from "../../../../components/ui/switch";
 import { projectsApi, showcaseApi } from "../../../../lib/hnsApi";
 import { formatDate } from "../../../../lib/format";
 import { useSession } from "../../../../lib/session";
@@ -19,7 +18,7 @@ import type { ShowcaseListing, ShowcasePage } from "../../../../lib/types";
 
 export default function ProjectSettingsPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = use(params);
-  const { activeCompanyId, activeCompany, user } = useSession();
+  const { activeCompanyId } = useSession();
   const { project, error, reload } = useProject(activeCompanyId, projectId);
   const router = useRouter();
 
@@ -32,15 +31,13 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
   const [confirm, setConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
 
-  /* Where this app is showcased. Withdrawing removes the listing at once. */
+  /* Where this app is on Showcase. Removing takes effect at once. */
   const [listings, setListings] = useState<ShowcaseListing[] | null>(null);
   const [showcaseErr, setShowcaseErr] = useState<string | null>(null);
   const [confirmReq, setConfirmReq] = useState<ConfirmRequest | null>(null);
 
-  /* The company's own page: a single switch, no form. The listing is built
-     from the app's name, so there is nothing to ask for. */
+  /* The company's own page, named so the panel can say where the app is. */
   const [companyPage, setCompanyPage] = useState<ShowcasePage | null>(null);
-  const [toggling, setToggling] = useState(false);
   const companyListing = listings?.find((l) => l.collection.type === "company") ?? null;
   const boardListings = listings?.filter((l) => l.collection.type !== "company") ?? null;
 
@@ -63,37 +60,11 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
     loadListings();
   }, [loadListings]);
 
-  async function toggleCompanyShowcase(on: boolean) {
-    if (!activeCompanyId || !project) return;
-    setToggling(true);
-    try {
-      if (on) {
-        if (!companyPage) throw new Error("Your company page isn’t ready yet. Try again in a moment.");
-        await showcaseApi.submit(activeCompanyId, {
-          collectionSlug: companyPage.slug,
-          projectId,
-          name: project.name,
-          tagline: project.name,
-          creatorName: (user?.name?.trim() || activeCompany?.companyName || "Embarko user").slice(0, 80),
-        });
-        toast.success("Showcased on your company page");
-      } else if (companyListing) {
-        await showcaseApi.withdraw(activeCompanyId, companyListing.id);
-        toast.success("Removed from your company page");
-      }
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Couldn’t update the showcase.");
-    } finally {
-      await loadListings();
-      setToggling(false);
-    }
-  }
-
   function askWithdraw(l: ShowcaseListing) {
     setConfirmReq({
-      title: `Remove ${l.name} from /showcase/${l.collection.slug}?`,
-      body: "It disappears from that page and the gallery straight away. You can list it again any time.",
-      cta: "Remove listing",
+      title: `Remove ${l.name} from ${l.collection.type === "company" ? "Showcase" : l.collection.title}?`,
+      body: "Its public page goes away straight away. You can list it again any time.",
+      cta: "Remove",
       destructive: true,
       onConfirm: async () => {
         if (!activeCompanyId) return;
@@ -203,80 +174,87 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
           <div>
             <PanelTitle>Showcase</PanelTitle>
             <p className="mt-1 text-[0.92rem] text-muted-foreground">
-              Where this app is listed on Embarko Showcase.
+              Show this app in{" "}
+              <a href="/showcase" target="_blank" rel="noreferrer" className="underline underline-offset-2">
+                Embarko’s public gallery
+              </a>
+              . It gets a page of its own and appears on your company page.
             </p>
           </div>
-          <Button asChild variant="outline" size="sm">
-            <Link href="/app/showcase/submit">
-              <Plus aria-hidden="true" />
-              List on a page
-            </Link>
-          </Button>
+          {listings && listings.length === 0 && (
+            <Button asChild size="sm">
+              <Link href={`/app/showcase/submit?app=${encodeURIComponent(projectId)}&from=settings`}>
+                <Plus aria-hidden="true" />
+                List on Showcase
+              </Link>
+            </Button>
+          )}
+          {/* Already listed: an app can also sit on event pages, so the door
+              stays open. Aimed at the company page first if it is not there yet. */}
+          {listings && listings.length > 0 && (
+            <Button asChild variant="outline" size="sm">
+              <Link
+                href={`/app/showcase/submit?app=${encodeURIComponent(projectId)}&from=settings${companyListing ? "&where=event" : ""}`}
+              >
+                <Plus aria-hidden="true" />
+                {companyListing ? "Add to an event page" : "Add to your company page"}
+              </Link>
+            </Button>
+          )}
         </div>
         {showcaseErr && <Alert className="mt-3">{showcaseErr}</Alert>}
         {listings === null && <Skeleton className="mt-4 h-10" aria-hidden="true" />}
         {listings && (
           <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-4">
             <div className="min-w-0">
-              <label htmlFor="company-showcase" className="text-[0.92rem] font-medium text-foreground">
-                Show on your company page
-              </label>
+              <p className="text-[0.92rem] font-medium text-foreground">
+                {listings.length === 0
+                  ? "Not on Showcase"
+                  : companyListing
+                    ? companyListing.isPrivate
+                      ? "On Showcase, hidden on your company page"
+                      : "On Showcase"
+                    : `On ${boardListings![0].collection.title}`}
+              </p>
               <p className="text-[0.8rem] text-muted-foreground">
-                {companyPage ? (
-                  <a
-                    href={`/showcase/${companyPage.slug}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 font-mono hover:underline"
-                  >
-                    /showcase/{companyPage.slug}
-                    <ArrowUpRight aria-hidden="true" className="size-3" />
-                  </a>
-                ) : (
-                  "Your company’s public page"
-                )}
-                {" · uses the app’s name, nothing to fill in"}
-                {companyListing?.isPrivate && " · hidden by organiser"}
+                {listings.length === 0
+                  ? "Takes a minute. You say what it does; it’s live straight away."
+                  : "Live in the gallery" + (companyPage && companyListing ? ` and at embarko.ai/showcase/${companyPage.slug}` : "")}
               </p>
             </div>
-            <Switch
-              id="company-showcase"
-              checked={companyListing !== null}
-              onCheckedChange={toggleCompanyShowcase}
-              disabled={toggling || (!companyListing && !companyPage)}
-              aria-label="Show on your company page"
-            />
           </div>
         )}
-        {boardListings && boardListings.length === 0 && (
-          <p className="mt-4 text-[0.8rem] text-muted-foreground">Not on any public board.</p>
-        )}
-        {boardListings && boardListings.length > 0 && (
-          <ul className="mt-4 divide-y divide-border">
-            {boardListings.map((l) => (
+        {listings && listings.length > 0 && (
+          <ul className="mt-2 divide-y divide-border">
+            {listings.map((l) => (
               <li key={l.id} className="flex flex-wrap items-center justify-between gap-3 py-2.5">
                 <div className="min-w-0">
-                  <a
-                    href={`/showcase/${l.collection.slug}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 font-mono text-[0.85rem] hover:underline"
-                  >
-                    /showcase/{l.collection.slug}
-                    <ArrowUpRight aria-hidden="true" className="size-3" />
-                  </a>
+                  <p className="text-[0.85rem] text-foreground">
+                    {l.collection.type === "company" ? "Your company page" : l.collection.title}
+                    {l.collection.type !== "company" && <span className="text-muted-foreground"> · event page</span>}
+                  </p>
                   <p className="text-[0.8rem] text-muted-foreground">
-                    {l.collection.title}
-                    {l.collection.type === "company" ? " · your company page" : " · public board"}
-                    {" · "}
-                    {l.isPrivate ? "hidden by organiser" : "live"}
-                    {" · listed "}
+                    {l.isPrivate ? "Hidden by the organiser" : "Visible"}
+                    {" · added "}
                     {formatDate(l.createdAt)}
                   </p>
                 </div>
-                <LinkButton danger onClick={() => askWithdraw(l)}>
-                  Remove
-                </LinkButton>
+                <div className="flex items-center gap-4">
+                  {!l.isPrivate && (
+                    <a
+                      href={`/showcase/app/${l.slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-[0.84rem] font-semibold text-muted-foreground hover:text-foreground hover:underline"
+                    >
+                      View page
+                      <ArrowUpRight aria-hidden="true" className="size-3" />
+                    </a>
+                  )}
+                  <LinkButton danger onClick={() => askWithdraw(l)}>
+                    Remove
+                  </LinkButton>
+                </div>
               </li>
             ))}
           </ul>
