@@ -15,7 +15,7 @@ Requirements: the app reads its port from PORT and binds 0.0.0.0; no Dockerfile;
 survive a redeploy is written under DATA_DIR; the manifest or index.html sits at the root of what
 you package. Budget 256MB of memory — it is hard-enforced.
 
-The app name must match ^[a-z0-9-]+$ and be 3-63 characters. It becomes the public subdomain, so
+The app name must match ^[a-z0-9-]+$, be 3-63 characters, and not start or end with a dash. It becomes the public subdomain, so
 slugify anything given in prose ("My Landing Page" -> my-landing-page) rather than sending it
 verbatim. A name that fails the pattern is 400 invalid_app_name.
 
@@ -71,9 +71,11 @@ which errors are retryable, backoff, and idempotency behaviour.
 ## Agent playbooks
 
 Ordered procedures: deploy, update, recover from a failed deploy, roll back, add a secret, add a
-custom domain, delete, rename, report analytics, claim an anonymous app, debug a live app.
+custom domain, delete, rename, report analytics, claim an anonymous app, debug a live app, and
+what to do when the API is unreachable from your environment.
 
     https://embarko.ai/docs/agent-playbook
+    https://embarko.ai/docs/agent-playbook#no-connectivity
 
 ## Escalation: when to involve the human
 

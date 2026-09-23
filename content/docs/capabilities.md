@@ -99,7 +99,8 @@ first deploy finishes.
 **When:** Every call. Status, logs, env vars, history, rollback and showcase
 are all addressed by app name.
 
-**How:** Choose a name matching `^[a-z0-9-]+$`, 3–63 characters. Slugify
+**How:** Choose a name matching `^[a-z0-9-]+$`, 3–63 characters, with no
+leading or trailing dash. Slugify
 anything given in prose: "My Landing Page" → `my-landing-page`. Reuse it
 verbatim for every subsequent operation on that app.
 
@@ -716,6 +717,50 @@ other call by the original slug.
 
 ---
 
+## [MCP connector](#mcp-connector)
+
+**What:** An Embarko MCP connector, so an agent can deploy through its
+tool interface instead of making HTTP calls itself. It appears in the
+connector list as **Embarko**.
+
+**Why:** Two reasons. It needs no `curl`, no packaging and no token — the
+connector carries the account from the user's login session. And its
+requests come from the connector infrastructure rather than your own
+environment, so it works where a sandboxed agent cannot reach
+`ship.embarko.ai` at all.
+
+**When:** Whenever it is available — it is the shorter path. And
+specifically when a direct call is being blocked before it leaves your
+environment; see
+[If you can't reach the API at all](agent-playbook.md#no-connectivity).
+
+**How:** The user connects it in their AI tool's connector settings; you
+cannot install it for them. Once connected it exposes:
+
+| Tool | What it does |
+| --- | --- |
+| `Embarko Onboarding` | Returns the deploy instructions. Read it first |
+| `Deploy App` | Deploys, given an app `name` and a `source_url` |
+| `Submit Feedback` | Reports a problem with Embarko itself |
+
+**Limitations:** The big one — **`source_url` must be a direct link to a
+`.tar.gz` that is publicly fetchable**, with no login wall and no redirect.
+The connector does not upload a local folder the way `POST /apps` does, so
+the source has to be hosted somewhere reachable first. If it isn't, use the
+HTTP API instead.
+
+**There is no status or logs tool.** The connector can start a deploy but
+cannot tell you whether it finished, and cannot show you why it failed. A
+deploy is not done when the tool call returns. Where you have network
+access, poll [status](#status) over HTTP; where you don't, say plainly that
+you cannot confirm it yet rather than reporting success.
+
+The same runtime rules apply to a connector deploy as to any other: `PORT`
+and `0.0.0.0`, no Dockerfile, `DATA_DIR` for anything durable, 256MB, and a
+deploy with no account connected is deleted after 24 hours.
+
+---
+
 ## [Agent / API authentication](#agent-auth)
 
 **What:** How *you* authenticate to Embarko: a company-wide deploy token,
@@ -841,6 +886,7 @@ report it as such. No alerting and no metrics export.
 | Isolation, EU hosting | Available | — |
 | Resource defaults (256MB, 1 process) | Fixed | — |
 | Agent / API authentication | Available | Agent |
+| MCP connector (deploy, feedback) | Available | Agent (user connects it) |
 | Showcase listing | Available | Agent |
 | Rename (display name) | Available | Agent |
 | Custom domains | Available | Agent (DNS record: user) |

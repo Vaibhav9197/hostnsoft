@@ -16,11 +16,22 @@ for the platform's real constraints and how to design around them —
 
 ### 422 unsupported_storage_pattern
 - match: `"window.storage"` in the 422 response detail
-- cause: app calls `window.storage`, a Claude Artifacts sandbox API that doesn't exist outside it
-- fix: replace with SQLite (`better-sqlite3`), writing under `DATA_DIR`
-  (relational) — write under `DATA_DIR` either way, see
-  [Only `DATA_DIR` survives a redeploy](limitations-and-recommendations.md#only-data_dir-survives-a-redeploy)
-  — then redeploy
+- cause: app calls `window.storage`, a Claude Artifacts sandbox API that doesn't exist outside it.
+  Rejected before any build runs
+- fix: **the response names the files** — `filesDetected` is an array of the exact source paths that
+  call it, so open those rather than searching the project. Replace the calls with SQLite
+  (`better-sqlite3`) writing under `DATA_DIR` (see
+  [Only `DATA_DIR` survives a redeploy](limitations-and-recommendations.md#only-data_dir-survives-a-redeploy)),
+  then redeploy. The response shape:
+
+```json
+{
+  "error": "Unsupported storage pattern detected",
+  "detail": "This app calls window.storage, an API specific to Claude Artifacts' sandbox...",
+  "filesDetected": ["src/app.jsx"],
+  "docs": "https://embarko.ai/docs/docs.md#storage-requirements"
+}
+```
 
 ### 401 unauthorized
 - match: `{"error":"Unauthorized","code":"unauthorized"}`

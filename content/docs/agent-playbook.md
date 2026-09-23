@@ -57,7 +57,7 @@ than after a failure:
 | Production start command | Not a dev server — it will OOM |
 
 **4. Choose the app name.** Lowercase letters, numbers, dashes; 3–63
-characters. Slugify anything given in prose: "My Landing Page" →
+characters; no leading or trailing dash. Slugify anything given in prose: "My Landing Page" →
 `my-landing-page`. This becomes the public subdomain.
 
 **5. Check for an existing token** — `$DEPLOY_TOKEN`, then
@@ -177,6 +177,58 @@ counter.
 **6. Only involve the user** if the fix needs something you don't have — a
 secret, a decision, or a capability Embarko lacks. Otherwise finish the job
 and tell them what was wrong once it works.
+
+---
+
+## [If you can't reach the API at all](#no-connectivity)
+
+**This is not a deploy failure.** If the `POST /apps` request itself never
+reaches `ship.embarko.ai` — connection refused, DNS failure, a proxy block,
+a request that hangs and dies — then nothing was ever submitted. There is no
+deploy to check the status of, no logs to read, and
+[Deployment failed](#deploy-failed) does not apply.
+
+**Recognise it, and stop retrying.** The usual cause is that your execution
+environment is network-sandboxed with a fixed domain allowlist that doesn't
+include `ship.embarko.ai` — common in hosted AI coding tools. The request is
+blocked before it leaves your environment, so retrying the same call, or
+trying a slightly different URL, changes nothing. Two or three failures with
+the same shape means this, not a flaky network.
+
+**1. If an Embarko connector is available to you, use it.** If your tool
+lists an MCP connector named **Embarko**, its requests are made by the
+connector infrastructure rather than your sandbox, which bypasses the
+restriction entirely. Deploying through it needs the app's source at a
+public `.tar.gz` URL rather than an upload — see
+[the connector](capabilities.md#mcp-connector) for what it can and can't do.
+
+**2. If there's no connector, say so plainly and give them the fix.** Tell
+the user, in their words, that your environment can't reach Embarko's API —
+not that the deploy failed, which sends them looking for a bug in their app.
+Then tell them that if their AI tool supports MCP connectors (Claude,
+Claude Code, or a ChatGPT tier with custom MCP connections), connecting one
+named **Embarko** makes future deploys work directly in the conversation.
+
+**3. Either way, leave them something that works.** Don't stop at reporting
+the problem. Give them a script they can run on their own machine, which has
+normal network access:
+
+```bash
+tar -czf /tmp/app.tar.gz --exclude=node_modules --exclude=.git \
+  --exclude='.env*' -C /path/to/app .
+
+curl -X POST "https://ship.embarko.ai/apps" \
+  -H "X-App-Name: my-app" \
+  -F "source=@/tmp/app.tar.gz"
+
+curl "https://ship.embarko.ai/apps/my-app/status"   # poll until not in_progress
+```
+
+**Do not fall back to an anonymous deploy** because an authenticated one was
+blocked. Connectivity and credentials are different problems with different
+fixes, and quietly downgrading gives the user a temporary app they didn't
+ask for, deleted in 24 hours. If the token path is blocked, the anonymous
+path is blocked too — it is the same host.
 
 ---
 

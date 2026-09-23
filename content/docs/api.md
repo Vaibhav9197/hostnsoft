@@ -149,7 +149,7 @@ claim an anonymous one.
 
 | Where | Name | Rules |
 | --- | --- | --- |
-| header | `X-App-Name` | `^[a-z0-9-]+$`, 3–63 chars, unique platform-wide. Also the subdomain. |
+| header | `X-App-Name` | `^[a-z0-9-]+$`, 3–63 chars, no leading or trailing dash, unique platform-wide. Also the subdomain. |
 | multipart field | `source` | `.tar.gz` of the app's source, manifest at the archive root. |
 
 **Optional:**
@@ -176,15 +176,43 @@ curl -X POST "https://ship.embarko.ai/apps" \
 
 ```json
 {
+  "success": true,
   "accepted": true,
+  "message": "Deployment accepted and is building in the background...",
+  "version": "1788947902193",
+  "image": "my-app:1788947902193",
+  "memory": "256MB",
+  "url": "https://my-app.app.embarko.ai",
   "statusUrl": "https://ship.embarko.ai/apps/my-app/status",
   "logsUrl": "https://ship.embarko.ai/apps/my-app/logs"
 }
 ```
 
-An anonymous deploy also returns an `orphan` object carrying the 24-hour
-expiry notice in `orphan.message`. This is the only warning the user gets —
-relay it.
+**Use the URLs the response gives you.** `url`, `statusUrl` and `logsUrl`
+are all returned — don't assemble them from the app name. If the address
+format ever changes, a caller that used these keeps working and one that
+guessed does not. `url` is also the live address to report to the user once
+the deploy succeeds, so there is nothing to construct.
+
+`version` is what was actually deployed — the value you sent, or the
+timestamp the platform generated if you omitted `X-App-Version`. Record it;
+it is how this deploy appears in [history](#history).
+
+**Anonymous deploys** return every field above **plus an `orphan` object**:
+
+```json
+{
+  "orphan": {
+    "expiresAt": "2026-09-10T10:08:08.319Z",
+    "message": "This app was deployed without a deploy token, so it is temporary and will be deleted at ... unless claimed.",
+    "statusUrl": "https://ship.embarko.ai/apps/orphan-3/status",
+    "logsUrl": "https://ship.embarko.ai/apps/orphan-3/logs"
+  }
+}
+```
+
+`orphan.expiresAt` is the exact deadline — give the user that, not a vague
+"24 hours". It is the only warning they get; there is no reminder email.
 
 **Failure — `409`:**
 

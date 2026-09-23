@@ -49,6 +49,7 @@ load-bearing ones. Everything below this section is detail.
 | "Add a custom domain." | [Custom domains](#custom-domains) — register and verify it yourself; only the DNS record needs the user. |
 | "Roll it back." | [Rollback](#rollback) — list deployments, pick the last good one, roll back, poll until it's applied. |
 | "Change a setting / API key." | [Environment variables](#environment-variables) — write it, then `POST /env-vars/apply`, or it won't reach the running app. |
+| *(the API is unreachable)* | [If you can't reach the API](agent-playbook.md#no-connectivity) — not a deploy failure. Don't retry; use the Embarko connector, or hand the user a script. |
 
 A shorter, single-file version of everything below — written for agents — is
 at [`https://embarko.ai/llms.txt`](/llms.txt).
@@ -201,8 +202,20 @@ You'll get a `202` immediately — the build/deploy itself continues in the
 background:
 
 ```json
-{ "accepted": true, "statusUrl": "https://ship.embarko.ai/apps/my-app/status", "logsUrl": "https://ship.embarko.ai/apps/my-app/logs" }
+{
+  "success": true, "accepted": true,
+  "version": "1788947902193", "image": "my-app:1788947902193", "memory": "256MB",
+  "url": "https://my-app.app.embarko.ai",
+  "statusUrl": "https://ship.embarko.ai/apps/my-app/status",
+  "logsUrl": "https://ship.embarko.ai/apps/my-app/logs"
+}
 ```
+
+The response hands you `url`, `statusUrl` and `logsUrl` — **use those rather
+than assembling them from the app name**, so a change to the address format
+doesn't break you. An anonymous deploy adds an `orphan` object whose
+`expiresAt` is the exact deletion deadline; give the user that, not a vague
+"24 hours". Full shape: [API contract](api.md#deploy).
 
 **2. Poll until it's live** — no credential needed for an app deployed this
 way:
@@ -248,6 +261,7 @@ label. `GET /capabilities` reports these under `limits`, and they are what
 |---|---|
 | Characters | lowercase letters, numbers and dashes (`^[a-z0-9-]+$`) |
 | Length | 3–63 characters |
+| Dashes | may not be the first or last character |
 | Scope | unique platform-wide, not per company |
 
 Some names are reserved by the platform — `ship`, `api`, `www`, `login`,

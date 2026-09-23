@@ -20,7 +20,7 @@ Four things, each a common cause of a failed deploy:
   root delegates its build to a subfolder, package that subfolder instead.
 
 Pick a name while you're here: lowercase letters, numbers and dashes, 3–63
-characters. It becomes the public subdomain, so slugify anything in prose —
+characters, not starting or ending with a dash. It becomes the public subdomain, so slugify anything in prose —
 "My Landing Page" → `my-landing-page`.
 
 ## [1. Package](#package)
