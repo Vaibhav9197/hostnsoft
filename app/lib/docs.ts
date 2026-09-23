@@ -14,7 +14,6 @@ import quickstartMd from "../../content/docs/agent-quickstart.md";
 import escalationMd from "../../content/docs/escalation.md";
 import playbookMd from "../../content/docs/agent-playbook.md";
 import apiMd from "../../content/docs/api.md";
-import docsMd from "../../content/docs/docs.md";
 import troubleshootMd from "../../content/docs/troubleshoot.md";
 import limitationsMd from "../../content/docs/limitations-and-recommendations.md";
 import hackathonsMd from "../../content/docs/hackathons.md";
@@ -118,14 +117,6 @@ export const DOCS: DocMeta[] = [
     description: "Every Embarko action: auth, parameters, responses, states, errors and retry rules.",
   },
   {
-    slug: "docs",
-    group: "Reference",
-    path: "/docs",
-    keywords: ["Embarko docs","how to deploy an app with AI","deploy app from AI agent","Embarko deploy prompt"],
-    title: "Documentation",
-    description: "How to deploy an app to Embarko and manage it once it's live.",
-  },
-  {
     slug: "troubleshoot",
     group: "Reference",
     path: "/docs/troubleshoot",
@@ -166,7 +157,6 @@ const MARKDOWN: Record<string, string> = {
   "agent-playbook": playbookMd,
   escalation: escalationMd,
   "agent-quickstart": quickstartMd,
-  docs: docsMd,
   troubleshoot: troubleshootMd,
   "limitations-and-recommendations": limitationsMd,
   hackathons: hackathonsMd,

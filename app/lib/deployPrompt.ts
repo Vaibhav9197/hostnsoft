@@ -7,13 +7,13 @@ import { variantForPath } from "./variants";
  *
  *  It states the intent and points at the skill; it does NOT restate the API.
  *  Endpoints, headers, auth, packaging, polling and error codes live in the
- *  skill and at embarko.ai/docs/docs.md, which are maintained with the
+ *  skill and at embarko.ai/docs/agent-quickstart.md, which are maintained with the
  *  platform — a
  *  prompt that inlines them is a copy that goes stale in someone's chat
  *  history, and it makes the agent reason about HTTP instead of about
  *  deploying.
  *
- *  The URL is the raw markdown (/docs/docs.md), not the rendered page at
+ *  The URL is the raw markdown (/docs/agent-quickstart.md), not the rendered page at
  *  /docs. Same content, served from the same bundled string, but the agent
  *  gets ~40 KB of prose instead of ~133 KB of HTML to extract it from.
  *
@@ -100,7 +100,7 @@ Only once it's live, ask me for my email: Embarko mails back a token that makes 
 
   return `Deploy this app to Embarko — cloud hosting for small apps. No Dockerfile, no signup.
 
-Read https://embarko.ai/docs/docs.md and follow it. Nothing to install.${nameLine}
+Read https://embarko.ai/docs/agent-quickstart.md and follow it. Nothing to install.${nameLine}
 ${credentialLines}
 ${variantLine}
 Faster, if your tools let you install one: npx skills add embarko-ai/skill --skill embarko-deploy -g`;

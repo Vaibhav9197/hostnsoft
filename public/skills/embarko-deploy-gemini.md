@@ -38,7 +38,7 @@ Report the live URL only once the deploy actually reports success — an accepte
 upload is not a running app.
 
 If you cannot install or run the skill in this environment, the full API and
-error reference is at **https://embarko.ai/docs/docs.md**, and the
+error reference is at **https://embarko.ai/docs/overview**, and the
 troubleshooting reference at **https://embarko.ai/docs/troubleshoot.md**.
 Read those rather than guessing at the API.
 

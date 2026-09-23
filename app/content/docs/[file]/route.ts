@@ -5,7 +5,7 @@ import { DOCS, docFileToSlug } from "../../../lib/docs";
 /**
  * The repo-shaped markdown path, kept working as a redirect.
  *
- *   /content/docs/docs.md  ->  /docs/docs.md
+ *   /content/docs/overview.md  ->  /docs/overview.md
  *
  * This path exists because it mirrors where the files sit in the repository,
  * which is the first thing anyone guesses. It is NOT the canonical URL: the

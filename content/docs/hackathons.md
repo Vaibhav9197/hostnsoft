@@ -61,7 +61,7 @@ Their project gets a live URL. Nothing to sign up for and no credential to
 set up first — the agent can deploy straight away, and the hackathon code is
 only about activating Pro, not about being allowed to deploy. An app deployed
 with no credential lasts 24 hours, so participants claim theirs with a token
-once it's worth keeping (and before submitting to Showcase). See [`docs.md`](docs.md) for what actually
+once it's worth keeping (and before submitting to Showcase). See the [agent quickstart](agent-quickstart.md) for what actually
 happens on a deploy, and [`troubleshoot.md`](troubleshoot.md) if a build
 fails.
 

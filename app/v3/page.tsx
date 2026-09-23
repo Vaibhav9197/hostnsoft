@@ -546,7 +546,7 @@ Authorization: Bearer $DEPLOY_TOKEN
 X-App-Name: <name>
 source=<tarball of the app>
 
-# Full docs: https://embarko.ai/docs/docs.md
+# Full docs: https://embarko.ai/docs/overview
 # Optional helper skill (not required — the call above works standalone):
 npx skills add embarko-ai/skill --skill embarko-deploy -g`}
               </pre>

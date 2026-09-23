@@ -22,10 +22,10 @@ export function showcaseListPrompt(
 
   return `List ${which} on ${where}.
 
-If it isn't deployed to Embarko yet, deploy it first: read https://embarko.ai/docs/docs.md and follow it.
+If it isn't deployed to Embarko yet, deploy it first: read https://embarko.ai/docs/agent-quickstart.md and follow it.
 Use my deploy token — DEPLOY_TOKEN or ~/.embarko/credentials if either is set; if neither is, ask me for one from https://embarko.ai/app/tokens.
 
-Then list it: read https://embarko.ai/docs/docs.md#showcase for how to call the Showcase API with
+Then list it: read https://embarko.ai/docs/api.md#showcase for how to call the Showcase API with
 page slug "${page.slug}" and these details, inferring what you can from the project and asking me for the rest:
 - name and a one-line tagline
 - what it does, and why it was built (a short paragraph each)

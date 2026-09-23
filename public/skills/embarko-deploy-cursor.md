@@ -46,7 +46,7 @@ the same command again — don't retry blindly and don't work around it with raw
 API calls.
 
 Full platform reference, if you need anything the skill doesn't cover:
-**https://embarko.ai/docs/docs.md**.
+**https://embarko.ai/docs/overview**.
 
 Requirements for any app deployed here: it must read its port from the `PORT`
 environment variable, bind to `0.0.0.0` (not `localhost`), and have no

@@ -119,9 +119,10 @@ Plan limits: how many apps run at once, and what usage is included.
 
 ## Full reference
 
-The complete platform documentation in one page.
+There is no single-page manual any more — each section above is authoritative for its own area.
+Start at the overview, which links the rest.
 
-    https://embarko.ai/docs/docs.md
+    https://embarko.ai/docs/overview
 
 ## Not allowed
 

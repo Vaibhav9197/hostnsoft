@@ -35,6 +35,21 @@ const nextConfig = {
         permanent: true,
       },
 
+      // /docs was the original single-page manual. Once the docs were split
+      // into layered pages it was ~70% duplicate of /docs/api and
+      // /docs/overview, and two copies of the same fact drift — which is
+      // exactly what happened to /deploy-troubleshooting.md below. Its
+      // unique content moved into overview (where apps run) and
+      // capabilities (the /capabilities manifest), and the page is gone.
+      //
+      // Both spellings redirect, to different places on purpose: a human on
+      // /docs wants the landing page, while /docs/docs.md is what the copy
+      // prompt and older pasted prompts tell an AGENT to fetch, and an agent
+      // that asked for the full reference should land on the API contract,
+      // not the conceptual overview.
+      { source: "/docs", destination: "/docs/overview", permanent: true },
+      { source: "/docs/docs.md", destination: "/docs/api.md", permanent: true },
+
       // /deploy-troubleshooting.md was a second, hand-maintained copy of the
       // troubleshooting reference, served as a static file from public/ and
       // linked from nothing in this repo. It had drifted: it still told

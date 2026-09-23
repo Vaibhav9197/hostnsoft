@@ -3,7 +3,7 @@ import { docFileNames, docFileToSlug, docMarkdown } from "../../lib/docs";
 /**
  * The published docs as raw markdown, at their page URL plus `.md`:
  *
- *   https://embarko.ai/docs/docs.md
+ *   https://embarko.ai/docs/overview.md
  *   https://embarko.ai/docs/troubleshoot.md
  *   https://embarko.ai/docs/limitations.md
  *

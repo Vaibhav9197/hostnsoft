@@ -51,6 +51,11 @@ for the platform's real constraints and how to design around them —
 }
 ```
 
+(The `docs` URL is what the platform currently returns. `/docs/docs.md` now
+redirects to the API contract and that fragment no longer exists — the
+platform should be updated to point at
+[the database capability](capabilities.md#database) instead.)
+
 ### 401 unauthorized
 - match: `{"error":"Unauthorized","code":"unauthorized"}`
 - cause: `Authorization` header present but token invalid/revoked. Omitting the header entirely = anonymous
@@ -310,8 +315,8 @@ now `.../customer-query`. Same data, same behavior, `type` now also accepts `"ot
   container
 - fix: after writing an env var, call `POST /api/apps/<app-name>/env-vars/apply` — or trigger a new deploy
   (`POST /apps`, even with unchanged source) — for the app to actually see the new values. Both work; apply
-  is faster because it skips the build. See `docs.md`'s
-  [Environment variables](docs.md#environment-variables) section for the exact calls
+  is faster because it skips the build. See the
+  [environment variables contract](api.md#env-vars) for the exact calls
 
 ## Platform-level constraints (apply to every app, always true — not failures)
 
