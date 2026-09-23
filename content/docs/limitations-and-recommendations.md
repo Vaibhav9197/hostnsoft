@@ -3,10 +3,12 @@
 These are real, confirmed constraints of the platform as it exists today —
 not hypotheticals, not "might happen someday." Each one pairs what's
 actually true with a concrete recommendation for building a robust app
-around it. If something below changes, [`docs.md`](docs.md) and
-[`troubleshoot.md`](troubleshoot.md) are updated alongside it — those two
-cover the day-to-day API and error reference; this one is about designing
-for the platform's real shape rather than an idealized one.
+around it. [`capabilities.md`](capabilities.md) lists what exists,
+[`api.md`](api.md) is the call-by-call contract and
+[`troubleshoot.md`](troubleshoot.md) is the error reference; this one is
+about designing for the platform's real shape rather than an idealized one.
+[`GET /capabilities`](https://ship.embarko.ai/capabilities) is
+machine-readable and wins over any of them if they disagree.
 
 ## Compute & isolation
 
@@ -63,14 +65,28 @@ SQLite file, analytics counters, uploaded files, cached state — under
 `{ recursive: true }` on startup rather than assuming they already exist.
 Don't design around any other path being durable, even temporarily.
 
+### Persistent data is not backed up
+`DATA_DIR` surviving a redeploy is the *only* durability guarantee. There
+is no snapshot, no backup and no restore — so it is durable against your own
+deploys, not against hardware loss, and not against your app corrupting or
+deleting its own data. Deleting the app destroys it outright, irreversibly.
+Automatic backups are in progress but not available.
+
+**Recommendation:** if losing the data would matter, have the app export it
+somewhere the user controls — a downloadable dump, an endpoint that streams
+the SQLite file, or a push to their own storage. Do this before the app
+holds anything valuable, not after. And say so plainly: a user who assumes
+a managed platform backs their data up will not ask.
+
 ## Rollback
 
 ### Only the last N build images are kept per app
 Every deploy builds a real image, kept locally (never pushed to a
 registry). Only the most recent handful are retained — older ones are
-pruned automatically to bound disk usage. One-click rollback can only
-reach as far back as whatever's still on disk; trying to roll back past
-that gets a `422` naming exactly how far back you can currently go (see
+pruned automatically to bound disk usage. Rollback — by API or from the
+dashboard — can only reach as far back as whatever's still on disk; trying
+to roll back past that gets a `422` naming exactly how far back you can
+currently go (see
 [`troubleshoot.md`](troubleshoot.md#rollback-target-image-unavailable)) —
 it's a normal, expected response, not a platform failure.
 
@@ -124,6 +140,20 @@ directive the platform default doesn't include, there's no override today
 — avoid relying on non-default CSP behavior until a configuration path
 exists for it.
 
+## Where apps run
+
+### The region is not selectable, and not guaranteed
+There is no region parameter on any API call and no dashboard setting. An
+app's compute and its `DATA_DIR` volume always sit together, but which
+region that is, is chosen by the platform and is not committed to. Choosing
+one is a planned feature.
+
+**Recommendation:** never tell a user which country their app or its data is
+in, and don't design around a particular one. If data residency matters for
+what is being deployed — personal data under GDPR, or a sector rule about
+where records may be held — raise it with the user and point them at the
+[DPA](/dpa) before deploying, rather than assuming.
+
 ## Observability
 
 ### Logs are a recent snapshot, not a live stream
@@ -138,8 +168,9 @@ service from within your app — don't rely on the platform as your log's
 system of record.
 
 ### Public, unauthenticated endpoints are rate-limited
-Requesting a deploy token by email (`POST /public/deploy-tokens/request`)
-and submitting a customer query anonymously (`POST /public/customer-query`)
+Requesting a deploy token by email
+(`POST /api/public/deploy-tokens/request`) and submitting a customer query
+anonymously (`POST /api/public/customer-query`)
 are both capped per-email, per-IP, and globally: 5/hour per email and
 10/hour per IP for token requests; 10/email, 20/IP, and 500/hour globally
 for customer queries. Both always return the same generic success response

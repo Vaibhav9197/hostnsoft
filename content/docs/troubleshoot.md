@@ -5,12 +5,30 @@ Real failures the platform has thrown — not hypotheticals. Each entry:
 → `fix`.
 
 Covers the whole platform surface: deploying (`POST /apps`) and everything
-you can do to a project afterward (env vars, memory, rollback, custom
-domains, monitoring). See [`docs.md`](docs.md) for the full API reference
-this troubleshooting guide assumes, and
+you can do to an app afterward — env vars, rollback, custom domains,
+analytics, rename, delete. (Memory is not in that list: it cannot be
+changed, by you or by the user.) See [`api.md`](api.md) for the
+call-by-call contract this guide assumes, and
 [`limitations-and-recommendations.md`](limitations-and-recommendations.md)
 for the platform's real constraints and how to design around them —
 *before* you hit them, not after.
+
+## Before anything else: did the request reach the platform?
+
+### The call never completes — connection refused, DNS failure, or a hang
+- match: no HTTP status at all from `POST /apps` — a connection error, a DNS failure, a proxy
+  rejection, or a request that hangs and dies. Distinct from any `4xx`/`5xx`, which means the
+  platform answered
+- cause: usually your execution environment is network-sandboxed with a domain allowlist that
+  doesn't include `ship.embarko.ai` — common in hosted AI coding tools. The request is blocked
+  before it leaves your environment, so nothing was submitted: there is no deploy, no status to
+  poll and no logs to read
+- fix: **don't retry** — the same call will fail identically. Use the Embarko MCP connector if one
+  is available (its requests don't originate from your sandbox), otherwise tell the user it's your
+  environment that can't reach the API, not their app, and give them a script to run themselves.
+  Full procedure: [agent playbook](agent-playbook.md#no-connectivity). Do **not** fall back to an
+  anonymous deploy — same host, same block, and it hands the user a temporary app they didn't ask
+  for
 
 ## Build-time rejections (before any build runs)
 
@@ -105,13 +123,12 @@ for the platform's real constraints and how to design around them —
 - cause: app exceeds its allocated memory (256MB). Common causes: an
   embedded DB the platform didn't auto-detect, or a dev-mode server (e.g. a "dev" CLI) shipped as the production
   start command
-- fix: raise the memory limit, **then redeploy or roll back** — setting it only persists the new value, it
-  does not push it to the running app (see
-  [Changing memory doesn't take effect immediately](#changing-memory-doesnt-take-effect-immediately) below).
-  Memory is not something you can change with a deploy token, and the dashboard's own control for it is
-  gone for now — so there is currently no self-serve way to raise it. Shrinking the app's own footprint is
-  the fix available today: ship a production start command instead of a dev server, or drop an unused
-  embedded DB.
+- fix: **shrink the app — you cannot raise the limit.** There is no agent call for memory and the
+  dashboard's control is gone, so 256MB is fixed. Ship a production start command instead of a dev
+  server (the most common cause by far), drop an embedded DB you aren't using, and don't hold large
+  data in memory. Then redeploy. If memory does become adjustable again, note that setting it only
+  persists the value — see
+  [Memory cannot be changed today](#memory-cannot-be-changed-today) below.
 
 ### Crash loop exhausted
 - match: `"Not Restarting"`, `"Exceeded allowed attempts"`
@@ -176,8 +193,9 @@ now `.../customer-query`. Same data, same behavior, `type` now also accepts `"ot
   `.../verify` after propagation — safe to retry repeatedly
 
 ### Verify stuck on "Not resolving yet" despite a correct-looking record
-- match: dashboard shows `"Not resolving yet"` even though the CNAME/A record in your DNS
-  provider matches what was given exactly
+- match: `POST .../domains/<domain>/verify` keeps failing, or the dashboard shows
+  `"Not resolving yet"`, even though the CNAME/A record in the DNS provider matches what was
+  given exactly
 - cause: the DNS provider is proxying the record (e.g. Cloudflare's orange-cloud "Proxied"
   mode) instead of serving it as plain DNS. A proxied record doesn't actually resolve to the
   value shown in your dashboard — it resolves to the provider's own proxy IPs, which is why
@@ -277,14 +295,14 @@ now `.../customer-query`. Same data, same behavior, `type` now also accepts `"ot
 
 ## Configuration changes that don't apply until you redeploy
 
-### Changing memory doesn't take effect immediately
-- no `match` — a behavior to know about, not an error
-- cause: saving a new memory limit only **persists** the value. It does not push a config change to the
-  already-running app.
-- fix: the new limit takes effect the next time the app's configuration is regenerated — a fresh deploy
-  (`POST /apps`), a rollback, or a custom-domain change all do this. If you just need the new memory limit
-  applied with no code change, roll back to the **current** version — that re-applies the current
-  configuration with the new memory floor and no rebuild
+### Memory cannot be changed today
+- no `match` — a constraint to know about, not an error
+- cause: every app gets 256MB. There is no agent-facing call to change it and the dashboard control has
+  been removed, so neither you nor the user can raise it. Don't go looking for an endpoint
+- fix: reduce the app's own footprint — see [OOM killed](#oom-killed) above. Should it become adjustable
+  again, the old behaviour was that saving a value only **persisted** it: the new limit applied on the
+  next config regeneration (a deploy, a rollback, or a custom-domain change), so rolling back to the
+  *current* version was the way to apply it with no rebuild
 
 ### Env var changes need a redeploy to reach the running app
 - no `match` — a behavior to know about, not an error
