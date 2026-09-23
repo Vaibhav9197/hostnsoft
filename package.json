@@ -2,8 +2,12 @@
   "name": "hostnsoft",
   "version": "0.1.2",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/check-node.mjs",
     "build": "opennextjs-cloudflare build",
     "start": "next start",
     "lint": "next lint",
