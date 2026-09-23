@@ -40,7 +40,7 @@ load-bearing ones. Everything below this section is detail.
     anything. Don't retry blindly and don't hand-roll API calls around a
     failing step.
 
-### [The five things you'll be asked to do](#common-tasks)
+### [What you'll be asked to do](#common-tasks)
 
 | The user says | What you do |
 | --- | --- |

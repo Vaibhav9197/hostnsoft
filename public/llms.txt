@@ -80,7 +80,7 @@ what to do when the API is unreachable from your environment.
 ## Escalation: when to involve the human
 
 What you must decide yourself (ports, memory, runtime, containers, topology, errors) and the only
-five cases where asking the user is correct. Nearly everything is agent-callable — custom domains,
+six cases where asking the user is correct. Nearly everything is agent-callable — custom domains,
 analytics, rename and delete included. The one step that is not: creating the DNS record for a
 custom domain, which only the domain's owner can do.
 

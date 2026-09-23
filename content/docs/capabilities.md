@@ -20,12 +20,19 @@ custom domains, analytics, renaming and deletion. **One step is not:**
 creating the DNS record for a custom domain, which only the domain's owner
 can do at their own registrar.
 
-The calls below use two base URLs on the same host:
+Everything is on `ship.embarko.ai`, under two path shapes — and **the path
+does not tell you the auth rule**:
 
-| Base | What lives there | Auth |
-| --- | --- | --- |
-| `https://ship.embarko.ai/apps` | deploy, status, logs, agent feedback | none while unclaimed; token once claimed |
-| `https://ship.embarko.ai/api/apps/<app-name>` | env vars, history, rollback, showcase | deploy token, always |
+| Auth | Calls |
+| --- | --- |
+| None, ever | `GET /capabilities`, `POST /api/public/…` (rate limited) |
+| None while unclaimed, token once claimed | deploy, status, logs, agent feedback |
+| **Deploy token, always** | domains, analytics, rename, delete, env vars, deployment history, rollback, showcase |
+
+Deploy, status, logs, domains, analytics, rename and delete sit under
+`/apps/<name>`; env vars, history, rollback and showcase sit under
+`/api/apps/<name>`. Copy each path from its own entry rather than inferring
+one.
 
 ---
 

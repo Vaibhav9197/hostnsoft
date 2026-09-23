@@ -36,12 +36,20 @@ logs, env vars, history, rollback and showcase.
 
 ### [Two hosts, two auth models](#auth-model)
 
-| Base URL | Actions | Auth |
-| --- | --- | --- |
-| `https://ship.embarko.ai/apps/...` | deploy, status, logs, agent feedback | **None** while the app is an unclaimed anonymous deploy. The owning company's token once claimed. |
-| `https://ship.embarko.ai/api/apps/<app-name>/...` | env vars, history, rollback, showcase, app details | **Deploy token always.** |
-| `https://ship.embarko.ai/api/public/...` | request a token, anonymous feedback | **None.** Rate limited. |
-| `https://ship.embarko.ai/capabilities` | capability manifest | **None.** |
+Everything is on `ship.embarko.ai`. **The path prefix does not tell you the
+auth rule** — group by what the call needs, not by where it lives:
+
+| Auth | Calls |
+| --- | --- |
+| **None, ever** | `GET /capabilities`; `POST /api/public/deploy-tokens/request`; `POST /api/public/customer-query` (rate limited) |
+| **None while the app is an unclaimed anonymous deploy; the owning company's token once claimed** | `POST /apps` (deploy); `GET /apps/<name>/status`; `GET /apps/<name>/logs`; `POST /apps/<name>/customer-query` |
+| **Deploy token, always** | `/apps/<name>/domains…`; `GET /apps/<name>/analytics`; `PATCH /apps/<name>` (rename); `DELETE /apps/<name>`; and everything under `/api/apps/<name>/…` — env vars, deployments, rollback, showcase |
+
+Note the two path shapes on the same host: deploy, status, logs, domains,
+analytics, rename and delete sit directly under `/apps/<name>`, while env
+vars, deployment history, rollback and showcase sit under
+`/api/apps/<name>`. There is no rule to infer — copy the path from the
+action's own section below.
 
 The token is `Authorization: Bearer <token>`, is company-wide rather than
 per-app, and deploys only — it does not sign in to the dashboard.

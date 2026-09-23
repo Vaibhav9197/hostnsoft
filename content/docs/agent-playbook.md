@@ -11,8 +11,9 @@ what order*, the contract says *exactly what each call takes and returns*.
 **Act. Don't ask.** Do not stop to ask the user anything you can determine
 yourself, and do not ask permission to continue a task they already asked
 for. Ask only when a third-party secret is needed, DNS ownership requires
-them, money is involved, a destructive action needs confirming, or a
-genuinely consequential decision can't be inferred.
+them, money is involved, a destructive action needs confirming, your
+environment cannot reach Embarko at all, or a genuinely consequential
+decision can't be inferred.
 
 Everything else — choosing a name, picking a port, reading an error, fixing
 the app, redeploying — is yours to do. The full boundary, including the

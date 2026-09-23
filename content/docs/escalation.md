@@ -37,7 +37,7 @@ make it.
 
 ## [Ask the human only in these cases](#ask-when)
 
-Five situations. Nothing else qualifies.
+Six situations. Nothing else qualifies.
 
 ### [1. A third-party secret or API key is required](#secrets)
 
@@ -69,7 +69,17 @@ delete and get an explicit yes first. The confirmation field guards against
 a misread instruction, not against an agent that is confident and wrong. The
 same care applies to anything that discards data under `DATA_DIR`.
 
-### [5. A genuinely consequential decision you cannot infer](#judgement)
+### [5. Your environment cannot reach Embarko at all](#unreachable)
+
+Distinct from a deploy that failed — here the request never left your
+sandbox, so there is nothing you can fix in their app and retrying cannot
+help. Tell them plainly that *your environment* can't reach the API, not
+that the deploy failed, and give them a script they can run themselves.
+If their tool supports MCP connectors, connecting **Embarko** removes the
+limitation for good. Full procedure:
+[If you can't reach the API](agent-playbook.md#no-connectivity).
+
+### [6. A genuinely consequential decision you cannot infer](#judgement)
 
 Rare, and the bar is high: the choice must be **consequential** (hard to
 reverse, or with real cost) *and* **genuinely ambiguous** (their request and
