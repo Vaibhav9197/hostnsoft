@@ -43,7 +43,7 @@ export const PLAN_DETAILS: Record<string, PlanDetails> = {
       "Unlimited static websites",
       {
         text: "1 dynamic app",
-        tooltip: "Includes data storage for 1 app.",
+        tooltip: "Includes a database for 1 app.",
       },
       "Your own Embarko link",
       "Share your app with anyone",
@@ -59,7 +59,7 @@ export const PLAN_DETAILS: Record<string, PlanDetails> = {
     features: [
       {
         text: "Up to 5 dynamic apps",
-        tooltip: "Includes data storage for each app.",
+        tooltip: "Includes a database for each app.",
       },
       "Use your own domain",
       "Remove Embarko branding",
@@ -77,7 +77,7 @@ export const PLAN_DETAILS: Record<string, PlanDetails> = {
     features: [
       {
         text: "Up to 20 dynamic apps",
-        tooltip: "Includes data storage for each app.",
+        tooltip: "Includes a database for each app.",
       },
       "Much more usage",
       "Advanced controls",
