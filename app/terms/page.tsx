@@ -52,7 +52,7 @@ export default function TermsPage() {
           </Item>
           <Item>
             <Term>Tokens are secrets, and yours to guard.</Term> Anyone holding a token can deploy as
-            your company. Revoke a leaked token from <A href="/docs">your token settings</A>; we are
+            your company. Revoke a leaked token from <A href="/app/tokens">your token settings</A>; we are
             not responsible for deploys made with a token you failed to protect.
           </Item>
         </List>
