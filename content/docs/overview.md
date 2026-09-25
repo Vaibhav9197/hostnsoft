@@ -14,7 +14,7 @@ coding** — the kind of app that gets built in one session with Claude, Codex,
 Cursor, Lovable or Replit, and then needs somewhere real to live.
 
 You send Embarko the source of an app. It builds the app, runs it, and serves
-it at a live HTTPS URL at `<app-name>.app.embarko.ai`. It is not a static
+it at a live HTTPS URL at `<app-name>.embarko.app`. It is not a static
 file host and not an app builder: your agent writes the app, Embarko executes
 it.
 
@@ -129,7 +129,7 @@ can reach its own `DATA_DIR` and nothing else on the platform. One caveat:
 "it's internal" as a security boundary — authenticate and encrypt anything
 sensitive.
 
-**Encryption.** HTTPS on `*.app.embarko.ai` and on custom domains, with
+**Encryption.** HTTPS on `*.embarko.app` and on custom domains, with
 certificates handled for you. Data is encrypted in transit, and at rest by
 the storage provider. Environment variables are encrypted under a separate
 key and exposed only to your app's runtime.

@@ -13,7 +13,7 @@ export default function AbusePage() {
     <DocumentPage title="Report Abuse">
       <Section>
         <P>
-          Embarko runs apps that its customers deploy, on <Code>*.app.embarko.ai</Code> subdomains and
+          Embarko runs apps that its customers deploy, on <Code>*.embarko.app</Code> subdomains and
           on custom domains they connect. If you have found something hosted with us that is abusive —
           phishing, malware, spam, content that exploits or endangers minors, impersonation,
           intellectual property infringement, or anything else our{" "}

@@ -1,3 +1,5 @@
+import { SITE, SITE_HOST } from "./site";
+
 /**
  * The "list my app on Showcase" prompt, built the same way as deployPrompt.ts:
  * it states the intent, names the page, and points at the docs. It does not
@@ -15,17 +17,17 @@ export function showcaseListPrompt(
 ): string {
   const where =
     page.type === "public"
-      ? `the Embarko Showcase event page "${page.title}" (embarko.ai/showcase/${page.slug})`
-      : `my company's Embarko Showcase page "${page.title}" (embarko.ai/showcase/${page.slug})`;
+      ? `the Embarko Showcase event page "${page.title}" (${SITE_HOST}/showcase/${page.slug})`
+      : `my company's Embarko Showcase page "${page.title}" (${SITE_HOST}/showcase/${page.slug})`;
 
   const which = appSlug ? `my Embarko app "${appSlug}"` : "this app";
 
   return `List ${which} on ${where}.
 
-If it isn't deployed to Embarko yet, deploy it first: read https://embarko.ai/docs/agent-quickstart.md and follow it.
-Use my deploy token — DEPLOY_TOKEN or ~/.embarko/credentials if either is set; if neither is, ask me for one from https://embarko.ai/app/tokens.
+If it isn't deployed to Embarko yet, deploy it first: read ${SITE}/docs/agent-quickstart.md and follow it.
+Use my deploy token — DEPLOY_TOKEN or ~/.embarko/credentials if either is set; if neither is, ask me for one from ${SITE}/app/tokens.
 
-Then list it: read https://embarko.ai/docs/api.md#showcase for how to call the Showcase API with
+Then list it: read ${SITE}/docs/api.md#showcase for how to call the Showcase API with
 page slug "${page.slug}" and these details, inferring what you can from the project and asking me for the rest:
 - name and a one-line tagline
 - what it does, and why it was built (a short paragraph each)

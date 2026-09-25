@@ -14,6 +14,7 @@ import { useSession } from "../../../lib/session";
 import { CATEGORIES, TOOLS } from "../../../lib/showcaseOptions";
 import { showcaseListPrompt } from "../../../lib/showcasePrompt";
 import type { Project, ShowcaseListing, ShowcasePage } from "../../../lib/types";
+import { SITE_HOST, appHost } from "../../../lib/site";
 
 /**
  * Put one of this company's deployed apps on Showcase.
@@ -60,7 +61,6 @@ function Field({
 const textarea =
   "w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:bg-input/30";
 
-const SITE_HOST = "embarko.ai";
 
 export function ListAppForm({
   initialPage = "",
@@ -355,7 +355,7 @@ export function ListAppForm({
                 <option value="">Select…</option>
                 {projects.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.name} — {p.slug}.app.embarko.ai
+                    {p.name} — {appHost(p.slug)}
                   </option>
                 ))}
               </NativeSelect>

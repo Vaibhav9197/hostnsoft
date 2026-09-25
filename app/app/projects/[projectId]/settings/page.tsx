@@ -10,6 +10,7 @@ import { Input } from "../../../../components/ui/input";
 import { projectsApi } from "../../../../lib/hnsApi";
 import { useSession } from "../../../../lib/session";
 import { useProject } from "../../../../lib/useProject";
+import { appHost } from "../../../../lib/site";
 
 export default function ProjectSettingsPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = use(params);
@@ -104,7 +105,7 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
         >
           <p className="mt-1 text-[0.92rem] text-muted-foreground">
             This is the name you see here. Your app stays at{" "}
-            <code className="border border-border bg-elevated px-1 py-0.5 font-mono text-[0.85em] text-foreground">{project.slug}.app.embarko.ai</code>{" "}
+            <code className="border border-border bg-elevated px-1 py-0.5 font-mono text-[0.85em] text-foreground">{appHost(project.slug)}</code>{" "}
             whatever you call it, so links you have already shared keep working.
           </p>
           <form className="mt-2.5 flex flex-wrap gap-2.5" onSubmit={rename}>

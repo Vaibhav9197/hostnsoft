@@ -23,7 +23,7 @@ export default function TermsPage() {
         <P>
           Embarko takes an app your AI agent has built and runs it on the internet. You (or your
           agent) send the app&apos;s source to <Code>ship.embarko.ai</Code>; we build it, run it, and
-          serve it over HTTPS at <Code>&lt;app-name&gt;.app.embarko.ai</Code> or a custom domain you
+          serve it over HTTPS at <Code>&lt;app-name&gt;.embarko.app</Code> or a custom domain you
           connect. Depending on your plan, a live app can also use the database, file storage, login,
           and backup features described on our <A href="/pricing">pricing page</A> and in the{" "}
           <A href="/docs">documentation</A>.

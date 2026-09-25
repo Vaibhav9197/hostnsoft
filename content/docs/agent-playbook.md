@@ -93,7 +93,7 @@ curl "https://ship.embarko.ai/apps/my-app/status"
 Until `deploy.status` is no longer `in_progress`. On `failed`, go to
 [Deployment failed](#deploy-failed). Give up after 10 minutes and read logs.
 
-**8. Verify, then report.** Fetch `https://my-app.app.embarko.ai` and
+**8. Verify, then report.** Fetch `https://my-app.embarko.app` and
 confirm it responds. Then give the user the URL — and, if you deployed
 anonymously, tell them it disappears in 24 hours and offer to make it
 permanent ([Make an app permanent](#claim)).
@@ -107,7 +107,7 @@ the name is the identity. Never invent `my-app-v2`; a new name creates a
 second app on a second subdomain.
 
 If you don't know the name, it is the subdomain of the live URL:
-`https://**my-app**.app.embarko.ai`.
+`https://**my-app**.embarko.app`.
 
 **2. Deploy the new version** exactly as in
 [step 6 above](#deploy-new), same name, new `X-App-Version`. Env vars,
@@ -353,7 +353,7 @@ and needs it open). See
 [troubleshoot.md](troubleshoot.md#verify-stuck-on-not-resolving-yet-despite-a-correct-looking-record).
 
 **6. Confirm it works**, then tell them. The default
-`<app-name>.app.embarko.ai` URL keeps working throughout and afterwards.
+`<app-name>.embarko.app` URL keeps working throughout and afterwards.
 
 `GET /apps/<name>/domains` lists what's registered;
 `DELETE /apps/<name>/domains/<domain>` removes one without touching the

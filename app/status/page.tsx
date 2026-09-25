@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 const COMPONENTS = [
   { name: "Deploy API", detail: "ship.embarko.ai", state: "operational" },
   { name: "Builds", detail: "Turning uploaded source into a running app", state: "operational" },
-  { name: "App serving", detail: "*.app.embarko.ai and custom domains", state: "operational" },
+  { name: "App serving", detail: "*.embarko.app and custom domains", state: "operational" },
   { name: "App storage", detail: "Databases and uploaded files", state: "operational" },
   { name: "Console", detail: "embarko.ai and the dashboard", state: "operational" },
   { name: "Sign-in", detail: "One-time codes and sessions", state: "operational" },

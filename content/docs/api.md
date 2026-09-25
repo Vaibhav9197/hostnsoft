@@ -190,7 +190,7 @@ curl -X POST "https://ship.embarko.ai/apps" \
   "version": "1788947902193",
   "image": "my-app:1788947902193",
   "memory": "256MB",
-  "url": "https://my-app.app.embarko.ai",
+  "url": "https://my-app.embarko.app",
   "statusUrl": "https://ship.embarko.ai/apps/my-app/status",
   "logsUrl": "https://ship.embarko.ai/apps/my-app/logs"
 }

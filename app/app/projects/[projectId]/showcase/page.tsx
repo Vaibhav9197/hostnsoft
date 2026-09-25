@@ -15,6 +15,7 @@ import { useSession } from "../../../../lib/session";
 import { showcaseListPrompt } from "../../../../lib/showcasePrompt";
 import { useProject } from "../../../../lib/useProject";
 import type { ShowcaseListing, ShowcasePage } from "../../../../lib/types";
+import { SITE_HOST } from "../../../../lib/site";
 
 /**
  * This one app on Showcase: is it there, where, and how to put it there.
@@ -119,7 +120,7 @@ export default function ProjectShowcasePage({ params }: { params: Promise<{ proj
               Showcase is Embarko’s public gallery of apps built with AI. Listing {project.name} gives it a
               page of its own at{" "}
               <a href="/showcase" target="_blank" rel="noreferrer" className="text-foreground underline underline-offset-2">
-                embarko.ai/showcase
+                {SITE_HOST}/showcase
               </a>{" "}
               and puts it on your company page.
             </p>
@@ -152,7 +153,7 @@ export default function ProjectShowcasePage({ params }: { params: Promise<{ proj
               </div>
               <p className="mt-1 text-[0.9rem] text-muted-foreground">
                 {companyListing && companyPage
-                  ? `Live in the gallery and at embarko.ai/showcase/${companyPage.slug}.`
+                  ? `Live in the gallery and at ${SITE_HOST}/showcase/${companyPage.slug}.`
                   : "Live in the Showcase gallery."}
               </p>
             </div>
@@ -202,7 +203,7 @@ export default function ProjectShowcasePage({ params }: { params: Promise<{ proj
                       {l.isPrivate && <Tag>Hidden by organiser</Tag>}
                     </div>
                     <p className="text-[0.8rem] text-muted-foreground">
-                      embarko.ai/showcase/{l.collection.slug} · added {formatDate(l.createdAt)}
+                      {SITE_HOST}/showcase/{l.collection.slug} · added {formatDate(l.createdAt)}
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-4">

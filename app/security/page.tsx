@@ -51,7 +51,7 @@ export default function SecurityPage() {
       <Section title="Encryption and secrets">
         <List>
           <Item>
-            All traffic is served over HTTPS, on <Code>*.app.embarko.ai</Code> and on connected custom
+            All traffic is served over HTTPS, on <Code>*.embarko.app</Code> and on connected custom
             domains, with certificates issued and renewed for you.
           </Item>
           <Item>Data is encrypted in transit, and encrypted at rest by our storage provider.</Item>

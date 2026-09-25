@@ -16,6 +16,7 @@ import { companiesApi, projectsApi } from "../lib/hnsApi";
 import { formatDateTime } from "../lib/format";
 import { useSession } from "../lib/session";
 import type { Project } from "../lib/types";
+import { appHost } from "../lib/site";
 
 export default function ProjectsPage() {
   const { activeCompanyId, companies, reload } = useSession();
@@ -214,7 +215,7 @@ export default function ProjectsPage() {
                 </div>
                 <div className="flex flex-col flex-1 min-w-0">
                   <h3 className="text-base font-bold text-foreground truncate">{p.name}</h3>
-                  <p className="text-sm text-muted-foreground truncate">{p.slug}.app.embarko.ai</p>
+                  <p className="text-sm text-muted-foreground truncate">{appHost(p.slug)}</p>
                 </div>
                 <HealthPill
                   health={p.health}

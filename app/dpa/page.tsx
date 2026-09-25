@@ -131,7 +131,7 @@ export default function DpaPage() {
 
       <Section title="6. Security measures">
         <List>
-          <Item>All traffic is served over HTTPS, on both <code className="font-mono text-[0.9em]">*.app.embarko.ai</code> and connected custom domains.</Item>
+          <Item>All traffic is served over HTTPS, on both <code className="font-mono text-[0.9em]">*.embarko.app</code> and connected custom domains.</Item>
           <Item>Data is encrypted in transit, and encrypted at rest by our storage provider.</Item>
           <Item>Environment variables and app secrets are encrypted at rest under a separate key.</Item>
           <Item>Deploy tokens are stored hashed, are scoped to one company, and can be revoked individually.</Item>

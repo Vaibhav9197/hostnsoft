@@ -67,7 +67,7 @@ Poll every 3–5 seconds until `deploy.status` is no longer `in_progress`:
 
 ## [4. Verify, then report](#report)
 
-Fetch `https://my-app.app.embarko.ai` and confirm it actually serves. Only
+Fetch `https://my-app.embarko.app` and confirm it actually serves. Only
 then give the user the URL.
 
 **Say this with it:** the app is deleted 24 hours from now unless it's

@@ -16,6 +16,7 @@ import {
   type Packed,
 } from "@/app/lib/pack";
 import { appNameError } from "@/app/lib/appName";
+import { appHost } from "../../lib/site";
 
 /**
  * Deploy by handing over the app itself, rather than asking an agent to.
@@ -277,7 +278,7 @@ export function UploadDeployPanel({
                 <span className="text-xs text-destructive">{nameError}</span>
               ) : (
                 <span className="text-xs text-muted-foreground">
-                  It becomes the address: <span className="font-mono">{name}.app.embarko.ai</span>
+                  It becomes the address: <span className="font-mono">{appHost(name)}</span>
                 </span>
               )}
             </label>

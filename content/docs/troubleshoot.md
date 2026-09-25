@@ -158,7 +158,7 @@ platform should be updated to point at
 - fix: **no longer needed for apps deployed/redeployed after this platform update** — the platform now
   applies a corrected default CSP (same as before, plus `'wasm-unsafe-eval'`) at the edge for every app,
   which takes precedence over anything the app's own container sets. Confirm with
-  `curl -sI https://<app>.app.embarko.ai/ | grep -i content-security-policy`; if it's still missing
+  `curl -sI https://<app>.embarko.app/ | grep -i content-security-policy`; if it's still missing
   `wasm-unsafe-eval`, the app hasn't been redeployed since this fix — trigger any redeploy (even a no-op
   rollback to the current version) to pick it up.
 

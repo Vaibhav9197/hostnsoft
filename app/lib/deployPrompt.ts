@@ -1,5 +1,6 @@
 import { readLpVariant } from "./gtm";
 import { variantForPath } from "./variants";
+import { SITE } from "./site";
 
 /** The canonical "copy prompt for agent" text — shared by the landing page's
  *  hero CTA, the docs page's "Install the skill" panel, and the console so they
@@ -82,7 +83,7 @@ function build({ variantLine = "", appName, token, signedIn }: PromptContext): s
   const useSavedToken =
     "use DEPLOY_TOKEN or ~/.embarko/credentials if either is already set";
   const askForToken =
-    'if neither is, ask me for one — I can create it on the "Deploy tokens" page at https://embarko.ai/app/tokens — and save it to ~/.embarko/credentials so later deploys reuse it';
+    `if neither is, ask me for one — I can create it on the "Deploy tokens" page at ${SITE}/app/tokens — and save it to ~/.embarko/credentials so later deploys reuse it`;
 
   let credentialLines: string;
   if (token) {
@@ -100,7 +101,7 @@ Only once it's live, ask me for my email: Embarko mails back a token that makes 
 
   return `Deploy this app to Embarko — cloud hosting for small apps. No Dockerfile, no signup.
 
-Read https://embarko.ai/docs/agent-quickstart.md and follow it. Nothing to install.${nameLine}
+Read ${SITE}/docs/agent-quickstart.md and follow it. Nothing to install.${nameLine}
 ${credentialLines}
 ${variantLine}
 Faster, if your tools let you install one: npx skills add embarko-ai/skill --skill embarko-deploy -g`;

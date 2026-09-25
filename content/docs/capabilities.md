@@ -375,7 +375,7 @@ per-endpoint setup. If the app serves it, it is reachable.
 **When:** Any public API, form handler, callback URL or webhook receiver.
 
 **How:** Handle the path inside the app and give the third party
-`https://<app-name>.app.embarko.ai/<your-path>`. Verify webhook signatures
+`https://<app-name>.embarko.app/<your-path>`. Verify webhook signatures
 yourself, using a secret from [env vars](#secrets) — the platform does not
 authenticate inbound requests for you.
 
@@ -394,7 +394,7 @@ documented; do not design around a particular value until they are.
 
 ## [Default Embarko domain](#default-domain)
 
-**What:** Every app is served at `https://<app-name>.app.embarko.ai` from
+**What:** Every app is served at `https://<app-name>.embarko.app` from
 its first deploy.
 
 **Why:** The user gets a shareable link immediately, with no domain to buy
@@ -448,14 +448,14 @@ in front of it, so prefer a subdomain. On Cloudflare the record must be
 to call repeatedly while DNS propagates; routing activates only when it
 confirms. Certificate issuance uses an HTTP-01 challenge and needs **port 80
 reachable and unredirected**. Removing a domain never affects the default
-`*.app.embarko.ai` URL.
+`*.embarko.app` URL.
 
 ---
 
 ## [Automatic HTTPS](#https)
 
 **What:** TLS certificates are issued and renewed automatically, for both
-`*.app.embarko.ai` and connected custom domains.
+`*.embarko.app` and connected custom domains.
 
 **Why:** No certificate to buy, install, or remember to renew.
 

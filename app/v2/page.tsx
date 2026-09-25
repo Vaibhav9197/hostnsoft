@@ -19,7 +19,7 @@ const STEP2_START = 1400;
 const LIVE_COUNT_START = 3900;
 const STEP3_START = 4300;
 const STEP3_TYPE_MS = 1000;
-const SITE_URL = 'your-app.embarko.ai';
+const SITE_URL = 'your-app.embarko.app';
 const LOGS = [
   { t: 1400, text: '> deploy this app to embarko' },
   { t: 2100, text: 'Installing dependencies...' },

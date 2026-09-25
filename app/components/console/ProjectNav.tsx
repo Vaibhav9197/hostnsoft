@@ -11,6 +11,7 @@ import { DeployPromptDialog } from "@/app/components/console/DeployPromptDialog"
 import { HealthPill } from "@/app/components/console/HealthPill";
 import { useSession } from "@/app/lib/session";
 import { useProject } from "@/app/lib/useProject";
+import { appHost, appUrl } from "@/app/lib/site";
 
 /**
  * Project identity + section tabs, shown above every page inside a project.
@@ -75,12 +76,12 @@ export function ProjectNav({ projectId }: { projectId: string }) {
                 Held back until the slug loads — the host is built from it. */}
             {project ? (
               <a
-                href={`https://${project.slug}.app.embarko.ai`}
+                href={appUrl(project.slug)}
                 target="_blank"
                 rel="noreferrer"
                 className="block truncate font-mono text-[0.75rem] text-muted-foreground transition-colors hover:text-foreground hover:underline"
               >
-                {project.slug}.app.embarko.ai
+                {appHost(project.slug)}
               </a>
             ) : (
               <div className="truncate font-mono text-[0.75rem] text-muted-foreground">loading…</div>
@@ -91,7 +92,7 @@ export function ProjectNav({ projectId }: { projectId: string }) {
         {/* Sits with the app's identity rather than on one page's header, so
             it's reachable from every section. Held back until the slug is
             loaded — the live URL is built from it, and a link to
-            "https://undefined.app.embarko.ai" is worse than no link. */}
+            "https://undefined.embarko.app" is worse than no link. */}
         {project && (
           <div className="flex flex-wrap items-center gap-2">
             {/* Says who does the work: the button hands the job to the
@@ -114,7 +115,7 @@ export function ProjectNav({ projectId }: { projectId: string }) {
               </Tooltip>
             </TooltipProvider>
             <Button asChild>
-              <a href={`https://${project.slug}.app.embarko.ai`} target="_blank" rel="noreferrer">
+              <a href={appUrl(project.slug)} target="_blank" rel="noreferrer">
                 Open live URL
                 <ExternalLink />
               </a>

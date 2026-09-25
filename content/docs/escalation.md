@@ -133,7 +133,7 @@ Every part of that is either fixed by the platform or fixable in the code.
 
 Strong:
 
-> Your app is deployed and running at `https://my-app.app.embarko.ai`. The
+> Your app is deployed and running at `https://my-app.embarko.app`. The
 > payments page needs your Stripe secret key to work — paste it here and
 > I'll set it up. Everything else is done.
 

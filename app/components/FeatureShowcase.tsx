@@ -123,7 +123,7 @@ function mockups(tone: ShowcaseTone) {
                 <i key={i} className={`h-2 w-2 rounded-full border ${t.line}`} />
               ))}
             </span>
-            <span className={`truncate font-mono text-[11px] ${t.muted}`}>amber-harbor.app.embarko.ai</span>
+            <span className={`truncate font-mono text-[11px] ${t.muted}`}>amber-harbor.embarko.app</span>
           </>
         }
       >

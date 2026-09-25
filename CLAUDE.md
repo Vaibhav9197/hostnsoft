@@ -76,7 +76,7 @@ itself:
 ```
 My app
 ● Live
-myapp.app.embarko.ai
+myapp.embarko.app
 
 [ Open app ]
 ```

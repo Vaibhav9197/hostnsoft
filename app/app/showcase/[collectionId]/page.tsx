@@ -26,6 +26,7 @@ import { formatDate } from "../../../lib/format";
 import { showcaseListPrompt } from "../../../lib/showcasePrompt";
 import { useSession } from "../../../lib/session";
 import type { ShowcaseCollectionDetail, ShowcaseListing } from "../../../lib/types";
+import { SITE_HOST } from "../../../lib/site";
 
 /**
  * One Showcase page, from the side of whoever owns it: your company page,
@@ -33,7 +34,6 @@ import type { ShowcaseCollectionDetail, ShowcaseListing } from "../../../lib/typ
  * whether it stays visible on the page. Taking an app off Showcase for good
  * is its owner's job, from their own console.
  */
-const SITE_HOST = "embarko.ai";
 
 /* One way of getting an app onto the page: what it is, who it is for, the
    button that does it. */
@@ -214,7 +214,7 @@ export default function ShowcaseCollectionPage() {
         subtitle={
           detail && (
             <span className="inline-flex flex-wrap items-center gap-x-3 gap-y-1">
-              <span className="font-mono">embarko.ai/showcase/{detail.slug}</span>
+              <span className="font-mono">{SITE_HOST}/showcase/{detail.slug}</span>
               <span>
                 {detail.counts.total === 0
                   ? "No apps yet"

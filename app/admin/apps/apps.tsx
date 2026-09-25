@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AdminNav } from '../../components/AdminNav';
 import { formatDate } from '../../lib/format';
+import { appUrl } from '../../lib/site';
 
 /* Every app on the platform, across all companies. GET /admin/apps answers a
  * flat, unsorted list with no pagination, so the ordering below is ours. */
@@ -113,7 +114,7 @@ export default function Apps() {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="font-mono text-sm text-foreground">{a.appSlug}</span>
                             <a
-                              href={`https://${a.appSlug}.app.embarko.ai`}
+                              href={appUrl(a.appSlug)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="ml-2 text-xs text-primary hover:underline"

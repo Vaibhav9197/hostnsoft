@@ -12,6 +12,7 @@ import { projectsApi, showcaseApi } from "../../lib/hnsApi";
 import { HnsError } from "../../lib/client";
 import { useSession } from "../../lib/session";
 import type { Project, ShowcaseCollection, ShowcaseListing } from "../../lib/types";
+import { SITE_HOST } from "../../lib/site";
 
 /**
  * Showcase, from the user's side.
@@ -41,7 +42,6 @@ function slugFrom(text: string): string {
     .slice(0, 40);
 }
 
-const SITE_HOST = "embarko.ai";
 
 /** How many apps the list shows before it asks to be expanded. */
 const APPS_SHOWN = 5;

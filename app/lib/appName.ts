@@ -7,7 +7,7 @@
  * upload has been packed and sent.
  *
  * An app name is also the live subdomain, so these are the rules that decide
- * whether <name>.app.embarko.ai can exist at all.
+ * whether <name>.embarko.app can exist at all.
  */
 
 export const APP_NAME_MIN = 3;
