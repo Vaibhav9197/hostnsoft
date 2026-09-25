@@ -43,11 +43,11 @@ auth rule** — group by what the call needs, not by where it lives:
 | --- | --- |
 | **None, ever** | `GET /capabilities`; `POST /api/public/deploy-tokens/request`; `POST /api/public/customer-query` (rate limited) |
 | **None while the app is an unclaimed anonymous deploy; the owning company's token once claimed** | `POST /apps` (deploy); `GET /apps/<name>/status`; `GET /apps/<name>/logs`; `POST /apps/<name>/customer-query` |
-| **Deploy token, always** | `/apps/<name>/domains…`; `GET /apps/<name>/analytics`; `PATCH /apps/<name>` (rename); `DELETE /apps/<name>`; and everything under `/api/apps/<name>/…` — env vars, deployments, rollback, showcase |
+| **Deploy token, always** | `/apps/<name>/domains…`; `GET /apps/<name>/analytics`; `PATCH /apps/<name>` (rename); `DELETE /apps/<name>`; and everything under `/api/apps/<name>/…` — env vars, deployments, rollback, showcase, slug-change |
 
 Note the two path shapes on the same host: deploy, status, logs, domains,
 analytics, rename and delete sit directly under `/apps/<name>`, while env
-vars, deployment history, rollback and showcase sit under
+vars, deployment history, rollback, showcase and slug-change sit under
 `/api/apps/<name>`. There is no rule to infer — copy the path from the
 action's own section below.
 
@@ -381,6 +381,69 @@ deploy).
 
 ---
 
+## [Change an app's web address](#change-address)
+
+**`POST https://ship.embarko.ai/api/apps/<app-name>/slug-change`**
+· async · not idempotent
+
+**Auth:** deploy token, always.
+
+**Required:** `newName` in the body.
+
+Distinct from `PATCH /apps/<name>`, which changes the display name and
+leaves the URL alone. This changes the URL itself.
+
+**Ask the user first.** The old address stops working the moment the new
+one is live — there is no redirect, anything linking to it breaks, and the
+freed name can be claimed by someone else. See
+[escalation](escalation.md#destructive).
+
+**Example:**
+
+```bash
+curl -X POST "https://ship.embarko.ai/api/apps/my-app/slug-change"   -H "Authorization: Bearer $DEPLOY_TOKEN"   -H "Content-Type: application/json"   -d '{"newName": "my-better-app"}'
+```
+
+**Success — `202 Accepted`** for a live app, carrying `statusUrl`,
+`appUrl`, and `deployWith` (the `X-App-Name` to use from now on). An app
+that has never deployed answers `200` with `terminal: true` — that one is a
+single database write and is already done.
+
+**Poll** `GET https://ship.embarko.ai/api/slug-changes/<project-id>` until
+`terminal` is true. `state` ends `succeeded` or `failed`, and `currentSlug`
+always says where the app actually is. A failed migration leaves the app on
+its old address, untouched.
+
+**Errors:**
+
+| Code / shape | Status | Retry | Action |
+| --- | --- | --- | --- |
+| `invalid_app_name`, `app_name_too_short`, `app_name_too_long` | 400 | No | Same rules as `X-App-Name`: `^[a-z0-9-]+$`, 3–63 characters, no leading or trailing hyphen. |
+| `app_name_reserved` | 409 | No | Platform-reserved name. Pick another. |
+| `app_name_taken` | 409 | No | Held platform-wide, not just in your company. |
+| `deploy_in_progress` | 409 | Yes | Wait for the deploy to finish. |
+| `rename_in_progress` | 409 | Yes | One is already running for this app. |
+| `no_current_deployment` | 409 | No | Running but no record of which image is live. Deploy once, then retry. |
+| `slug_change_cooldown` | 429 | Later | One change per app per week. `retryAfterMs` says when. |
+| `app_state_unknown` | 503 | Yes | Couldn't confirm whether the app is running. Fails closed. |
+| `rename_failed` | 502 | Yes | The migration was refused or rolled back; the app is untouched. |
+| `rename_desynced` | 500 | No | The app moved but we couldn't record it. Needs a person. |
+
+**Behaviour:** for a live app this is slow — minutes, not seconds — because
+the app needs a fresh HTTPS certificate for the new hostname. It is stopped
+while its stored data is moved, and it keeps that data.
+
+**Afterwards, deploy with the new name.** If something still calls the old
+one it gets `404 app_renamed`, carrying `newName` and a `retryUrl` — follow
+that rather than deploying a fresh app under the old name, which would
+create a second, empty app.
+
+**Not affected:** a custom domain is carried over and keeps working
+throughout, so an app that has one does not change its real address. A
+Showcase listing keeps its own separate URL.
+
+---
+
 ## [Environment variables](#env-vars)
 
 Base: `https://ship.embarko.ai/api/apps/<app-name>/env-vars`. **Deploy token
@@ -505,6 +568,7 @@ All on the deploy host, all with a deploy token.
 | Remove a domain | `DELETE /apps/<name>/domains/<domain>` | Never affects the default URL |
 | Analytics | `GET /apps/<name>/analytics?range=7d` | `24h`/`7d`/`30d`/`90d`/`all`, default `24h` |
 | Rename (display name) | `PATCH /apps/<name>` `{"name": "My App"}` | Slug and URL never change |
+| Change the web address | `POST /api/apps/<name>/slug-change` `{"newName": "..."}` | Changes the URL. Ask the user first — see [above](#change-address) |
 | Delete the app | `DELETE /apps/<name>` `{"confirmAppName": "<name>"}` | Irreversible, no backup |
 
 Four behaviours worth stating outright:
@@ -514,8 +578,10 @@ Four behaviours worth stating outright:
   `POST /domains` returns and wait.
 - **Analytics returns `503` when the subsystem is unreachable.** That is
   not zero traffic — do not report it as such.
-- **Rename changes the display name only.** The slug is the URL and does
-  not move. A different URL means a different app.
+- **Rename changes the display name only.** The slug is the URL and
+  `PATCH` does not move it. Moving the URL is a different, much heavier
+  call — [change the web address](#change-address) — which takes the app
+  offline for minutes and kills the old address.
 - **Delete requires `confirmAppName` in the body.** Omitting it or getting
   it wrong is `400 confirmation_required` and deletes nothing. Get the
   user's explicit go-ahead before sending it — see

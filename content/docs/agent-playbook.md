@@ -390,9 +390,10 @@ subdomain.
 ## [Rename an app](#rename-app)
 
 **1. Know what changes.** The **display name** only. The slug is the live
-URL and does not move — if they want a different address, that is a new
-deploy under a new name, or a [custom domain](#add-custom-domain). Say so
-before doing it, or they will expect the URL to follow.
+URL and `PATCH` does not move it. Say so before doing it, or they will
+expect the URL to follow. If the URL is what they actually want changed,
+that is a different and much heavier call —
+[change the web address](#change-address).
 
 **2. Rename:**
 
@@ -404,6 +405,49 @@ curl -X PATCH "https://ship.embarko.ai/apps/my-app" \
 ```
 
 **3. Keep using the original slug** for every other call.
+
+---
+
+## [Change an app's web address](#change-address)
+
+Different from a [rename](#rename-app): that changes the label, this moves
+the URL.
+
+**1. Ask first, every time.** The old address stops working the moment the
+new one is live. There is no redirect, anything already linking to it
+breaks, and the freed name can be claimed by someone else. A name that
+looks untidy to you is not a reason. A user who asked for a different
+address is.
+
+Tell them the app will be offline for a few minutes and keeps its data.
+
+**2. Change it:**
+
+```bash
+curl -X POST "https://ship.embarko.ai/api/apps/my-app/slug-change"   -H "Authorization: Bearer $DEPLOY_TOKEN"   -H "Content-Type: application/json"   -d '{"newName": "my-better-app"}'
+```
+
+**3. Poll the `statusUrl` it returns** until `terminal` is true. This takes
+minutes, not seconds — the app needs a fresh certificate for the new
+hostname. `state` ends `succeeded` or `failed`, and `currentSlug` always
+says where the app actually is. A failure leaves it on the old address,
+untouched.
+
+**4. Use the new name from now on.** The response's `deployWith` gives the
+exact `X-App-Name`. Forgetting this is the usual way to break things after
+a move.
+
+**5. If you get `404 app_renamed`, follow it — don't redeploy.** It means
+you are holding a stale name; the response carries `newName` and a
+`retryUrl`. Deploying under the old name instead would create a second,
+empty app.
+
+**Once a week per app** (`429 slug_change_cooldown`, with `retryAfterMs`).
+Each change spends a certificate from a budget shared with every new app.
+
+**Tell them what does not break:** a custom domain is carried over and
+keeps working, so if they have one their real address is unaffected. A
+Showcase listing keeps its own separate URL.
 
 ---
 

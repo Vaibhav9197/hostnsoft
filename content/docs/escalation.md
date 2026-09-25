@@ -69,6 +69,13 @@ delete and get an explicit yes first. The confirmation field guards against
 a misread instruction, not against an agent that is confident and wrong. The
 same care applies to anything that discards data under `DATA_DIR`.
 
+Changing an app's **web address** belongs here too, even though nothing is
+deleted. The old address stops working the moment the new one is live —
+there is no redirect, links already shared break, and the freed name can be
+claimed by someone else. Ask before calling
+[`POST /slug-change`](api.md#change-address), every time. A name that looks
+untidy to you is not a reason; a user who asked for a different address is.
+
 ### [5. Your environment cannot reach Embarko at all](#unreachable)
 
 Distinct from a deploy that failed — here the request never left your

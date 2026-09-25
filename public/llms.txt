@@ -71,8 +71,8 @@ which errors are retryable, backoff, and idempotency behaviour.
 ## Agent playbooks
 
 Ordered procedures: deploy, update, recover from a failed deploy, roll back, add a secret, add a
-custom domain, delete, rename, report analytics, claim an anonymous app, debug a live app, and
-what to do when the API is unreachable from your environment.
+custom domain, delete, rename, change an app's web address, report analytics, claim an anonymous
+app, debug a live app, and what to do when the API is unreachable from your environment.
 
     https://embarko.ai/docs/agent-playbook
     https://embarko.ai/docs/agent-playbook#no-connectivity
@@ -81,8 +81,10 @@ what to do when the API is unreachable from your environment.
 
 What you must decide yourself (ports, memory, runtime, containers, topology, errors) and the only
 six cases where asking the user is correct. Nearly everything is agent-callable — custom domains,
-analytics, rename and delete included. The one step that is not: creating the DNS record for a
-custom domain, which only the domain's owner can do.
+analytics, rename and delete included. Two that need the user's word first, though you can perform
+both: deleting an app, and changing its web address, which kills the old address with no redirect.
+The one step that is not yours at all: creating the DNS record for a custom domain, which only the
+domain's owner can do.
 
     https://embarko.ai/docs/escalation
 
