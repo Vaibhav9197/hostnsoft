@@ -90,7 +90,7 @@ A few things that apply everywhere below:
   project under that token's company; without one it creates an unclaimed app
   you can claim later (see [Anonymous deploys](#anonymous-deploys)).
 - **App names are unique platform-wide**, not just within your company — an
-  app name is also its live subdomain (`<app-name>.app.embarko.ai`). If
+  app name is also its live subdomain (`<app-name>.embarko.app`). If
   another company already used the exact name you're deploying,
   `code: "app_name_taken"`. See [App names](#app-names) for the rules.
 - **Every non-2xx response has a `code` field.** Branch on `code`, not on the
@@ -136,7 +136,7 @@ sensitive, and see
 
 ### [Encryption](#encryption)
 
-Traffic is served over HTTPS on `*.app.embarko.ai` and on connected custom
+Traffic is served over HTTPS on `*.embarko.app` and on connected custom
 domains, with certificates issued and renewed automatically. Data is
 encrypted in transit, and at rest by the storage provider. Environment
 variables are encrypted under a separate key and exposed only to your own
@@ -212,7 +212,7 @@ curl "https://ship.embarko.ai/apps/my-app/status"
 ```
 
 Wait for `deploy.status` to be `"success"` (or `"failed"` — check `.../logs`
-if so). Once successful, your app is live at `https://my-app.app.embarko.ai`.
+if so). Once successful, your app is live at `https://my-app.embarko.app`.
 Full details on both endpoints: [Checking deploy status & logs](#status-and-logs).
 
 **3. Keep it, when you're ready.** A deploy with no credential is real and
@@ -651,7 +651,7 @@ choose **An event page** to add it to a hackathon or demo-day page instead.
 ## [Custom domain mapping](#custom-domains)
 
 Point your own domain at a deployed app, instead of (or alongside) its
-default `<app-name>.app.embarko.ai` URL. Available to an agent as well as a
+default `<app-name>.embarko.app` URL. Available to an agent as well as a
 person — **except the DNS record itself**, which only the domain's owner
 can create with their own DNS provider; nothing here gets around that step.
 
@@ -685,7 +685,7 @@ Safe to call repeatedly while DNS propagates — routing only activates once
 this confirms DNS actually resolves correctly, not at the register step.
 `GET /apps/my-app/domains` lists what's registered; `DELETE
 /apps/my-app/domains/app.yourdomain.com` removes just that domain's
-routing/certificate, never touching the app's default `*.app.embarko.ai`
+routing/certificate, never touching the app's default `*.embarko.app`
 URL.
 
 **In the dashboard**, the same flow: open your project, go to **Custom

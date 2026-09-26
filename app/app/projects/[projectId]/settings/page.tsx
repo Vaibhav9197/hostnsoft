@@ -12,7 +12,7 @@ import { HnsError } from "../../../../lib/client";
 import { projectsApi } from "../../../../lib/hnsApi";
 import { useSession } from "../../../../lib/session";
 import { refreshProjects, useProject } from "../../../../lib/useProject";
-import { appHost } from "../../../../lib/site";
+import { APP_DOMAIN, appHost } from "../../../../lib/site";
 
 export default function ProjectSettingsPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = use(params);
@@ -99,11 +99,11 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
     if (!project || next === project.slug) return;
     setSlugError(null);
     setConfirmReq({
-      title: `Move this app to ${next}.app.embarko.ai?`,
+      title: `Move this app to ${appHost(next)}?`,
       body: (
         <>
           <p>
-            <code className="font-mono">{project.slug}.app.embarko.ai</code> stops working
+            <code className="font-mono">{appHost(project.slug)}</code> stops working
             straight away — there is no redirect, and the old address becomes
             available for someone else to take. Anything pointing at it needs
             updating: links you have shared, and the app name in any CI job or
@@ -149,7 +149,7 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
         }
       }
 
-      toast.success("Web address updated", { description: `Your app is now at ${next}.app.embarko.ai` });
+      toast.success("Web address updated", { description: `Your app is now at ${appHost(next)}` });
       setEditingSlug(false);
       /* Not this page's reload(): the sidebar fetches the project separately
          and shows the address twice (live-URL link, deploy prompt), so it
@@ -226,7 +226,7 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
         >
           <p className="mt-1 text-[0.92rem] text-muted-foreground">
             This is the name you see here. Changing it leaves your app at{" "}
-            <code className="border border-border bg-elevated px-1 py-0.5 font-mono text-[0.85em] text-foreground">{project.slug}.app.embarko.ai</code>,
+            <code className="border border-border bg-elevated px-1 py-0.5 font-mono text-[0.85em] text-foreground">{appHost(project.slug)}</code>,
             so links you have already shared keep working. The web address is a
             separate setting below.
           </p>
@@ -239,7 +239,7 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
 
         <Field
           label="Web address"
-          value={`${project.slug}.app.embarko.ai`}
+          value={appHost(project.slug)}
           editing={editingSlug}
           onEdit={() => { setSlug(project.slug); setSlugError(null); setEditingSlug(true); }}
         >
@@ -267,7 +267,7 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
               autoCapitalize="none"
               autoCorrect="off"
             />
-            <span className="font-mono text-[0.9rem] text-muted-foreground">.app.embarko.ai</span>
+            <span className="font-mono text-[0.9rem] text-muted-foreground">.{APP_DOMAIN}</span>
             <Button type="submit" disabled={savingSlug || !slug.trim() || slug.trim() === project.slug}>
               {savingSlug ? (hasDeployed ? "Moving…" : "Saving…") : "Save"}
             </Button>
