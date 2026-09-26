@@ -23,6 +23,7 @@ invoke it:
     "custom_domains": { "status": "available", "via": ["agent", "dashboard"] },
     "analytics":      { "status": "available", "via": ["agent", "dashboard"] },
     "rename_app":     { "status": "available", "via": ["agent", "dashboard"] },
+    "change_app_address": { "status": "available", "via": ["agent", "dashboard"] },
     "delete_app":     { "status": "available", "via": ["agent", "dashboard"] },
     "backups":        { "status": "unavailable" }
   }
@@ -45,7 +46,7 @@ does not tell you the auth rule**:
 | --- | --- |
 | None, ever | `GET /capabilities`, `POST /api/public/…` (rate limited) |
 | None while unclaimed, token once claimed | deploy, status, logs, agent feedback |
-| **Deploy token, always** | domains, analytics, rename, delete, env vars, deployment history, rollback, showcase |
+| **Deploy token, always** | domains, analytics, rename, change web address, delete, env vars, deployment history, rollback, showcase |
 
 Deploy, status, logs, domains, analytics, rename and delete sit under
 `/apps/<name>`; env vars, history, rollback and showcase sit under

@@ -48,7 +48,11 @@ export function ConfirmDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{request?.title}</DialogTitle>
-          {request?.body && <DialogDescription>{request.body}</DialogDescription>}
+          {/* Rendered as a div, not the default <p>: a body is arbitrary content and
+              the ones that need a confirmation most are the ones long enough to want
+              paragraphs, which nested inside a <p> is invalid HTML and a hydration
+              error. `render` keeps the aria-describedby wiring either way. */}
+          {request?.body && <DialogDescription render={<div />}>{request.body}</DialogDescription>}
         </DialogHeader>
         <DialogFooter>
           <DialogClose render={<Button variant="outline" />}>{request?.dismiss ?? "Keep as is"}</DialogClose>

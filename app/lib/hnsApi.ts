@@ -36,6 +36,8 @@ import type {
   ShowcasePage,
   ShowcaseType,
   ShowcaseSubmissionInput,
+  SlugChangeAccepted,
+  SlugChangeStatus,
 } from "./types";
 
 // ---------------------------------------------------------------- Companies
@@ -112,6 +114,35 @@ export const projectsApi = {
   // only. Slug/URL never change.
   rename: (companyId: string, projectId: string, name: string) =>
     hns<Project>(`/companies/${companyId}/projects/${projectId}`, { method: "PATCH", body: { name } }),
+
+  // PATCH /companies/:companyId/projects/:projectId/slug — change the app's
+  // web address. The old address stops working immediately and the freed
+  // name is re-claimable. Sends the slug literally — the API validates
+  // rather than slugifies, so don't "help" by transforming it here.
+  //
+  // TWO shapes of success, because the two cases genuinely differ. An app
+  // that never deployed is done when this resolves, and answers with the
+  // updated Project. A live one is a migration measured in minutes, so it
+  // answers 202 {moving: true, ...} and the real outcome has to be polled
+  // from slugChangeStatus below. Check `moving` before trusting the body
+  // to be a Project.
+  //
+  // Error `code`s worth branching on: app_name_taken, app_name_reserved,
+  // invalid_app_name, app_name_too_short, app_name_too_long,
+  // deploy_in_progress, no_current_deployment, slug_change_cooldown,
+  // rename_in_progress, app_state_unknown.
+  changeSlug: (companyId: string, projectId: string, slug: string) =>
+    hns<Project | SlugChangeAccepted>(`/companies/${companyId}/projects/${projectId}/slug`, {
+      method: "PATCH",
+      body: { slug },
+    }),
+
+  // GET /companies/:companyId/projects/:projectId/slug — outcome of a live
+  // address change. 404 (HnsError, code "no_rename") once the server has
+  // forgotten it, which for a caller that has been polling means it should
+  // fall back to reading the project's current slug.
+  slugChangeStatus: (companyId: string, projectId: string) =>
+    hns<SlugChangeStatus>(`/companies/${companyId}/projects/${projectId}/slug`),
 
   // PATCH /companies/:companyId/projects/:projectId/memory — set requested
   // memory in MB. Applies on next deploy only.
