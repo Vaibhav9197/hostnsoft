@@ -1,7 +1,7 @@
 "use client";
 
 import { LoginScreen } from "../components/console/LoginScreen";
-import { HeaderContactButton } from "../components/console/HeaderContactButton";
+import { FeedbackWidget } from "../components/console/FeedbackWidget";
 import { HeaderHomeButton } from "../components/console/HeaderHomeButton";
 import { HeaderPlanBadge } from "../components/console/HeaderPlanBadge";
 import { HeaderTokenButton } from "../components/console/HeaderTokenButton";
@@ -23,7 +23,9 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
           {/* Inside ThemeProvider so toasts follow the console's own light/dark
               choice, and outside Shell so one is never unmounted mid-flight by
               the navigation that a save triggers. */}
-          <Toaster />
+          {/* Below 600px Sonner spans the full width of the bottom edge, right
+              over the feedback launcher (bottom-4, h-12), so lift it clear. */}
+          <Toaster mobileOffset={{ bottom: 80 }} />
         </BillingProvider>
       </SessionProvider>
     </ThemeProvider>
@@ -70,17 +72,17 @@ function Shell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-2 sm:px-4">
         {/* Navigation sits on the left, next to the account it belongs to; the
-            right edge is for the plan chip and getting hold of us. */}
+            right edge is for the plan chip. */}
         <HeaderUserMenu />
         <HeaderHomeButton />
         <HeaderTokenButton />
         <div className="ml-auto flex items-center gap-2">
-          <HeaderContactButton />
           <HeaderPlanBadge />
         </div>
       </header>
       <main className="flex-1">
-        <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-8">
+        {/* Extra bottom padding keeps the last row clear of the feedback launcher. */}
+        <div className="mx-auto w-full max-w-5xl px-4 pb-24 pt-8 sm:px-8">
           {!apiConnected && (
             <Alert variant="warn" className="mb-6">
               You're signed in, but the Embarko API service is unreachable right now — company and
@@ -90,6 +92,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
+      <FeedbackWidget />
     </div>
   );
 }

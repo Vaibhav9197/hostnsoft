@@ -6,6 +6,16 @@ import { ConfirmDialog, type ConfirmRequest } from "../../components/console/Con
 import { Alert, LinkButton, Page, PageHeader, Panel, Skeleton, Tag } from "../../components/console/kit";
 import { COPIED_LABEL, CopyPromptButton } from "../../components/CopyPromptButton";
 import { Button, buttonVariants } from "../../components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/ui/dialog";
+import { Input } from "../../components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { consoleDeployPromptWithToken } from "../../lib/deployPrompt";
 import { tokensApi } from "../../lib/hnsApi";
@@ -20,6 +30,10 @@ export default function TokensPage() {
   const [tokens, setTokens] = useState<DeployToken[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  /* The name dialog. It opens pre-filled with a suggested name, so accepting
+     it is still one click — typing is only for someone who wants their own. */
+  const [naming, setNaming] = useState(false);
+  const [name, setName] = useState("");
   const [secret, setSecret] = useState<DeployTokenSecret | null>(null);
   /* Whether the secret on screen has reached the clipboard at least once. The
      banner can only be dismissed after that: it is the one and only showing of
@@ -50,12 +64,20 @@ export default function TokensPage() {
     load();
   }, [load]);
 
-  async function createToken() {
-    if (!activeCompanyId) return;
+  function openNaming() {
+    setName(randomTokenName((tokens ?? []).map((t) => t.label)));
+    setNaming(true);
+  }
+
+  async function createToken(e: React.FormEvent) {
+    e.preventDefault();
+    const label = name.trim();
+    if (!activeCompanyId || !label) return;
     setCreating(true);
     setError(null);
     try {
-      const created = await tokensApi.create(activeCompanyId, randomTokenName((tokens ?? []).map((t) => t.label)));
+      const created = await tokensApi.create(activeCompanyId, label);
+      setNaming(false);
       setSecret(created);
       setSecretCopied(false);
       await load();
@@ -124,14 +146,47 @@ export default function TokensPage() {
         subtitle="This is where you make a token. Create one below, copy it, and give it to your AI agent — that’s what lets it deploy your apps."
       />
 
-      {/* One button, no form: the token is named for the owner, so there is
-          nothing to fill in before the only action on the page works. */}
       <div>
-        <Button onClick={createToken} disabled={creating}>
+        <Button onClick={openNaming} disabled={creating}>
           <Plus aria-hidden="true" />
-          {creating ? "Creating…" : "Create token"}
+          Create token
         </Button>
       </div>
+
+      <Dialog open={naming} onOpenChange={(open) => !creating && setNaming(open)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Name your token</DialogTitle>
+            <DialogDescription>
+              Pick something that tells you where it’s used, like the AI agent or machine it’s for.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={createToken} className="grid gap-5">
+            {/* The page's own alert sits behind the dialog, so a failed create
+                has to say so here. */}
+            {error && <div className="text-sm font-medium text-destructive">{error}</div>}
+            <div className="grid gap-1.5">
+              <label htmlFor="token-name" className="text-sm font-semibold text-foreground">
+                Token name
+              </label>
+              <Input
+                id="token-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoFocus
+                onFocus={(e) => e.currentTarget.select()}
+                disabled={creating}
+              />
+            </div>
+            <DialogFooter>
+              <DialogClose render={<Button type="button" variant="outline" disabled={creating} />}>Cancel</DialogClose>
+              <Button type="submit" disabled={creating || !name.trim()}>
+                {creating ? "Creating…" : "Create token"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {error && <Alert>{error}</Alert>}
 
