@@ -5,8 +5,8 @@ import { ArrowRight, Copy } from "lucide-react";
 import { SiteHeader } from "../components/SiteHeader";
 import { SiteFooter } from "../components/SiteFooter";
 import { COPIED_LABEL, CopyPromptButton } from "../components/CopyPromptButton";
-import { listApps, listIndexableCollections } from "../lib/showcase";
-import { BTN_GHOST, BTN_PRIMARY, PromptSteps, WRAP } from "./kit";
+import { listApps, listIndexableCollections, type ShowcaseApp } from "../lib/showcase";
+import { DeployCta, Shot, Steps, firstName } from "./kit";
 import { SearchGallery } from "./SearchGallery";
 
 export const metadata: Metadata = {
@@ -23,88 +23,122 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function ShowcasePage() {
-  const apps = await listApps();
+  /* The API's maximum, so the category counts cover every public app. */
+  const apps = await listApps(200);
   const collections = await listIndexableCollections();
+  const spotlight = pickSpotlight(apps);
 
   return (
     <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased">
       <SiteHeader />
+      <div className="sc-aurora" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </div>
+      <div className="sc-gridbg" aria-hidden="true" />
 
-      <header className="py-[88px] max-[900px]:py-14">
-        <div className={WRAP}>
-          <h1 className="max-w-[620px] text-[52px] font-semibold leading-[1.08] tracking-[-0.02em] max-[900px]:text-[38px] max-[420px]:text-[32px]">
-            See what people are building.
+      <div className="sc-wrap sc-layer">
+        <section className="sc-hero">
+          <h1>
+            Ideas people had.
+            <br />
+            <span className="sc-serif sc-gtext">Live</span> on a real link.
           </h1>
-          <p className="mt-5 text-[17px] text-muted-foreground">
-            Apps built with AI. Hosted on Embarko.
+          <p>
+            Every app here was built by someone&rsquo;s own AI agent and put online with Embarko. Open
+            one, then make your own.
           </p>
-        </div>
-      </header>
+          <div className="sc-ctas">
+            <CopyPromptButton className="sc-btn pri lg glow" copiedChildren={COPIED_LABEL}>
+              <Copy aria-hidden="true" />
+              Copy deployment prompt
+            </CopyPromptButton>
+            <a className="sc-btn lg" href={apps.length > 0 ? "#explore" : "#deploy"}>
+              Explore apps
+            </a>
+          </div>
+        </section>
 
-      {apps.length > 0 ? (
-        <SearchGallery apps={apps} collections={collections} />
-      ) : (
-        <EmptyState />
-      )}
+        {spotlight && <Spotlight {...spotlight} />}
 
-      <FinalCta hasApps={apps.length > 0} />
+        {apps.length > 0 ? (
+          <SearchGallery apps={apps} collections={collections} />
+        ) : (
+          <EmptyState />
+        )}
+
+        <DeployCta />
+      </div>
       <SiteFooter />
     </main>
   );
 }
 
-/** Nothing listed yet. Leads with the submit action, not an apology. */
-function EmptyState() {
+/* The team's pick when there is one; otherwise the newest listing, labelled
+   as such so it never claims a curation that didn't happen. */
+function pickSpotlight(apps: ShowcaseApp[]): { app: ShowcaseApp; picked: boolean } | null {
+  const featured = apps.find((a) => a.featured);
+  if (featured) return { app: featured, picked: true };
+  const newest = [...apps].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+  return newest ? { app: newest, picked: false } : null;
+}
+
+function Spotlight({ app, picked }: { app: ShowcaseApp; picked: boolean }) {
   return (
-    <div className="pb-[88px] max-[900px]:pb-14">
-      <div className={WRAP}>
-        <div className="rounded-[14px] border border-dashed border-border px-8 py-16 text-center">
-          <p className="text-[17px] font-medium">The first apps are on their way.</p>
-          <p className="mx-auto mt-2 max-w-[42ch] text-[15px] leading-relaxed text-muted-foreground">
-            Deployed something on Embarko? List it and it gets a public page here.
-          </p>
-          <Link href="/app/showcase/submit" className={`${BTN_PRIMARY} mt-7`}>
-            List your app
-            <ArrowRight aria-hidden="true" className="h-4 w-4" />
-          </Link>
+    <section aria-labelledby="spot-h">
+      <div className="sc-sech">
+        <div>
+          <h2 id="spot-h">{picked ? "App of the day" : "Just listed"}</h2>
+          <p>{picked ? "Picked by the Embarko team for the idea, not the polish." : "The newest app on the Showcase."}</p>
         </div>
       </div>
-    </div>
+      <Link href={`/showcase/app/${app.slug}`} className="sc-feat">
+        <div className="fimg">
+          <div>
+            <Shot app={app} alt={`${app.name} screenshot`} eager />
+          </div>
+        </div>
+        <div className="fbd">
+          {app.category && (
+            <div>
+              <span className="sc-pill">{app.category}</span>
+            </div>
+          )}
+          <h3>{app.name}</h3>
+          <p>{app.tagline}</p>
+          <div className="fbtns">
+            <span className="sc-btn pri">
+              See the app <ArrowRight aria-hidden="true" />
+            </span>
+            <span className="sc-btn">by {firstName(app.creatorName)}</span>
+          </div>
+        </div>
+      </Link>
+    </section>
   );
 }
 
-/**
- * The two endings, in the order the spec asks for: submit what you made, then
- * go make something. The second half is the same copy-prompt block the home
- * page closes on, so the two pages rhyme.
- */
-function FinalCta({ hasApps }: { hasApps: boolean }) {
+/** Nothing listed yet. Starts the job instead of apologising. */
+function EmptyState() {
   return (
-    <section className="pb-20 pt-24">
-      <div className={WRAP}>
-        {hasApps && (
-          <div className="mb-16 border-b border-border pb-16">
-            <h2 className="text-[32px] font-semibold leading-tight tracking-[-0.015em]">
-              Built something worth sharing?
-            </h2>
-            <Link href="/app/showcase/submit" className={`${BTN_GHOST} mt-6`}>
-              List your app
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </Link>
-          </div>
-        )}
-
-        <h2 className="max-w-[640px] text-[38px] font-semibold leading-[1.15] tracking-[-0.02em] max-[600px]:text-[28px]">
-          Want to build something new?
-        </h2>
-        <div className="mt-8">
-          <CopyPromptButton className={BTN_PRIMARY} copiedChildren={COPIED_LABEL}>
-            <Copy aria-hidden="true" className="h-4 w-4" />
-            Copy the Embarko prompt
+    <div className="sc-gal" id="explore">
+      <div className="sc-empty">
+        <h3>The first apps are on their way.</h3>
+        <p>Deploy something with your AI, then list it here. It gets its own page.</p>
+        <div className="acts">
+          <CopyPromptButton className="sc-btn pri" copiedChildren={COPIED_LABEL}>
+            <Copy aria-hidden="true" />
+            Copy deployment prompt
           </CopyPromptButton>
-          <PromptSteps />
+          <Link href="/app/showcase/submit" className="sc-btn">
+            List your app
+          </Link>
+        </div>
+        <div className="mt-5">
+          <Steps steps={["Paste into your AI", "Ask it to deploy", "List it here"]} />
         </div>
       </div>
-    </section>
+    </div>
   );
 }

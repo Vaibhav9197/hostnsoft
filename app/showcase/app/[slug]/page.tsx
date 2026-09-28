@@ -1,33 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Copy, Sparkles } from "lucide-react";
 
 import { SiteHeader } from "../../../components/SiteHeader";
 import { SiteFooter } from "../../../components/SiteFooter";
 import { SITE } from "../../../lib/site";
-import { categorySlug, getApp, tagSlug, type ShowcaseApp } from "../../../lib/showcase";
-import { AppPreview, BTN_GHOST, BTN_PRIMARY, Creator, LABEL, WRAP } from "../../kit";
-import { ShareRow } from "../../share";
+import { categorySlug, getApp, listApps, tagSlug, type ShowcaseApp } from "../../../lib/showcase";
+import { TileGrid, hostOf } from "../../kit";
+import { CopyPromptButton, COPIED_LABEL } from "../../../components/CopyPromptButton";
+import { ShareApp } from "../../share";
+import { Media } from "./Media";
 import { ShowcaseBreadcrumbs } from "../../breadcrumbs";
-
-/* youtu.be/<id> and youtube.com/watch?v=<id> are what the submit form's plain
-   URL field actually receives — creators paste whatever's in their browser's
-   address bar, never an embed link. Only these two get a playable embed;
-   anything else (Vimeo, Loom, a direct .mp4) still gets a working "Watch the
-   video" link, just not an inline player. */
-function youtubeEmbedUrl(videoUrl: string): string | null {
-  try {
-    const url = new URL(videoUrl);
-    if (url.hostname === "youtu.be") return `https://www.youtube.com/embed${url.pathname}`;
-    if (url.hostname.endsWith("youtube.com") && url.searchParams.get("v")) {
-      return `https://www.youtube.com/embed/${url.searchParams.get("v")}`;
-    }
-  } catch {
-    return null;
-  }
-  return null;
-}
 
 /* SoftwareApplication schema for this one app — Organization/WebApplication
    already cover the site in the root layout, this is the per-app entity.
@@ -92,11 +76,46 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+/* Blank-line separated paragraphs; single newlines stay as line breaks. */
+const paragraphs = (text: string) =>
+  text
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+/* The design's pull quote: the first sentence of "why", when it is a
+   reasonable length and something follows it. */
+function splitPull(text: string): [string, string] | null {
+  const m = text.trim().match(/^(.{20,220}?[.!?])\s+([\s\S]+)$/);
+  return m ? [m[1], m[2]] : null;
+}
+
+const LISTED = new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" });
+
 export default async function ShowcaseAppPage({ params }: Props) {
   const { slug } = await params;
-  const app = await getApp(slug);
+  const [app, all] = await Promise.all([getApp(slug), listApps(200)]);
   /* Hidden listings 404 like unknown ones. */
   if (!app) notFound();
+
+  /* Matched on the live address, not the slug: a second listing of the same
+     app mustn't appear as its own "related" app. */
+  const sameApp = (a: ShowcaseApp) =>
+    a.appUrl.replace(/\/+$/, "").toLowerCase() === app.appUrl.replace(/\/+$/, "").toLowerCase();
+  const others = all.filter((a) => !sameApp(a));
+
+  /* Related: same maker first, then same category, then newest. */
+  const score = (x: ShowcaseApp) =>
+    (x.creatorName === app.creatorName ? 4 : 0) + (app.category && x.category === app.category ? 1 : 0);
+  const related = [...others].sort((a, b) => score(b) - score(a)).slice(0, 3);
+
+  const sections = [
+    app.whatItDoes && { key: "what", eyebrow: "The product", title: "What it does", text: app.whatItDoes },
+    app.whyBuilt && { key: "why", eyebrow: "The reason", title: "Why it was built", text: app.whyBuilt },
+  ].filter((s): s is { key: string; eyebrow: string; title: string; text: string } => !!s);
+
+  const listed = Number.isNaN(Date.parse(app.createdAt)) ? null : LISTED.format(new Date(app.createdAt));
+  const host = hostOf(app.appUrl);
 
   return (
     <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased">
@@ -114,167 +133,193 @@ export default async function ShowcaseAppPage({ params }: Props) {
       />
       <SiteHeader />
 
-      <article className="py-[72px] max-[900px]:py-12">
-        <div className={WRAP}>
-          <Link
-            href="/showcase"
-            className="text-[13px] text-muted-foreground transition-colors hover:text-foreground"
-          >
-            ← Showcase
-          </Link>
-
-          <h1 className="mt-6 text-[42px] font-semibold leading-[1.1] tracking-[-0.02em] max-[900px]:text-[32px]">
-            {app.name}
-          </h1>
-          <p className="mt-4 max-w-[640px] text-[18px] leading-[1.55] text-muted-foreground">
-            {app.tagline}
-          </p>
-
-          <div className="mt-9 flex flex-wrap items-center gap-3">
-            {/* Creator-submitted URLs are user-generated content: `nofollow ugc`
-                keeps a listing from passing our link equity to whatever was
-                pasted into the form. */}
-            <a href={app.appUrl} target="_blank" rel="noreferrer nofollow ugc" className={BTN_PRIMARY}>
-              Open app
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </a>
-            <ShareRow title={`${app.name} — ${app.tagline}`} />
-          </div>
-
-          <AppPreview app={app} className="mt-12 aspect-[16/9] max-[720px]:aspect-[4/3]" />
-
-          {/* Collected on the submit form since it shipped, never shown until
-              now. A playable demo is both a better reason to stay on the page
-              and, per the schema above, a second indexable asset for it. */}
-          {app.videoUrl && (
-            <section className="mt-10">
-              <h2 className="text-[19px] font-semibold">Demo</h2>
-              {youtubeEmbedUrl(app.videoUrl) ? (
-                <div className="mt-4 aspect-video overflow-hidden rounded-[12px] border border-border">
-                  <iframe
-                    src={youtubeEmbedUrl(app.videoUrl)!}
-                    title={`${app.name} demo`}
-                    className="h-full w-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    loading="lazy"
-                  />
-                </div>
-              ) : (
-                <a
-                  href={app.videoUrl}
-                  target="_blank"
-                  rel="noreferrer nofollow ugc"
-                  className="mt-3 inline-block text-[15px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
-                >
-                  Watch the video →
-                </a>
-              )}
-            </section>
-          )}
-
-          {/* Kept short on purpose — this is a page about an app, not a case
-              study. Each block only renders when the creator wrote one. */}
-          <div className="mt-16 grid grid-cols-[1fr_260px] gap-16 max-[820px]:grid-cols-1 max-[820px]:gap-10">
-            <div className="min-w-0 space-y-10">
-              {app.whatItDoes && (
-                <section>
-                  <h2 className="text-[19px] font-semibold">What it does</h2>
-                  <p className="mt-3 max-w-[60ch] text-[15.5px] leading-[1.65] text-muted-foreground">
-                    {app.whatItDoes}
-                  </p>
-                </section>
-              )}
-
-              {app.whyBuilt && (
-                <section>
-                  <h2 className="text-[19px] font-semibold">Why it was built</h2>
-                  <p className="mt-3 max-w-[60ch] text-[15.5px] leading-[1.65] text-muted-foreground">
-                    {app.whyBuilt}
-                  </p>
-                </section>
+      <article className="sc-wrap sc-layer">
+        <section className="sc-top">
+          <div className="sc-info">
+            {app.category && (
+              <div className="sc-badges">
+                <Link href={`/showcase/category/${categorySlug(app.category)}`} className="sc-pill">
+                  {app.category}
+                </Link>
+              </div>
+            )}
+            <h1 className="sc-name" style={{ ["--len" as string]: Math.max(app.name.length, 4) }}>
+              {app.name}
+            </h1>
+            <p className="sc-what">{app.tagline}</p>
+            <div className="sc-byline">
+              <span>
+                <span className="sc-serif by">by</span>{" "}
+                {app.creatorProfile ? (
+                  <a href={app.creatorProfile} target="_blank" rel="noreferrer nofollow ugc">
+                    {app.creatorName}
+                  </a>
+                ) : (
+                  <b>{app.creatorName}</b>
+                )}
+              </span>
+              {app.builtWith && (
+                <>
+                  <span className="dotsep" aria-hidden="true">
+                    ·
+                  </span>
+                  <span>Built with {app.builtWith}</span>
+                </>
               )}
             </div>
-
-            <aside className="space-y-7 text-[14px]">
-              <div>
-                <p className={LABEL}>Created by</p>
-                <p className="mt-1.5">
-                  <Creator app={app} />
-                </p>
+            <div className="sc-actions">
+              <a href={app.appUrl} target="_blank" rel="noreferrer nofollow ugc" className="sc-btn pri lg">
+                Open {app.name.length > 14 ? "app" : app.name}
+                <ArrowUpRight aria-hidden="true" />
+                <span className="sc-sr">(opens in a new tab)</span>
+              </a>
+              <a href="#ship" className="sc-btn lg">
+                <Sparkles aria-hidden="true" />
+                Deploy yours
+              </a>
+            </div>
+            {app.tags.length > 0 && (
+              <div className="sc-tags">
+                {app.tags.map((tag) => (
+                  <Link key={tag} href={`/showcase/tag/${tagSlug(tag)}`} className="sc-tag">
+                    {tag}
+                  </Link>
+                ))}
               </div>
+            )}
+          </div>
 
-              {app.builtWith && (
-                <div>
-                  <p className={LABEL}>Built with</p>
-                  <p className="mt-1.5 text-muted-foreground">{app.builtWith}</p>
-                </div>
-              )}
+          <Media app={app} />
+        </section>
 
-              {app.category && (
-                <div>
-                  <p className={LABEL}>Category</p>
-                  <p className="mt-1.5">
-                    <Link
-                      href={`/showcase/category/${categorySlug(app.category)}`}
-                      className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
-                    >
-                      {app.category}
-                    </Link>
-                  </p>
-                </div>
-              )}
+        <div className="sc-cols">
+          {sections.length > 0 && (
+            <div className="l">
+              {sections.map((s, n) => {
+                const pull = s.key === "why" ? splitPull(s.text) : null;
+                const paras = paragraphs(pull ? pull[1] : s.text);
+                return (
+                  <section key={s.key} className="sc-txt" aria-labelledby={`h-${s.key}`}>
+                    <span className="sc-eyebrow">
+                      {String(n + 1).padStart(2, "0")} — {s.eyebrow}
+                    </span>
+                    <h2 id={`h-${s.key}`}>{s.title}</h2>
+                    <div className="sc-prose">
+                      {pull && <p className="pull">{pull[0]}</p>}
+                      {paras.map((p, j) => (
+                        <p key={j} className={!pull && j === 0 ? "lead" : undefined}>
+                          {p}
+                        </p>
+                      ))}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+          )}
 
-              {app.tags.length > 0 && (
-                <div>
-                  <p className={LABEL}>Tags</p>
-                  <p className="mt-1.5 text-muted-foreground">
-                    {app.tags.map((tag, i) => (
-                      <span key={tag}>
-                        {i > 0 && " · "}
-                        <Link
-                          href={`/showcase/tag/${tagSlug(tag)}`}
-                          className="underline underline-offset-2 hover:text-foreground"
-                        >
-                          {tag}
-                        </Link>
-                      </span>
-                    ))}
-                  </p>
-                </div>
-              )}
-
-              {app.collection && (
-                <div>
-                  <p className={LABEL}>Part of</p>
-                  <p className="mt-1.5">
-                    <Link
-                      href={`/showcase/${app.collection.slug}`}
-                      className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
-                    >
-                      {app.collection.title}
-                    </Link>
-                  </p>
-                </div>
-              )}
-
+          <div className="r">
+            <aside className="sc-side">
+              <ShareApp name={app.name} title={`${app.name} — ${app.tagline}`} />
               <div>
-                <p className={LABEL}>Hosted on</p>
-                <p className="mt-1.5 text-muted-foreground">Embarko</p>
+                <h2 className="sc-eyebrow">Details</h2>
+                <dl className="sc-meta">
+                  <div>
+                    <dt>Made by</dt>
+                    <dd>
+                      {app.creatorProfile ? (
+                        <a href={app.creatorProfile} target="_blank" rel="noreferrer nofollow ugc">
+                          {app.creatorName}
+                        </a>
+                      ) : (
+                        app.creatorName
+                      )}
+                    </dd>
+                  </div>
+                  {app.category && (
+                    <div>
+                      <dt>Category</dt>
+                      <dd>
+                        <Link href={`/showcase/category/${categorySlug(app.category)}`}>{app.category}</Link>
+                      </dd>
+                    </div>
+                  )}
+                  {app.builtWith && (
+                    <div>
+                      <dt>Built with</dt>
+                      <dd>{app.builtWith}</dd>
+                    </div>
+                  )}
+                  {app.collection && (
+                    <div>
+                      <dt>Part of</dt>
+                      <dd>
+                        <Link href={`/showcase/${encodeURIComponent(app.collection.slug)}`}>{app.collection.title}</Link>
+                      </dd>
+                    </div>
+                  )}
+                  {listed && (
+                    <div>
+                      <dt>Listed</dt>
+                      <dd>{listed}</dd>
+                    </div>
+                  )}
+                  <div>
+                    <dt>Address</dt>
+                    <dd>
+                      <a className="sc-mono" href={app.appUrl} target="_blank" rel="noreferrer nofollow ugc">
+                        {host}
+                      </a>
+                    </dd>
+                  </div>
+                </dl>
               </div>
             </aside>
           </div>
-
-          <div className="mt-20 border-t border-border pt-12">
-            <h2 className="text-[26px] font-semibold leading-tight tracking-[-0.015em]">
-              Build something of your own.
-            </h2>
-            <Link href="/showcase" className={`${BTN_GHOST} mt-6`}>
-              See more Showcase apps
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </Link>
-          </div>
         </div>
+
+        <section className="sc-ship" id="ship" aria-labelledby="ship-h">
+          <span className="sc-pill grad">
+            <Sparkles aria-hidden="true" className="h-3 w-3" />
+            Your turn
+          </span>
+          <h2 id="ship-h">
+            Seen enough?
+            <br />
+            <span className="sc-serif">Ship</span> something.
+          </h2>
+          <p>Copy the Embarko prompt, paste it into your AI agent, and your app goes live on its own link.</p>
+          <div className="sc-ctas">
+            <CopyPromptButton className="sc-btn pri lg glow" copiedChildren={COPIED_LABEL}>
+              <Copy aria-hidden="true" />
+              Copy deployment prompt
+            </CopyPromptButton>
+          </div>
+          <ol className="sc-steps">
+            <li>Copy</li>
+            <li aria-hidden="true"><i>→</i></li>
+            <li>Paste into your agent</li>
+            <li aria-hidden="true"><i>→</i></li>
+            <li>Share your link</li>
+          </ol>
+        </section>
+
+        {related.length > 0 && (
+          <section className="sc-more" aria-labelledby="more-h">
+            <div className="sc-sech">
+              <div>
+                <h2 id="more-h">More from the Showcase</h2>
+                <p>Same maker or category first.</p>
+              </div>
+              <Link href="/showcase" className="sc-btn sm">
+                See all <ArrowRight aria-hidden="true" />
+              </Link>
+            </div>
+            <div className="pb-16">
+              <TileGrid apps={related} />
+            </div>
+          </section>
+        )}
       </article>
 
       <SiteFooter />

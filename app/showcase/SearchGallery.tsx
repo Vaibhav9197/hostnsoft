@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, Search } from "lucide-react";
 
 import type { Collection, ShowcaseApp } from "../lib/showcase";
-import { AppCard, LABEL, WRAP } from "./kit";
+import { Tile } from "./kit";
 
-/** Matches an app against a free-text query across every field the spec asks
- *  a visitor to be able to search by: name, description, creator, hashtags,
- *  category, the AI it was built with, and the name of the page it is on. */
+/** Matches an app against a free-text query across every field a visitor
+ *  might search by: name, description, creator, tags, category, the AI it was
+ *  built with, and the name of the page it is on. */
 function matches(app: ShowcaseApp, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
@@ -29,11 +31,16 @@ function matches(app: ShowcaseApp, query: string): boolean {
   return haystack.includes(q);
 }
 
+type Sort = "new" | "az";
+const SORTS: Array<[Sort, string]> = [
+  ["new", "New"],
+  ["az", "A–Z"],
+];
+
 /**
- * The gallery's search + board directory, together: filtering the flat app
- * list also has to respect whichever board is selected in the sidebar, so
- * the two controls share one piece of state rather than living in separate
- * components that would need to coordinate through the URL or a store.
+ * Search, category chips and sort over the gallery. One piece of state for
+ * all three, so they always agree. Chip counts are real: they count the apps
+ * this page loaded, and a category with none is not shown.
  */
 export function SearchGallery({
   apps,
@@ -43,94 +50,139 @@ export function SearchGallery({
   collections: Collection[];
 }) {
   const [query, setQuery] = useState("");
-  const [boardSlug, setBoardSlug] = useState<string | null>(null);
+  const [category, setCategory] = useState<string | null>(null);
+  const [sort, setSort] = useState<Sort>("new");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  /* "/" jumps to search, like the design's kbd hint says — unless the visitor
+     is already typing somewhere. */
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      e.preventDefault();
+      inputRef.current?.focus();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const categories = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const app of apps) {
+      if (app.category) counts.set(app.category, (counts.get(app.category) ?? 0) + 1);
+    }
+    return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  }, [apps]);
 
   const results = useMemo(() => {
-    return apps
-      .filter((app) => {
-        if (boardSlug && app.collection?.slug !== boardSlug) return false;
-        return matches(app, query);
-      })
-      .sort((a, b) => Number(b.featured) - Number(a.featured));
-  }, [apps, query, boardSlug]);
+    const list = apps.filter((app) => (!category || app.category === category) && matches(app, query));
+    return list.sort(
+      sort === "az"
+        ? (a, b) => a.name.localeCompare(b.name)
+        : (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt),
+    );
+  }, [apps, query, category, sort]);
 
-  const filtering = query.trim().length > 0 || boardSlug !== null;
+  const filtering = query.trim().length > 0 || category !== null;
 
   return (
-    <section className="pb-[88px] max-[720px]:pb-[60px]" id="browse">
-      <div className={WRAP}>
-        <div className="grid grid-cols-[220px_1fr] gap-8 max-[860px]:grid-cols-1 max-[860px]:gap-6">
-          {/* Table-of-contents style directory of pages — companies' own pages and
-              event pages. Sits beside the results, so picking one doesn't
-              cost the visitor their scroll position in the grid. */}
-          <aside>
-            <p className={`${LABEL} mb-4`}>Pages</p>
-            <nav className="flex flex-col max-[860px]:flex-row max-[860px]:flex-wrap max-[860px]:gap-2">
-              <button
-                type="button"
-                onClick={() => setBoardSlug(null)}
-                aria-current={boardSlug === null ? "true" : undefined}
-                className={`rounded-[8px] px-3 py-2 text-left text-[14px] transition max-[860px]:border max-[860px]:border-border ${
-                  boardSlug === null
-                    ? "bg-[var(--accent-2)]/10 font-semibold text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                All apps
-              </button>
-              {collections.map((c) => (
-                <button
-                  key={c.slug}
-                  type="button"
-                  onClick={() => setBoardSlug(c.slug === boardSlug ? null : c.slug)}
-                  aria-current={boardSlug === c.slug ? "true" : undefined}
-                  className={`rounded-[8px] px-3 py-2 text-left text-[14px] transition max-[860px]:border max-[860px]:border-border ${
-                    boardSlug === c.slug
-                      ? "bg-[var(--accent-2)]/10 font-semibold text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {c.title}
-                </button>
-              ))}
-            </nav>
-          </aside>
-
-          <div className="min-w-0">
-            <label className="block">
-              <span className="sr-only">Search apps</span>
-              <input
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search by name, creator, category, AI used, or page…"
-                className="w-full rounded-[10px] border border-border bg-elevated px-4 py-3 text-[15px] outline-none transition placeholder:text-muted-foreground focus:border-[var(--line-strong)]"
-              />
-            </label>
-
-            {filtering && (
-              <p className={`${LABEL} mt-6`}>
-                {results.length} {results.length === 1 ? "result" : "results"}
-              </p>
-            )}
-
-            {results.length > 0 ? (
-              <div className="mt-6 grid grid-cols-3 gap-6 max-[1100px]:grid-cols-2 max-[600px]:grid-cols-1">
-                {results.map((app) => (
-                  <AppCard key={app.id} app={app} />
-                ))}
-              </div>
-            ) : (
-              <div className="mt-6 rounded-[14px] border border-dashed border-border px-8 py-16 text-center">
-                <p className="text-[17px] font-medium">Nothing matches yet.</p>
-                <p className="mx-auto mt-2 max-w-[44ch] text-[15px] leading-relaxed text-muted-foreground">
-                  Try a different name, creator, category, or page.
-                </p>
-              </div>
-            )}
-          </div>
+    <section aria-labelledby="explore-h">
+      <div className="sc-sech" id="explore">
+        <div>
+          <h2 id="explore-h">Explore</h2>
+          <p>
+            {apps.length} {apps.length === 1 ? "app" : "apps"}
+          </p>
         </div>
       </div>
+
+      <div className="sc-bar">
+        <label className="sc-search">
+          <Search aria-hidden="true" />
+          <span className="sc-sr">Search apps</span>
+          <input
+            ref={inputRef}
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search apps, makers, tags…"
+          />
+          <kbd aria-hidden="true">/</kbd>
+        </label>
+        <div className="sc-seg" role="group" aria-label="Sort">
+          {SORTS.map(([value, label]) => (
+            <button key={value} type="button" aria-pressed={sort === value} onClick={() => setSort(value)}>
+              {label}
+            </button>
+          ))}
+        </div>
+        {categories.length > 1 && (
+          <div className="sc-chips" role="group" aria-label="Category">
+            <button type="button" className="sc-chip" aria-pressed={category === null} onClick={() => setCategory(null)}>
+              All
+            </button>
+            {categories.map(([name, count]) => (
+              <button
+                key={name}
+                type="button"
+                className="sc-chip"
+                aria-pressed={category === name}
+                onClick={() => setCategory(category === name ? null : name)}
+              >
+                {name}
+                <sup>{count}</sup>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {filtering && (
+        <p className="sc-sr" aria-live="polite">
+          {results.length} {results.length === 1 ? "result" : "results"}
+        </p>
+      )}
+
+      <div className="sc-gal">
+        {results.length > 0 ? (
+          results.map((app, i) => <Tile key={app.id} app={app} index={i} />)
+        ) : (
+          <div className="sc-empty">
+            <h3>Nothing matches &ldquo;{query.trim() || category}&rdquo; yet</h3>
+            <p>That could be your app. Ask your agent to build it and put it online with Embarko.</p>
+            <div className="acts">
+              <button
+                type="button"
+                className="sc-btn"
+                onClick={() => {
+                  setQuery("");
+                  setCategory(null);
+                }}
+              >
+                Clear filters
+              </button>
+              <a className="sc-btn pri" href="#deploy">
+                Build it <ArrowRight aria-hidden="true" />
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Company and event pages. Kept as a quiet line of links rather than a
+          sidebar: most visitors browse by category, not by page. */}
+      {collections.length > 0 && (
+        <nav className="sc-pages" aria-label="Showcase pages">
+          <span>Pages:</span>
+          {collections.map((c) => (
+            <Link key={c.slug} href={`/showcase/${encodeURIComponent(c.slug)}`}>
+              {c.title}
+            </Link>
+          ))}
+        </nav>
+      )}
     </section>
   );
 }

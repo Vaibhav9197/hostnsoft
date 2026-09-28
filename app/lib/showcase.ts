@@ -67,8 +67,22 @@ async function read<T>(path: string): Promise<T | null> {
 }
 
 /** Public apps, featured first then newest. */
+/* The same live app can be listed twice — on its maker's own page and on a
+   public board such as a hackathon's. Each board still shows it; the
+   site-wide gallery shows it once, keeping the first listing made. */
+export function uniqueByApp(apps: ShowcaseApp[]): ShowcaseApp[] {
+  const first = new Map<string, ShowcaseApp>();
+  for (const app of apps) {
+    const key = app.appUrl.replace(/\/+$/, "").toLowerCase();
+    const seen = first.get(key);
+    if (!seen || app.createdAt < seen.createdAt) first.set(key, app);
+  }
+  const keep = new Set(first.values());
+  return apps.filter((app) => keep.has(app));
+}
+
 export async function listApps(limit = 60): Promise<ShowcaseApp[]> {
-  return (await read<ShowcaseApp[]>(`/public/showcase?limit=${limit}`)) ?? [];
+  return uniqueByApp((await read<ShowcaseApp[]>(`/public/showcase?limit=${limit}`)) ?? []);
 }
 
 export async function getApp(slug: string): Promise<ShowcaseApp | null> {
