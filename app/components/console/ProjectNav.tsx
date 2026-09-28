@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { ArrowLeft, Copy, ExternalLink } from "lucide-react";
+import { Copy, ExternalLink } from "lucide-react";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/app/components/ui/tooltip";
 import { Button } from "@/app/components/ui/button";
@@ -46,14 +46,6 @@ export function ProjectNav({ projectId }: { projectId: string }) {
 
   return (
     <div className="mb-6 flex flex-col gap-4">
-      <Link
-        href="/app"
-        className="inline-flex w-fit items-center gap-1.5 text-[0.8rem] text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="size-3.5" aria-hidden="true" />
-        All apps
-      </Link>
-
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <span className="grid size-9 shrink-0 place-items-center rounded-md bg-foreground text-sm font-extrabold text-background">

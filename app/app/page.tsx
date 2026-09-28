@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { Check, Copy, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { CloudBackdrop } from "../components/console/CloudBackdrop";
-import { Alert, EmptyState, Page, PageHeader, Skeleton, Steps } from "../components/console/kit";
+import { Alert, Page, PageHeader, Skeleton } from "../components/console/kit";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { DeployPromptDialog } from "../components/console/DeployPromptDialog";
-import { CopyPromptButton } from "../components/CopyPromptButton";
-import { CONSOLE_DEPLOY_PROMPT } from "../lib/deployPrompt";
+import { FirstAppEmpty } from "../components/console/FirstAppEmpty";
 import { HnsError } from "../lib/client"; // used by the parked createProject below
 import { HealthPill } from "../components/console/HealthPill";
 import { companiesApi, projectsApi } from "../lib/hnsApi";
@@ -23,6 +22,10 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  /* True while the empty state is waiting for a first app after a copy. The
+     settling poll below only runs once a card exists, so without this a first
+     deploy never showed up until someone refreshed. */
+  const [listening, setListening] = useState(false);
   // Parked with the name field and createProject below.
   // const [name, setName] = useState("");
   // const [busy, setBusy] = useState(false);
@@ -76,6 +79,16 @@ export default function ProjectsPage() {
     (p) => p.status === "in_progress" || p.health === "starting",
   ) ?? false;
   useEffect(() => {
+    if (!listening || (projects?.length ?? 0) > 0) return;
+    const tick = setInterval(() => load(true), 5000);
+    const giveUp = setTimeout(() => clearInterval(tick), 30 * 60 * 1000);
+    return () => {
+      clearInterval(tick);
+      clearTimeout(giveUp);
+    };
+  }, [listening, projects?.length, load]);
+
+  useEffect(() => {
     if (!settling) return;
     const tick = setInterval(() => load(true), 5000);
     const giveUp = setTimeout(() => clearInterval(tick), 10 * 60 * 1000);
@@ -119,11 +132,15 @@ export default function ProjectsPage() {
 
       <PageHeader
         title="Your apps"
+        /* Hidden while there are no apps: the empty state below is the same
+           action, and two of it split attention on the first screen. */
         actions={
-          <Button onClick={() => setCreating((v) => !v)}>
-            <Plus />
-            Deploy an app
-          </Button>
+          projects && projects.length > 0 ? (
+            <Button onClick={() => setCreating((v) => !v)}>
+              <Plus />
+              Deploy an app
+            </Button>
+          ) : undefined
         }
       />
 
@@ -155,27 +172,7 @@ export default function ProjectsPage() {
         </div>
       )}
 
-      {projects && projects.length === 0 && (
-        <EmptyState title="Your apps will appear here">
-          {/* The prompt itself, not a button that hides it: there is nothing to
-              decide here, so showing it is one step shorter than a dialog. */}
-          <div className="relative mx-auto mt-4 max-w-xl text-left">
-            <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-border bg-card p-4 pr-12 font-mono text-xs leading-relaxed text-muted-foreground">
-              {CONSOLE_DEPLOY_PROMPT}
-            </pre>
-            <CopyPromptButton
-              text={CONSOLE_DEPLOY_PROMPT}
-              aria-label="Copy deploy prompt"
-              title="Copy deploy prompt"
-              className="absolute right-2 top-2 grid size-8 place-items-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:text-foreground"
-              copiedChildren={<Check className="size-4 text-foreground" />}
-            >
-              <Copy className="size-4" />
-            </CopyPromptButton>
-          </div>
-          <Steps steps={["Copy prompt", "Paste into your AI agent", "Ask it to deploy"]} />
-        </EmptyState>
-      )}
+      {projects && projects.length === 0 && <FirstAppEmpty onWaitingChange={setListening} />}
 
       {projects && projects.length > 0 && (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">

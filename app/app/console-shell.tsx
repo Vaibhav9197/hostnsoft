@@ -2,9 +2,8 @@
 
 import { LoginScreen } from "../components/console/LoginScreen";
 import { FeedbackWidget } from "../components/console/FeedbackWidget";
-import { HeaderHomeButton } from "../components/console/HeaderHomeButton";
+import { ConsoleBreadcrumbs } from "../components/console/ConsoleBreadcrumbs";
 import { HeaderPlanBadge } from "../components/console/HeaderPlanBadge";
-import { HeaderTokenButton } from "../components/console/HeaderTokenButton";
 import { HeaderUserMenu } from "../components/console/HeaderUserMenu";
 import { Alert } from "../components/console/kit";
 import { SessionSignals } from "../components/analytics/SessionSignals";
@@ -74,8 +73,6 @@ function Shell({ children }: { children: React.ReactNode }) {
         {/* Navigation sits on the left, next to the account it belongs to; the
             right edge is for the plan chip. */}
         <HeaderUserMenu />
-        <HeaderHomeButton />
-        <HeaderTokenButton />
         <div className="ml-auto flex items-center gap-2">
           <HeaderPlanBadge />
         </div>
@@ -89,6 +86,7 @@ function Shell({ children }: { children: React.ReactNode }) {
               app data can't be loaded until it's back.
             </Alert>
           )}
+          <ConsoleBreadcrumbs />
           {children}
         </div>
       </main>
