@@ -27,10 +27,6 @@ function AgentIcon({ icon, label }: { icon: { path: string; hex: string }; label
   return <svg className="agent-brand-icon" viewBox="0 0 24 24" role="img" aria-label={label}><path fill={'#' + icon.hex} d={icon.path} /></svg>;
 }
 
-function SceneCta({ href = '#ready', children }: { href?: string; children: React.ReactNode }) {
-  return <a className="scene-cta" href={href}>{children}<ArrowRight aria-hidden="true" /></a>;
-}
-
 function CopyPromptButton({ compact = false }: { compact?: boolean }) {
   return <SharedCopyPromptButton
     className={compact ? 'copy-button copy-button-small' : 'copy-button'}
@@ -38,13 +34,13 @@ function CopyPromptButton({ compact = false }: { compact?: boolean }) {
     onClicked={() => trackCTA('copy')}
   >
     <Copy aria-hidden="true" />
-    Copy the deploy prompt
+    Copy deployment prompt
   </SharedCopyPromptButton>;
 }
 
 function Steps() {
   return <ol className="steps" aria-label="How it works">
-    <li><span>1</span> Copy prompt</li>
+    <li><span>1</span> Copy deployment prompt</li>
     <li><span>2</span> Paste into your AI agent</li>
     <li><span>3</span> Ask it to deploy</li>
   </ol>;
@@ -56,7 +52,7 @@ function DeployScene() {
 }
 
 function LiveScene() {
-  return <section className="scene live-scene" id="live"><div className="live-scene-inner"><div className="scene-copy centered"><h2>Your app is live.</h2><p>The same app. Now on the internet.</p></div><div className="browser-card"><div className="browser-bar"><span className="browser-controls"><i /><i /><i /></span><span className="browser-url"><ShieldCheck aria-hidden="true" /> weekend.embarko.app</span><span /></div><div className="browser-content"><div className="live-panel"><span className="browser-live"><i /> Live</span><h3>Barcelona<br />is ready.</h3><p>Eight bright days, held in one place.</p><button>Open itinerary <ArrowUpRight aria-hidden="true" /></button></div><img src={barcelonaMorning.src} alt="" /></div></div></div></section>;
+  return <section className="scene live-scene" id="live"><div className="live-scene-inner"><div className="scene-copy centered"><h2>Your app is live.</h2><p>The same app. Now on the internet.</p><CopyPromptButton compact /></div><div className="browser-card"><div className="browser-bar"><span className="browser-controls"><i /><i /><i /></span><span className="browser-url"><ShieldCheck aria-hidden="true" /> weekend.embarko.app</span><span /></div><div className="browser-content"><div className="live-panel"><span className="browser-live"><i /> Live</span><h3>Barcelona<br />is ready.</h3><p>Eight bright days, held in one place.</p><button>Open itinerary <ArrowUpRight aria-hidden="true" /></button></div><img src={barcelonaMorning.src} alt="" /></div></div></div></section>;
 }
 
 /* The orbit that used to live here named seven features around a logo, which
@@ -64,7 +60,7 @@ function LiveScene() {
    gets. The showcase picks one at a time and prints the sentence you would say
    to your agent to get it. */
 function HostingScene() {
-  return <section className="scene hosting-scene showcase-scene"><FeatureShowcase tone="gray" /></section>;
+  return <section className="scene hosting-scene showcase-scene"><FeatureShowcase tone="gray" /><div className="section-cta"><CopyPromptButton compact /></div></section>;
 }
 
 function AppGallery() {
@@ -89,7 +85,7 @@ function AgentScene() {
 
 function WorldScene() {
   const apps = [['Portfolio', 'sunrise'], ['Little tools', 'mint'], ['Project board', 'paper'], ['Bookings', 'peach'], ['Study tracker', 'blue'], ['Game night', 'ink']] as const;
-  return <section className="scene world-scene"><div className="world-copy"><h2>Everything you build can have a home online.</h2><p>Your agents keep creating. Embarko keeps it all live.</p><SceneCta>Bring your next app online</SceneCta></div><div className="app-world" aria-label="A calm world of applications hosted on Embarko">{apps.map(([name, color], index) => <div className={'world-app world-' + (index + 1) + ' ' + color} key={name}><div className="world-window"><i /><i /><i /></div><strong>{name}</strong><LiveMark /></div>)}</div></section>;
+  return <section className="scene world-scene"><div className="world-copy"><h2>Everything you build can have a home online.</h2><p>Your agents keep creating. Embarko keeps it all live.</p><CopyPromptButton compact /></div><div className="app-world" aria-label="A calm world of applications hosted on Embarko">{apps.map(([name, color], index) => <div className={'world-app world-' + (index + 1) + ' ' + color} key={name}><div className="world-window"><i /><i /><i /></div><strong>{name}</strong><LiveMark /></div>)}</div></section>;
 }
 
 function FinalScene() {
@@ -106,6 +102,6 @@ export default function Home() {
   return <main className="site-page">
     <SiteHeader />
     <section id="top" className="hero" aria-labelledby="hero-title"><div className="hero-intro"><p className="eyebrow"><Sparkles aria-hidden="true" /> Hosting for apps already built by your agent</p><h1 id="hero-title">Instant hosting for every app you build with AI</h1><div className="hero-action"><CopyPromptButton /></div><Steps /></div><p className="hero-note">Your agent builds it. Embarko hosts it.</p></section>
-    <DeployScene /><LiveScene /><HostingScene /><WhyEmbarko /><AppGallery /><AgentScene /><WorldScene /><InfrastructureTrust /><section className="benefit-scene"><p>Spend your time building.<br />Not hosting.</p><CopyPromptButton compact /></section><FinalScene />
+    <DeployScene /><LiveScene /><HostingScene /><WhyEmbarko cta={<CopyPromptButton compact />} /><AppGallery /><AgentScene /><WorldScene /><InfrastructureTrust cta={<CopyPromptButton compact />} /><section className="benefit-scene"><p>Spend your time building.<br />Not hosting.</p><CopyPromptButton compact /></section><FinalScene />
   </main>;
 }

@@ -64,6 +64,7 @@ export function WhyEmbarko({
   standfirst = "Your agent builds the app. Embarko is the part that keeps it online.",
   className = "py-[88px] max-[720px]:py-[60px]",
   wrapClassName,
+  cta,
 }: {
   tone?: TrustTone;
   id?: string;
@@ -74,6 +75,9 @@ export function WhyEmbarko({
   /** Overrides the content column. Passed `px-0 max-w-none` when this renders
       inside a dialog, which supplies its own padding and width. */
   wrapClassName?: string;
+  /** Opt-in call to action rendered below the section content. Landing
+      variants pass their copy-prompt button; other pages leave it out. */
+  cta?: React.ReactNode;
 }) {
   const t = TONES[tone];
 
@@ -101,6 +105,7 @@ export function WhyEmbarko({
             </div>
           ))}
         </div>
+        {cta && <div className="mt-12">{cta}</div>}
       </div>
     </section>
   );
@@ -122,6 +127,7 @@ export function InfrastructureTrust({
   id = "european-hosting",
   className = "py-[88px] max-[720px]:py-[60px]",
   wrapClassName,
+  cta,
 }: {
   tone?: TrustTone;
   id?: string;
@@ -129,6 +135,9 @@ export function InfrastructureTrust({
   className?: string;
   /** See WhyEmbarko. */
   wrapClassName?: string;
+  /** Opt-in call to action rendered below the section content. Landing
+      variants pass their copy-prompt button; other pages leave it out. */
+  cta?: React.ReactNode;
 }) {
   const t = TONES[tone];
 
@@ -165,6 +174,7 @@ export function InfrastructureTrust({
         <p className={`mt-11 max-w-[68ch] border-t pt-6 text-[14px] leading-relaxed ${t.line} ${t.faint}`}>
           {INFRA_TRUST.footnote}
         </p>
+        {cta && <div className="mt-12">{cta}</div>}
       </div>
     </section>
   );

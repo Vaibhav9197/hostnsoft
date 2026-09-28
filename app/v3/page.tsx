@@ -420,6 +420,19 @@ function SectionHead({ title, body }: { title: string; body: string }) {
   );
 }
 
+/* ── one copy CTA per section ──────────────────────────── */
+
+function SectionCta({ className = "mt-9" }: { className?: string }) {
+  return (
+    <div className={className}>
+      <CopyPromptButton className={BTN_PRIMARY} copiedChildren={COPIED_LABEL} onClicked={() => trackCTA('copy')}>
+        <Copy aria-hidden="true" className="h-4 w-4" />
+        Copy deployment prompt
+      </CopyPromptButton>
+    </div>
+  );
+}
+
 /* ── how it works ──────────────────────────────────────── */
 
 function HowItWorks() {
@@ -466,6 +479,7 @@ function HowItWorks() {
             </div>
           ))}
         </div>
+        <SectionCta />
       </div>
     </section>
   );
@@ -565,6 +579,7 @@ function Included() {
     <section id="included" className="scroll-mt-16 bg-card py-[88px] max-[720px]:py-[60px]">
       <div className={WRAP}>
         <FeatureShowcase tone="token" className="max-w-none" />
+        <SectionCta />
       </div>
     </section>
   );
@@ -620,6 +635,7 @@ function Examples() {
         <div className="mt-9 border-t border-border pt-6 text-[17px] font-medium">
           If AI can build it, <span className="font-normal text-muted-foreground">Embarko can give it a home online.</span>
         </div>
+        <SectionCta />
       </div>
     </section>
   );
@@ -646,6 +662,7 @@ function Agents() {
             </div>
           ))}
         </div>
+        <SectionCta />
       </div>
     </section>
   );
@@ -681,12 +698,12 @@ export default function EmbarkoV3() {
       <SiteHeader links={NAV_LINKS} />
       <Hero />
       <HowItWorks />
-      <WhyEmbarko tone="token" />
+      <WhyEmbarko tone="token" cta={<SectionCta className="" />} />
       <PromptSection />
       <Included />
       <Examples />
       <Agents />
-      <InfrastructureTrust tone="token" />
+      <InfrastructureTrust tone="token" cta={<SectionCta className="" />} />
       <FinalCta />
       <SiteFooter />
     </main>

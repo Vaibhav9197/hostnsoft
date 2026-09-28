@@ -101,7 +101,7 @@ export default function EmbarkoV2() {
   }, []);
 
   return (
-    <main className="relative flex h-[100dvh] flex-col overflow-hidden bg-white text-black antialiased">
+    <main className="relative flex h-[calc(100dvh-var(--beta-bar-h))] flex-col overflow-hidden bg-white text-black antialiased">
       <SiteHeader />
 
       <style>{`
@@ -216,10 +216,12 @@ function TrustDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: 
         <WhyEmbarko
           className="bg-transparent px-9 pb-10 pt-11 max-[640px]:px-6"
           wrapClassName="max-w-none px-0"
+          cta={<V2CopyButton />}
         />
         <InfrastructureTrust
           className="border-t border-gray-200 bg-gray-50 px-9 py-10 max-[640px]:px-6"
           wrapClassName="max-w-none px-0"
+          cta={<V2CopyButton />}
         />
       </DialogContent>
     </Dialog>
@@ -274,7 +276,7 @@ function Hero({ onNext, onTrust }: { onNext: () => void; onTrust: () => void }) 
       >
         <li className="inline-flex items-center gap-1.5 whitespace-nowrap">
           <span className="inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center pb-px rounded-full border border-black/15 text-[11px] font-semibold leading-none tabular-nums">1</span>
-          Copy the prompt
+          Copy deployment prompt
         </li>
         <li className="inline-flex items-center gap-1.5 whitespace-nowrap">
           <span className="inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center pb-px rounded-full border border-black/15 text-[11px] font-semibold leading-none tabular-nums">2</span>
@@ -474,6 +476,21 @@ function DeployTimeline() {
   );
 }
 
+/* The same black pill as step 1's button, for screens where copying should
+   not also advance the demo. */
+function V2CopyButton() {
+  return (
+    <CopyPromptButton
+      onClicked={() => trackCTA('copy')}
+      className="inline-flex items-center gap-2.5 rounded-full bg-black px-8 py-4 text-[16px] font-medium text-white transition hover:bg-black/85"
+      copiedClassName="inline-flex items-center gap-2.5 rounded-full bg-[#16a34a] px-8 py-4 text-[16px] font-medium text-white transition"
+      copiedChildren={COPIED_LABEL}
+    >
+      Copy deployment prompt
+    </CopyPromptButton>
+  );
+}
+
 /* ── step 1 · copy the prompt ──────────────────────────── */
 
 function CopyStep({ onNext }: { onNext: () => void }) {
@@ -504,7 +521,7 @@ function CopyStep({ onNext }: { onNext: () => void }) {
             </>
           }
         >
-          Copy prompt
+          Copy deployment prompt
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-75">
             <rect x="9" y="9" width="13" height="13" rx="2" />
             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
@@ -548,6 +565,9 @@ function ChatStep() {
         </ul>
       </div>
 
+      <div className="mt-12 text-center">
+        <V2CopyButton />
+      </div>
     </div>
   );
 }

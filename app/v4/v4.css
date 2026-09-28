@@ -277,3 +277,8 @@ html body { background: #fff; color: #111; }
    orbit it replaced was a fixed-diameter circle. */
 .showcase-scene{display:flex;align-items:center;justify-content:center;min-height:0;padding:116px 24px}
 @media (max-width:800px){.showcase-scene{padding:89px 24px}}
+
+/* One copy-prompt CTA per scene. */
+.live-scene .copy-button,.gallery-scene .copy-button,.world-scene .copy-button{margin-top:25px}
+.section-cta{display:flex;justify-content:center;padding:8px 24px 72px}
+.hosting-scene .section-cta{padding-bottom:0;margin-top:40px}

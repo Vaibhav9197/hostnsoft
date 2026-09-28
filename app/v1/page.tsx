@@ -2,7 +2,7 @@
 
 import type { CSSProperties, ReactNode } from 'react';
 import { useEffect } from 'react';
-import { ArrowRight, Check, Copy, MapPin, Plane } from 'lucide-react';
+import { Check, Copy, MapPin, Plane } from 'lucide-react';
 import barcelonaMorning from '../v4/barcelona-morning.png';
 import { SectionSnap } from './SectionSnap';
 import { trackPageView, trackCTA, trackDeployment } from '../lib/tracking';
@@ -455,7 +455,7 @@ function CopyPromptCta() {
       onClicked={() => trackCTA('copy')}
     >
       <Copy className="h-[18px] w-[18px]" aria-hidden="true" />
-      Copy the deploy prompt
+      Copy deployment prompt
     </CopyPromptButton>
   );
 }
@@ -468,7 +468,7 @@ function SceneStep({ n }: { n: string }) {
 }
 
 function Steps() {
-  const steps = ['Copy prompt', 'Paste into your AI agent', 'Ask it to deploy'];
+  const steps = ['Copy deployment prompt', 'Paste into your AI agent', 'Ask it to deploy'];
   return (
     <ol
       aria-label="How it works"
@@ -563,6 +563,7 @@ export default function EmbarkoV1() {
               <div className="text-2xl font-light">Creating Weekend now...</div>
               <span className={`inline-block ${URL_CHIP}`}>weekend — local</span>
             </div>
+            <CopyPromptCta />
           </div>
           {/* A real screen reads as a finished app in a way a skeleton never did. */}
           <AppWindow label="weekend — local" labelClassName={URL_CHIP}>
@@ -583,6 +584,7 @@ export default function EmbarkoV1() {
           <div className="space-y-4 border-t border-gray-200 pt-12 text-center">
             <div className="text-xl text-gray-600">Embarko:</div>
             <p className="text-4xl font-light md:text-5xl">Give it the prompt.</p>
+            <div className="pt-6"><CopyPromptCta /></div>
           </div>
         </div>
       </section>
@@ -613,6 +615,7 @@ export default function EmbarkoV1() {
               </p>
               <p className="font-medium text-green-600">● Live</p>
             </div>
+            <CopyPromptCta />
           </div>
         </div>
       </section>
@@ -636,7 +639,7 @@ export default function EmbarkoV1() {
                    same conversion, and without this it was invisible. */
                 onClicked={() => trackCTA('copy')}
               >
-                Copy prompt →
+                Copy deployment prompt →
               </CopyPromptButton>
             </div>
             <div className="space-y-4">
@@ -657,8 +660,9 @@ export default function EmbarkoV1() {
       </section>
 
       {/* SCENE 06: THE PAIN REMOVED */}
-      <section className="flex min-h-[100dvh] items-center justify-center bg-gray-50 px-6 py-20">
+      <section className="flex min-h-[100dvh] flex-col items-center justify-center gap-12 bg-gray-50 px-6 py-20">
         <FeatureShowcase tone="gray" />
+        <CopyPromptCta />
       </section>
 
       {/* SCENE 07: WHAT CAN I BUILD */}
@@ -688,6 +692,7 @@ export default function EmbarkoV1() {
           <div className="border-t border-gray-200 pt-12 text-center">
             <h3 className="text-3xl font-bold sm:text-4xl md:text-5xl">If you can build it,</h3>
             <p className="mt-2 text-2xl font-light sm:text-3xl md:text-4xl">you can put it online.</p>
+            <div className="mt-10"><CopyPromptCta /></div>
           </div>
         </div>
       </section>
@@ -703,13 +708,7 @@ export default function EmbarkoV1() {
             <p className="mt-4 text-[17px] leading-relaxed text-neutral-500">
               Your agents keep creating. Embarko keeps it all live.
             </p>
-            <a
-              href="#ready"
-              className="group mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-neutral-900"
-            >
-              Bring your next app online
-              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-[3px]" />
-            </a>
+            <div className="mt-6"><CopyPromptCta /></div>
           </div>
 
           {/* The scatter needs room to spread, so below md the cards stack into a
@@ -758,6 +757,7 @@ export default function EmbarkoV1() {
             </div>
           </div>
           <p className="text-xl font-light text-gray-600">Embarko works with the AI you already use.</p>
+          <CopyPromptCta />
         </div>
       </section>
 
@@ -772,6 +772,7 @@ export default function EmbarkoV1() {
           <p className="text-xl font-light text-gray-600 md:text-2xl">
             Your time is better spent making the thing.
           </p>
+          <div className="pt-4"><CopyPromptCta /></div>
         </div>
       </section>
 
@@ -779,8 +780,8 @@ export default function EmbarkoV1() {
       {/* Why Embarko + European hosting, as two scenes. min-h-[100dvh] and the
           centring here are what make them beats in the snap sequence rather
           than short bands the scroll flies past. */}
-      <WhyEmbarko className="flex min-h-[100dvh] flex-col justify-center px-6 py-20" />
-      <InfrastructureTrust className="flex min-h-[100dvh] flex-col justify-center px-6 py-20" />
+      <WhyEmbarko className="flex min-h-[100dvh] flex-col justify-center px-6 py-20" cta={<CopyPromptCta />} />
+      <InfrastructureTrust className="flex min-h-[100dvh] flex-col justify-center px-6 py-20" cta={<CopyPromptCta />} />
 
       {/* The footer lives inside this last scene rather than after it: the
           closing beat snaps into view already carrying the bottom of the site,
