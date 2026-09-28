@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, ArrowUpRight, Copy, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Sparkles } from "lucide-react";
 
 import { SiteHeader } from "../../../components/SiteHeader";
 import { SiteFooter } from "../../../components/SiteFooter";
 import { SITE } from "../../../lib/site";
 import { categorySlug, getApp, listApps, tagSlug, type ShowcaseApp } from "../../../lib/showcase";
 import { TileGrid, hostOf } from "../../kit";
-import { CopyPromptButton, COPIED_LABEL } from "../../../components/CopyPromptButton";
 import { ShareApp } from "../../share";
+import { CtaSection } from "../../../components/ds";
 import { Media } from "./Media";
 import { ShowcaseBreadcrumbs } from "../../breadcrumbs";
 
@@ -278,31 +278,7 @@ export default async function ShowcaseAppPage({ params }: Props) {
           </div>
         </div>
 
-        <section className="sc-ship" id="ship" aria-labelledby="ship-h">
-          <span className="sc-pill grad">
-            <Sparkles aria-hidden="true" className="h-3 w-3" />
-            Your turn
-          </span>
-          <h2 id="ship-h">
-            Seen enough?
-            <br />
-            <span className="sc-serif">Ship</span> something.
-          </h2>
-          <p>Copy the Embarko prompt, paste it into your AI agent, and your app goes live on its own link.</p>
-          <div className="sc-ctas">
-            <CopyPromptButton className="sc-btn pri lg glow" copiedChildren={COPIED_LABEL}>
-              <Copy aria-hidden="true" />
-              Copy deployment prompt
-            </CopyPromptButton>
-          </div>
-          <ol className="sc-steps">
-            <li>Copy</li>
-            <li aria-hidden="true"><i>→</i></li>
-            <li>Paste into your agent</li>
-            <li aria-hidden="true"><i>→</i></li>
-            <li>Share your link</li>
-          </ol>
-        </section>
+        <CtaSection />
 
         {related.length > 0 && (
           <section className="sc-more" aria-labelledby="more-h">

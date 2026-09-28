@@ -1,0 +1,24 @@
+/* /v3 only — what the ds layer (app/design.css) lacks. Reads --ds-* tokens. */
+.v3-anchor,.v3 [id]{scroll-margin-top:calc(var(--ds-top) + 16px)}
+.v3-hero{padding-bottom:40px}
+.v3-hero h1{font-size:clamp(40px,6.4vw,84px);max-width:900px}
+.v3-panel-wrap{position:relative;isolation:isolate;max-width:620px;margin:0 auto}
+.v3-panel{padding:0;overflow:hidden}
+.v3-livebar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;border-radius:14px;background:var(--ds-dark)}
+.v3-dark{border-radius:14px;background:var(--ds-dark);color:#f4f4f6}
+.v3-cta{margin-top:32px}
+.v3-flow{list-style:none;margin:32px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.v3-flow h3{font-size:20px}
+.v3-num{display:block;margin-bottom:14px;font:500 13px/1 var(--mono);color:var(--ds-v1)}
+.v3-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--ds-r-pill);border:1px solid var(--ds-line);background:var(--ds-soft);font:12.5px/1.2 var(--mono);color:var(--ds-mute)}
+.v3-chip-lg{gap:10px;padding:10px 16px;font-size:14.5px;color:var(--ds-ink)}
+.v3-prompt{padding:0;overflow:hidden;margin-top:32px}
+.v3-rail{margin:32px 24px 0}
+.v3-art{border-radius:14px;border:1px solid var(--ds-line);background:var(--ds-soft)}
+/* Shared components (WhyEmbarko, FeatureShowcase, InfrastructureTrust) bring
+   their own type; bring their headings onto the ds scale. */
+.v3-shared{padding:clamp(24px,4vw,48px);border-radius:var(--ds-r-lg)}
+.v3-shared h2{font-size:clamp(26px,3vw,36px)!important;letter-spacing:-.035em!important;line-height:1.05!important;font-weight:700!important}
+.v3 .ds-cta h2{font-size:clamp(34px,5vw,64px);max-width:900px;margin-left:auto;margin-right:auto}
+@media (max-width:720px){.v3-flow{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:600px){.v3-rail{margin-left:16px;margin-right:16px}}

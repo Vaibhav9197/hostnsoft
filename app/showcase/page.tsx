@@ -8,6 +8,7 @@ import { COPIED_LABEL, CopyPromptButton } from "../components/CopyPromptButton";
 import { listApps, listIndexableCollections, type ShowcaseApp } from "../lib/showcase";
 import { DeployCta, Shot, Steps, firstName } from "./kit";
 import { SearchGallery } from "./SearchGallery";
+import { ButtonLink, Hero, PrimaryCta, Serif } from "../components/ds";
 
 export const metadata: Metadata = {
   title: "Showcase — See what people are building with AI",
@@ -39,26 +40,29 @@ export default async function ShowcasePage() {
       <div className="sc-gridbg" aria-hidden="true" />
 
       <div className="sc-wrap sc-layer">
-        <section className="sc-hero">
-          <h1>
-            Ideas people had.
-            <br />
-            <span className="sc-serif sc-gtext">Live</span> on a real link.
-          </h1>
-          <p>
-            Every app here was built by someone&rsquo;s own AI agent and put online with Embarko. Open
-            one, then make your own.
-          </p>
-          <div className="sc-ctas">
-            <CopyPromptButton className="sc-btn pri lg glow" copiedChildren={COPIED_LABEL}>
-              <Copy aria-hidden="true" />
-              Copy deployment prompt
-            </CopyPromptButton>
-            <a className="sc-btn lg" href={apps.length > 0 ? "#explore" : "#deploy"}>
-              Explore apps
-            </a>
-          </div>
-        </section>
+        <Hero
+          title={
+            <>
+              Ideas people had.
+              <br />
+              <Serif grad>Live</Serif> on a real link.
+            </>
+          }
+          sub={
+            <>
+              Every app here was built by someone&rsquo;s own AI agent and put online with Embarko. Open
+              one, then make your own.
+            </>
+          }
+          actions={
+            <>
+              <PrimaryCta />
+              <ButtonLink size="lg" href={apps.length > 0 ? "#explore" : "#deploy"}>
+                Explore apps
+              </ButtonLink>
+            </>
+          }
+        />
 
         {spotlight && <Spotlight {...spotlight} />}
 

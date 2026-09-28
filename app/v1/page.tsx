@@ -2,65 +2,25 @@
 
 import type { CSSProperties, ReactNode } from 'react';
 import { useEffect } from 'react';
-import { Check, Copy, MapPin, Plane } from 'lucide-react';
+import { MapPin, Plane } from 'lucide-react';
 import barcelonaMorning from '../v4/barcelona-morning.png';
 import { SectionSnap } from './SectionSnap';
 import { trackPageView, trackCTA, trackDeployment } from '../lib/tracking';
 import { AGENTS, agentIconSrc } from '../lib/agents';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
-import { CopyPromptButton, COPIED_LABEL } from '../components/CopyPromptButton';
+import { Card, GlowBackdrop, PrimaryCta, Serif, Steps as DsSteps } from '@/app/components/ds';
 import { FeatureShowcase } from '../components/FeatureShowcase';
 import { InfrastructureTrust, WhyEmbarko } from '../components/WhyEmbarko';
 
-/**
- * Atmospheric backdrop.
- *
- * The brief asks for a sky that is "not a literal stock photo", so the source
- * photography is never shown straight: it is blurred, desaturated, scaled past
- * the frame (so the blur has no soft vignette at the edges) and dropped to a low
- * opacity under a wash of the page background. What survives is light and depth,
- * not a photograph.
- */
-function SkyBackdrop({
-  src,
-  position = 'center',
-  blur = 24,
-  opacity = 0.5,
-  saturate = 0.75,
-  fade = 'from-white via-white/40 to-white',
-}: {
-  src: string;
-  position?: string;
-  blur?: number;
-  opacity?: number;
-  /** Per-source correction: the four photos differ in cast, and the scenes have to feel like one sky. */
-  saturate?: number;
-  fade?: string;
-}) {
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      <img
-        src={src}
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full scale-110 object-cover"
-        style={{
-          objectPosition: position,
-          filter: `blur(${blur}px) saturate(${saturate})`,
-          opacity,
-        }}
-      />
-      <div className={`absolute inset-0 bg-gradient-to-b ${fade}`} />
-    </div>
-  );
-}
-
 /* The highlight on an app's address, wherever it appears — the local build and
-   the deployed URL both wear it, so one definition keeps the yellow identical
+   the deployed URL both wear it, so one definition keeps the chip identical
    across all four places it shows up. */
 const URL_CHIP =
-  'rounded bg-yellow-300 px-1.5 py-0.5 text-[10px] font-light tracking-wide text-gray-800';
+  'rounded-full bg-[var(--ds-soft)] px-2 py-0.5 font-mono text-[10px] tracking-wide text-[var(--ds-mute)] ring-1 ring-[var(--ds-line)]';
+
+/* Display headings: the ds hero weight and tracking, sized per scene. */
+const H_DISPLAY = 'font-extrabold leading-[0.98] tracking-[-0.045em]';
 
 /** A miniature application window. The product is the visual, so these are drawn, not photographed. */
 function AppWindow({
@@ -70,7 +30,7 @@ function AppWindow({
   /* The colour lives in a prop rather than the base classes so a caller can
      replace it outright — two competing text- utilities in one string are
      resolved by CSS source order, not by the order they are written. */
-  labelClassName = 'text-gray-400',
+  labelClassName = 'text-[var(--ds-dim)]',
   style,
 }: {
   label?: string;
@@ -81,15 +41,15 @@ function AppWindow({
 }) {
   return (
     <div
-      className={`overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.06)] ${className}`}
+      className={`overflow-hidden rounded-[var(--ds-r)] border border-[var(--ds-line)] bg-[var(--ds-card)] shadow-[var(--ds-sh2)] ${className}`}
       style={style}
     >
-      <div className="flex items-center gap-1.5 border-b border-black/5 bg-gray-50/80 px-3 py-2">
-        <span className="h-2 w-2 rounded-full bg-black/10" />
-        <span className="h-2 w-2 rounded-full bg-black/10" />
-        <span className="h-2 w-2 rounded-full bg-black/10" />
+      <div className="flex items-center gap-1.5 border-b border-[var(--ds-line)] bg-[var(--ds-soft)] px-3 py-2">
+        <span className="h-2 w-2 rounded-full bg-[var(--ds-line2)]" />
+        <span className="h-2 w-2 rounded-full bg-[var(--ds-line2)]" />
+        <span className="h-2 w-2 rounded-full bg-[var(--ds-line2)]" />
         {label ? (
-          <span className={`ml-2 truncate rounded text-[10px] font-light tracking-wide ${labelClassName}`}>
+          <span className={`ml-2 truncate rounded text-[10px]  tracking-wide ${labelClassName}`}>
             {label}
           </span>
         ) : null}
@@ -330,15 +290,15 @@ function WorldApp({ name, theme, className = '', style }: { name: string; theme:
   const { bg, art } = WORLD_THEMES[theme];
   return (
     <div
-      className={`flex w-fit flex-col gap-[7px] rounded-[13px] border border-black/[0.06] bg-white/85 p-2.5 shadow-[0_20px_38px_rgba(0,0,0,0.09)] backdrop-blur-[7px] ${className}`}
+      className={`flex w-fit flex-col gap-[7px] rounded-[var(--ds-r)] border border-[var(--ds-line)] bg-[var(--ds-card)] p-2.5 shadow-[var(--ds-sh)] ${className}`}
       style={style}
     >
-      <div className="relative h-[91px] w-[146px] overflow-hidden rounded-[8px]" style={{ background: bg }} aria-hidden="true">
+      <div className="relative h-[91px] w-[146px] overflow-hidden rounded-[14px]" style={{ background: bg }} aria-hidden="true">
         {art}
       </div>
-      <strong className="text-[12px] font-semibold text-neutral-800">{name}</strong>
-      <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[11px] font-semibold text-neutral-600">
-        <i className="h-1.5 w-1.5 rounded-full bg-[#222] shadow-[0_0_0_3px_rgba(0,0,0,0.08)]" />
+      <strong className="text-[12px] font-semibold text-[var(--ds-ink)]">{name}</strong>
+      <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[11px] font-semibold text-[var(--ds-mute)]">
+        <i className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.15)]" />
         Live on Embarko
       </span>
     </div>
@@ -355,7 +315,7 @@ function WorldApp({ name, theme, className = '', style }: { name: string; theme:
 function AgentStrip() {
   return (
     <div className="flex flex-col items-center gap-3 pt-7">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.09em] text-gray-400">
+      <p className="ds-kicker !mb-0">
         Works with every agent
       </p>
       <ul className="flex max-w-2xl flex-wrap items-center justify-center gap-x-7 gap-y-4">
@@ -386,38 +346,38 @@ function WeekendApp() {
   return (
     <>
 
-      <div className="relative overflow-hidden rounded-md">
+      <div className="relative overflow-hidden rounded-[14px]">
         <img
           src={barcelonaMorning.src}
           alt="Sagrada Família in Barcelona"
           className="h-36 w-full object-cover"
         />
-        <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-white/85 px-2 py-1 text-[10px] font-light tracking-wide text-gray-700 backdrop-blur">
+        <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-[var(--ds-card)]/85 px-2 py-1 text-[10px]  tracking-wide text-[var(--ds-ink)] backdrop-blur">
           <MapPin className="h-3 w-3" aria-hidden="true" /> Barcelona, Spain
         </span>
       </div>
       <div className="space-y-4 pt-4">
         <div className="space-y-1">
-          <p className="text-[10px] font-light uppercase tracking-[0.2em] text-gray-400">Eight sunlit days</p>
-          <h3 className="text-xl font-light">Barcelona</h3>
-          <p className="flex items-center gap-1.5 text-xs font-light text-gray-500">
+          <p className="text-[10px]  uppercase tracking-[0.2em] text-[var(--ds-dim)]">Eight sunlit days</p>
+          <h3 className="text-xl font-semibold tracking-tight">Barcelona</h3>
+          <p className="flex items-center gap-1.5 text-xs  text-[var(--ds-mute)]">
             <Plane className="h-3 w-3" aria-hidden="true" /> 8 – 15 June 2026
           </p>
         </div>
-        <div className="grid grid-cols-3 gap-2 border-y border-gray-100 py-3">
+        <div className="grid grid-cols-3 gap-2 border-y border-[var(--ds-line)] py-3">
           {[
             { value: '12', label: 'places saved' },
             { value: '4', label: 'stays & tables' },
             { value: '1', label: 'slow afternoon' },
           ].map((stat) => (
             <div key={stat.label} className="space-y-0.5">
-              <div className="text-base font-light">{stat.value}</div>
-              <div className="text-[10px] font-light leading-tight text-gray-400">{stat.label}</div>
+              <div className="text-base ">{stat.value}</div>
+              <div className="text-[10px]  leading-tight text-[var(--ds-dim)]">{stat.label}</div>
             </div>
           ))}
         </div>
         <div className="space-y-2.5">
-          <div className="flex items-baseline justify-between text-[10px] font-light uppercase tracking-[0.2em] text-gray-400">
+          <div className="flex items-baseline justify-between text-[10px]  uppercase tracking-[0.2em] text-[var(--ds-dim)]">
             <span>Monday</span>
             <span>8 June</span>
           </div>
@@ -426,11 +386,11 @@ function WeekendApp() {
             { time: '13:30', dot: 'bg-rose-300', title: 'Can Culleretes', note: 'Lunch in the Gothic Quarter' },
           ].map((item) => (
             <div key={item.time} className="flex items-start gap-2.5">
-              <span className="w-9 shrink-0 pt-0.5 text-[10px] font-light text-gray-400">{item.time}</span>
+              <span className="w-9 shrink-0 pt-0.5 text-[10px]  text-[var(--ds-dim)]">{item.time}</span>
               <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${item.dot}`} />
               <p className="space-y-0.5">
                 <span className="block text-xs font-normal">{item.title}</span>
-                <span className="block text-[10px] font-light text-gray-400">{item.note}</span>
+                <span className="block text-[10px]  text-[var(--ds-dim)]">{item.note}</span>
               </p>
             </div>
           ))}
@@ -443,54 +403,19 @@ function WeekendApp() {
 /* The page's primary call to action. Defined once so the hero and the closing
    frame stay the same button — same label, same shape, same copy behaviour. */
 function CopyPromptCta() {
-  return (
-    <CopyPromptButton
-      className="inline-flex items-center justify-center gap-2.5 rounded-[15px] bg-black px-8 py-4 text-lg font-medium text-white transition hover:bg-gray-900"
-      copiedChildren={
-        <>
-          <Check className="h-[18px] w-[18px]" aria-hidden="true" />
-          {COPIED_LABEL}
-        </>
-      }
-      onClicked={() => trackCTA('copy')}
-    >
-      <Copy className="h-[18px] w-[18px]" aria-hidden="true" />
-      Copy deployment prompt
-    </CopyPromptButton>
-  );
+  return <PrimaryCta onClicked={() => trackCTA('copy')} />;
 }
 
 /* The story scenes carry the same numerals as the "How?" recap further down, so
    a reader arriving at that summary recognises it as a recap of what they just
    watched rather than new material. Styled to match those numerals exactly. */
 function SceneStep({ n }: { n: string }) {
-  return <div className="text-6xl font-bold text-gray-300">{n}</div>;
+  return <span className="ds-kicker">{n}</span>;
 }
 
 function Steps() {
-  const steps = ['Copy deployment prompt', 'Paste into your AI agent', 'Ask it to deploy'];
-  return (
-    <ol
-      aria-label="How it works"
-      className="flex flex-wrap items-center justify-center gap-x-[18px] gap-y-2 text-sm font-medium text-black"
-    >
-      {steps.map((label, i) => (
-        <li key={label} className="inline-flex items-center gap-1.5 whitespace-nowrap">
-          <span
-            /* leading-none is load-bearing: without it the numeral inherits the
-               list's 20px line-height inside an 18px circle, so the line box
-               overflows and place-items-center centres the wrong box. */
-            className="grid h-[18px] w-[18px] place-items-center rounded-full border border-black text-[10px] font-bold leading-none text-black"
-          >
-            {i + 1}
-          </span>
-          {label}
-        </li>
-      ))}
-    </ol>
-  );
+  return <DsSteps className="!mt-0" />;
 }
-
 
 /**
  * Client component to track page view
@@ -515,29 +440,23 @@ export default function EmbarkoV1() {
           with the browser toolbar *collapsed*, so every scene is taller than
           what is actually visible — which leaves SectionSnap's "is this scene
           read to its edge?" check permanently true, and the snap never fires. */}
-      <div id="v1-scenes" className="overflow-x-hidden bg-white text-black">
+      <div id="v1-scenes" className="overflow-x-hidden bg-background text-foreground antialiased">
         {/* One scroll gesture = one scene. Renders nothing; see SectionSnap.tsx. */}
         <SectionSnap containerSelector="#v1-scenes" offsetSelector="nav" />
 
       {/* SCENE 01: THE OPENING */}
-      <section className="relative flex min-h-[100dvh] flex-col items-center justify-center px-6 py-20">
+      <section className="relative isolate flex min-h-[100dvh] flex-col items-center justify-center px-4 py-20 sm:px-6">
         {/* Light gathers at the top and clears to white behind the type, so the
             headline never competes with the sky. */}
-        <SkyBackdrop
-          src="/atmosphere/sky-dawn.jpg"
-          position="center 20%"
-          blur={30}
-          opacity={0.8}
-          fade="from-white/10 via-white/60 to-white"
-        />
+        <GlowBackdrop position="top" />
         <div className="relative z-10 max-w-4xl space-y-8 text-center">
           {/* 80px, not text-8xl: at 96px this headline wraps to three lines in the
               896px column. 84px is the largest that still fits two, so 80 leaves a
               little room for font-metric differences. */}
-          <h1 className="text-5xl font-bold leading-tight tracking-tight sm:text-6xl md:text-[80px]">
-            Instant hosting for every app you build with AI
+          <h1 className={`${H_DISPLAY} text-[44px] sm:text-6xl md:text-[80px]`}>
+            <Serif grad>Instant</Serif> hosting for every app you build with AI
           </h1>
-          <p className="text-xl font-light text-gray-600 md:text-2xl">
+          <p className="text-lg text-[var(--ds-mute)] md:text-xl">
             Your AI builds it. Embarko runs it.
           </p>
           <div className="flex flex-col items-center justify-center gap-5 pt-8">
@@ -549,18 +468,18 @@ export default function EmbarkoV1() {
       </section>
 
       {/* SCENE 02: SOMETHING IS BEING BUILT */}
-      <section className="flex min-h-[100dvh] items-center justify-center px-6 py-20">
+      <section className="flex min-h-[100dvh] items-center justify-center px-4 py-20 sm:px-6">
         <div className="grid w-full max-w-6xl items-center gap-8 md:grid-cols-2">
-          <div className="space-y-6">
+          <div className="min-w-0 space-y-6">
             <SceneStep n="01" />
-            <h2 className="text-4xl font-bold sm:text-5xl md:text-6xl">Build with your AI</h2>
+            <h2 className={`${H_DISPLAY} text-4xl sm:text-5xl md:text-6xl`}>Build with your <Serif>AI</Serif></h2>
             <div className="space-y-4">
-              <div className="text-gray-600">You:</div>
-              <div className="text-2xl font-light">Build me a weekend trip planner.</div>
+              <div className="text-[var(--ds-mute)]">You:</div>
+              <div className="text-2xl tracking-tight">Build me a weekend trip planner.</div>
             </div>
-            <div className="space-y-4 border-t border-gray-200 pt-8">
-              <div className="text-gray-600">AI:</div>
-              <div className="text-2xl font-light">Creating Weekend now...</div>
+            <div className="space-y-4 border-t border-[var(--ds-line)] pt-8">
+              <div className="text-[var(--ds-mute)]">AI:</div>
+              <div className="text-2xl tracking-tight">Creating Weekend now...</div>
               <span className={`inline-block ${URL_CHIP}`}>weekend — local</span>
             </div>
             <CopyPromptCta />
@@ -568,7 +487,7 @@ export default function EmbarkoV1() {
           {/* A real screen reads as a finished app in a way a skeleton never did. */}
           <AppWindow label="weekend — local" labelClassName={URL_CHIP}>
             <WeekendApp />
-            <p className="pt-4 text-xs font-light uppercase tracking-[0.2em] text-gray-400">Built</p>
+            <p className="pt-4 font-mono text-xs uppercase tracking-[0.06em] text-[var(--ds-dim)]">Built</p>
           </AppWindow>
         </div>
       </section>
@@ -578,28 +497,22 @@ export default function EmbarkoV1() {
         <div className="w-full max-w-4xl space-y-12">
           <div className="space-y-4 text-center">
             <SceneStep n="02" />
-            <div className="text-xl text-gray-600">You:</div>
-            <h2 className="text-4xl font-bold sm:text-5xl md:text-7xl">Now what?</h2>
+            <div className="text-xl text-[var(--ds-mute)]">You:</div>
+            <h2 className={`${H_DISPLAY} text-5xl sm:text-6xl md:text-7xl`}>Now <Serif grad>what?</Serif></h2>
           </div>
-          <div className="space-y-4 border-t border-gray-200 pt-12 text-center">
-            <div className="text-xl text-gray-600">Embarko:</div>
-            <p className="text-4xl font-light md:text-5xl">Give it the prompt.</p>
+          <div className="space-y-4 border-t border-[var(--ds-line)] pt-12 text-center">
+            <div className="text-xl text-[var(--ds-mute)]">Embarko:</div>
+            <p className="text-3xl font-semibold tracking-[-0.03em] md:text-5xl">Give it the prompt.</p>
             <div className="pt-6"><CopyPromptCta /></div>
           </div>
         </div>
       </section>
 
       {/* SCENE 04: THE MAGIC — the one moment that earns a big lift */}
-      <section className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-6 py-20">
+      <section className="relative isolate flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-4 py-20 sm:px-6">
         {/* Kept light rather than heavy: this source reads grey at full strength,
             and the scene wants a glow around the window, not fog behind it. */}
-        <SkyBackdrop
-          src="/atmosphere/sky-haze.jpg"
-          position="center 60%"
-          blur={40}
-          opacity={0.42}
-          fade="from-white via-white/35 to-white"
-        />
+        <GlowBackdrop position="full" />
         <div className="relative z-10 w-full max-w-3xl space-y-12 text-center">
           {/* Same screen as scene 02 — the app they watched get built is the app
               that goes live, so it has to be recognisably the same one. */}
@@ -608,12 +521,12 @@ export default function EmbarkoV1() {
           </AppWindow>
           <div className="space-y-6">
             <SceneStep n="03" />
-            <h3 className="text-4xl font-bold sm:text-5xl md:text-7xl">It&apos;s live.</h3>
-            <div className="space-y-2 text-2xl font-light text-gray-600">
+            <h3 className={`${H_DISPLAY} text-5xl sm:text-6xl md:text-7xl`}>It&apos;s <Serif grad>live.</Serif></h3>
+            <div className="flex flex-col items-center gap-3 text-lg text-[var(--ds-mute)]">
               <p>
-                <span className="rounded bg-yellow-300 px-2 py-0.5 text-gray-800">weekend.embarko.app</span>
+                <span className="ds-pill font-mono">weekend.embarko.app</span>
               </p>
-              <p className="font-medium text-green-600">● Live</p>
+              <p className="inline-flex items-center gap-2 font-semibold text-[var(--ds-ink)]"><i className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.15)]" aria-hidden="true" />Live</p>
             </div>
             <CopyPromptCta />
           </div>
@@ -623,36 +536,29 @@ export default function EmbarkoV1() {
       {/* SCENE 05: HOW? */}
       <section className="flex min-h-[100dvh] items-center justify-center px-6 py-20">
         <div className="w-full max-w-4xl space-y-16">
-          <h2 className="text-center text-4xl font-bold sm:text-5xl md:text-6xl">How?</h2>
-          <div className="grid gap-8 md:grid-cols-3">
-            <div className="space-y-4">
-              <div className="text-6xl font-bold text-gray-300">01</div>
-              <h3 className="text-2xl font-light">Build with your AI.</h3>
-            </div>
-            <div className="space-y-4">
-              <div className="text-6xl font-bold text-gray-300">02</div>
-              <h3 className="text-2xl font-light">Give it the prompt.</h3>
-              <CopyPromptButton
-                className="font-medium text-black underline hover:no-underline"
-                copiedChildren={COPIED_LABEL}
-                /* Counts the same as the hero CTA: a copy from here is the
-                   same conversion, and without this it was invisible. */
-                onClicked={() => trackCTA('copy')}
-              >
-                Copy deployment prompt →
-              </CopyPromptButton>
-            </div>
-            <div className="space-y-4">
-              <div className="text-6xl font-bold text-gray-300">03</div>
-              <h3 className="text-2xl font-light">Tell it to deploy.</h3>
-              <p className="italic text-gray-600">Deploy this to Embarko.</p>
-            </div>
+          <h2 className={`${H_DISPLAY} text-center text-5xl sm:text-6xl`}><Serif grad>How?</Serif></h2>
+          <div className="grid gap-5 md:grid-cols-3">
+            <Card className="space-y-3">
+              <SceneStep n="01" />
+              <h3 className="!text-xl">Build with your AI.</h3>
+            </Card>
+            <Card className="space-y-3">
+              <SceneStep n="02" />
+              <h3 className="!text-xl">Give it the prompt.</h3>
+              {/* Counts the same as the hero CTA: same conversion. */}
+              <PrimaryCta size="sm" glow={false} onClicked={() => trackCTA('copy')} />
+            </Card>
+            <Card className="space-y-3">
+              <SceneStep n="03" />
+              <h3 className="!text-xl">Tell it to deploy.</h3>
+              <p className="ds-serif !text-lg">Deploy this to Embarko.</p>
+            </Card>
           </div>
           {/* The three steps say what you do; this says what you get, so the
               recap resolves instead of stopping on a single word. */}
-          <div className="border-t border-gray-200 pt-12 text-center">
-            <h3 className="text-4xl font-bold sm:text-5xl md:text-6xl">Live.</h3>
-            <p className="mx-auto mt-5 max-w-xl text-xl font-light text-gray-600 md:text-2xl">
+          <div className="border-t border-[var(--ds-line)] pt-12 text-center">
+            <h3 className={`${H_DISPLAY} text-5xl sm:text-6xl`}><Serif grad>Live.</Serif></h3>
+            <p className="mx-auto mt-5 max-w-xl text-lg text-[var(--ds-mute)] md:text-xl">
               A real URL, a database, and HTTPS. You set up none of it.
             </p>
           </div>
@@ -660,38 +566,38 @@ export default function EmbarkoV1() {
       </section>
 
       {/* SCENE 06: THE PAIN REMOVED */}
-      <section className="flex min-h-[100dvh] flex-col items-center justify-center gap-12 bg-gray-50 px-6 py-20">
-        <FeatureShowcase tone="gray" />
+      <section className="flex min-h-[100dvh] flex-col items-center justify-center gap-12 px-4 py-20 sm:px-6">
+        <FeatureShowcase tone="token" />
         <CopyPromptCta />
       </section>
 
       {/* SCENE 07: WHAT CAN I BUILD */}
       <section className="flex min-h-[100dvh] flex-col items-center justify-center px-6 py-20">
         <div className="w-full max-w-5xl space-y-16">
-          <h2 className="text-center text-4xl font-bold sm:text-5xl md:text-6xl">What are you building?</h2>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <h2 className={`${H_DISPLAY} text-center text-4xl sm:text-5xl md:text-6xl`}>What are you <Serif grad>building?</Serif></h2>
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {APPS.map((app) => (
               <div
                 key={app.title}
-                className="group rounded-[16px] border border-black/[0.06] bg-white p-2.5 shadow-[0_10px_30px_rgba(0,0,0,0.05)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_44px_rgba(0,0,0,0.10)]"
+                className="min-w-0 rounded-[var(--ds-r)] border border-[var(--ds-line)] bg-[var(--ds-card)] p-2.5 shadow-[var(--ds-sh)]"
               >
                 {/* Fixed height so every panel in the grid lines up and the
                     captions below sit on a shared baseline. */}
-                <SketchPanel variant={app.variant} className="h-36 p-5" />
+                <SketchPanel variant={app.variant} className="h-36 !rounded-[16px] p-5" />
                 <div className="space-y-1 px-1.5 pb-1 pt-3.5">
-                  <h3 className="text-base font-bold">{app.title}</h3>
-                  <p className="text-sm font-light text-gray-600">{app.desc}</p>
-                  <p className="flex items-center gap-1.5 pt-1 text-xs font-light text-gray-500">
-                    <span className="h-1.5 w-1.5 rounded-full bg-black" />
+                  <h3 className="text-base font-semibold tracking-tight">{app.title}</h3>
+                  <p className="text-sm text-[var(--ds-mute)]">{app.desc}</p>
+                  <p className="flex items-center gap-1.5 pt-1 text-xs  text-[var(--ds-mute)]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                     Live on Embarko
                   </p>
                 </div>
               </div>
             ))}
           </div>
-          <div className="border-t border-gray-200 pt-12 text-center">
-            <h3 className="text-3xl font-bold sm:text-4xl md:text-5xl">If you can build it,</h3>
-            <p className="mt-2 text-2xl font-light sm:text-3xl md:text-4xl">you can put it online.</p>
+          <div className="border-t border-[var(--ds-line)] pt-12 text-center">
+            <h3 className={`${H_DISPLAY} text-3xl sm:text-4xl md:text-5xl`}>If you can build it,</h3>
+            <p className="mt-2 text-2xl tracking-tight text-[var(--ds-mute)] sm:text-3xl md:text-4xl">you can put it <Serif>online.</Serif></p>
             <div className="mt-10"><CopyPromptCta /></div>
           </div>
         </div>
@@ -699,13 +605,13 @@ export default function EmbarkoV1() {
 
       {/* SCENE 08: THE WORLD OF APPS (ported from /v4) */}
       <section
-        className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden px-6 py-20"
-        style={{ background: 'radial-gradient(circle at 50% 77%, #ededed 0, rgba(255,255,255,0) 56%), #fff' }}
+        className="relative isolate flex min-h-[100dvh] items-center justify-center overflow-hidden px-4 py-20 sm:px-6"
       >
+        <GlowBackdrop />
         <div className="relative z-10 w-full max-w-6xl">
           <div className="mx-auto w-full max-w-[580px] text-center">
-            <h2 className="text-4xl font-bold sm:text-5xl md:text-6xl">Everything you build can have a home online.</h2>
-            <p className="mt-4 text-[17px] leading-relaxed text-neutral-500">
+            <h2 className={`${H_DISPLAY} text-4xl sm:text-5xl md:text-6xl`}>Everything you build can have a <Serif grad>home</Serif> online.</h2>
+            <p className="mt-4 text-[17px] leading-relaxed text-[var(--ds-mute)]">
               Your agents keep creating. Embarko keeps it all live.
             </p>
             <div className="mt-6"><CopyPromptCta /></div>
@@ -727,9 +633,9 @@ export default function EmbarkoV1() {
       </section>
 
       {/* SCENE 10: BUILD YOUR WAY */}
-      <section className="flex min-h-[100dvh] items-center justify-center bg-gray-50 px-6 py-20">
+      <section className="flex min-h-[100dvh] items-center justify-center px-4 py-20 sm:px-6">
         <div className="w-full max-w-4xl space-y-12 text-center">
-          <h2 className="text-4xl font-bold sm:text-5xl md:text-6xl">Build your way.</h2>
+          <h2 className={`${H_DISPLAY} text-5xl sm:text-6xl`}>Build your <Serif grad>way.</Serif></h2>
           <div className="flex flex-wrap justify-center gap-4">
             {[
               { slug: 'claudecode', name: 'Claude' },
@@ -740,7 +646,7 @@ export default function EmbarkoV1() {
             ].map((ai) => (
               <div
                 key={ai.slug}
-                className="flex items-center gap-2.5 rounded-full border border-gray-200 bg-white px-6 py-3 font-light"
+                className="flex items-center gap-2.5 rounded-full border border-[var(--ds-line)] bg-[var(--ds-card)] px-5 py-3 font-medium shadow-[var(--ds-sh)] "
               >
                 {/* Monochrome marks from public/agenticons, as used on v2. */}
                 <img
@@ -752,11 +658,11 @@ export default function EmbarkoV1() {
                 {ai.name}
               </div>
             ))}
-            <div className="rounded-full border border-gray-200 bg-white px-6 py-3 font-light text-gray-600">
+            <div className="rounded-full border border-[var(--ds-line)] bg-[var(--ds-card)] px-5 py-3 font-medium shadow-[var(--ds-sh)] text-[var(--ds-mute)]">
               + more
             </div>
           </div>
-          <p className="text-xl font-light text-gray-600">Embarko works with the AI you already use.</p>
+          <p className="text-lg text-[var(--ds-mute)]">Embarko works with the AI you already use.</p>
           <CopyPromptCta />
         </div>
       </section>
@@ -764,12 +670,12 @@ export default function EmbarkoV1() {
       {/* SCENE 12: THE CORE IDEA */}
       <section className="flex min-h-[100dvh] items-center justify-center px-6 py-20">
         <div className="max-w-4xl space-y-8 text-center">
-          <h2 className="text-5xl font-bold leading-tight sm:text-6xl md:text-8xl">
+          <h2 className={`${H_DISPLAY} text-5xl sm:text-6xl md:text-8xl`}>
             Don&apos;t learn hosting.
             <br />
-            Build something.
+            Build <Serif grad>something.</Serif>
           </h2>
-          <p className="text-xl font-light text-gray-600 md:text-2xl">
+          <p className="text-lg text-[var(--ds-mute)] md:text-xl">
             Your time is better spent making the thing.
           </p>
           <div className="pt-4"><CopyPromptCta /></div>
@@ -780,27 +686,21 @@ export default function EmbarkoV1() {
       {/* Why Embarko + European hosting, as two scenes. min-h-[100dvh] and the
           centring here are what make them beats in the snap sequence rather
           than short bands the scroll flies past. */}
-      <WhyEmbarko className="flex min-h-[100dvh] flex-col justify-center px-6 py-20" cta={<CopyPromptCta />} />
-      <InfrastructureTrust className="flex min-h-[100dvh] flex-col justify-center px-6 py-20" cta={<CopyPromptCta />} />
+      <WhyEmbarko tone="token" className="flex min-h-[100dvh] flex-col justify-center px-6 py-20" cta={<CopyPromptCta />} />
+      <InfrastructureTrust tone="token" className="flex min-h-[100dvh] flex-col justify-center px-6 py-20" cta={<CopyPromptCta />} />
 
       {/* The footer lives inside this last scene rather than after it: the
           closing beat snaps into view already carrying the bottom of the site,
           so nobody has to scroll past a finished page to reach the links. */}
-      <section className="relative flex min-h-[100dvh] flex-col overflow-hidden px-6 pt-20">
+      <section className="relative isolate flex min-h-[100dvh] flex-col overflow-hidden px-4 pt-20 sm:px-6">
         {/* Mirror of the opening: there the light sat above, here it rises from below. */}
-        <SkyBackdrop
-          src="/atmosphere/sky-dawn.jpg"
-          position="center 80%"
-          blur={34}
-          opacity={0.7}
-          fade="from-white via-white/60 to-white/10"
-        />
+        <GlowBackdrop />
         <div className="relative z-10 flex flex-1 flex-col items-center justify-center">
         <div className="max-w-4xl space-y-12 text-center">
-          <h2 className="text-4xl font-bold sm:text-5xl md:text-7xl">Your AI already built it.</h2>
-          <h3 className="text-3xl font-light text-gray-600 sm:text-4xl md:text-6xl">Let it ship it.</h3>
-          <div className="space-y-6 border-t border-gray-200 pt-12">
-            <p className="text-xl font-light text-gray-600">Teach your AI to ship with Embarko.</p>
+          <h2 className={`${H_DISPLAY} text-4xl sm:text-5xl md:text-7xl`}>Your AI already built it.</h2>
+          <h3 className="text-3xl font-semibold tracking-[-0.03em] text-[var(--ds-mute)] sm:text-4xl md:text-6xl">Let it <Serif grad>ship</Serif> it.</h3>
+          <div className="space-y-6 border-t border-[var(--ds-line)] pt-12">
+            <p className="text-lg text-[var(--ds-mute)]">Teach your AI to ship with Embarko.</p>
             <div className="flex flex-col items-center gap-5">
               <CopyPromptCta />
               <Steps />
@@ -809,7 +709,7 @@ export default function EmbarkoV1() {
         </div>
         </div>
         {/* -mx-6 undoes the section's own gutter so the footer keeps its own. */}
-        <div className="relative z-10 -mx-6">
+        <div className="relative z-10 -mx-4 sm:-mx-6">
           <SiteFooter />
         </div>
       </section>

@@ -1,0 +1,114 @@
+/* Embarko design layer — the site-wide visual standard, extracted from the
+   Showcase (app/showcase). Loaded once by app/layout.tsx. Read docs/DESIGN.md
+   before using or changing anything here.
+
+   - Tokens are --ds-* on :root. Colours the site theme owns read the base
+     tokens (app/base.css), so everything follows light and dark.
+   - Component classes are prefixed ds- and are flat (no wrapper needed), so
+     they never collide with Tailwind utilities or a page's own CSS.
+   - The serif accent font is --font-ds-serif (next/font, set on <html>). */
+
+:root{
+  /* colour */
+  --ds-card:var(--surface);--ds-soft:var(--surface-2);
+  --ds-line:var(--line);--ds-line2:var(--line-strong);
+  --ds-ink:var(--ink);--ds-mute:var(--ink-soft);--ds-dim:var(--ink-faint);
+  --ds-v1:#5b5bff;--ds-v2:#a24bff;--ds-v3:#ff5e87;
+  --ds-lime:#d4f774;--ds-limeink:#294000;
+  --ds-dark:#0b0b0f;
+  --ds-grad:linear-gradient(100deg,var(--ds-v1),var(--ds-v2) 50%,var(--ds-v3));
+  --ds-grad-pill:linear-gradient(100deg,#4f4ff0,#8f3cf0 50%,#c93366);
+  /* glow gradients (soft purple/pink backdrops) */
+  --ds-glow:radial-gradient(closest-side,#d9c8ff,rgba(245,198,255,.45) 62%,transparent);
+  --ds-glow-conic:conic-gradient(from 0deg,#c7c8ff,#f5c6ff,#ffd3dc,#e7fbb0,#c7c8ff);
+  --ds-glow-opacity:.7;
+  /* shape */
+  --ds-r:22px;--ds-r-lg:34px;--ds-r-pill:999px;
+  --ds-sh:0 1px 1px rgba(11,11,15,.03),0 2px 6px rgba(11,11,15,.04),0 16px 40px -12px rgba(11,11,15,.10);
+  --ds-sh2:0 2px 4px rgba(11,11,15,.04),0 30px 70px -20px rgba(60,40,160,.28);
+  /* motion */
+  --ds-ease:cubic-bezier(.2,.8,.2,1);
+  /* type */
+  --ds-serif:var(--font-ds-serif),Georgia,serif;
+  /* rhythm */
+  --ds-wrap:1240px;--ds-gutter:24px;
+  --ds-chapter:clamp(88px,10vw,144px); /* space between major sections */
+  --ds-top:calc(var(--beta-bar-h) + 64px); /* fixed beta bar + fixed site header */
+}
+:root[data-theme="dark"]{--ds-glow-opacity:.12}
+@media (max-width:600px){:root{--ds-gutter:16px}}
+
+/* ---- primitives ---- */
+.ds-wrap{max-width:var(--ds-wrap);margin:0 auto;padding:0 var(--ds-gutter)}
+.ds-serif{font-family:var(--ds-serif);font-style:italic;font-weight:400;letter-spacing:-.01em}
+.ds-gtext{background:var(--ds-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ds-layer{position:relative;z-index:1}
+.ds-btn:focus-visible,.ds-pill:focus-visible{outline:2px solid var(--ds-v1);outline-offset:3px}
+
+/* buttons */
+.ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:42px;padding:0 18px;border-radius:var(--ds-r-pill);border:1px solid var(--line-control);background:var(--ds-card);color:var(--ds-ink);font-weight:600;font-size:14px;transition:transform .2s var(--ds-ease),box-shadow .2s var(--ds-ease),border-color .2s;white-space:nowrap;cursor:pointer;text-decoration:none;max-width:100%}
+.ds-btn:hover{transform:translateY(-1px);box-shadow:var(--ds-sh)}
+.ds-btn:active{transform:translateY(0) scale(.98)}
+.ds-btn svg{width:16px;height:16px;flex:none}
+.ds-btn-pri{background:var(--ds-ink);color:var(--bg);border-color:var(--ds-ink);box-shadow:0 8px 24px -8px rgba(11,11,15,.5),inset 0 1px 0 rgba(255,255,255,.15)}
+.ds-btn-glow{position:relative;isolation:isolate}
+.ds-btn-glow::before{content:"";position:absolute;inset:-2px;border-radius:inherit;background:var(--ds-grad);z-index:-1;filter:blur(10px);opacity:.5;transition:.3s}
+.ds-btn-glow:hover::before{opacity:.85;filter:blur(14px)}
+.ds-btn-lg{height:52px;padding:0 24px;font-size:15px}
+.ds-btn-sm{height:36px;padding:0 14px;font-size:13px}
+.ds-btn-ghost{background:transparent;border-color:transparent;box-shadow:none}
+.ds-btn-ghost:hover{background:var(--accent-soft);transform:none}
+.ds-ctas{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+/* pills */
+.ds-pill{display:inline-flex;align-items:center;gap:7px;min-height:30px;padding:4px 12px;border-radius:var(--ds-r-pill);font-size:13px;font-weight:500;background:color-mix(in srgb,var(--ds-card) 70%,transparent);border:1px solid var(--ds-line);color:var(--ds-ink);text-decoration:none}
+.ds-pill svg{width:12px;height:12px;flex:none}
+.ds-pill-grad{color:#fff;background:var(--ds-grad-pill);border:0;font-weight:600}
+a.ds-pill:hover{border-color:var(--ds-line2)}
+
+/* hero */
+.ds-hero{position:relative;isolation:isolate;text-align:center;padding:72px 0 34px}
+.ds-hero .ds-pill{margin-bottom:22px}
+.ds-hero h1{font-size:clamp(44px,8.4vw,112px);line-height:.94;letter-spacing:-.055em;font-weight:800;margin:0 auto 20px;max-width:1000px}
+.ds-hero h1 .ds-serif{font-size:1.06em;letter-spacing:-.02em;padding-right:.06em}
+.ds-hero>p{font-size:clamp(16px,1.6vw,19px);color:var(--ds-mute);max-width:600px;margin:0 auto 30px}
+.ds-hero .ds-steps{margin-top:28px}
+
+/* sections */
+.ds-section{position:relative;isolation:isolate;margin-top:var(--ds-chapter)}
+.ds-kicker{display:block;margin:0 0 12px;font:500 12px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ds-dim)}
+.ds-sech{display:flex;align-items:end;justify-content:space-between;gap:16px;margin:0 0 18px}
+.ds-sech h2{margin:0;font-size:clamp(26px,3vw,36px);letter-spacing:-.035em;line-height:1.05;font-weight:700}
+.ds-sech p{margin:6px 0 0;color:var(--ds-mute)}
+.ds-sech-center{justify-content:center;text-align:center}
+.ds-sech-center p{margin-left:auto;margin-right:auto;max-width:56ch}
+
+/* card */
+.ds-card{position:relative;background:var(--ds-card);border:1px solid var(--ds-line);border-radius:var(--ds-r);padding:24px;box-shadow:var(--ds-sh);min-width:0;isolation:isolate}
+.ds-card-lift{transition:transform .35s var(--ds-ease),box-shadow .35s var(--ds-ease)}
+.ds-card-lift:hover{transform:translateY(-4px);box-shadow:var(--ds-sh2)}
+.ds-card h3{margin:0 0 6px;font-size:17px;letter-spacing:-.02em;font-weight:600}
+.ds-card p{margin:0;color:var(--ds-mute);font-size:14px}
+
+/* glow backdrop — decoration behind a section; parent needs position + isolation */
+.ds-glow{position:absolute;inset:auto 6% 0;height:78%;z-index:-1;border-radius:50%;background:var(--ds-glow);filter:blur(50px);opacity:var(--ds-glow-opacity);pointer-events:none}
+.ds-glow-top{inset:0 6% auto}
+.ds-glow-full{inset:10% 6%;height:auto}
+
+/* steps */
+.ds-steps{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:28px 0 0;padding:0;list-style:none;font:500 11.5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ds-dim)}
+.ds-steps li{display:flex;align-items:center;gap:8px}
+.ds-steps .ds-arrow{font-style:normal;font-size:11px;font-weight:700;color:var(--ds-line2)}
+
+/* closing CTA */
+.ds-cta{margin:var(--ds-chapter) 0 0;padding:clamp(24px,4vw,48px) 0 clamp(40px,6vw,72px);text-align:center;position:relative;isolation:isolate}
+.ds-cta h2{font-size:clamp(44px,7vw,96px);line-height:.94;letter-spacing:-.055em;margin:18px 0 16px;font-weight:800}
+.ds-cta>p{color:var(--ds-mute);font-size:17px;max-width:520px;margin:0 auto 26px}
+
+@media (max-width:600px){
+  .ds-hero{padding-top:48px}
+}
+@media (pointer:coarse){.ds-btn-sm{height:44px}}
+@media (prefers-reduced-motion:reduce){
+  [class*="ds-"],[class*="ds-"]::before,[class*="ds-"]::after{animation:none!important;transition:none!important}
+}

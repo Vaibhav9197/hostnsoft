@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Instrument_Serif } from "next/font/google";
 import "./base.css";
+import "./design.css";
 import { GoogleTagManager, GoogleTagManagerNoScript } from "./components/analytics/GoogleTagManager";
 import { PageViewTracker } from "./components/analytics/PageViewTracker";
 import { ConnectorTokenPickup } from "./components/connector/ConnectorTokenPickup";
@@ -117,6 +119,15 @@ const STRUCTURED_DATA = {
   ],
 };
 
+/* The serif accent of the design layer (docs/DESIGN.md): one italic word per
+   headline. Exposed as --font-ds-serif on <html> so every route can use it. */
+const serif = Instrument_Serif({
+  variable: "--font-ds-serif",
+  weight: "400",
+  style: "italic",
+  subsets: ["latin"],
+});
+
 export default function RootLayout({
   children,
 }: {
@@ -128,7 +139,7 @@ export default function RootLayout({
        here. Suppression is one level deep — it covers this element's own
        attributes, not the tree inside it — which is exactly the scope of the
        difference. Without it React warns on every console page load. */
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={serif.variable} suppressHydrationWarning>
       <head>
         <GoogleTagManager />
       </head>

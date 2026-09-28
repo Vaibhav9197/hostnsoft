@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ArrowRight, Copy, Bot, Globe } from 'lucide-react';
 import { AGENTS, agentIconSrc } from '../lib/agents';
-import { CopyPromptButton, COPIED_LABEL } from '../components/CopyPromptButton';
+import { GlowBackdrop, PrimaryCta, Serif, Steps, buttonClass } from '@/app/components/ds';
 import { trackPageView, trackCTA, trackDeployment } from '../lib/tracking';
 import { SiteHeader } from '../components/SiteHeader';
 import { InfrastructureTrust, TrustStrip, WhyEmbarko } from '../components/WhyEmbarko';
@@ -16,7 +16,6 @@ import { Dialog, DialogContent, DialogTitle } from '../components/ui/dialog';
    prefers-reduced-motion — see the effect in DeployTimeline. */
 const CYCLE_MS = 7000;
 const STEP2_START = 1400;
-const LIVE_COUNT_START = 3900;
 const STEP3_START = 4300;
 const STEP3_TYPE_MS = 1000;
 const SITE_URL = 'your-app.embarko.app';
@@ -24,7 +23,8 @@ const LOGS = [
   { t: 1400, text: '> deploy this app to embarko' },
   { t: 2100, text: 'Installing dependencies...' },
   { t: 2800, text: 'Building...' },
-  { t: 3500, text: 'Provisioning database...' },
+  { t: 3500, text: 'Setting up your database...' },
+  { t: 3900, text: 'Making it live...' },
 ];
 
 const STEPS = ['Start', 'Copy', 'Paste'];
@@ -33,7 +33,7 @@ const STEPS = ['Start', 'Copy', 'Paste'];
 
 function Heading({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mt-5 text-[46px] font-semibold leading-[0.95] tracking-[-0.04em] sm:text-[68px] md:text-[100px]">
+    <h2 className="mx-auto mt-4 max-w-[16ch] text-[44px] font-extrabold leading-[0.94] tracking-[-0.055em] sm:text-[64px] md:text-[92px] [&_.ds-serif]:pr-[0.06em] [&_.ds-serif]:text-[1.06em]">
       {children}
     </h2>
   );
@@ -41,32 +41,22 @@ function Heading({ children }: { children: React.ReactNode }) {
 
 function Sub({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mx-auto mt-6 max-w-[46ch] text-[18px] leading-relaxed text-black/50 md:text-[22px]">
+    <p className="mx-auto mt-6 max-w-[46ch] text-[16px] leading-relaxed text-[color:var(--ds-mute)] md:text-[19px]">
       {children}
     </p>
   );
 }
 
 function StepNumeral({ n }: { n: string }) {
-  return <div className="text-6xl font-bold leading-none text-gray-300">{n}</div>;
-}
-
-/* Headline highlight: a solid black chip behind a phrase. box-decoration-break
-   keeps the padding and radius on every fragment when a phrase wraps. */
-function Mark({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-block rounded-[0.09em] bg-black px-[0.11em] pb-[0.06em] pt-[0.02em] align-baseline text-white leading-[0.88] [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">
-      {children}
-    </span>
-  );
+  return <span className="ds-kicker mb-0">{n}</span>;
 }
 
 function TrafficLights() {
   return (
     <div className="flex gap-1.5">
-      <span className="h-[9px] w-[9px] rounded-full bg-[#ff5f57]" />
-      <span className="h-[9px] w-[9px] rounded-full bg-[#febc2e]" />
-      <span className="h-[9px] w-[9px] rounded-full bg-[#28c840]" />
+      <span className="h-[9px] w-[9px] rounded-full bg-[color:var(--ds-line2)]" />
+      <span className="h-[9px] w-[9px] rounded-full bg-[color:var(--ds-line2)]" />
+      <span className="h-[9px] w-[9px] rounded-full bg-[color:var(--ds-line2)]" />
     </div>
   );
 }
@@ -101,8 +91,9 @@ export default function EmbarkoV2() {
   }, []);
 
   return (
-    <main className="relative flex h-[calc(100dvh-var(--beta-bar-h))] flex-col overflow-hidden bg-white text-black antialiased">
+    <main className="relative flex h-[calc(100dvh-var(--beta-bar-h))] flex-col overflow-hidden isolate bg-background text-foreground antialiased">
       <SiteHeader />
+      <GlowBackdrop position="full" />
 
       <style>{`
         @keyframes eb-in {
@@ -128,7 +119,7 @@ export default function EmbarkoV2() {
           /* Centred under the 64px header, which owns the top row. */
           /* Opaque, not a tint: it floats over a scrolling column, and a
              translucent fill lets the cards behind it read straight through. */
-          className="absolute left-1/2 bottom-8 z-20 flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full bg-white text-black/60 shadow-[0_2px_10px_rgba(0,0,0,0.08)] ring-1 ring-black/10 transition hover:text-black hover:ring-black/20"
+          className={buttonClass('secondary', 'lg', 'absolute bottom-8 left-1/2 z-20 w-[52px] -translate-x-1/2 !px-0 shadow-[var(--ds-sh)] hover:-translate-x-1/2')}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -166,7 +157,7 @@ export default function EmbarkoV2() {
           translucent pill lets the content read straight through it. */}
       <button
         onClick={() => setMoreOpen(true)}
-        className="absolute bottom-8 right-8 z-20 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] text-black/60 shadow-[0_2px_10px_rgba(0,0,0,0.08)] ring-1 ring-black/10 transition hover:text-black hover:ring-black/20"
+        className={buttonClass('secondary', 'sm', 'absolute bottom-8 right-8 z-20 shadow-[var(--ds-sh)] max-[600px]:right-4')}
       >
         More
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -200,7 +191,7 @@ export default function EmbarkoV2() {
 const DIALOG = [
   'inset-0 m-auto h-fit translate-x-0 translate-y-0',
   'w-[calc(100vw-2rem)] max-w-[900px] max-h-[86dvh] overflow-y-auto',
-  'p-0 gap-0 bg-white',
+  'p-0 gap-0 bg-[color:var(--ds-card)] border-[color:var(--ds-line)] rounded-[var(--ds-r-lg)] shadow-[var(--ds-sh2)]',
 ].join(' ');
 
 function TrustDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
@@ -219,7 +210,7 @@ function TrustDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: 
           cta={<V2CopyButton />}
         />
         <InfrastructureTrust
-          className="border-t border-gray-200 bg-gray-50 px-9 py-10 max-[640px]:px-6"
+          className="border-t border-[color:var(--ds-line)] bg-[color:var(--ds-soft)] px-9 py-10 max-[640px]:px-6"
           wrapClassName="max-w-none px-0"
           cta={<V2CopyButton />}
         />
@@ -249,8 +240,8 @@ function MoreDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: b
 function Hero({ onNext, onTrust }: { onNext: () => void; onTrust: () => void }) {
   return (
     <div className="text-center">
-      <h1 className="mx-auto max-w-[18ch] text-[52px] font-semibold leading-[1.1] tracking-[-0.045em] sm:text-[74px] md:text-[100px]">
-        Instant <Mark>hosting</Mark> for every app you build with AI
+      <h1 className="mx-auto max-w-[16ch] text-[44px] font-extrabold leading-[0.96] tracking-[-0.055em] sm:text-[68px] md:text-[100px] [&_.ds-serif]:pr-[0.06em] [&_.ds-serif]:text-[1.06em]">
+        Instant <Serif grad>hosting</Serif> for every app you build with AI
       </h1>
 
       <Sub>
@@ -259,7 +250,7 @@ function Hero({ onNext, onTrust }: { onNext: () => void; onTrust: () => void }) 
 
       <button
         onClick={onNext}
-        className="group mt-10 inline-flex items-center gap-2.5 rounded-full bg-black px-8 py-4 text-[16px] font-medium text-white transition hover:bg-black/85"
+        className={buttonClass('glow', 'lg', 'group mt-8')}
       >
         Host now
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
@@ -267,22 +258,8 @@ function Hero({ onNext, onTrust }: { onNext: () => void; onTrust: () => void }) 
         </svg>
       </button>
 
-      {/* Two-step handoff, mirroring the numbered steps on the other versions.
-          The numerals need leading-none plus a 1px bottom pad: digits carry no
-          descender, so box-centring alone leaves them sitting visibly low. */}
-      <ol
-        aria-label="How it works"
-        className="mt-5 flex list-none items-center justify-center gap-4 text-[14px] font-medium text-black/40"
-      >
-        <li className="inline-flex items-center gap-1.5 whitespace-nowrap">
-          <span className="inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center pb-px rounded-full border border-black/15 text-[11px] font-semibold leading-none tabular-nums">1</span>
-          Copy deployment prompt
-        </li>
-        <li className="inline-flex items-center gap-1.5 whitespace-nowrap">
-          <span className="inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center pb-px rounded-full border border-black/15 text-[11px] font-semibold leading-none tabular-nums">2</span>
-          Hand it to your agent
-        </li>
-      </ol>
+      {/* Two-step handoff in the quiet ds steps row; it wraps on phones. */}
+      <Steps steps={['Copy deployment prompt', 'Hand it to your agent']} />
 
       {/* The EU/ISO claim in its one-line form. /v2 is a three-beat deck with
           no room for the full section, and this is the fact worth carrying
@@ -311,16 +288,7 @@ function DeployTimeline() {
   const step3Active = elapsed >= STEP3_START;
   const step1Active = !step2Active && !step3Active;
 
-  /* The final log line counts up live ("Live in 0.0s" -> "4.1s") instead of
-     appearing as static text, timed to land exactly as step 3 takes over. */
-  const visibleLogs = LOGS.filter((l) => elapsed >= l.t && elapsed < STEP3_START);
-  const liveCounterActive = elapsed >= LIVE_COUNT_START && elapsed < STEP3_START;
-  const liveSeconds = (
-    ((Math.min(elapsed, STEP3_START) - LIVE_COUNT_START) / (STEP3_START - LIVE_COUNT_START)) * 4.1
-  ).toFixed(1);
-  const displayLines = liveCounterActive
-    ? [...visibleLogs, { t: LIVE_COUNT_START, text: `Live in ${liveSeconds}s` }]
-    : visibleLogs;
+  const displayLines = LOGS.filter((l) => elapsed >= l.t && elapsed < STEP3_START);
 
   /* Step 3's URL types in character by character once it takes over, and the
      "it's live" line only appears once typing finishes — the reveal is the
@@ -334,29 +302,29 @@ function DeployTimeline() {
     <div className="mx-auto mt-10 grid max-w-5xl grid-cols-1 items-stretch gap-4 text-left md:grid-cols-[1fr_auto_1fr_auto_1fr]">
       {/* Step 1 — Copy prompt */}
       <div
-        className={`flex flex-col overflow-hidden rounded-xl border transition-colors duration-300 ${
-          step1Active ? 'border-neutral-950' : 'border-neutral-200'
+        className={`flex flex-col overflow-hidden ds-card !p-0 flex flex-col overflow-hidden transition-[border-color,box-shadow] duration-300 ${
+          step1Active ? '!border-[color:var(--ds-v1)] shadow-[var(--ds-sh2)]' : ''
         }`}
       >
-        <div className="flex items-center gap-1.5 border-b border-neutral-200 px-4 py-3">
+        <div className="flex items-center gap-1.5 border-b border-[color:var(--ds-line)] px-4 py-3">
           <TrafficLights />
-          <span className="ml-2 truncate rounded bg-neutral-100 px-2 py-0.5 font-mono text-xs text-neutral-500">
+          <span className="ml-2 truncate rounded bg-[color:var(--ds-soft)] px-2 py-0.5 font-mono text-xs text-[color:var(--ds-mute)]">
             embarko.ai
           </span>
         </div>
         <div className="flex flex-1 flex-col p-6">
           <span
-            className={`text-xs font-semibold transition-colors duration-300 ${
-              step1Active ? 'text-neutral-950' : 'text-neutral-400'
+            className={`font-mono text-xs font-medium transition-colors duration-300 ${
+              step1Active ? 'text-[color:var(--ds-v1)]' : 'text-[color:var(--ds-dim)]'
             }`}
           >
             01
           </span>
-          <div className="mt-3 flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-100">
+          <div className="mt-3 flex h-10 w-10 items-center justify-center rounded-lg bg-[color:var(--ds-soft)]">
             <Copy className="h-5 w-5" strokeWidth={1.75} />
           </div>
           <h3 className="mt-4 text-sm font-semibold">Copy the prompt</h3>
-          <p className="mt-1 text-xs leading-relaxed text-neutral-500">
+          <p className="mt-1 text-xs leading-relaxed text-[color:var(--ds-mute)]">
             One click on the button above.
           </p>
         </div>
@@ -364,55 +332,55 @@ function DeployTimeline() {
 
       <ArrowRight
         className={`mx-auto hidden h-5 w-5 self-center transition-colors duration-300 md:block ${
-          step2Active || step3Active ? 'text-neutral-950' : 'text-neutral-300'
+          step2Active || step3Active ? 'text-[color:var(--ds-v1)]' : 'text-[color:var(--ds-line2)]'
         }`}
       />
       <ArrowRight
         className={`mx-auto h-5 w-5 rotate-90 transition-colors duration-300 md:hidden ${
-          step2Active || step3Active ? 'text-neutral-950' : 'text-neutral-300'
+          step2Active || step3Active ? 'text-[color:var(--ds-v1)]' : 'text-[color:var(--ds-line2)]'
         }`}
       />
 
       {/* Step 2 — Give it to your agent */}
       <div
-        className={`flex flex-col overflow-hidden rounded-xl border transition-colors duration-300 ${
-          step2Active ? 'border-neutral-950' : 'border-neutral-200'
+        className={`flex flex-col overflow-hidden ds-card !p-0 flex flex-col overflow-hidden transition-[border-color,box-shadow] duration-300 ${
+          step2Active ? '!border-[color:var(--ds-v1)] shadow-[var(--ds-sh2)]' : ''
         }`}
       >
-        <div className="flex items-center gap-1.5 border-b border-neutral-200 px-4 py-3">
+        <div className="flex items-center gap-1.5 border-b border-[color:var(--ds-line)] px-4 py-3">
           <TrafficLights />
-          <span className="ml-2 truncate rounded bg-neutral-100 px-2 py-0.5 font-mono text-xs text-neutral-500">
+          <span className="ml-2 truncate rounded bg-[color:var(--ds-soft)] px-2 py-0.5 font-mono text-xs text-[color:var(--ds-mute)]">
             your agent
           </span>
         </div>
         <div className="flex flex-1 flex-col p-6">
           <span
-            className={`text-xs font-semibold transition-colors duration-300 ${
-              step2Active ? 'text-neutral-950' : 'text-neutral-400'
+            className={`font-mono text-xs font-medium transition-colors duration-300 ${
+              step2Active ? 'text-[color:var(--ds-v1)]' : 'text-[color:var(--ds-dim)]'
             }`}
           >
             02
           </span>
-          <div className="mt-3 flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-100">
+          <div className="mt-3 flex h-10 w-10 items-center justify-center rounded-lg bg-[color:var(--ds-soft)]">
             <Bot className="h-5 w-5" strokeWidth={1.75} />
           </div>
           <h3 className="mt-4 text-sm font-semibold">Give it to your agent</h3>
           <div className="mt-1 h-11 space-y-1 overflow-hidden font-mono text-xs leading-relaxed">
             {displayLines.length === 0 ? (
-              <p className="text-neutral-400">
-                <span className="text-neutral-300">{'>'}</span> waiting for prompt...
+              <p className="text-[color:var(--ds-dim)]">
+                <span className="text-[color:var(--ds-line2)]">{'>'}</span> waiting for prompt...
               </p>
             ) : (
               displayLines.slice(-2).map((log, i, arr) => (
                 <p
                   key={log.text}
                   className={`eb-in tabular-nums ${
-                    i === arr.length - 1 ? 'font-semibold text-neutral-950' : 'text-neutral-400'
+                    i === arr.length - 1 ? 'font-semibold text-[color:var(--ds-ink)]' : 'text-[color:var(--ds-dim)]'
                   }`}
                 >
                   {log.text.startsWith('>') ? (
                     <>
-                      <span className="text-neutral-400">{'>'}</span> {log.text.slice(2)}
+                      <span className="text-[color:var(--ds-dim)]">{'>'}</span> {log.text.slice(2)}
                     </>
                   ) : (
                     log.text
@@ -426,37 +394,37 @@ function DeployTimeline() {
 
       <ArrowRight
         className={`mx-auto hidden h-5 w-5 self-center transition-colors duration-300 md:block ${
-          step3Active ? 'text-neutral-950' : 'text-neutral-300'
+          step3Active ? 'text-[color:var(--ds-v1)]' : 'text-[color:var(--ds-line2)]'
         }`}
       />
       <ArrowRight
         className={`mx-auto h-5 w-5 rotate-90 transition-colors duration-300 md:hidden ${
-          step3Active ? 'text-neutral-950' : 'text-neutral-300'
+          step3Active ? 'text-[color:var(--ds-v1)]' : 'text-[color:var(--ds-line2)]'
         }`}
       />
 
       {/* Step 3 — Your app is live */}
       <div
-        className={`flex flex-col overflow-hidden rounded-xl border transition-colors duration-300 ${
-          step3Active ? 'border-neutral-950' : 'border-neutral-200'
+        className={`flex flex-col overflow-hidden ds-card !p-0 flex flex-col overflow-hidden transition-[border-color,box-shadow] duration-300 ${
+          step3Active ? '!border-[color:var(--ds-v1)] shadow-[var(--ds-sh2)]' : ''
         }`}
       >
-        <div className="flex items-center gap-2 border-b border-neutral-200 px-4 py-3">
+        <div className="flex items-center gap-2 border-b border-[color:var(--ds-line)] px-4 py-3">
           <TrafficLights />
-          <span className="ml-2 truncate rounded bg-neutral-100 px-2 py-0.5 font-mono text-xs text-neutral-500">
+          <span className="ml-2 truncate rounded bg-[color:var(--ds-soft)] px-2 py-0.5 font-mono text-xs text-[color:var(--ds-mute)]">
             {step3Active ? typedUrl : SITE_URL}
             {step3Active && !urlTypingDone && <span className="eb-caret">▍</span>}
           </span>
         </div>
         <div className="flex flex-1 flex-col p-6">
           <span
-            className={`text-xs font-semibold transition-colors duration-300 ${
-              step3Active ? 'text-neutral-950' : 'text-neutral-400'
+            className={`font-mono text-xs font-medium transition-colors duration-300 ${
+              step3Active ? 'text-[color:var(--ds-v1)]' : 'text-[color:var(--ds-dim)]'
             }`}
           >
             03
           </span>
-          <div className="mt-3 flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-100">
+          <div className="mt-3 flex h-10 w-10 items-center justify-center rounded-lg bg-[color:var(--ds-soft)]">
             <Globe className="h-5 w-5" strokeWidth={1.75} />
           </div>
           <h3 className="mt-4 text-sm font-semibold">Your app is live</h3>
@@ -466,7 +434,7 @@ function DeployTimeline() {
               Real login, real database, real URL.
             </p>
           ) : (
-            <p className="mt-1 text-xs leading-relaxed text-neutral-400">
+            <p className="mt-1 text-xs leading-relaxed text-[color:var(--ds-dim)]">
               {step3Active ? 'Deploying...' : 'Waiting for deploy...'}
             </p>
           )}
@@ -476,19 +444,9 @@ function DeployTimeline() {
   );
 }
 
-/* The same black pill as step 1's button, for screens where copying should
-   not also advance the demo. */
+/* The copy button for screens where copying should not also advance the demo. */
 function V2CopyButton() {
-  return (
-    <CopyPromptButton
-      onClicked={() => trackCTA('copy')}
-      className="inline-flex items-center gap-2.5 rounded-full bg-black px-8 py-4 text-[16px] font-medium text-white transition hover:bg-black/85"
-      copiedClassName="inline-flex items-center gap-2.5 rounded-full bg-[#16a34a] px-8 py-4 text-[16px] font-medium text-white transition"
-      copiedChildren={COPIED_LABEL}
-    >
-      Copy deployment prompt
-    </CopyPromptButton>
-  );
+  return <PrimaryCta onClicked={() => trackCTA('copy')} />;
 }
 
 /* ── step 1 · copy the prompt ──────────────────────────── */
@@ -499,34 +457,18 @@ function CopyStep({ onNext }: { onNext: () => void }) {
       <div className="text-center">
         {/* Same oversized step numeral v1 uses to head each "How?" column. */}
         <StepNumeral n="01" />
-        <Heading>Copy the prompt</Heading>
+        <Heading>Copy the <Serif grad>prompt</Serif></Heading>
         <Sub>This is all your agent needs to know. One prompt, any agent.</Sub>
       </div>
 
       <div className="mt-8 text-center">
-        <CopyPromptButton
+        <PrimaryCta
           /* The demo must reach step 2 even where the clipboard is blocked. */
           onClicked={() => {
             trackCTA('copy');
             setTimeout(onNext, 850);
           }}
-          className="inline-flex items-center gap-2.5 rounded-full bg-black px-8 py-4 text-[16px] font-medium text-white transition hover:bg-black/85"
-          copiedClassName="inline-flex items-center gap-2.5 rounded-full bg-[#16a34a] px-8 py-4 text-[16px] font-medium text-white transition"
-          copiedChildren={
-            <>
-              {COPIED_LABEL}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-75">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            </>
-          }
-        >
-          Copy deployment prompt
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-75">
-            <rect x="9" y="9" width="13" height="13" rx="2" />
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-          </svg>
-        </CopyPromptButton>
+        />
       </div>
 
       <DeployTimeline />
@@ -541,14 +483,14 @@ function ChatStep() {
     <div>
       <div className="text-center">
         <StepNumeral n="02" />
-        <Heading>Paste it into your AI, That's all</Heading>
+        <Heading>Paste it into your <Serif grad>AI</Serif>, That&apos;s all</Heading>
         <Sub>Your agent runs the deploy itself. You just watch.</Sub>
       </div>
 
       {/* Same treatment as v1's strip: one row of bare marks under a small
           eyebrow, names carried by alt/title rather than visible labels. */}
       <div className="mt-12 flex flex-col items-center gap-3">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.09em] text-black/35">
+        <p className="ds-kicker mb-0">
           Works with every agent
         </p>
         <ul className="flex max-w-2xl flex-wrap items-center justify-center gap-x-7 gap-y-4">

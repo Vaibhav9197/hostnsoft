@@ -1,15 +1,15 @@
 'use client';
 
 import { useEffect } from 'react';
-import { ArrowRight, ArrowUpRight, Check, ChevronDown, Copy, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, ChevronDown, ShieldCheck, Sparkles } from 'lucide-react';
 import { siClaude, siCursor, siGithubcopilot, siGooglegemini, siReplit } from 'simple-icons';
-import { trackPageView, trackCTA, trackDeployment } from '../lib/tracking';
+import { trackPageView, trackCTA } from '../lib/tracking';
 import barcelonaMorning from './barcelona-morning.png';
-import { CopyPromptButton as SharedCopyPromptButton, COPIED_LABEL } from '../components/CopyPromptButton';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { FeatureShowcase } from '../components/FeatureShowcase';
 import { InfrastructureTrust, WhyEmbarko } from '../components/WhyEmbarko';
+import { Card, CtaSection, GlowBackdrop, Hero, PrimaryCta, Section, SectionHeading, Serif } from '@/app/components/ds';
 
 const agents = [
   { name: 'Claude', icon: siClaude },
@@ -20,47 +20,61 @@ const agents = [
 ] as const;
 
 function LiveMark() {
-  return <span className="live-mark"><i /> Live on Embarko</span>;
+  return <span className="v4-live"><i /> Live on Embarko</span>;
 }
 
 function AgentIcon({ icon, label }: { icon: { path: string; hex: string }; label: string }) {
-  return <svg className="agent-brand-icon" viewBox="0 0 24 24" role="img" aria-label={label}><path fill={'#' + icon.hex} d={icon.path} /></svg>;
+  return <svg className="v4-agent-icon" viewBox="0 0 24 24" role="img" aria-label={label}><path fill={'#' + icon.hex} d={icon.path} /></svg>;
 }
 
-function CopyPromptButton({ compact = false }: { compact?: boolean }) {
-  return <SharedCopyPromptButton
-    className={compact ? 'copy-button copy-button-small' : 'copy-button'}
-    copiedChildren={<><Check aria-hidden="true" />{COPIED_LABEL}</>}
-    onClicked={() => trackCTA('copy')}
-  >
-    <Copy aria-hidden="true" />
-    Copy deployment prompt
-  </SharedCopyPromptButton>;
+/* Every section's one primary action. Same tracking as before. */
+function Cta({ size = 'md' }: { size?: 'md' | 'lg' }) {
+  return <PrimaryCta size={size} onClicked={() => trackCTA('copy')} />;
 }
-
-function Steps() {
-  return <ol className="steps" aria-label="How it works">
-    <li><span>1</span> Copy deployment prompt</li>
-    <li><span>2</span> Paste into your AI agent</li>
-    <li><span>3</span> Ask it to deploy</li>
-  </ol>;
-}
-
 
 function DeployScene() {
-  return <section className="scene deploy-scene" id="how-it-works"><div className="scene-copy"><h2>Tell your agent to deploy.</h2><p>That’s the whole handoff.</p><CopyPromptButton compact /></div><div className="agent-window" aria-label="A conversation with Claude"><div className="agent-product-bar"><div className="agent-product-name"><AgentIcon icon={siClaude} label="Claude" /><strong>Claude</strong><ChevronDown aria-hidden="true" /></div><span>New chat</span><span>•••</span></div><div className="agent-chat"><p className="chat-date">Today</p><div className="agent-message user-message">The app is ready. Deploy this to Embarko.</div><div className="agent-message agent-message-reply"><span className="agent-spark"><AgentIcon icon={siClaude} label="Claude" /></span><p>I’ll deploy it now.<small>Creating your live app…</small></p></div><div className="agent-deploying"><span className="deploy-progress"><i /></span><p><strong>Deploying to Embarko</strong><small>Installing · building · making it live</small></p><span className="deploy-percent">82%</span></div></div><div className="agent-support-row"><span>Works with the agent you use</span><div>{agents.map((agent) => <span className="agent-support-icon" key={agent.name} title={agent.name}><AgentIcon icon={agent.icon} label={agent.name} /></span>)}</div></div></div></section>;
+  return <Section id="how-it-works" labelledBy="v4-deploy-h" className="v4-scroll">
+    <div className="v4-split">
+      <div className="v4-copy">
+        <SectionHeading id="v4-deploy-h" kicker="01 — Deploy" title={<>Tell your agent to <Serif>deploy</Serif>.</>} sub="That’s the whole handoff." />
+        <Cta />
+      </div>
+      <Card className="v4-agent" >
+        <div className="v4-agent-bar" aria-hidden="true"><div className="v4-agent-name"><AgentIcon icon={siClaude} label="Claude" /><strong>Claude</strong><ChevronDown /></div><span>New chat</span></div>
+        <div className="v4-chat" aria-label="A conversation with Claude">
+          <p className="v4-chat-date">Today</p>
+          <div className="v4-msg v4-msg-user">The app is ready. Deploy this to Embarko.</div>
+          <div className="v4-msg v4-msg-reply"><span className="v4-spark"><AgentIcon icon={siClaude} label="Claude" /></span><p>I’ll deploy it now.<small>Creating your live app…</small></p></div>
+          <div className="v4-deploying"><span className="v4-progress"><i /></span><p><strong>Deploying to Embarko</strong><small>Installing · building · making it live</small></p><span className="v4-percent">82%</span></div>
+        </div>
+        <div className="v4-support"><span>Works with the agent you use</span><div>{agents.map((a) => <span className="v4-support-icon" key={a.name} title={a.name}><AgentIcon icon={a.icon} label={a.name} /></span>)}</div></div>
+      </Card>
+    </div>
+  </Section>;
 }
 
 function LiveScene() {
-  return <section className="scene live-scene" id="live"><div className="live-scene-inner"><div className="scene-copy centered"><h2>Your app is live.</h2><p>The same app. Now on the internet.</p><CopyPromptButton compact /></div><div className="browser-card"><div className="browser-bar"><span className="browser-controls"><i /><i /><i /></span><span className="browser-url"><ShieldCheck aria-hidden="true" /> weekend.embarko.app</span><span /></div><div className="browser-content"><div className="live-panel"><span className="browser-live"><i /> Live</span><h3>Barcelona<br />is ready.</h3><p>Eight bright days, held in one place.</p><button>Open itinerary <ArrowUpRight aria-hidden="true" /></button></div><img src={barcelonaMorning.src} alt="" /></div></div></div></section>;
+  return <Section id="live" labelledBy="v4-live-h" className="v4-scroll">
+    <GlowBackdrop position="full" />
+    <SectionHeading center id="v4-live-h" kicker="02 — Live" title={<>Your app is <Serif grad>live</Serif>.</>} sub="The same app. Now on the internet." />
+    <div className="v4-center"><Cta /></div>
+    <div className="v4-browser" aria-hidden="true">
+      <div className="v4-browser-bar"><span className="v4-dots"><i /><i /><i /></span><span className="v4-url"><ShieldCheck /> weekend.embarko.app</span><span /></div>
+      <div className="v4-browser-body">
+        <div className="v4-live-panel"><span className="v4-live"><i /> Live</span><h3>Barcelona<br />is ready.</h3><p>Eight bright days, held in one place.</p><span className="v4-fake-btn">Open itinerary <ArrowUpRight /></span></div>
+        <img src={barcelonaMorning.src} alt="" />
+      </div>
+    </div>
+  </Section>;
 }
 
-/* The orbit that used to live here named seven features around a logo, which
-   looked like a diagram of Embarko rather than a description of what the owner
-   gets. The showcase picks one at a time and prints the sentence you would say
-   to your agent to get it. */
+/* The shared showcase picks one feature at a time and prints the sentence you
+   would say to your agent to get it. */
 function HostingScene() {
-  return <section className="scene hosting-scene showcase-scene"><FeatureShowcase tone="gray" /><div className="section-cta"><CopyPromptButton compact /></div></section>;
+  return <Section className="v4-shared">
+    <FeatureShowcase tone="token" className="mx-auto" />
+    <div className="v4-center v4-after"><Cta /></div>
+  </Section>;
 }
 
 function AppGallery() {
@@ -76,32 +90,69 @@ function AppGallery() {
     if (className === 'album-card') return <><i className="album-tile one" /><i className="album-tile two" /><i className="album-tile three" /><i className="album-tile four" /></>;
     return <><span className="notes-title">Sprint notes</span><i className="notes-line one" /><i className="notes-line two" /><i className="notes-line three" /><span className="notes-people"><i /><i /></span></>;
   }
-  return <section className="scene gallery-scene" id="examples"><div className="gallery-intro"><h2>Whatever your agent builds.</h2><p>Embarko gives it a home online.</p><CopyPromptButton compact /></div><div className="gallery-rail" aria-label="Examples of apps hosted on Embarko">{cards.map(([title, description, className]) => <article className={'gallery-card ' + className} key={title}><div className="gallery-preview" aria-hidden="true"><Preview className={className} /></div><div className="gallery-card-copy"><p>{title}</p><span>{description}</span><LiveMark /></div></article>)}</div></section>;
+  return <Section id="examples" labelledBy="v4-gallery-h" className="v4-scroll">
+    <SectionHeading id="v4-gallery-h" kicker="03 — Examples" title={<>Whatever your agent <Serif>builds</Serif>.</>} sub="Embarko gives it a home online." action={<Cta />} />
+    <div className="v4-gallery" aria-label="Examples of apps hosted on Embarko">{cards.map(([title, description, className]) => <Card as="article" className={'v4-gcard ' + className} key={title}><div className="v4-gpreview" aria-hidden="true"><Preview className={className} /></div><h3>{title}</h3><p>{description}</p><LiveMark /></Card>)}</div>
+    <div className="v4-center v4-after v4-mobile-cta"><Cta /></div>
+  </Section>;
 }
 
 function AgentScene() {
-  return <section className="scene agents-scene"><div className="scene-copy centered"><h2>Use the AI agent you already use.</h2><p>Keep building the way you build.</p><CopyPromptButton compact /></div><div className="agent-connection"><div className="agent-list">{agents.map((agent) => <span key={agent.name}><AgentIcon icon={agent.icon} label={agent.name} />{agent.name}</span>)}</div><div className="connection-line"><i /><ArrowRight aria-hidden="true" /></div><div className="connection-embarko"><strong>embarko</strong><small>hosts your app</small></div><div className="connection-line out"><ArrowRight aria-hidden="true" /><i /></div><div className="tiny-live-app"><i /><p><strong>your-app.embarko.app</strong><LiveMark /></p></div></div></section>;
+  return <Section labelledBy="v4-agents-h">
+    <SectionHeading center id="v4-agents-h" kicker="04 — Agents" title={<>Use the AI agent you <Serif>already</Serif> use.</>} sub="Keep building the way you build." />
+    <div className="v4-center"><Cta /></div>
+    <div className="v4-flow" aria-hidden="true">
+      <div className="v4-flow-agents">{agents.map((a) => <span key={a.name}><AgentIcon icon={a.icon} label={a.name} />{a.name}</span>)}</div>
+      <ArrowRight className="v4-flow-arrow" />
+      <Card className="v4-flow-embarko"><strong>embarko</strong><small>hosts your app</small></Card>
+      <ArrowRight className="v4-flow-arrow" />
+      <Card className="v4-flow-app"><strong>your-app.embarko.app</strong><LiveMark /></Card>
+    </div>
+  </Section>;
 }
 
 function WorldScene() {
   const apps = [['Portfolio', 'sunrise'], ['Little tools', 'mint'], ['Project board', 'paper'], ['Bookings', 'peach'], ['Study tracker', 'blue'], ['Game night', 'ink']] as const;
-  return <section className="scene world-scene"><div className="world-copy"><h2>Everything you build can have a home online.</h2><p>Your agents keep creating. Embarko keeps it all live.</p><CopyPromptButton compact /></div><div className="app-world" aria-label="A calm world of applications hosted on Embarko">{apps.map(([name, color], index) => <div className={'world-app world-' + (index + 1) + ' ' + color} key={name}><div className="world-window"><i /><i /><i /></div><strong>{name}</strong><LiveMark /></div>)}</div></section>;
-}
-
-function FinalScene() {
-  /* The footer sits inside this scene, as on /v1: the closing beat already
-     carries the bottom of the site, so nobody scrolls past a finished page
-     to reach the links. */
-  return <section className="final-scene" id="ready"><div className="final-copy"><h2>Got an app ready?</h2><p>Copy the prompt. Let your agent put it online.</p><CopyPromptButton /><Steps /></div><SiteFooter /></section>;
+  return <Section labelledBy="v4-world-h">
+    <GlowBackdrop position="bottom" />
+    <SectionHeading center id="v4-world-h" kicker="05 — Your world" title={<>Everything you build can have a <Serif>home</Serif> online.</>} sub="Your agents keep creating. Embarko keeps it all live." />
+    <div className="v4-center"><Cta /></div>
+    <div className="v4-world" aria-label="A calm world of applications hosted on Embarko">{apps.map(([name, color], i) => <div className={'v4-world-app w' + (i + 1) + ' ' + color} key={name}><div className="v4-world-top" aria-hidden="true"><i /><i /><i /></div><strong>{name}</strong><LiveMark /></div>)}</div>
+  </Section>;
 }
 
 export default function Home() {
   useEffect(() => {
     trackPageView();
   }, []);
-  return <main className="site-page">
+  return <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased v4-page">
     <SiteHeader />
-    <section id="top" className="hero" aria-labelledby="hero-title"><div className="hero-intro"><p className="eyebrow"><Sparkles aria-hidden="true" /> Hosting for apps already built by your agent</p><h1 id="hero-title">Instant hosting for every app you build with AI</h1><div className="hero-action"><CopyPromptButton /></div><Steps /></div><p className="hero-note">Your agent builds it. Embarko hosts it.</p></section>
-    <DeployScene /><LiveScene /><HostingScene /><WhyEmbarko cta={<CopyPromptButton compact />} /><AppGallery /><AgentScene /><WorldScene /><InfrastructureTrust cta={<CopyPromptButton compact />} /><section className="benefit-scene"><p>Spend your time building.<br />Not hosting.</p><CopyPromptButton compact /></section><FinalScene />
+    <div className="ds-wrap" id="top">
+      <Hero
+        eyebrow={<><Sparkles aria-hidden="true" /> Hosting for apps already built by your agent</>}
+        title={<>Instant hosting for every app you build with <Serif grad>AI</Serif></>}
+        sub="Your agent builds it. Embarko hosts it."
+        actions={<Cta size="lg" />}
+        steps
+      />
+    </div>
+    <DeployScene />
+    <LiveScene />
+    <HostingScene />
+    <div className="ds-section v4-shared"><WhyEmbarko tone="token" className="bg-transparent py-0" cta={<Cta />} /></div>
+    <AppGallery />
+    <AgentScene />
+    <WorldScene />
+    <div className="ds-section v4-shared"><InfrastructureTrust tone="token" className="bg-transparent py-0" cta={<Cta />} /></div>
+    <Section labelledBy="v4-benefit-h">
+      <Card className="v4-benefit">
+        <h2 id="v4-benefit-h">Spend your time <Serif>building</Serif>.<br />Not hosting.</h2>
+        <Cta />
+      </Card>
+    </Section>
+    <div className="ds-wrap">
+      <CtaSection id="ready" pill={<><Sparkles aria-hidden="true" /> Your turn</>} title={<>Got an app <Serif>ready</Serif>?</>} line="Copy the prompt. Let your agent put it online." action={<Cta size="lg" />} />
+    </div>
+    <SiteFooter />
   </main>;
 }

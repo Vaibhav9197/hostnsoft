@@ -213,3 +213,11 @@ title and description, keywords, correct robots/canonical behavior, and no
 generated Open Graph image routes (production has no filesystem or
 incremental cache to render them — use a committed static image instead).
 Read it before adding or changing a public page.
+
+## Design
+
+Every public page must follow [docs/DESIGN.md](docs/DESIGN.md) — the visual
+standard set by the Showcase. Build with the shared components in
+`app/components/ds` and the `--ds-*` tokens in `app/design.css`; do not copy
+styles or invent a new look per page. Read it before adding or restyling a
+public page.

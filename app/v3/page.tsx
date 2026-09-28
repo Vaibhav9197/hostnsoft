@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { trackPageView, trackCTA, trackDeployment } from '../lib/tracking';
-import { Copy } from "lucide-react";
 
 import { AGENTS, agentIconSrc } from "../lib/agents";
-import { CopyPromptButton, COPIED_LABEL } from "../components/CopyPromptButton";
 import { FeatureShowcase } from "../components/FeatureShowcase";
 import { SiteFooter } from "../components/SiteFooter";
 import { SiteHeader } from "../components/SiteHeader";
 import { InfrastructureTrust, WhyEmbarko } from "../components/WhyEmbarko";
+import { ButtonLink, Card, CtaSection, GlowBackdrop, Hero as DsHero, PrimaryCta, Section, SectionHeading, Serif } from "@/app/components/ds";
+import "./v3.css";
 
 /* In-page anchors for the header's centre slot — this page is long enough that
    jumping between sections matters. */
@@ -276,14 +276,8 @@ const EXAMPLES = [
   { Art: NotesArt, title: "Team notes", body: "Meeting notes everyone can actually find." },
 ] as const;
 
-const BTN =
-  "inline-flex items-center gap-2 rounded-[8px] px-[18px] py-[10px] text-sm font-semibold transition active:scale-[0.97]";
-const BTN_PRIMARY = `${BTN} bg-primary text-primary-foreground hover:bg-[var(--accent-2)]`;
-const BTN_GHOST = `${BTN} border border-border text-foreground hover:border-[var(--line-strong)]`;
-const BTN_SM = "rounded-[6px] px-3 py-[7px] text-[13px]";
-
-const WRAP = "mx-auto w-full max-w-[1120px] px-8 max-[640px]:px-5";
-const LABEL = "font-mono text-[11px] uppercase tracking-wider text-muted-foreground";
+/* Page-specific bits the ds layer lacks live in ./v3.css (prefixed v3-). */
+const CTA = () => <PrimaryCta onClicked={() => trackCTA("copy")} />;
 
 /* ── hero ──────────────────────────────────────────────── */
 
@@ -306,15 +300,15 @@ function DeployPanel() {
   const liveShown = reduced || elapsed >= DEPLOY_STEPS.length * STEP_MS;
 
   return (
-    <div className="overflow-hidden rounded-[14px] border border-border bg-card shadow-[0_20px_45px_-18px_rgba(20,18,16,0.16)]">
-      <div className="flex items-center gap-1.5 border-b border-border bg-elevated px-4 py-3">
+    <div className="v3-panel ds-card">
+      <div className="flex items-center gap-1.5 border-b border-[var(--ds-line)] bg-[var(--ds-soft)] px-4 py-3">
         {[0, 1, 2].map((i) => (
           <span key={i} className="h-2 w-2 rounded-full" style={{ background: inkTint(25) }} />
         ))}
         <span className="ml-2 font-mono text-xs text-muted-foreground">deploy.log</span>
       </div>
 
-      <div className="px-5 py-[22px] font-mono text-[13.5px]">
+      <div className="px-5 py-[22px] text-left font-mono text-[13.5px]">
         <div className="mb-3.5 flex items-start gap-2.5">
           <span className="mt-px shrink-0 rounded-[5px] bg-elevated px-2 py-[3px] text-[11px] font-medium text-muted-foreground">
             AGENT
@@ -363,11 +357,11 @@ function DeployPanel() {
         </div>
 
         <div
-          className={`mt-4 flex items-center justify-between rounded-[9px] border border-foreground bg-foreground px-4 py-3.5 transition-all duration-400 ${
+          className={`mt-4 flex items-center justify-between v3-livebar px-4 py-3.5 transition-all duration-400 ${
             liveShown ? "translate-y-0 opacity-100" : "translate-y-1 opacity-30"
           }`}
         >
-          <span className="font-mono text-[13.5px] text-background">weekend.embarko.app</span>
+          <span className="font-mono text-[13.5px] text-white [overflow-wrap:anywhere]">weekend.embarko.app</span>
           <span className="flex items-center gap-1.5 font-mono text-[11.5px] text-success">
             <span className="h-1.5 w-1.5 rounded-full bg-success motion-safe:animate-pulse" />
             Live
@@ -380,55 +374,38 @@ function DeployPanel() {
 
 function Hero() {
   return (
-    <header className="py-[88px] max-[900px]:py-14">
-      <div className={`${WRAP} grid grid-cols-[1.05fr_0.95fr] items-center gap-16 max-[900px]:grid-cols-1 max-[900px]:gap-13`}>
-        <div>
-          <div className="mb-5 flex items-center gap-2 font-mono text-[13px] text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-success" />
-            FROM AI-BUILT TO LIVE
-          </div>
-
-          <h1 className="mb-8 max-w-[560px] text-[52px] font-semibold leading-[1.08] tracking-[-0.02em] max-[900px]:text-[38px] max-[420px]:text-[32px]">
-            Instant hosting for every app you build with AI
-          </h1>
-
-          <div className="flex flex-wrap items-center gap-[18px]">
-            <CopyPromptButton className={BTN_PRIMARY} copiedChildren={COPIED_LABEL} onClicked={() => trackCTA('copy')}>
-              <Copy aria-hidden="true" className="h-4 w-4" />
-              Copy deployment prompt
-            </CopyPromptButton>
-            <a href="#how" className={BTN_GHOST}>
+    <div className="ds-wrap">
+      <DsHero
+        eyebrow="From AI-built to live"
+        title={
+          <>
+            Instant hosting for every app you <Serif grad>build</Serif> with AI
+          </>
+        }
+        actions={
+          <>
+            <CTA />
+            <ButtonLink href="#how" size="lg">
               See how it works
-            </a>
-          </div>
-        </div>
-
+            </ButtonLink>
+          </>
+        }
+        className="v3-hero"
+      />
+      <div className="v3-panel-wrap">
+        <GlowBackdrop position="full" />
         <DeployPanel />
       </div>
-    </header>
-  );
-}
-
-/* ── shared section head ───────────────────────────────── */
-
-function SectionHead({ title, body }: { title: string; body: string }) {
-  return (
-    <div className="mb-[52px] max-w-[560px]">
-      <h2 className="mb-3.5 text-[32px] font-semibold leading-tight tracking-[-0.015em]">{title}</h2>
-      <p className="text-[16.5px] leading-[1.6] text-muted-foreground">{body}</p>
     </div>
   );
 }
 
 /* ── one copy CTA per section ──────────────────────────── */
 
-function SectionCta({ className = "mt-9" }: { className?: string }) {
+function SectionCta() {
   return (
-    <div className={className}>
-      <CopyPromptButton className={BTN_PRIMARY} copiedChildren={COPIED_LABEL} onClicked={() => trackCTA('copy')}>
-        <Copy aria-hidden="true" className="h-4 w-4" />
-        Copy deployment prompt
-      </CopyPromptButton>
+    <div className="v3-cta">
+      <CTA />
     </div>
   );
 }
@@ -437,58 +414,60 @@ function SectionCta({ className = "mt-9" }: { className?: string }) {
 
 function HowItWorks() {
   return (
-    <section id="how" className="scroll-mt-16 py-[88px] max-[720px]:py-[60px]">
-      <div className={WRAP}>
-        <SectionHead
-          title="Two steps. Your AI does the rest."
-          body="You don't write config files or click through a hosting dashboard. You copy one thing and hand it to the AI agent you're already using."
-        />
+    <Section id="how" labelledBy="how-h" className="v3-anchor">
+      <SectionHeading
+        id="how-h"
+        kicker="01 — How it works"
+        title={
+          <>
+            Two steps. Your AI does the <Serif>rest</Serif>.
+          </>
+        }
+        sub="You don't write config files or click through a hosting dashboard. You copy one thing and hand it to the AI agent you're already using."
+      />
 
-        <div className="flex flex-col">
-          {FLOW.map((step) => (
-            <div
-              key={step.num}
-              className="grid grid-cols-[32px_1fr] gap-5 border-t border-border py-8 last:border-b max-[640px]:grid-cols-1 max-[640px]:gap-3"
-            >
-              <div className="pt-[3px] font-mono text-sm text-muted-foreground">{step.num}</div>
-              <div>
-                <h3 className="mb-2 text-xl font-semibold">{step.title}</h3>
-                <p className="max-w-[520px] text-[15.5px] leading-[1.6] text-muted-foreground">
-                  {step.body}
-                </p>
-
-                {step.extra === "agents" && (
-                  <div className="mt-4 flex max-w-[560px] flex-wrap gap-2">
-                    {AGENTS.map((agent) => (
-                      <span
-                        key={agent.slug}
-                        className="flex items-center gap-1.5 rounded-[7px] border border-border px-2.5 py-[6px] font-mono text-[12.5px] text-muted-foreground"
-                      >
-                        <img
-                          src={agentIconSrc(agent.slug)}
-                          alt=""
-                          aria-hidden="true"
-                          className="h-3.5 w-3.5 shrink-0 object-contain"
-                        />
-                        {agent.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
+      <ol className="v3-flow">
+        {FLOW.map((step) => (
+          <Card as="li" key={step.num}>
+            <span className="v3-num">{step.num}</span>
+            <h3>{step.title}</h3>
+            <p>{step.body}</p>
+            {step.extra === "agents" && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {AGENTS.map((agent) => (
+                  <span key={agent.slug} className="v3-chip">
+                    <img src={agentIconSrc(agent.slug)} alt="" aria-hidden="true" className="h-3.5 w-3.5 shrink-0 object-contain" />
+                    {agent.name}
+                  </span>
+                ))}
               </div>
-            </div>
-          ))}
-        </div>
-        <SectionCta />
-      </div>
-    </section>
+            )}
+          </Card>
+        ))}
+      </ol>
+      <SectionCta />
+    </Section>
   );
 }
+
+/* ── shared blocks (WhyEmbarko, FeatureShowcase, InfrastructureTrust) ──
+   Those components carry their own padding, column and surface. Here they sit
+   inside a ds card: their spacing and background are neutralised and ./v3.css
+   restyles their headings to the ds scale. */
+
+function SharedBlock({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="ds-section ds-wrap">
+      <Card className="v3-shared">{children}</Card>
+    </div>
+  );
+}
+const SHARED_SECTION = "!bg-transparent !py-0";
+const SHARED_WRAP = "!max-w-none !px-0";
 
 /* ── prompt ────────────────────────────────────────────── */
 
 function PromptSection() {
-  const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -498,90 +477,40 @@ function PromptSection() {
   }, [copied]);
 
   return (
-    <section id="prompt-section" className="scroll-mt-16 py-[88px] max-[720px]:py-[60px]">
-      <div className={WRAP}>
-        <SectionHead
-          title="Copy this prompt to your AI agent"
-          body="This is the whole handoff. Paste it into Claude, Cursor, Gemini, Copilot, or Replit and let your agent handle the rest."
-        />
+    <Section id="prompt-section" labelledBy="prompt-h" className="v3-anchor">
+      <SectionHeading
+        id="prompt-h"
+        kicker="03 — The prompt"
+        title={
+          <>
+            Copy this <Serif>prompt</Serif> to your AI agent
+          </>
+        }
+        sub="This is the whole handoff. Paste it into Claude, Cursor, Gemini, Copilot, or Replit and let your agent handle the rest."
+      />
 
-        <div className="overflow-hidden rounded-[14px] border border-border bg-card">
-          <div className="p-7">
-            <div className={`${LABEL} mb-2.5`}>What this does</div>
-            <div className="mb-[18px] rounded-[9px] bg-foreground px-5 py-[18px] font-mono text-[14.5px] leading-[1.7] text-background">
-              Tells your AI agent exactly how to send your app to Embarko —
-              <br />
-              the address to call, the token to use, and the file to send.
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3.5">
-              <CopyPromptButton onClicked={() => trackCTA('copy')}
-                className={BTN_PRIMARY}
-                copiedChildren={COPIED_LABEL}
-                onCopied={() => setCopied(true)}
-              >
-                <Copy aria-hidden="true" className="h-4 w-4" />
-                Copy deployment prompt
-              </CopyPromptButton>
-
-              <button
-                type="button"
-                onClick={() => setOpen((v) => !v)}
-                aria-expanded={open}
-                aria-controls="prompt-technical"
-                className="flex items-center gap-1.5 py-1.5 text-sm text-muted-foreground underline decoration-border underline-offset-[3px] transition-colors hover:text-foreground"
-              >
-                <span className={`text-[11px] transition-transform ${open ? "rotate-90" : ""}`}>▸</span>
-                {open ? "Hide technical details" : "What's actually in it?"}
-              </button>
-
-              <span
-                className={`font-mono text-[13px] text-success transition-opacity ${copied ? "opacity-100" : "opacity-0"}`}
-                aria-live="polite"
-              >
-                Copied — paste it into your agent
-              </span>
-            </div>
+      <Card className="v3-prompt">
+        <div className="p-6 max-[600px]:p-4">
+          <span className="ds-kicker">What this does</span>
+          <div className="v3-dark mb-[18px] px-5 py-[18px] font-mono text-[14.5px] leading-[1.7]">
+            Tells your AI agent everything it needs to put your app
+            <br className="max-[600px]:hidden" /> online with Embarko. You don&apos;t need to touch any settings.
           </div>
 
-          <div
-            id="prompt-technical"
-            className={`overflow-hidden border-t border-border transition-[max-height] duration-[350ms] ${
-              open ? "max-h-[600px]" : "max-h-0"
-            }`}
-          >
-            <div className="bg-elevated px-7 py-6">
-              <div className={`${LABEL} mb-3.5`}>Exactly what gets copied</div>
-              <pre className="overflow-x-auto rounded-[9px] bg-foreground p-5 font-mono text-[13.5px] leading-[1.9] text-background">
-{`# Deploy this to Embarko:
-POST https://ship.embarko.ai/apps
+          <div className="flex flex-wrap items-center gap-3.5">
+            <PrimaryCta onClicked={() => trackCTA("copy")} onCopied={() => setCopied(true)} />
 
-Authorization: Bearer $DEPLOY_TOKEN
-X-App-Name: <name>
-source=<tarball of the app>
-
-# Full docs: https://embarko.ai/docs/overview
-# Optional helper skill (not required — the call above works standalone):
-npx skills add embarko-ai/skill --skill embarko-deploy -g`}
-              </pre>
-            </div>
+            <span
+              className={`font-mono text-[13px] text-success motion-safe:transition-opacity ${copied ? "opacity-100" : "opacity-0"}`}
+              aria-live="polite"
+            >
+              Copied — paste it into your agent
+            </span>
           </div>
         </div>
-      </div>
-    </section>
-  );
-}
 
-/* ── what's included ───────────────────────────────────── */
-
-function Included() {
-  return (
-    <section id="included" className="scroll-mt-16 bg-card py-[88px] max-[720px]:py-[60px]">
-      <div className={WRAP}>
-        <FeatureShowcase tone="token" className="max-w-none" />
-        <SectionCta />
-      </div>
-    </section>
+      </Card>
+    </Section>
   );
 }
 
@@ -589,24 +518,24 @@ function Included() {
 
 function Examples() {
   return (
-    <section id="examples" className="scroll-mt-16 py-[88px] max-[720px]:py-[60px]">
-      <div className={WRAP}>
-        <SectionHead
-          title="Whatever your agent builds, Embarko gives it a home."
-          body="These all started as prompts. Now they're real apps, live on the internet."
+    <Section id="examples" labelledBy="examples-h" wrap={false} className="v3-anchor">
+      <div className="ds-wrap">
+        <SectionHeading
+          id="examples-h"
+          kicker="05 — Examples"
+          title={
+            <>
+              Whatever your agent builds, Embarko gives it a <Serif>home</Serif>.
+            </>
+          }
+          sub="These all started as prompts. Now they're real apps, live on the internet."
         />
       </div>
 
-      {/* One row, always full. The cards are equal fractions of the rail rather
-          than a fixed width, and the ones that would squeeze past ~165px are
-          dropped instead of wrapping or scrolling — so the row ends flush at
-          every viewport. Each rule only ever hides, and the max-width queries
-          stack, so no rule has to out-specify another.
-
-          The rail runs the full width of the viewport rather than the 1120px
-          content column, so wide screens earn more cards. */}
+      {/* One row, always full: cards that would squeeze past ~165px are hidden
+          rather than wrapping or scrolling, so the row ends flush everywhere. */}
       <div
-        className="mx-8 grid grid-flow-col auto-cols-fr gap-4 max-[640px]:mx-5
+        className="v3-rail grid grid-flow-col auto-cols-fr gap-4
           max-[1859px]:[&>*:nth-child(n+10)]:hidden
           max-[1679px]:[&>*:nth-child(n+9)]:hidden
           max-[1499px]:[&>*:nth-child(n+8)]:hidden
@@ -617,27 +546,24 @@ function Examples() {
           max-[599px]:[&>*:nth-child(n+3)]:hidden"
       >
         {EXAMPLES.map(({ Art, title, body }) => (
-          <div key={title} className="rounded-[12px] border border-border bg-card p-5">
+          <Card key={title} className="!p-4">
             {/* Decorative — the title and description below carry the meaning. */}
-            <div
-              aria-hidden="true"
-              className="mb-4 h-20 overflow-hidden rounded-[8px] border border-border bg-elevated px-3"
-            >
+            <div aria-hidden="true" className="v3-art mb-4 h-20 overflow-hidden px-3">
               <Art />
             </div>
-            <h4 className="mb-1.5 text-[15px] font-semibold">{title}</h4>
-            <p className="text-[13px] leading-[1.5] text-muted-foreground">{body}</p>
-          </div>
+            <h3 className="!text-[15px]">{title}</h3>
+            <p className="!text-[13px] leading-[1.5]">{body}</p>
+          </Card>
         ))}
       </div>
 
-      <div className={WRAP}>
-        <div className="mt-9 border-t border-border pt-6 text-[17px] font-medium">
-          If AI can build it, <span className="font-normal text-muted-foreground">Embarko can give it a home online.</span>
+      <div className="ds-wrap">
+        <div className="mt-8 border-t border-[var(--ds-line)] pt-6 text-[17px] font-medium">
+          If AI can build it, <span className="font-normal text-[var(--ds-mute)]">Embarko can give it a home online.</span>
         </div>
         <SectionCta />
       </div>
-    </section>
+    </Section>
   );
 }
 
@@ -645,47 +571,27 @@ function Examples() {
 
 function Agents() {
   return (
-    <section id="agents" className="scroll-mt-16 py-[88px] max-[720px]:py-[60px]">
-      <div className={WRAP}>
-        <SectionHead
-          title="Use the AI agent you already use."
-          body="Embarko doesn't ask you to switch tools. It works with the agent that's already building your app."
-        />
-        <div className="flex flex-wrap items-center gap-3.5 rounded-[14px] border border-border bg-card px-7 py-9">
-          {AGENTS.map((agent) => (
-            <div
-              key={agent.slug}
-              className="flex items-center gap-2.5 rounded-[8px] border border-border bg-elevated px-4 py-2.5 font-mono text-[14.5px] text-foreground"
-            >
-              <AgentMark slug={agent.slug} />
-              {agent.name}
-            </div>
-          ))}
-        </div>
-        <SectionCta />
-      </div>
-    </section>
-  );
-}
-
-/* ── final cta + footer ────────────────────────────────── */
-
-function FinalCta() {
-  return (
-    <section className="pb-20 pt-24">
-      <div className={WRAP}>
-        <h2 className="mb-5 max-w-[640px] text-[38px] font-semibold leading-[1.15] tracking-[-0.02em] max-[600px]:text-[28px]">
-          Build it with AI. Put it in front of real people. Keep improving it.
-        </h2>
-        <p className="mb-[34px] max-w-[480px] text-[17px] text-muted-foreground">
-          The same app. Now on the internet.
-        </p>
-        <CopyPromptButton className={BTN_PRIMARY} copiedChildren={COPIED_LABEL} onClicked={() => trackCTA('copy')}>
-          <Copy aria-hidden="true" className="h-4 w-4" />
-          Copy deployment prompt
-        </CopyPromptButton>
-      </div>
-    </section>
+    <Section id="agents" labelledBy="agents-h" className="v3-anchor">
+      <SectionHeading
+        id="agents-h"
+        kicker="06 — Agents"
+        title={
+          <>
+            Use the AI agent you <Serif>already</Serif> use.
+          </>
+        }
+        sub="Embarko doesn't ask you to switch tools. It works with the agent that's already building your app."
+      />
+      <Card className="flex flex-wrap items-center gap-3">
+        {AGENTS.map((agent) => (
+          <div key={agent.slug} className="v3-chip v3-chip-lg">
+            <AgentMark slug={agent.slug} />
+            {agent.name}
+          </div>
+        ))}
+      </Card>
+      <SectionCta />
+    </Section>
   );
 }
 
@@ -694,17 +600,39 @@ function FinalCta() {
 export default function EmbarkoV3() {
   return (
     /* pt-16 clears SiteHeader, which is fixed rather than sticky. */
-    <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased">
+    <main className="v3 min-h-[100dvh] overflow-x-clip bg-background pt-16 text-foreground antialiased">
       <SiteHeader links={NAV_LINKS} />
       <Hero />
       <HowItWorks />
-      <WhyEmbarko tone="token" cta={<SectionCta className="" />} />
+      <SharedBlock>
+        <span className="ds-kicker">02 — Why Embarko</span>
+        <WhyEmbarko tone="token" className={SHARED_SECTION} wrapClassName={SHARED_WRAP} cta={<CTA />} />
+      </SharedBlock>
       <PromptSection />
-      <Included />
+      <div id="included" className="v3-anchor">
+        <SharedBlock>
+          <span className="ds-kicker">04 — What&apos;s included</span>
+          <FeatureShowcase tone="token" className="max-w-none" />
+          <SectionCta />
+        </SharedBlock>
+      </div>
       <Examples />
       <Agents />
-      <InfrastructureTrust tone="token" cta={<SectionCta className="" />} />
-      <FinalCta />
+      <SharedBlock>
+        <InfrastructureTrust tone="token" className={SHARED_SECTION} wrapClassName={SHARED_WRAP} cta={<CTA />} />
+      </SharedBlock>
+      <div className="ds-wrap">
+        <CtaSection
+          id="final"
+          title={
+            <>
+              Build it with AI. Put it in front of real people. Keep <Serif>improving</Serif> it.
+            </>
+          }
+          line="The same app. Now on the internet."
+          action={<CTA />}
+        />
+      </div>
       <SiteFooter />
     </main>
   );

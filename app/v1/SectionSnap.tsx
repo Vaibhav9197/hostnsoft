@@ -205,7 +205,7 @@ export function SectionSnap({
     advanceRef.current(direction);
   }
 
-  const keyButton = "cursor-pointer rounded-[2px] transition hover:brightness-95 active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40";
+  const keyButton = "cursor-pointer rounded-[6px] transition hover:brightness-95 active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ds-v1)]";
 
   return (
     /* Hidden on phones. These are pictures of keyboard keys, and a phone has no
