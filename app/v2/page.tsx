@@ -119,7 +119,7 @@ export default function EmbarkoV2() {
           /* Centred under the 64px header, which owns the top row. */
           /* Opaque, not a tint: it floats over a scrolling column, and a
              translucent fill lets the cards behind it read straight through. */
-          className={buttonClass('secondary', 'lg', 'absolute bottom-8 left-1/2 z-20 w-[52px] -translate-x-1/2 !px-0 shadow-[var(--ds-sh)] hover:-translate-x-1/2')}
+          className={buttonClass('secondary', 'lg', 'absolute bottom-8 left-1/2 z-20 w-[52px] -translate-x-1/2 !px-0 hover:-translate-x-1/2')}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -157,7 +157,7 @@ export default function EmbarkoV2() {
           translucent pill lets the content read straight through it. */}
       <button
         onClick={() => setMoreOpen(true)}
-        className={buttonClass('secondary', 'sm', 'absolute bottom-8 right-8 z-20 shadow-[var(--ds-sh)] max-[600px]:right-4')}
+        className={buttonClass('secondary', 'sm', 'absolute bottom-8 right-8 z-20 max-[600px]:right-4')}
       >
         More
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -507,9 +507,6 @@ function ChatStep() {
         </ul>
       </div>
 
-      <div className="mt-12 text-center">
-        <V2CopyButton />
-      </div>
     </div>
   );
 }

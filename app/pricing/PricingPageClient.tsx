@@ -82,7 +82,7 @@ export function PricingPageClient({ plans: fetched }: { plans: BillingPlan[] }) 
               <div
                 role="radiogroup"
                 aria-label="Billing period"
-                className="inline-flex items-center gap-1 rounded-[var(--ds-r-pill)] border border-[var(--ds-line)] bg-[var(--ds-card)] p-1 text-sm shadow-[var(--ds-sh)]"
+                className="inline-flex items-center gap-1 rounded-[var(--ds-r-pill)] border border-[var(--ds-line)] bg-[var(--ds-card)] p-1 text-sm"
               >
                 {(["monthly", "yearly"] as Interval[]).map((iv) => {
                   const on = shownInterval === iv;

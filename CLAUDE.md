@@ -221,3 +221,7 @@ standard set by the Showcase. Build with the shared components in
 `app/components/ds` and the `--ds-*` tokens in `app/design.css`; do not copy
 styles or invent a new look per page. Read it before adding or restyling a
 public page.
+
+For any design, UI or copy work — public pages or the panel — load the
+`ux-design-expert` skill first; DESIGN.md explains how it fits with these
+rules.

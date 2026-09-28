@@ -13,19 +13,22 @@
   --ds-card:var(--surface);--ds-soft:var(--surface-2);
   --ds-line:var(--line);--ds-line2:var(--line-strong);
   --ds-ink:var(--ink);--ds-mute:var(--ink-soft);--ds-dim:var(--ink-faint);
-  --ds-v1:#5b5bff;--ds-v2:#a24bff;--ds-v3:#ff5e87;
-  --ds-lime:#d4f774;--ds-limeink:#294000;
-  --ds-dark:#0b0b0f;
-  --ds-grad:linear-gradient(100deg,var(--ds-v1),var(--ds-v2) 50%,var(--ds-v3));
-  --ds-grad-pill:linear-gradient(100deg,#4f4ff0,#8f3cf0 50%,#c93366);
-  /* glow gradients (soft purple/pink backdrops) */
-  --ds-glow:radial-gradient(closest-side,#d9c8ff,rgba(245,198,255,.45) 62%,transparent);
-  --ds-glow-conic:conic-gradient(from 0deg,#c7c8ff,#f5c6ff,#ffd3dc,#e7fbb0,#c7c8ff);
-  --ds-glow-opacity:.7;
+  /* Accents follow the original palette: warm ink on cream, no brand hues.
+     The v1/v2/v3 names stay so every consumer keeps working; they are all ink
+     now, which makes --ds-grad a solid and the serif accent word plain ink. */
+  --ds-v1:var(--ink);--ds-v2:var(--ink);--ds-v3:var(--ink);
+  --ds-lime:var(--bg);--ds-limeink:var(--ink);
+  --ds-dark:var(--ink);
+  --ds-grad:linear-gradient(var(--ink),var(--ink));
+  --ds-grad-pill:linear-gradient(var(--ink),var(--ink));
+  /* backdrops: a faint warm wash, not a coloured glow */
+  --ds-glow:radial-gradient(closest-side,var(--surface-2),transparent);
+  --ds-glow-conic:radial-gradient(closest-side,var(--surface-2),transparent);
+  --ds-glow-opacity:.6;
   /* shape */
   --ds-r:22px;--ds-r-lg:34px;--ds-r-pill:999px;
   --ds-sh:0 1px 1px rgba(11,11,15,.03),0 2px 6px rgba(11,11,15,.04),0 16px 40px -12px rgba(11,11,15,.10);
-  --ds-sh2:0 2px 4px rgba(11,11,15,.04),0 30px 70px -20px rgba(60,40,160,.28);
+  --ds-sh2:0 2px 4px rgba(11,11,15,.04),0 30px 70px -20px rgba(20,18,16,.14);
   /* motion */
   --ds-ease:cubic-bezier(.2,.8,.2,1);
   /* type */
@@ -63,7 +66,7 @@
 /* pills */
 .ds-pill{display:inline-flex;align-items:center;gap:7px;min-height:30px;padding:4px 12px;border-radius:var(--ds-r-pill);font-size:13px;font-weight:500;background:color-mix(in srgb,var(--ds-card) 70%,transparent);border:1px solid var(--ds-line);color:var(--ds-ink);text-decoration:none}
 .ds-pill svg{width:12px;height:12px;flex:none}
-.ds-pill-grad{color:#fff;background:var(--ds-grad-pill);border:0;font-weight:600}
+.ds-pill-grad{color:var(--ink);background:transparent;border:1px solid var(--line-strong);font-weight:600}
 a.ds-pill:hover{border-color:var(--ds-line2)}
 
 /* hero */
@@ -112,3 +115,12 @@ a.ds-pill:hover{border-color:var(--ds-line2)}
 @media (prefers-reduced-motion:reduce){
   [class*="ds-"],[class*="ds-"]::before,[class*="ds-"]::after{animation:none!important;transition:none!important}
 }
+
+/* Buttons are flat: no shadow, no glow, no lift. Affordance comes from the
+   solid ink fill (primary) or the control border (secondary); hover changes
+   colour, not depth. */
+.ds-btn,.ds-btn:hover,.ds-btn-pri,.ds-btn-pri:hover{box-shadow:none}
+.ds-btn:hover{transform:none;border-color:var(--ink)}
+.ds-btn-pri:hover{background:var(--accent-2);border-color:var(--accent-2)}
+.ds-btn-glow::before,.ds-btn-glow:hover::before{display:none}
+.ds-btn-ghost:hover{border-color:transparent}

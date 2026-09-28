@@ -9,10 +9,36 @@ look is extracted into a shared layer; build with it, don't re-create it.
 
 Treat this as a checklist, like [SEO.md](SEO.md).
 
+## Before any design work: load the UX skill
+
+For any design, UI, layout, copy or visual change — a new page, a restyle, a
+review, a critique — load the **`ux-design-expert`** skill first (Claude:
+`Skill` tool, `anthropic-skills:ux-design-expert`). It holds the Walkover
+product and website design philosophy: diagnose the product, user, risk and
+go-to-market before choosing a layout, then apply its heuristics for flow,
+typography, colour, composition, accessibility and microcopy.
+
+Where they overlap, the order of authority is: `CLAUDE.md` (product rules) →
+the `ux-design-expert` skill (design judgement) → this file (how Embarko
+builds it: tokens, components, copy). The skill is an org skill on the team's
+Claude account, not a file in this repo; if it isn't available in a session,
+say so rather than skipping it silently.
+
+## Colour rule
+
+Colour comes from the original palette in `app/base.css`: cream `--bg`,
+near-white `--surface`, warm ink `--ink`, greys `--ink-soft`/`--ink-faint`,
+and `--ok` green only for a "Live" status. Typography and layout carry the
+design; colour does not. Illustrations (mock screens, example-app sketches)
+may use soft neutrals — no purple, pink or gradient accents anywhere.
+
+Buttons are flat: no shadow, glow or lift. Primary is a solid ink pill,
+secondary a bordered pill; hover changes colour, not depth.
+
 ## 1. Principles
 
 - **Calm, minimal, premium.** Light cream ground, white cards, soft shadows,
-  one gentle purple/pink glow. Lots of space.
+  no brand hues — warm ink on cream, a faint warm wash at most. Lots of space.
 - **One primary action per section.** It is almost always *Copy deployment
   prompt*. At most one secondary button next to it.
 - **User language.** Live, Open app, Deploy, Update, Fix with your AI. Never
@@ -31,12 +57,12 @@ Treat this as a checklist, like [SEO.md](SEO.md).
 | `--ds-card`, `--ds-soft` | Card surface, softer inset surface |
 | `--ds-line`, `--ds-line2` | Hairline border, stronger border |
 | `--ds-ink`, `--ds-mute`, `--ds-dim` | Text: main, secondary, faint |
-| `--ds-v1` `--ds-v2` `--ds-v3` | Brand violet-blue, purple, pink |
-| `--ds-grad` | Brand gradient (buttons' glow, gradient text) |
-| `--ds-grad-pill` | Deeper gradient for the eyebrow pill |
-| `--ds-lime`, `--ds-limeink` | Rare highlight (prompt caret) |
+| `--ds-v1` `--ds-v2` `--ds-v3` | Accent — all warm ink (`--ink`). Kept as names only; never add a hue |
+| `--ds-grad` | Solid ink (was a gradient). Serif accent words read as plain ink |
+| `--ds-grad-pill` | Unused by the eyebrow pill, which is now a light outlined chip (ink text, `--line-strong` border) |
+| `--ds-lime`, `--ds-limeink` | Cream on ink (prompt caret) |
 | `--ds-dark` | The one dark surface colour |
-| `--ds-glow`, `--ds-glow-conic`, `--ds-glow-opacity` | Soft backdrop glows (opacity drops in dark theme) |
+| `--ds-glow`, `--ds-glow-conic`, `--ds-glow-opacity` | Faint warm cream wash behind a section — never coloured |
 | `--ds-r` (22px), `--ds-r-lg` (34px), `--ds-r-pill` | Radii: card, big panel, pill/button |
 | `--ds-sh`, `--ds-sh2` | Resting shadow, lifted/hover shadow |
 | `--ds-ease` | The one easing curve |
@@ -149,7 +175,7 @@ optional: `id`, `pill`, `title`, `line`, `steps`, `action`.
 | Use `app/components/ds` and `--ds-*` | Copy `.sc-*` classes or hard-code hexes |
 | One PrimaryCta per section | Two competing primary buttons |
 | Real apps, real screenshots | Fake stats, counters, logos, quotes |
-| One glow, lots of white space | Aurora + grid + glow + gradients all at once |
+| Cream, warm ink, lots of white space | Purple/pink glows, gradients, multicolour marks |
 | Plain words the user would say | Hosting jargon, API details, curl |
 | End every page with `CtaSection` | End on a link list or a dense table |
 
