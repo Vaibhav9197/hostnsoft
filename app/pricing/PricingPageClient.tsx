@@ -1,9 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowRight, Check, Copy, Info, Lightbulb, Cpu, Zap } from "lucide-react";
-import { Button } from "../components/ui/button";
-import { CopyPromptButton, COPIED_LABEL } from "../components/CopyPromptButton";
+import { Check, Info, Lightbulb, Cpu, Zap } from "lucide-react";
+import { Card, CtaSection, GlowBackdrop, Hero, Pill, PrimaryCta, Section, SectionHeading, Serif, buttonClass } from "@/app/components/ds";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../components/ui/tooltip";
 import { Header } from "../components/Header";
 import { SiteFooter } from "../components/SiteFooter";
@@ -54,238 +53,189 @@ export function PricingPageClient({ plans: fetched }: { plans: BillingPlan[] }) 
     plans.find((p) => p.interval === "monthly" && p.code !== plan.code && planFamily(p) === planFamily(plan)) ?? null;
 
   return (
-    <div
-      className="min-h-screen bg-background text-foreground"
-      style={{
-        // Scoped black-and-white override: the shared Tailwind color utilities
-        // (bg-primary, text-primary, bg-elevated, border-border, ...) all read
-        // these CSS custom properties, so overriding them here restyles the
-        // pricing page to grayscale without touching the shared theme used by
-        // the rest of the app (app/base.css :root).
-        "--bg": "#ffffff",
-        "--surface": "#ffffff",
-        "--surface-2": "#f2f2f2",
-        "--surface-3": "#e5e5e5",
-        "--ink": "#111111",
-        "--ink-soft": "#555555",
-        "--ink-faint": "#8a8a8a",
-        "--accent": "#111111",
-        "--accent-2": "#000000",
-        "--accent-soft": "rgba(17,17,17,.08)",
-        "--accent-line": "rgba(17,17,17,.28)",
-        "--on-accent": "#ffffff",
-        "--line": "#e5e5e5",
-        "--line-strong": "#cccccc",
-      } as React.CSSProperties}
-    >
+    <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased">
       <Header onAuthClick={() => setLoginOpen(true)} />
       <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
 
-      {/* Hero Section */}
-      <section className="relative py-20 md:py-28 px-6">
-        <div className="mx-auto max-w-[74rem]">
-          <div className="text-center mb-16">
-            <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
-              You build it<br />
-              <span className="text-primary">Embarko makes it real</span>
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Build apps with AI. Tell your AI to deploy to Embarko, and we'll take care of the rest.
-            </p>
-          </div>
+      <div className="ds-wrap">
+        <div className="relative isolate">
+          <GlowBackdrop position="top" />
+          <Hero
+            eyebrow="Pricing"
+            title={
+              <>
+                You build it
+                <br />
+                Embarko makes it <Serif grad>real</Serif>
+              </>
+            }
+            sub="Build apps with AI. Tell your AI to deploy to Embarko, and we'll take care of the rest."
+          />
+        </div>
 
-          {/* Pricing Cards */}
-          <div className="mb-24">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-12 text-center">Choose your plan</h2>
+        {/* Pricing Cards */}
+        <section aria-labelledby="plans-h" className="relative">
+          <SectionHeading id="plans-h" kicker="01 — Plans" title="Choose your plan" center />
 
-            {hasBothIntervals && (
-              <div className="flex justify-center mb-10">
-                <div
-                  role="radiogroup"
-                  aria-label="Billing period"
-                  className="inline-flex items-center rounded-full border border-border bg-card p-1 text-sm"
-                >
-                  {(["monthly", "yearly"] as Interval[]).map((iv) => {
-                    const on = shownInterval === iv;
-                    return (
-                      <button
-                        key={iv}
-                        type="button"
-                        role="radio"
-                        aria-checked={on}
-                        onClick={() => setInterval(iv)}
-                        className={cn(
-                          "rounded-full px-4 py-1.5 font-semibold transition-colors",
-                          on ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground",
-                        )}
-                      >
-                        {iv === "monthly" ? "Monthly" : "Yearly"}
-                      </button>
-                    );
-                  })}
-                </div>
+          {hasBothIntervals && (
+            <div className="mb-10 flex justify-center">
+              <div
+                role="radiogroup"
+                aria-label="Billing period"
+                className="inline-flex items-center gap-1 rounded-[var(--ds-r-pill)] border border-[var(--ds-line)] bg-[var(--ds-card)] p-1 text-sm shadow-[var(--ds-sh)]"
+              >
+                {(["monthly", "yearly"] as Interval[]).map((iv) => {
+                  const on = shownInterval === iv;
+                  return (
+                    <button
+                      key={iv}
+                      type="button"
+                      role="radio"
+                      aria-checked={on}
+                      onClick={() => setInterval(iv)}
+                      className={cn(
+                        "min-h-[40px] rounded-[var(--ds-r-pill)] px-5 font-semibold transition-colors motion-reduce:transition-none",
+                        on ? "bg-[var(--ds-ink)] text-[var(--bg)]" : "text-[var(--ds-mute)] hover:text-[var(--ds-ink)]",
+                      )}
+                    >
+                      {iv === "monthly" ? "Monthly" : "Yearly"}
+                    </button>
+                  );
+                })}
               </div>
-            )}
+            </div>
+          )}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
-              {shownPlans.map((plan) => {
-                const details = planDetails(plan);
-                const twin = plan.interval === "yearly" ? monthlyTwin(plan) : null;
-                const saving = twin ? Math.round((1 - monthlyCents(plan) / monthlyCents(twin)) * 100) : 0;
+          <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-3">
+            {shownPlans.map((plan) => {
+              const details = planDetails(plan);
+              const twin = plan.interval === "yearly" ? monthlyTwin(plan) : null;
+              const saving = twin ? Math.round((1 - monthlyCents(plan) / monthlyCents(twin)) * 100) : 0;
+              const hi = !!details.highlighted;
 
-                return (
-                  <div
-                    key={plan.code}
-                    className={cn(
-                      "flex flex-col p-8 border transition-all duration-200",
-                      details.highlighted ? "border-primary bg-card shadow-md md:scale-105" : "border-border bg-card",
-                    )}
-                  >
+              return (
+                <div key={plan.code} className={cn("relative isolate min-w-0", hi && "md:-my-3")}>
+                  {hi && (
+                    <div
+                      aria-hidden="true"
+                      className="absolute -inset-[1.5px] -z-10 rounded-[calc(var(--ds-r)+1.5px)] bg-[image:var(--ds-grad)] opacity-90 blur-[0.5px]"
+                    />
+                  )}
+                  {hi && (
+                    <div
+                      aria-hidden="true"
+                      className="absolute -inset-6 -z-20 rounded-[var(--ds-r-lg)] bg-[image:var(--ds-grad)] opacity-[calc(var(--ds-glow-opacity,0.5)*0.35)] blur-3xl"
+                    />
+                  )}
+                  <Card className={cn("flex h-full flex-col p-7 md:p-8", hi && "shadow-[var(--ds-sh2)]")}>
                     {details.badge && (
-                      <div className="mb-4 inline-block">
-                        <span className="px-3 py-1 text-xs font-bold uppercase tracking-wider text-white bg-primary">
-                          {details.badge}
-                        </span>
+                      <div className="mb-4">
+                        <Pill grad={hi}>{details.badge}</Pill>
                       </div>
                     )}
 
-                    <div className="mb-8">
-                      <h3 className="text-3xl font-bold text-foreground mb-2">{plan.name}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed mb-4">{details.headline}</p>
+                    <div className="mb-7">
+                      <h3 className="mb-2 text-2xl font-bold tracking-[-0.02em] text-[var(--ds-ink)]">{plan.name}</h3>
+                      <p className="mb-5 text-sm leading-relaxed text-[var(--ds-mute)]">{details.headline}</p>
 
                       {plan.interval === "yearly" ? (
                         <div>
                           <div className="flex items-baseline gap-1">
-                            <span className="text-5xl font-bold text-foreground">
+                            <span className="text-5xl font-extrabold tracking-[-0.04em] text-[var(--ds-ink)]">
                               {formatMoney(Math.round(monthlyCents(plan)), plan.amount_currency)}
                             </span>
-                            <span className="text-muted-foreground">/month</span>
+                            <span className="text-[var(--ds-mute)]">/month</span>
                           </div>
-                          <div className="mt-1.5 text-sm text-muted-foreground">
+                          <div className="mt-1.5 text-sm text-[var(--ds-mute)]">
                             Billed {formatMoney(plan.amount_cents, plan.amount_currency)} yearly
                             {saving > 0 && <span className="ml-1.5 font-semibold text-success">· Save {saving}%</span>}
                           </div>
                         </div>
                       ) : (
                         <div className="flex items-baseline gap-1">
-                          <span className="text-5xl font-bold text-foreground">
+                          <span className="text-5xl font-extrabold tracking-[-0.04em] text-[var(--ds-ink)]">
                             {formatMoney(plan.amount_cents, plan.amount_currency)}
                           </span>
-                          <span className="text-muted-foreground">/month</span>
+                          <span className="text-[var(--ds-mute)]">/month</span>
                         </div>
                       )}
                     </div>
 
-                    <Button
+                    <button
+                      type="button"
                       onClick={() => setLoginOpen(true)}
-                      className={cn(
-                        "w-full mb-8 h-11 rounded-[15px] font-semibold",
-                        details.highlighted ? "bg-[#111] text-white hover:bg-black" : "border-border hover:bg-elevated",
-                      )}
-                      variant={details.highlighted ? "default" : "outline"}
+                      className={buttonClass(hi ? "glow" : "secondary", "lg", "mb-7 w-full")}
                     >
                       {details.cta}
-                    </Button>
+                    </button>
 
-                    <div className="space-y-3 flex-1">
+                    <ul className="flex-1 space-y-3 border-t border-[var(--ds-line)] pt-6">
                       {details.features.map((feature) => {
                         const text = typeof feature === "string" ? feature : feature.text;
                         const tooltip = typeof feature === "string" ? undefined : feature.tooltip;
                         return (
-                          <div key={text} className="flex items-start gap-3">
-                            <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                            <span className="text-sm text-foreground">{text}</span>
+                          <li key={text} className="flex items-start gap-3">
+                            <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-[var(--ds-v1)]" aria-hidden="true" />
+                            <span className="min-w-0 text-sm text-[var(--ds-ink)]">{text}</span>
                             {tooltip && (
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger aria-label={tooltip}>
-                                    <Info className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                                    <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-[var(--ds-dim)]" />
                                   </TooltipTrigger>
                                   <TooltipContent className="max-w-[220px]">{tooltip}</TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
                             )}
-                          </div>
+                          </li>
                         );
                       })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                    </ul>
+                  </Card>
+                </div>
+              );
+            })}
           </div>
+        </section>
 
-          {/* Enhanced flow visualization with step numbers */}
-          <div className="mt-16 mb-0">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
-              {/* Step 1: Idea */}
-              <div className="group flex flex-col items-start md:items-center">
-                <div className="mb-3 inline-flex items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-primary">Step 1</span>
-                  <span className="text-primary">•</span>
+        {/* How it works */}
+        <Section labelledBy="how-h">
+          <SectionHeading id="how-h" kicker="02 — How it works" title="Idea to live app." center />
+          <ol className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {[
+              { n: "Step 1", icon: Lightbulb, title: "Your idea", body: "Tell your AI exactly what app you want to build. Any idea, any size." },
+              { n: "Step 2", icon: Cpu, title: "AI builds it", body: "Your AI writes all the code. Claude, Cursor, Bolt — any tool works." },
+              { n: "Step 3", icon: Zap, title: "Embarko makes it real", body: "Deploy to Embarko. Your app goes live with a real URL, database, and login." },
+            ].map(({ n, icon: Icon, title, body }) => (
+              <Card as="li" key={n} className="min-w-0 p-7">
+                <span className="ds-kicker">{n}</span>
+                <div className="mb-5 inline-flex rounded-2xl border border-[var(--ds-line)] bg-[var(--ds-soft)] p-3">
+                  <Icon className="h-6 w-6 text-[var(--ds-v1)]" strokeWidth={1.5} aria-hidden="true" />
                 </div>
-                <div className="mb-6 p-5 bg-primary/8 border border-primary/25 group-hover:border-primary group-hover:bg-primary/12 transition-all duration-300">
-                  <Lightbulb className="w-7 h-7 text-primary" strokeWidth={1.5} />
-                </div>
-                <h3 className="text-lg font-bold text-foreground mb-3 md:text-center">Your idea</h3>
-                <p className="text-sm text-muted-foreground md:text-center leading-relaxed">
-                  Tell your AI exactly what app you want to build. Any idea, any size.
-                </p>
-              </div>
+                <h3 className="mb-2 text-lg font-bold text-[var(--ds-ink)]">{title}</h3>
+                <p className="text-sm leading-relaxed text-[var(--ds-mute)]">{body}</p>
+              </Card>
+            ))}
+          </ol>
+        </Section>
 
-              {/* Step 2: AI Builds */}
-              <div className="group flex flex-col items-start md:items-center">
-                <div className="mb-3 inline-flex items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-primary">Step 2</span>
-                  <span className="text-primary">•</span>
-                </div>
-                <div className="mb-6 p-5 bg-primary/8 border border-primary/25 group-hover:border-primary group-hover:bg-primary/12 transition-all duration-300">
-                  <Cpu className="w-7 h-7 text-primary" strokeWidth={1.5} />
-                </div>
-                <h3 className="text-lg font-bold text-foreground mb-3 md:text-center">AI builds it</h3>
-                <p className="text-sm text-muted-foreground md:text-center leading-relaxed">
-                  Your AI writes all the code. Claude, Cursor, Bolt — any tool works.
-                </p>
-              </div>
+        {/* AI Compatibility Section */}
+        <Section labelledBy="compat-h" wrap={false}>
+          <SectionHeading
+            id="compat-h"
+            kicker="03 — Compatible with"
+            title="Built with any AI tool."
+            sub={
+              <>
+                Claude Code, Cursor, Bolt, Lovable, v0, Replit, GPT, or even Codex — if an AI tool built it, Embarko can host it.
+                <br />
+                Deploy the same way from any editor. No special setup. No vendor lock-in.
+              </>
+            }
+            center
+          />
 
-              {/* Step 3: Goes Live */}
-              <div className="group flex flex-col items-start md:items-center">
-                <div className="mb-3 inline-flex items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-primary">Step 3</span>
-                  <span className="text-primary">•</span>
-                </div>
-                <div className="mb-6 p-5 bg-primary/8 border border-primary/25 group-hover:border-primary group-hover:bg-primary/12 transition-all duration-300">
-                  <Zap className="w-7 h-7 text-primary" strokeWidth={1.5} />
-                </div>
-                <h3 className="text-lg font-bold text-foreground mb-3 md:text-center">Embarko makes it real</h3>
-                <p className="text-sm text-muted-foreground md:text-center leading-relaxed">
-                  Deploy to Embarko. Your app goes live with a real URL, database, and login.
-                </p>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* AI Compatibility Section */}
-      <section className="px-6 py-16 bg-elevated">
-        <div className="mx-auto max-w-[74rem]">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 mb-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-primary">Compatible with</span>
-              <span className="text-primary/40">•</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Built with any AI tool.
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto mb-2 leading-relaxed">
-              Claude Code, Cursor, Bolt, Lovable, v0, Replit, GPT, or even Codex — if an AI tool built it, Embarko can host it.
-            </p>
-            <p className="text-sm text-muted-foreground max-w-3xl mx-auto">Deploy the same way from any editor. No special setup. No vendor lock-in.</p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <ul className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {/* `icon` names a mark in public/agenticons; GPT and Codex share
                 OpenAI's, which is the mark both ship under. */}
             {[
@@ -298,65 +248,41 @@ export function PricingPageClient({ plans: fetched }: { plans: BillingPlan[] }) 
               { name: "GPT", detail: "Export code", icon: "codex" },
               { name: "Codex", detail: "Export code", icon: "codex" },
             ].map((tool) => (
-              <div key={tool.name} className="p-4 border border-border/50 bg-card hover:border-primary/40 hover:bg-primary/5 transition-all duration-300">
-                <div className="mb-2 flex items-center gap-2">
+              <Card as="li" key={tool.name} className="min-w-0 p-4">
+                <div className="mb-1.5 flex items-center gap-2">
                   {/* Decorative: the tool's name is right beside it. */}
-                  <img
-                    src={agentIconSrc(tool.icon)}
-                    alt=""
-                    aria-hidden="true"
-                    className="size-4 shrink-0"
-                  />
-                  <div className="text-sm font-semibold text-foreground">{tool.name}</div>
+                  <img src={agentIconSrc(tool.icon)} alt="" aria-hidden="true" className="size-4 shrink-0" />
+                  <div className="min-w-0 text-sm font-semibold text-[var(--ds-ink)] [overflow-wrap:anywhere]">{tool.name}</div>
                 </div>
-                <div className="text-xs text-muted-foreground">{tool.detail}</div>
-              </div>
+                <div className="text-xs text-[var(--ds-mute)]">{tool.detail}</div>
+              </Card>
             ))}
-          </div>
+          </ul>
 
           {/* The reader has just found their own tool in the grid; the prompt
               is the next thing they need, not a scroll further down. */}
-          <div className="mt-10 text-center">
-            <CopyPromptButton
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-[15px] bg-[#111] px-8 text-base font-semibold text-white transition hover:bg-black"
-              copiedChildren={<><Check className="h-4 w-4" aria-hidden="true" />{COPIED_LABEL}</>}
-            >
-              <Copy className="h-4 w-4" aria-hidden="true" />
-              Copy the deploy prompt
-            </CopyPromptButton>
-            <p className="mt-4 text-sm text-muted-foreground">
-              Paste it into your AI agent and ask it to deploy.
-            </p>
+          <div className="ds-ctas mt-10">
+            <PrimaryCta glow={false} size="md" />
           </div>
-        </div>
-      </section>
+          <p className="mt-4 text-center text-sm text-[var(--ds-mute)]">Paste it into your AI agent and ask it to deploy.</p>
+        </Section>
 
-      {/* Final CTA Section */}
-      <section className="px-6 py-24">
-        <div className="mx-auto max-w-[74rem] text-center">
-          <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
-            Your next idea<br />
-            could be live today.
-          </h2>
-          <p className="text-xl text-muted-foreground mb-12 max-w-xl mx-auto leading-relaxed">
-            Build it with AI. Ship it with Embarko.
-          </p>
-          {/* The next step is the agent's, not a signup form: nobody creates an
-              Embarko app by hand, so the closing CTA hands over the prompt. */}
-          <CopyPromptButton
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-[15px] bg-[#111] px-8 text-base font-semibold text-white transition hover:bg-black"
-            copiedChildren={<><Check className="h-4 w-4" aria-hidden="true" />{COPIED_LABEL}</>}
-          >
-            <Copy className="h-4 w-4" aria-hidden="true" />
-            Copy the deploy prompt
-          </CopyPromptButton>
-          <p className="mt-4 text-sm text-muted-foreground">
-            Paste it into your AI agent and ask it to deploy.
-          </p>
-        </div>
-      </section>
+        {/* The next step is the agent's, not a signup form: nobody creates an
+            Embarko app by hand, so the closing CTA hands over the prompt. */}
+        <CtaSection
+          id="next"
+          title={
+            <>
+              Your next idea
+              <br />
+              could be <Serif>live</Serif> today.
+            </>
+          }
+          line="Build it with AI. Ship it with Embarko."
+        />
+      </div>
 
       <SiteFooter />
-    </div>
+    </main>
   );
 }
