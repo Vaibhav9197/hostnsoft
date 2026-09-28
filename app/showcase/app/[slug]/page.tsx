@@ -7,7 +7,7 @@ import { SiteHeader } from "../../../components/SiteHeader";
 import { SiteFooter } from "../../../components/SiteFooter";
 import { SITE } from "../../../lib/site";
 import { categorySlug, getApp, getAppForContact, listApps, tagSlug, type ShowcaseApp } from "../../../lib/showcase";
-import { TileGrid, hostOf } from "../../kit";
+import { BackToShowcase, TileGrid, hostOf } from "../../kit";
 import { ShareApp } from "../../share";
 import { CtaSection } from "../../../components/ds";
 import { Media } from "./Media";
@@ -141,6 +141,9 @@ export default async function ShowcaseAppPage({ params }: Props) {
       <SiteHeader />
 
       <article className="sc-wrap sc-layer">
+        <div className="sc-topback">
+          <BackToShowcase />
+        </div>
         <section className="sc-top">
           <div className="sc-info">
             {app.category && (

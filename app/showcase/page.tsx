@@ -35,9 +35,7 @@ export default async function ShowcasePage() {
         <Hero
           title={
             <>
-              Built by AI agents.
-              <br />
-              <Serif grad>Hosted</Serif> by Embarko.
+              <Serif grad>Hosted</Serif> on Embarko.
             </>
           }
           sub={

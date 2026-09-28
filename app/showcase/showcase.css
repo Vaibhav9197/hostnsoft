@@ -314,3 +314,6 @@
 /* Tags sit tight under the description; the gap moves below them. */
 .sc .sc-what:has(+ .sc-tags){margin-bottom:0}
 .sc .sc-what + .sc-tags{margin-top:8px;margin-bottom:22px}
+/* App page: the Back / Showcase link above the title. */
+.sc .sc-topback{padding-top:24px}
+.sc .sc-topback + .sc-top{padding-top:24px}
