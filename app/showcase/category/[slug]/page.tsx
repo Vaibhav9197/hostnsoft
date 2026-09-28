@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+
+import { PrimaryCta } from "../../../components/ds";
+import { showcaseGeneralPrompt } from "../../../lib/showcasePrompt";
 
 import { categoryFromSlug, listAppsInCategory, nameFromSlug } from "../../../lib/showcase";
 import { ListPage } from "../../ListPage";
-import { ShareRow } from "../../share";
 import { ShowcaseBreadcrumbs } from "../../breadcrumbs";
 
 /**
@@ -52,21 +52,17 @@ export default async function CategoryPage({ params }: Props) {
         title={category}
         lede={`${count} in this category`}
         apps={apps}
+        shareTitle={`${category} apps — ${count} on Embarko Showcase`}
         actions={
           <>
-            <Link href="/app/showcase/submit" className="sc-btn pri">
-              List your app here <ArrowRight aria-hidden="true" />
-            </Link>
-            <ShareRow title={`${category} apps — ${count} on Embarko Showcase`} />
+            <PrimaryCta size="md" glow={false} label="Copy prompt to add your app" text={showcaseGeneralPrompt()} />
           </>
         }
         empty={{
           title: "No apps yet.",
           body: `No ${category} apps have been listed so far. Yours could be the first.`,
           action: (
-            <Link href="/app/showcase/submit" className="sc-btn">
-              List your app
-            </Link>
+            <PrimaryCta size="md" glow={false} label="Copy prompt to add your app" text={showcaseGeneralPrompt()} />
           ),
         }}
       />

@@ -1,7 +1,10 @@
 import Link from "next/link";
-import { ArrowRight, Copy } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
+import { ShotImage } from "./ShotImage";
+import { PrimaryCta } from "../components/ds";
 import { COPIED_LABEL, CopyPromptButton } from "../components/CopyPromptButton";
+import { showcaseGeneralPrompt } from "../lib/showcasePrompt";
 
 import type { ShowcaseApp } from "../lib/showcase";
 
@@ -17,16 +20,10 @@ import type { ShowcaseApp } from "../lib/showcase";
  * It is decoration, so it is hidden from assistive tech — the name and the
  * description next to it carry the meaning.
  */
-/* Pastel ground, accent and highlight for the stand-in art, one set per
-   mark colour so a tile's preview and its letter mark always agree. */
+/* Ground and highlight for the stand-in art: the site's own cream tones, so a
+   gallery of apps without screenshots stays calm rather than multicoloured. */
 const ART: Record<string, { bg: string; hi: string }> = {
-  "#5b5bff": { bg: "#f4f4ff", hi: "#d6d6ff" },
-  "#a24bff": { bg: "#f6f3ff", hi: "#d9ccff" },
-  "#ff5e87": { bg: "#fff3f5", hi: "#ffc6d2" },
-  "#0ea5e9": { bg: "#effaff", hi: "#bde7ff" },
-  "#16a34a": { bg: "#f3fbf3", hi: "#b9f0c4" },
-  "#f59e0b": { bg: "#fff8ef", hi: "#ffd79a" },
-  "#0b0b0f": { bg: "#ffffff", hi: "#d4f774" },
+  "#1a1916": { bg: "#fdfdfb", hi: "#eceae3" },
 };
 
 /**
@@ -38,7 +35,7 @@ export function PreviewArt({ app }: { app: ShowcaseApp }) {
   let hash = 0;
   for (let i = 0; i < app.slug.length; i++) hash = (hash * 31 + app.slug.charCodeAt(i)) >>> 0;
   const acc = markColor(app.slug);
-  const { bg, hi } = ART[acc] ?? ART["#0b0b0f"];
+  const { bg, hi } = ART[acc] ?? ART["#1a1916"];
   const fg = "#0b0b0f";
   const kind = (["phone", "cards", "chart", "chat"] as const)[hash % 4];
   const title = app.name.length > 22 ? app.name.slice(0, 21) + "…" : app.name;
@@ -150,13 +147,7 @@ export function Shot({ app, alt, eager }: { app: ShowcaseApp; alt?: string; eage
   /* Plain img, not next/image: these are arbitrary third-party URLs from a
      public form, and routing them through the optimiser would make this site
      fetch whatever a submitter points it at. */
-  return (
-    <img
-      src={resolveScreenshotUrl(app.screenshotUrl)}
-      alt={alt ?? ""}
-      loading={eager ? "eager" : "lazy"}
-    />
-  );
+  return <ShotImage src={resolveScreenshotUrl(app.screenshotUrl)} alt={alt ?? ""} eager={eager} />;
 }
 
 /** "Ada Lovelace" → "Ada". Tiles have room for a first name only. */
@@ -171,7 +162,7 @@ export function hostOf(url: string): string {
 
 /* The letter mark beside each name. Decoration only, so the colour is seeded
    from the slug: stable between renders, and it never implies anything. */
-const MARKS = ["#5b5bff", "#a24bff", "#ff5e87", "#0ea5e9", "#16a34a", "#f59e0b", "#0b0b0f"];
+const MARKS = ["#1a1916"];
 export function markColor(seed: string): string {
   let hash = 0;
   for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
@@ -196,7 +187,7 @@ export function Mark({ app }: { app: ShowcaseApp }) {
 export function Tile({ app, index = 0 }: { app: ShowcaseApp; index?: number }) {
   const meta = [app.category, `by ${firstName(app.creatorName)}`].filter(Boolean).join(" · ");
   return (
-    <article className="sc-tile" style={{ animationDelay: `${Math.min(index, 8) * 60}ms` }}>
+    <article className="sc-tile">
       <Link href={`/showcase/app/${app.slug}`} className="sc-cover" aria-label={`${app.name} — view app`} />
       <div className="th">
         <Shot app={app} />
@@ -229,34 +220,6 @@ export function TileGrid({ apps }: { apps: ShowcaseApp[] }) {
   );
 }
 
-/**
- * The dark prompt bar. `text` is what is shown; with `copyText` the button
- * copies that instead (the full build-like-this prompt); without it the
- * button copies the Embarko deploy prompt, whose real text is long and lives
- * in lib/deployPrompt.ts, so the bar shows a one-line summary of it.
- */
-export function PromptBlock({
-  text,
-  copyText,
-  full,
-}: {
-  text: string;
-  copyText?: string;
-  full?: boolean;
-}) {
-  return (
-    <div className={`sc-prompt${full ? " full" : ""}`}>
-      <code>
-        <b aria-hidden="true">›</b> {text}
-      </code>
-      <CopyPromptButton className="sc-btn sm" text={copyText} copiedChildren={COPIED_LABEL}>
-        <Copy aria-hidden="true" />
-        {copyText ? "Copy prompt" : "Copy deployment prompt"}
-      </CopyPromptButton>
-    </div>
-  );
-}
-
 export function Steps({ steps }: { steps: string[] }) {
   return (
     <ol className="sc-steps">
@@ -271,10 +234,9 @@ export function Steps({ steps }: { steps: string[] }) {
 }
 
 /** The closing section every gallery-style page ends on: go make one. */
-export function DeployCta({ listHref = "/app/showcase/submit" }: { listHref?: string | null }) {
+export function DeployCta({ listPrompt = showcaseGeneralPrompt() }: { listPrompt?: string | null }) {
   return (
     <section className="sc-mega" id="deploy" aria-labelledby="deploy-h">
-      <span className="sc-pill grad">No signup to start</span>
       <h2 id="deploy-h">
         Your idea deserves
         <br />a <span className="sc-serif">real</span> link.
@@ -283,11 +245,16 @@ export function DeployCta({ listHref = "/app/showcase/submit" }: { listHref?: st
         Paste this into Claude, Cursor or any agent. It builds the app, Embarko puts it online, and
         it can show up right here.
       </p>
-      <PromptBlock text="Deploy my app with Embarko and give me the live link." />
+      <div className="sc-ctas mb-[18px]">
+        <PrimaryCta />
+      </div>
       <Steps steps={["Copy the prompt", "Paste into your agent", "Share your live link"]} />
-      {listHref && (
+      {listPrompt && (
         <p className="sc-list">
-          Already live on Embarko? <Link href={listHref}>List your app</Link>
+          Already live on Embarko?{" "}
+          <CopyPromptButton className="sc-list-copy" text={listPrompt} copiedChildren={COPIED_LABEL}>
+            Copy prompt to add your app
+          </CopyPromptButton>
         </p>
       )}
     </section>
@@ -295,16 +262,7 @@ export function DeployCta({ listHref = "/app/showcase/submit" }: { listHref?: st
 }
 
 /** Back link to the gallery, used at the top of every sub-page. */
-export function BackToShowcase() {
-  return (
-    <Link href="/showcase" className="sc-back">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-        <path d="M19 12H5M11 6l-6 6 6 6" />
-      </svg>
-      Showcase
-    </Link>
-  );
-}
+export { BackLink as BackToShowcase } from "./BackLink";
 
 /** Empty list on a category / tag / collection page. */
 export function EmptyList({ title, body, action }: { title: string; body: string; action?: React.ReactNode }) {

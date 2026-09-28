@@ -3,6 +3,7 @@ import { Instrument_Serif } from "next/font/google";
 import "./base.css";
 import "./design.css";
 import { GoogleTagManager, GoogleTagManagerNoScript } from "./components/analytics/GoogleTagManager";
+import { NavDepth } from "./components/NavDepth";
 import { PageViewTracker } from "./components/analytics/PageViewTracker";
 import { ConnectorTokenPickup } from "./components/connector/ConnectorTokenPickup";
 import { SITE } from "./lib/site";
@@ -151,6 +152,7 @@ export default function RootLayout({
         />
         <GoogleTagManagerNoScript />
         <PageViewTracker />
+        <NavDepth />
         <ConnectorTokenPickup />
         {children}
       </body>

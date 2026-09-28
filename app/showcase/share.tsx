@@ -62,36 +62,37 @@ const WaIcon = () => (
   </svg>
 );
 
-/** Pill row for category, tag and collection pages. */
+/** Round share buttons for category, tag and collection pages — the same
+ *  look as the app page's, at the right end of the title line. */
 export function ShareRow({ title }: { title: string }) {
   const { copied, copy } = useCopyLink();
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <button type="button" onClick={copy} className="sc-btn sm">
+    <div className="sc-share sc-share-title">
+      <button type="button" className="sc-btn" onClick={() => openShare("x", title)} aria-label="Share on X">
+        <XIcon />
+      </button>
+      <button type="button" className="sc-btn" onClick={() => openShare("linkedin", title)} aria-label="Share on LinkedIn">
+        <InIcon />
+      </button>
+      <button type="button" className="sc-btn" onClick={() => openShare("whatsapp", title)} aria-label="Share on WhatsApp">
+        <WaIcon />
+      </button>
+      <button type="button" className="sc-btn" onClick={copy} aria-label={copied ? "Link copied" : "Copy link"}>
         {copied ? <Check aria-hidden="true" /> : <Link2 aria-hidden="true" />}
-        {copied ? "Link copied" : "Copy link"}
       </button>
-      <button type="button" onClick={() => openShare("x", title)} className="sc-btn sm">
-        Share on X
-      </button>
-      <button type="button" onClick={() => openShare("linkedin", title)} className="sc-btn sm">
-        LinkedIn
-      </button>
-      <button type="button" onClick={() => openShare("whatsapp", title)} className="sc-btn sm">
-        WhatsApp
-      </button>
+      <output className="sc-sr" aria-live="polite">
+        {copied ? "Link copied to clipboard." : ""}
+      </output>
     </div>
   );
 }
 
-/** The app page's share block: round network buttons, then the copyable link. */
+/** The app page's share block: round network buttons plus a copy-link icon. */
 export function ShareApp({ title, name }: { title: string; name: string }) {
   const { copied, copy } = useCopyLink();
-  const [link, setLink] = useState("");
   const [canNative, setCanNative] = useState(false);
 
   useEffect(() => {
-    setLink(window.location.host + window.location.pathname);
     setCanNative(typeof navigator.share === "function");
   }, []);
 
@@ -108,6 +109,9 @@ export function ShareApp({ title, name }: { title: string; name: string }) {
         <button type="button" className="sc-btn" onClick={() => openShare("whatsapp", title)} aria-label="Share on WhatsApp">
           <WaIcon />
         </button>
+        <button type="button" className="sc-btn" onClick={copy} aria-label={copied ? "Link copied" : "Copy link"}>
+          {copied ? <Check aria-hidden="true" /> : <Link2 aria-hidden="true" />}
+        </button>
         {canNative && (
           <button
             type="button"
@@ -118,12 +122,6 @@ export function ShareApp({ title, name }: { title: string; name: string }) {
             <Share2 aria-hidden="true" />
           </button>
         )}
-      </div>
-      <div className="sc-copyurl">
-        <span>{link || " "}</span>
-        <button type="button" className="sc-btn sm" onClick={copy}>
-          {copied ? "Copied" : "Copy"}
-        </button>
       </div>
       <output className="sc-sr" aria-live="polite">
         {copied ? "Link copied to clipboard." : ""}

@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, ArrowUpRight, Sparkles } from "lucide-react";
+import { ArrowRight, Copy } from "lucide-react";
 
 import { SiteHeader } from "../../../components/SiteHeader";
 import { SiteFooter } from "../../../components/SiteFooter";
 import { SITE } from "../../../lib/site";
-import { categorySlug, getApp, listApps, tagSlug, type ShowcaseApp } from "../../../lib/showcase";
+import { categorySlug, getApp, getAppForContact, listApps, tagSlug, type ShowcaseApp } from "../../../lib/showcase";
 import { TileGrid, hostOf } from "../../kit";
 import { ShareApp } from "../../share";
 import { CtaSection } from "../../../components/ds";
 import { Media } from "./Media";
+import { ContactDev } from "./ContactDev";
+import { COPIED_LABEL, CopyPromptButton } from "../../../components/CopyPromptButton";
+import { buildSimilarPrompt } from "../../../lib/showcasePrompt";
 import { ShowcaseBreadcrumbs } from "../../breadcrumbs";
 
 /* SoftwareApplication schema for this one app — Organization/WebApplication
@@ -94,7 +97,11 @@ const LISTED = new Intl.DateTimeFormat("en", { month: "short", day: "numeric", y
 
 export default async function ShowcaseAppPage({ params }: Props) {
   const { slug } = await params;
-  const [app, all] = await Promise.all([getApp(slug), listApps(200)]);
+  /* The contact lookup returns the public app plus whether its owner has an
+     email on file — only that yes/no reaches the page, never the address. */
+  const [found, all] = await Promise.all([getAppForContact(slug), listApps(200)]);
+  const app = found?.app ?? null;
+  const canContact = Boolean(found?.ownerEmail);
   /* Hidden listings 404 like unknown ones. */
   if (!app) notFound();
 
@@ -147,6 +154,15 @@ export default async function ShowcaseAppPage({ params }: Props) {
               {app.name}
             </h1>
             <p className="sc-what">{app.tagline}</p>
+            {app.tags.length > 0 && (
+              <div className="sc-tags">
+                {app.tags.map((tag) => (
+                  <Link key={tag} href={`/showcase/tag/${tagSlug(tag)}`} className="sc-tag">
+                    {tag}
+                  </Link>
+                ))}
+              </div>
+            )}
             <div className="sc-byline">
               <span>
                 <span className="sc-serif by">by</span>{" "}
@@ -167,24 +183,19 @@ export default async function ShowcaseAppPage({ params }: Props) {
                 </>
               )}
             </div>
+            {(canContact || Boolean(app.prd?.trim())) && (
             <div className="sc-actions">
-              <a href={app.appUrl} target="_blank" rel="noreferrer nofollow ugc" className="sc-btn pri lg">
-                Open {app.name.length > 14 ? "app" : app.name}
-                <ArrowUpRight aria-hidden="true" />
-                <span className="sc-sr">(opens in a new tab)</span>
-              </a>
-              <a href="#ship" className="sc-btn lg">
-                <Sparkles aria-hidden="true" />
-                Deploy yours
-              </a>
-            </div>
-            {app.tags.length > 0 && (
-              <div className="sc-tags">
-                {app.tags.map((tag) => (
-                  <Link key={tag} href={`/showcase/tag/${tagSlug(tag)}`} className="sc-tag">
-                    {tag}
-                  </Link>
-                ))}
+                {canContact && <ContactDev slug={app.slug} appName={app.name} creatorName={app.creatorName} />}
+                {app.prd?.trim() && (
+                  <CopyPromptButton
+                    className="sc-btn lg"
+                    text={buildSimilarPrompt({ name: app.name, appUrl: app.appUrl, prd: app.prd })}
+                    copiedChildren={COPIED_LABEL}
+                  >
+                    <Copy aria-hidden="true" />
+                    Build similar app
+                  </CopyPromptButton>
+                )}
               </div>
             )}
           </div>

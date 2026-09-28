@@ -34,6 +34,9 @@ export interface ShowcaseApp {
   creatorName: string;
   creatorProfile: string | null;
   builtWith: string | null;
+  /** The product spec the app was built from, when the creator shared one.
+      Drives "Build similar app"; absent on most listings. */
+  prd?: string | null;
   category: string | null;
   tags: string[];
   featured: boolean;
@@ -81,12 +84,38 @@ export function uniqueByApp(apps: ShowcaseApp[]): ShowcaseApp[] {
   return apps.filter((app) => keep.has(app));
 }
 
+/* Only apps with their own screenshot are shown publicly: a gallery of
+   stand-in drawings reads as empty. The listing still exists and reappears
+   once its creator adds an image. */
+export function withScreenshot(apps: ShowcaseApp[]): ShowcaseApp[] {
+  return apps.filter((app) => Boolean(app.screenshotUrl?.trim()));
+}
+
 export async function listApps(limit = 60): Promise<ShowcaseApp[]> {
-  return uniqueByApp((await read<ShowcaseApp[]>(`/public/showcase?limit=${limit}`)) ?? []);
+  const raw = (await read<RawApp[]>(`/public/showcase?limit=${limit}`)) ?? [];
+  return withScreenshot(uniqueByApp(raw.map(withoutOwnerEmail)));
+}
+
+/* The API is adding the owner's `userEmail` to app details so "Contact Dev"
+   can reach them. It must never reach the browser: every public read goes
+   through this, and only the contact route reads the raw record. */
+type RawApp = ShowcaseApp & { userEmail?: string | null };
+function withoutOwnerEmail<T extends RawApp>(app: T): ShowcaseApp {
+  const { userEmail: _hidden, ...rest } = app;
+  void _hidden;
+  return rest;
 }
 
 export async function getApp(slug: string): Promise<ShowcaseApp | null> {
-  return read<ShowcaseApp>(`/public/showcase/apps/${encodeURIComponent(slug)}`);
+  const app = await read<RawApp>(`/public/showcase/apps/${encodeURIComponent(slug)}`);
+  return app ? withoutOwnerEmail(app) : null;
+}
+
+/** Server-only: the app plus its owner's email, for the contact route. */
+export async function getAppForContact(slug: string): Promise<{ app: ShowcaseApp; ownerEmail: string | null } | null> {
+  const app = await read<RawApp>(`/public/showcase/apps/${encodeURIComponent(slug)}`);
+  if (!app) return null;
+  return { app: withoutOwnerEmail(app), ownerEmail: app.userEmail?.trim() || null };
 }
 
 /** A collection and its public apps in one round trip. */
@@ -97,7 +126,7 @@ export async function getCollectionWithApps(
     `/public/showcase/collections/${encodeURIComponent(slug)}`,
   );
   if (!found) return null;
-  return { collection: found.collection, apps: found.projects };
+  return { collection: found.collection, apps: withScreenshot((found.projects as RawApp[]).map(withoutOwnerEmail)) };
 }
 
 /** Collections worth linking to from the gallery — only those with at least

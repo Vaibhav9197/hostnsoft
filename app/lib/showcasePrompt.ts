@@ -38,3 +38,40 @@ page slug "${page.slug}" and these details, inferring what you can from the proj
 
 When it's live, give me the link to its Showcase page.`;
 }
+
+/**
+ * The same prompt for the public Showcase itself, with no page chosen. The
+ * API still needs a page slug, so the listing goes on the company's own page,
+ * which every company has from signup and which feeds the public gallery.
+ */
+export function showcaseGeneralPrompt(): string {
+  return `List this app on the Embarko Showcase (${SITE_HOST}/showcase).
+
+If it isn't deployed to Embarko yet, deploy it first: read ${SITE}/docs/agent-quickstart.md and follow it.
+Use my deploy token — DEPLOY_TOKEN or ~/.embarko/credentials if either is set; if neither is, ask me for one from ${SITE}/app/tokens.
+
+Then list it: read ${SITE}/docs/api.md#showcase for how to call the Showcase API.
+Use my company's own Showcase page as the page slug (ask me for it if you can't tell), and these details, inferring what you can from the project and asking me for the rest:
+- name and a one-line tagline
+- what it does, and why it was built (a short paragraph each)
+- creator name, and a profile link if I have one
+- which AI built it (Claude, Codex, Cursor, Lovable, Replit, or other)
+- a category (AI Tool, Personal, Business, Productivity, Education, Game, Developer Tool, Other) and a few tags
+- a screenshot URL, and a video URL if there is one
+
+When it's live, give me the link to its Showcase page.`;
+}
+
+/**
+ * "Build similar app": a prompt that hands the agent the original app's PRD,
+ * so the visitor gets their own version, deployed on Embarko.
+ */
+export function buildSimilarPrompt(app: { name: string; appUrl: string; prd: string }): string {
+  return `Build me an app similar to ${app.name} (${app.appUrl}), following this PRD. Adapt anything that's specific to the original, and ask me before changing the core idea.
+
+--- PRD ---
+${app.prd.trim()}
+--- end PRD ---
+
+When it's built, deploy it with Embarko: read ${SITE}/docs/agent-quickstart.md and follow it, then give me the live link.`;
+}

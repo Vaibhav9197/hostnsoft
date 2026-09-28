@@ -1,3 +1,5 @@
+import { showcaseListPrompt } from "../../lib/showcasePrompt";
+import { PrimaryCta } from "../../components/ds";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -5,7 +7,6 @@ import { ArrowRight } from "lucide-react";
 
 import { getCollectionWithApps } from "../../lib/showcase";
 import { ListPage } from "../ListPage";
-import { ShareRow } from "../share";
 import { ShowcaseBreadcrumbs } from "../breadcrumbs";
 
 /**
@@ -52,7 +53,6 @@ export default async function CollectionPage({ params }: Props) {
 
   const { collection: meta, apps } = found;
   const count = `${apps.length} ${apps.length === 1 ? "app" : "apps"}`;
-  const submitHref = `/app/showcase/submit?page=${encodeURIComponent(meta.slug)}`;
 
   return (
     <>
@@ -63,22 +63,28 @@ export default async function CollectionPage({ params }: Props) {
            a share link knows what they are looking at. */
         lede={meta.type === "company" ? `Apps built by ${meta.title}` : `An event page — ${count} built and shared here`}
         intro={meta.intro}
+        /* An event page exists to collect apps, so it says how right away:
+           the button copies a prompt that lists the visitor's app here. */
+        note={
+          meta.type === "public"
+            ? "Built something for this event? Copy the prompt, paste it into your AI agent, and your app appears on this page."
+            : null
+        }
         apps={apps}
         /* Only an event page takes anyone's app; a company page takes that
            company's own, which it lists from its console. */
-        listHref={meta.type === "public" ? submitHref : null}
+        listPrompt={meta.type === "public" ? showcaseListPrompt(meta) : null}
+        shareTitle={meta.type === "public" ? `${meta.title} — list your AI-built app on Embarko` : `${meta.title} — ${count} built with AI`}
+        shareWhenEmpty={meta.type === "public"}
         actions={
           <>
             {meta.type === "public" ? (
-              <Link href={submitHref} className="sc-btn pri">
-                Add your app to this page <ArrowRight aria-hidden="true" />
-              </Link>
+              <PrimaryCta size="md" glow={false} label="Copy prompt to add your app" text={showcaseListPrompt(meta)} />
             ) : (
               <Link href="/showcase" className="sc-btn">
                 Browse the Showcase <ArrowRight aria-hidden="true" />
               </Link>
             )}
-            <ShareRow title={`${meta.title} — ${count} built with AI`} />
           </>
         }
         /* A collection can exist before anything is in it — it is created
@@ -91,9 +97,7 @@ export default async function CollectionPage({ params }: Props) {
               : `Apps appear here as soon as ${meta.title} lists them.`,
           action:
             meta.type === "public" ? (
-              <Link href={submitHref} className="sc-btn">
-                Be the first
-              </Link>
+              <PrimaryCta size="md" glow={false} label="Copy prompt to add your app" text={showcaseListPrompt(meta)} />
             ) : undefined,
         }}
       />

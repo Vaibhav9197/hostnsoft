@@ -2,6 +2,7 @@ import { SiteHeader } from "../components/SiteHeader";
 import { SiteFooter } from "../components/SiteFooter";
 import type { ShowcaseApp } from "../lib/showcase";
 import { BackToShowcase, DeployCta, EmptyList, TileGrid } from "./kit";
+import { ShareRow } from "./share";
 
 /**
  * The shared frame for category, tag and collection pages: a compact hero,
@@ -14,7 +15,10 @@ export function ListPage({
   actions,
   apps,
   empty,
-  listHref,
+  listPrompt,
+  note,
+  shareTitle,
+  shareWhenEmpty = false,
 }: {
   title: string;
   lede: string;
@@ -22,22 +26,29 @@ export function ListPage({
   actions: React.ReactNode;
   apps: ShowcaseApp[];
   empty: { title: string; body: string; action?: React.ReactNode };
-  listHref?: string | null;
+  listPrompt?: string | null;
+  /** One line under the intro telling the visitor what to do here. */
+  note?: string | null;
+  /** Text for share posts. Share only shows once the page has apps: an
+      empty page isn't worth sending anyone to. */
+  shareTitle?: string;
+  /** Show share even while empty — an event page is shared to invite
+      participants before anything is listed. */
+  shareWhenEmpty?: boolean;
 }) {
   return (
     <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased">
       <SiteHeader />
-      <div className="sc-aurora" aria-hidden="true" style={{ height: 520, opacity: 0.7 }}>
-        <i />
-        <i />
-        <i />
-      </div>
       <div className="sc-wrap sc-layer">
         <section className="sc-subhero">
           <BackToShowcase />
-          <h1>{title}</h1>
+          <div className="sc-titlebar">
+            <h1>{title}</h1>
+            {shareTitle && (apps.length > 0 || shareWhenEmpty) && <ShareRow title={shareTitle} />}
+          </div>
           <p className="sc-lede">{lede}</p>
           {intro && <p className="sc-intro">{intro}</p>}
+          {note && <p className="sc-note">{note}</p>}
           <div className="sc-row">{actions}</div>
         </section>
 
@@ -45,7 +56,7 @@ export function ListPage({
           {apps.length > 0 ? <TileGrid apps={apps} /> : <EmptyList {...empty} />}
         </div>
 
-        <DeployCta listHref={listHref} />
+        <DeployCta listPrompt={listPrompt} />
       </div>
       <SiteFooter />
     </main>

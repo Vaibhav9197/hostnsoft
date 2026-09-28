@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, Search } from "lucide-react";
 
-import type { Collection, ShowcaseApp } from "../lib/showcase";
+import type { ShowcaseApp } from "../lib/showcase";
 import { Tile } from "./kit";
 
 /** Matches an app against a free-text query across every field a visitor
@@ -42,13 +41,7 @@ const SORTS: Array<[Sort, string]> = [
  * all three, so they always agree. Chip counts are real: they count the apps
  * this page loaded, and a category with none is not shown.
  */
-export function SearchGallery({
-  apps,
-  collections,
-}: {
-  apps: ShowcaseApp[];
-  collections: Collection[];
-}) {
+export function SearchGallery({ apps }: { apps: ShowcaseApp[] }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [sort, setSort] = useState<Sort>("new");
@@ -88,16 +81,7 @@ export function SearchGallery({
   const filtering = query.trim().length > 0 || category !== null;
 
   return (
-    <section aria-labelledby="explore-h">
-      <div className="sc-sech" id="explore">
-        <div>
-          <h2 id="explore-h">Explore</h2>
-          <p>
-            {apps.length} {apps.length === 1 ? "app" : "apps"}
-          </p>
-        </div>
-      </div>
-
+    <section aria-label="Explore apps" id="explore" className="sc-explore">
       <div className="sc-bar">
         <label className="sc-search">
           <Search aria-hidden="true" />
@@ -173,16 +157,6 @@ export function SearchGallery({
 
       {/* Company and event pages. Kept as a quiet line of links rather than a
           sidebar: most visitors browse by category, not by page. */}
-      {collections.length > 0 && (
-        <nav className="sc-pages" aria-label="Showcase pages">
-          <span>Pages:</span>
-          {collections.map((c) => (
-            <Link key={c.slug} href={`/showcase/${encodeURIComponent(c.slug)}`}>
-              {c.title}
-            </Link>
-          ))}
-        </nav>
-      )}
     </section>
   );
 }
