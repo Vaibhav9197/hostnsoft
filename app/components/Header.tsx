@@ -74,7 +74,7 @@ export function Header({ onAuthClick, links }: HeaderProps) {
 
   return (
     <nav
-      className={`fixed inset-x-0 top-0 z-50 transition-colors duration-200 ${
+      className={`fixed inset-x-0 top-[var(--beta-bar-h)] z-50 transition-colors duration-200 ${
         solid
           ? /* Without backdrop-filter the translucency alone would leave text
                sitting on whatever scrolls past, so those browsers get the

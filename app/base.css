@@ -10,6 +10,7 @@
 
 /* Design tokens — light + orange palette. AppHome v4 inspired. */
 :root{
+  --beta-bar-h:34px;      /* fixed beta notice (components/BetaBanner) — every offset reads this */
   --bg:#f5f4f0;           /* warm cream page */
   --surface:#fdfdfb;      /* near-white card */
   --surface-2:#eceae3;    /* deeper cream for chips/inputs */
@@ -180,3 +181,11 @@
 html .text-success {
   color: var(--ok) !important;
 }
+
+/* Clear the fixed beta bar (components/BetaBanner). Unlayered and after the
+   base reset so it beats `* { padding: 0 }`. scroll-padding keeps anchor
+   jumps from landing under it; it adds to any per-section scroll-mt. */
+html{scroll-padding-top:var(--beta-bar-h)}
+body{padding-top:var(--beta-bar-h)}
+/* Pages that don't render the bar (the signed-in panel) get no offset. */
+html:not(:has([data-beta-bar])){--beta-bar-h:0px}

@@ -309,7 +309,7 @@ export function DocView({ markdown, toc, activeSlug }: DocViewProps) {
             {/* Scrolls on its own: the guides plus a long contents list runs
                 past a short viewport, and a sticky block that overflows just
                 hides its own tail. */}
-            <div className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto pb-10">
+            <div className="sticky top-[calc(6rem+var(--beta-bar-h))] max-h-[calc(100vh-8rem-var(--beta-bar-h))] overflow-y-auto pb-10">
               {/* The docs cross-reference each other constantly, so they need
                   to be reachable from one another, not just by URL.
                   Deliberately styled as filled rows, not rail entries: moving
@@ -352,7 +352,7 @@ export function DocView({ markdown, toc, activeSlug }: DocViewProps) {
           </div>
 
           <nav className="hidden xl:block" aria-label="On this page">
-            <div className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto pb-10">
+            <div className="sticky top-[calc(6rem+var(--beta-bar-h))] max-h-[calc(100vh-8rem-var(--beta-bar-h))] overflow-y-auto pb-10">
               <TocBlock sections={sections} active={active} />
             </div>
           </nav>

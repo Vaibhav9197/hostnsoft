@@ -70,7 +70,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-2 sm:px-4">
+      <header className="sticky top-[var(--beta-bar-h)] z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-2 sm:px-4">
         {/* Navigation sits on the left, next to the account it belongs to; the
             right edge is for the plan chip. */}
         <HeaderUserMenu />

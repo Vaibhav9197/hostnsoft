@@ -84,9 +84,13 @@ export function SectionSnap({
     const offsetEl = offsetSelector ? document.querySelector(offsetSelector) : null;
     const chromeHeight = () => (offsetEl instanceof HTMLElement ? offsetEl.offsetHeight : 0);
 
+    const betaBarHeight = () =>
+      parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--beta-bar-h")) || 0;
+
     function measure() {
       topsRef.current = sections.map((section) =>
-        Math.round(section.getBoundingClientRect().top + window.scrollY),
+        /* Land each section just below the fixed beta bar, not under it. */
+        Math.round(section.getBoundingClientRect().top + window.scrollY - betaBarHeight()),
       );
     }
     measure();

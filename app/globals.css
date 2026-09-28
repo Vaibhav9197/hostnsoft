@@ -115,7 +115,7 @@ kbd{font-family:var(--mono);font-size:.8em;background:var(--surface-2);border:1p
 .cta-sub{font-size:.9rem;color:var(--ink-faint);margin-top:.85rem}
 
 /* ============ Header ============ */
-header{position:sticky;top:0;z-index:40;background:rgba(245,244,240,.95);backdrop-filter:blur(12px);border-bottom:1px solid transparent;transition:border-color .2s}
+header{position:sticky;top:var(--beta-bar-h);z-index:40;background:rgba(245,244,240,.95);backdrop-filter:blur(12px);border-bottom:1px solid transparent;transition:border-color .2s}
 header.scrolled{border-color:var(--line)}
 .nav{display:flex;align-items:center;justify-content:space-between;height:74px}
 .brand{display:inline-flex;align-items:center;gap:.6rem}

@@ -13,7 +13,7 @@ export function AdminNav() {
      longer than the screen, and without this the nav scrolled off the top
      and the sidebar's ground ran out behind it. */
   return (
-    <nav className="sticky top-0 h-screen w-64 shrink-0 overflow-y-auto border-r border-border bg-card text-foreground p-6 flex flex-col">
+    <nav className="sticky top-[var(--beta-bar-h)] h-[calc(100vh-var(--beta-bar-h))] w-64 shrink-0 overflow-y-auto border-r border-border bg-card text-foreground p-6 flex flex-col">
       <div>
         <div className="mb-8">
           <h1 className="text-2xl font-bold">Admin</h1>

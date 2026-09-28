@@ -4,6 +4,7 @@ import { GoogleTagManager, GoogleTagManagerNoScript } from "./components/analyti
 import { PageViewTracker } from "./components/analytics/PageViewTracker";
 import { ConnectorTokenPickup } from "./components/connector/ConnectorTokenPickup";
 import { SITE } from "./lib/site";
+import { BetaBanner } from "./components/BetaBanner";
 
 /** The default link-preview card, 1200×630. */
 const OG_IMAGE = {
@@ -132,6 +133,7 @@ export default function RootLayout({
         <GoogleTagManager />
       </head>
       <body>
+        <BetaBanner />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}
