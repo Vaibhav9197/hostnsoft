@@ -23,7 +23,7 @@ export default function AbusePage() {
 
       <Section title="How to report">
         <P>
-          Email <A href="mailto:abuse@embarko.ai">abuse@embarko.ai</A> and include:
+          Email <A href="mailto:pushpendra@walkover.in">pushpendra@walkover.in</A> and include:
         </P>
         <List>
           <Item>The full URL of the app or page you are reporting.</Item>
@@ -50,16 +50,16 @@ export default function AbusePage() {
         <List>
           <Item>
             A security vulnerability in Embarko itself goes to{" "}
-            <A href="mailto:security@embarko.ai">security@embarko.ai</A> — see our{" "}
+            <A href="mailto:pushpendra@walkover.in">pushpendra@walkover.in</A> — see our{" "}
             <A href="/security">security page</A>.
           </Item>
           <Item>
             A privacy or data protection question goes to{" "}
-            <A href="mailto:hello@embarko.ai">hello@embarko.ai</A> — see our{" "}
+            <A href="mailto:pushpendra@walkover.in">pushpendra@walkover.in</A> — see our{" "}
             <A href="/privacy">privacy policy</A>.
           </Item>
           <Item>
-            Anything else: <A href="mailto:hello@embarko.ai">hello@embarko.ai</A>.
+            Anything else: <A href="mailto:pushpendra@walkover.in">pushpendra@walkover.in</A>.
           </Item>
         </List>
       </Section>

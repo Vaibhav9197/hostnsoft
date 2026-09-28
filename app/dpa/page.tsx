@@ -44,7 +44,7 @@ export default function DpaPage() {
           on its behalf. This DPA sits alongside our <A href="/terms">Terms of Service</A> and{" "}
           <A href="/privacy">Privacy Policy</A>; if they conflict on the processing of personal data,
           this document wins. Embarko is operated by{" "}
-          <Fill>legal entity name and registered address</Fill>.
+          SuperHeroes Inc., 5th Floor, Wing B, LIC Tower, 28-29-30, PU-03, Scheme No. 54, Indore, Madhya Pradesh 452011, India.
         </P>
       </Section>
 
@@ -183,7 +183,7 @@ export default function DpaPage() {
         <P>
           We update this DPA as the service changes, and the date at the top of the page changes with
           it. For questions, a signed copy, or a security review, email{" "}
-          <A href="mailto:hello@embarko.ai">hello@embarko.ai</A>.
+          <A href="mailto:pushpendra@walkover.in">pushpendra@walkover.in</A>.
         </P>
       </Section>
     </DocumentPage>

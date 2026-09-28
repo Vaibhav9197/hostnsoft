@@ -136,5 +136,5 @@ not an app — mining, traffic proxying, and load generation are prohibited by t
 ## Other
 
     https://embarko.ai/status        platform status
-    abuse@embarko.ai                 report abuse
-    hello@embarko.ai                 contact
+    pushpendra@walkover.in                 report abuse
+    pushpendra@walkover.in                 contact

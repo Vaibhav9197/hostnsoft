@@ -26,14 +26,14 @@ export default function SupportPage() {
         <ul className="mt-3 space-y-1.5 text-[15.5px] leading-[1.6] text-muted-foreground">
           <li>
             Reporting abuse of an app hosted on Embarko — see <A href="/abuse">Report Abuse</A> or
-            email <A href="mailto:abuse@embarko.ai">abuse@embarko.ai</A>.
+            email <A href="mailto:pushpendra@walkover.in">pushpendra@walkover.in</A>.
           </li>
           <li>
             Reporting a security vulnerability — see <A href="/security">Security</A> or email{" "}
-            <A href="mailto:security@embarko.ai">security@embarko.ai</A>.
+            <A href="mailto:pushpendra@walkover.in">pushpendra@walkover.in</A>.
           </li>
           <li>
-            Anything else — email <A href="mailto:hello@embarko.ai">hello@embarko.ai</A> directly.
+            Anything else — email <A href="mailto:pushpendra@walkover.in">pushpendra@walkover.in</A> directly.
           </li>
         </ul>
       </Section>

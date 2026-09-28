@@ -155,7 +155,7 @@ export default function PrivacyPage() {
         <P>
           Depending on where you live, you may have the right to access the personal data we hold
           about you, correct it, export it, delete it, or object to some uses of it. Email{" "}
-          <A href="mailto:hello@embarko.ai">hello@embarko.ai</A> and we will respond within{" "}
+          <A href="mailto:pushpendra@walkover.in">pushpendra@walkover.in</A> and we will respond within{" "}
           <Fill>response window</Fill>. You can also complain to your local data protection
           authority; ours is <Fill>lead supervisory authority</Fill>.
         </P>
@@ -170,8 +170,8 @@ export default function PrivacyPage() {
 
       <Section title="Contact">
         <P>
-          Privacy questions go to <A href="mailto:hello@embarko.ai">hello@embarko.ai</A>. Embarko is
-          operated by <Fill>legal entity name and registered address</Fill>.
+          Privacy questions go to <A href="mailto:pushpendra@walkover.in">pushpendra@walkover.in</A>. Embarko is
+          operated by SuperHeroes Inc., 5th Floor, Wing B, LIC Tower, 28-29-30, PU-03, Scheme No. 54, Indore, Madhya Pradesh 452011, India.
         </P>
       </Section>
     </DocumentPage>

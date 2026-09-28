@@ -132,7 +132,7 @@ export default function SecurityPage() {
 
       <Section title="Reporting a vulnerability">
         <P>
-          Email <A href="mailto:security@embarko.ai">security@embarko.ai</A> with what you found and
+          Email <A href="mailto:pushpendra@walkover.in">pushpendra@walkover.in</A> with what you found and
           how to reproduce it. We will acknowledge your report within{" "}
           <Fill>acknowledgement window</Fill> and keep you posted while we investigate. While you are
           testing, please stay within your own apps and account — do not access anyone else&apos;s
@@ -144,7 +144,7 @@ export default function SecurityPage() {
       <Section title="Security reviews">
         <P>
           Running a vendor assessment? Email{" "}
-          <A href="mailto:hello@embarko.ai">hello@embarko.ai</A> and we will work through your
+          <A href="mailto:pushpendra@walkover.in">pushpendra@walkover.in</A> and we will work through your
           questionnaire.
         </P>
         <P>

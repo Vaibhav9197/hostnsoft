@@ -196,13 +196,13 @@ export default function TermsPage() {
           by the laws of <Fill>governing jurisdiction</Fill>, without regard to conflict-of-law rules,
           and the courts of <Fill>venue</Fill> have exclusive jurisdiction. Nothing here limits rights
           you have under consumer protection law that cannot be waived by agreement. Embarko is
-          operated by <Fill>legal entity name and registered address</Fill>.
+          operated by SuperHeroes Inc., 5th Floor, Wing B, LIC Tower, 28-29-30, PU-03, Scheme No. 54, Indore, Madhya Pradesh 452011, India.
         </P>
       </Section>
 
       <Section title="13. Contact">
         <P>
-          Questions about these terms? Email <A href="mailto:hello@embarko.ai">hello@embarko.ai</A>.
+          Questions about these terms? Email <A href="mailto:pushpendra@walkover.in">pushpendra@walkover.in</A>.
         </P>
       </Section>
     </DocumentPage>
