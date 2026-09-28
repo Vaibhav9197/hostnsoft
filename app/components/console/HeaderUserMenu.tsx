@@ -97,11 +97,10 @@ export function HeaderUserMenu() {
           {workspace.map(({ href, label, icon: Icon, exact }) => {
             const current = isCurrent(href, exact);
             return (
-              <DropdownMenuItem key={href} asChild className="gap-2.5">
+              <DropdownMenuItem key={href} asChild className={current ? "gap-2.5 bg-[color-mix(in_srgb,var(--ink)_8%,transparent)]" : "gap-2.5"}>
                 <Link href={href} aria-current={current ? "page" : undefined}>
-                  <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <Icon className={`size-4 shrink-0 ${current ? "text-foreground" : "text-muted-foreground"}`} aria-hidden="true" />
                   <span className={current ? "font-medium text-foreground" : undefined}>{label}</span>
-                  {current && <Check className="ml-auto size-4 shrink-0" aria-hidden="true" />}
                 </Link>
               </DropdownMenuItem>
             );

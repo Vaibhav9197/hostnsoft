@@ -43,6 +43,10 @@ function slugFrom(text: string): string {
 }
 
 
+/* The "Your company page" panel is hidden for now. Flip to true to bring it
+   back; the code is kept compiling rather than commented out. */
+const SHOW_COMPANY_PAGE = false;
+
 /** How many apps the list shows before it asks to be expanded. */
 const APPS_SHOWN = 5;
 
@@ -150,6 +154,7 @@ export default function ShowcasePage() {
       {error && <Alert>{error}</Alert>}
 
       {/* ---------------------------------------------------- company page */}
+      {SHOW_COMPANY_PAGE && (
       <Panel padded className="flex flex-col gap-3">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
@@ -195,6 +200,7 @@ export default function ShowcasePage() {
           </p>
         )}
       </Panel>
+      )}
 
       {/* ------------------------------------------------------- your apps */}
       <Panel padded className="flex flex-col gap-4">
