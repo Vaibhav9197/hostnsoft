@@ -160,6 +160,8 @@ claim an anonymous one.
 | header | `X-App-Name` | `^[a-z0-9-]+$`, 3–63 chars, no leading or trailing dash, unique platform-wide. Also the subdomain. |
 | multipart field | `source` | `.tar.gz` of the app's source, manifest at the archive root. |
 
+Or send the source as JSON instead of a file — see [JSON source](#deploy) below.
+
 **Optional:**
 
 | Where | Name | Default | Notes |
@@ -178,6 +180,36 @@ curl -X POST "https://ship.embarko.ai/apps" \
   -H "X-App-Name: my-app" \
   -H "X-App-Version: $(git rev-parse --short HEAD)" \
   -F "source=@/tmp/my-app.tar.gz"
+```
+
+**Sending the source as JSON instead.** If you can't upload a file — for
+example you're calling this through an MCP tool, or from a sandbox that
+can't make outbound requests — send the source as JSON with
+`Content-Type: application/json`. Everything else (auth, response, errors,
+build) is identical to the multipart upload.
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `appName` | Yes (or `X-App-Name` header) | Same rules as `X-App-Name`. A header wins if both are sent. |
+| `files` | Yes | Array of `{ "path", "content", "encoding"? }`. `path` is relative to the app root (manifest at the root). `encoding` is `"utf8"` (default) or `"base64"` for binary files. |
+| `version` | No | Same as `X-App-Version`. |
+
+Limits: 25 MB body, 2000 files. Leave out `node_modules`, build output,
+`.git` and `.env*` — the platform installs and builds for you. Send text
+files as plain text; use base64 only for binaries. For bigger apps, use the
+multipart upload.
+
+```bash
+curl -X POST "https://ship.embarko.ai/apps" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "appName": "my-app",
+    "files": [
+      { "path": "index.html", "content": "<h1>Hello</h1>" },
+      { "path": "logo.png", "content": "iVBORw0KGgo...", "encoding": "base64" }
+    ]
+  }'
 ```
 
 **Success — `202 Accepted`:**
@@ -234,7 +266,13 @@ it is how this deploy appears in [history](#history).
 | --- | --- | --- | --- |
 | `invalid_app_name` | 400 | No | Missing, or fails the pattern. Slugify and resend. |
 | `invalid_app_version` | 400 | No | Fails `^[a-zA-Z0-9._-]+$`. |
-| `missing_source_file` | 400 | No | No `source` in the multipart body. |
+| `missing_source_file` | 400 | No | No `source` in the multipart body, or no non-empty `files` array in a JSON body. |
+| `invalid_file_path` | 400 | No | JSON body only. A `files[].path` is absolute or contains `..`. Use paths relative to the app root. |
+| `invalid_file_content` | 400 | No | JSON body only. A `files[].content` isn't a string. |
+| `invalid_file_encoding` | 400 | No | JSON body only. `encoding` must be `utf8` or `base64`. |
+| `invalid_json` | 400 | No | JSON body doesn't parse. |
+| `source_too_large` | 413 | No | JSON body over 25 MB. Use the multipart upload. |
+| `too_many_files` | 413 | No | Over 2000 files in a JSON body. Drop `node_modules`/build output, or use the multipart upload. |
 | `unauthorized` | 401 | No | Token present but invalid or revoked. Omitting it entirely is anonymous, not an error. |
 | `app_name_taken` | 409 | No | **Another company owns this name.** Pick a different one. Never retry. |
 | `unsupported_storage_pattern` | 422 | No | App calls `window.storage`. Replace with SQLite under `DATA_DIR`. |

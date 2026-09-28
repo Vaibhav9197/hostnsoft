@@ -27,6 +27,15 @@ verbatim. A name that fails the pattern is 400 invalid_app_name.
 
     curl "https://ship.embarko.ai/apps/my-app/status"    # poll until not in_progress
 
+Can't upload a file (MCP tool call, or a sandbox that blocks outbound requests)? Send the source
+as JSON to the same endpoint — same auth, response and errors:
+
+    POST https://ship.embarko.ai/apps   Content-Type: application/json
+    { "appName": "my-app", "files": [ { "path": "index.html", "content": "<h1>hi</h1>" },
+                                      { "path": "logo.png", "content": "<base64>", "encoding": "base64" } ] }
+
+    Limits 25 MB / 2000 files. Skip node_modules, build output, .git, .env*.
+
 Four rules that decide whether this goes right:
 
 - 202 is NOT live. Poll statusUrl until deploy.status is "success", then report the URL.
