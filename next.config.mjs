@@ -13,10 +13,18 @@ const nextConfig = {
       // "Duplicate without user-selected canonical" — a redirect is the signal
       // Google actually acts on. Apex is the canonical host: it is what SITE in
       // app/lib/site.ts, the sitemap and robots.txt all say.
+      // Two rules, not one `/:path*`: on the bare root the empty match was
+      // emitted literally, sending www.embarko.ai/ to embarko.ai/:path*.
       {
-        source: "/:path*",
+        source: "/",
         has: [{ type: "host", value: "www.embarko.ai" }],
-        destination: "https://embarko.ai/:path*",
+        destination: "https://embarko.ai/",
+        permanent: true,
+      },
+      {
+        source: "/:path+",
+        has: [{ type: "host", value: "www.embarko.ai" }],
+        destination: "https://embarko.ai/:path+",
         permanent: true,
       },
 
