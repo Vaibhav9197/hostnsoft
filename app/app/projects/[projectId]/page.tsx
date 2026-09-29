@@ -25,7 +25,7 @@ export default function ProjectOverviewPage({ params }: { params: Promise<{ proj
 
   return (
     <Page>
-      <ProjectAnalytics companyId={activeCompanyId} projectId={projectId} />
+      <ProjectAnalytics companyId={activeCompanyId} projectId={projectId} isStatic={project?.kind === "static"} />
     </Page>
   );
 }

@@ -75,6 +75,9 @@ export interface Project {
   slug: string;
   name: string;
   memoryMb: number;
+  /** "static": a plain site served from its files — no process, so no env
+   *  vars, memory or logs. "service": built and run as a server app. */
+  kind: "static" | "service";
   // Anonymous-deploy state: a deploy nobody has claimed yet, and when that
   // window runs out.
   isOrphan: boolean;

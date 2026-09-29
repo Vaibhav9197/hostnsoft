@@ -129,7 +129,9 @@ export function ProjectNav({ projectId }: { projectId: string }) {
       {/* Underline tabs rather than a pill row: they read as sections of this
           project, not as separate destinations. */}
       <nav aria-label="App sections" className="-mb-px flex gap-1 overflow-x-auto border-b border-border">
-        {SECTIONS.map((section) => {
+        {/* A static site runs no process, so "App setup" (env vars) has
+            nothing to configure — the tab would only lead to a dead end. */}
+        {SECTIONS.filter((section) => !(section.seg === "environment" && project?.kind === "static")).map((section) => {
           const active = isActive(section.seg);
           return (
             <Link

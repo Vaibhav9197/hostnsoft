@@ -91,6 +91,8 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
      why they get their own sheet rather than living inside a deploy's detail.
      Fetched per slug and stream, and only while that sheet is open. */
   const slug = project?.slug ?? null;
+  // A static site runs no process, so there is no memory to show.
+  const isStatic = project?.kind === "static";
   useEffect(() => {
     if (!slug || !logsOpen) return;
     let live = true;
@@ -169,7 +171,7 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
             <TableHeader>
               <TableRow>
                 <TableHead>Deploy</TableHead><TableHead>Status</TableHead><TableHead>App version</TableHead>
-                <TableHead>Memory</TableHead><TableHead>By</TableHead><TableHead>When</TableHead>
+                {!isStatic && <TableHead>Memory</TableHead>}<TableHead>By</TableHead><TableHead>When</TableHead>
                 <TableHead className="text-right"><span className="sr-only">Actions</span></TableHead>
               </TableRow>
             </TableHeader>
@@ -185,7 +187,9 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
                   <TableCell className="font-mono">{d.version}</TableCell>
                   <TableCell><StatusPill status={d.status} /></TableCell>
                   <TableCell className="font-mono text-[0.78rem] text-faint">{d.appVersion}</TableCell>
-                  <TableCell className="font-mono text-[0.78rem] text-faint">{d.memoryMb != null ? `${d.memoryMb} MB` : "—"}</TableCell>
+                  {!isStatic && (
+                    <TableCell className="font-mono text-[0.78rem] text-faint">{d.memoryMb != null ? `${d.memoryMb} MB` : "—"}</TableCell>
+                  )}
                   <TableCell>{deployedBy(d)}</TableCell>
                   <TableCell className="font-mono text-[0.78rem] text-faint">{relativeTime(d.createdAt)}</TableCell>
                   {/* Clicking the row opens the detail panel, so the button has
@@ -278,7 +282,7 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
                 <FactGrid flush>
                   <Fact flush k="App version" v={active.appVersion} mono />
                   <Fact flush k="Image tag" v={active.imageTag ?? "—"} mono />
-                  <Fact flush k="Memory" v={active.memoryMb != null ? `${active.memoryMb} MB` : "—"} mono />
+                  {!isStatic && <Fact flush k="Memory" v={active.memoryMb != null ? `${active.memoryMb} MB` : "—"} mono />}
                   <Fact flush k="Deployed by" v={deployedBy(active)} />
                   <Fact flush k="Triggered by" v={active.triggeredBy ?? "—"} />
                   <Fact flush k="Started" v={relativeTime(active.createdAt)} />

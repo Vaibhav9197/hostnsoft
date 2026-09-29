@@ -20,11 +20,13 @@ import { deploymentsApi, envVarsApi } from "../../../../lib/hnsApi";
 import { ENV_VAR_KEY } from "../../../../lib/envFile";
 import { relativeTime } from "../../../../lib/format";
 import { useSession } from "../../../../lib/session";
+import { useProject } from "../../../../lib/useProject";
 import type { Deployment, EnvVar } from "../../../../lib/types";
 
 export default function EnvironmentPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = use(params);
   const { activeCompanyId } = useSession();
+  const { project } = useProject(activeCompanyId, projectId);
   const [vars, setVars] = useState<EnvVar[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<React.ReactNode>(null);
@@ -230,6 +232,19 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
       setVars(prev ?? null);
       setError(e instanceof Error ? e.message : "Couldn’t remove the variable.");
     }
+  }
+
+  /* Reached only by a direct link — the tab is hidden for static sites.
+     Env var writes are refused for them by the API as well. */
+  if (project?.kind === "static") {
+    return (
+      <Page>
+        <EmptyState title="Nothing to set up for a static site">
+          This app is a static site, served straight from its files. Nothing runs on the server, so there are
+          no environment variables to set. If the site needs configuration, put it in its files.
+        </EmptyState>
+      </Page>
+    );
   }
 
   return (

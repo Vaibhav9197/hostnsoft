@@ -175,9 +175,13 @@ function TopPaths({ paths }: { paths: Analytics["traffic"]["topPaths"] }) {
 export function ProjectAnalytics({
   companyId,
   projectId,
+  isStatic = false,
 }: {
   companyId: string | null;
   projectId: string;
+  /** A static site runs no process: CPU and memory would only ever read
+   *  "Not running", which looks like an outage. */
+  isStatic?: boolean;
 }) {
   const [range, setRange] = useState<AnalyticsRange>("24h");
   const [data, setData] = useState<Analytics | null>(null);
@@ -258,16 +262,20 @@ export function ProjectAnalytics({
             <Fact k="Latency p95" v={formatMs(traffic.latencyMs.p95)} mono />
             {/* current is null when the app has never been sampled — it isn't
                 running — so neither number is invented as a zero. */}
-            <Fact
-              k="CPU now"
-              v={usage.current ? `${usage.current.cpuPercent.toFixed(1)}%` : "Not running"}
-              mono
-            />
-            <Fact
-              k="Memory now"
-              v={usage.current ? `${Math.round(usage.current.memoryMb)} MB` : "Not running"}
-              mono
-            />
+            {!isStatic && (
+              <>
+                <Fact
+                  k="CPU now"
+                  v={usage.current ? `${usage.current.cpuPercent.toFixed(1)}%` : "Not running"}
+                  mono
+                />
+                <Fact
+                  k="Memory now"
+                  v={usage.current ? `${Math.round(usage.current.memoryMb)} MB` : "Not running"}
+                  mono
+                />
+              </>
+            )}
           </FactGrid>
 
           {traffic.totalRequests === 0 ? (
