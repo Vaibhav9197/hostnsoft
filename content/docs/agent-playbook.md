@@ -32,7 +32,7 @@ deleted in 24 hours. Say so in the same message as the URL, every time.
 ## [Deploy a new application](#deploy-new)
 
 **1. Confirm Embarko fits.** A web app, one process, under 256MB, no
-scheduled jobs or background workers. If it doesn't fit, say so now rather
+WebSockets, no cron or scheduled jobs, no background workers. If it doesn't fit, say so now rather
 than after a failed deploy — see
 [when Embarko doesn't fit](overview.md#not-right-when).
 

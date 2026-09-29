@@ -325,8 +325,11 @@ rotation, no versioning, no sharing between apps.
 
 ## [Scheduled jobs](#scheduled-jobs)
 
-**NOT AVAILABLE YET.** Planned. There is no cron, no timer, and no way to
-have Embarko invoke your app on a schedule.
+**NOT SUPPORTED.** There is no cron, no timer, and no way to have Embarko
+invoke your app on a schedule. Don't rely on an in-process scheduler
+(`node-cron`, APScheduler, a `setInterval` loop) either: the process restarts
+on every redeploy and may be stopped when idle, so the schedule is not
+guaranteed to fire.
 
 **Why it matters:** Reports, cleanups, digests and polling all want a
 schedule, and an app that quietly assumes one will simply never run that
@@ -393,9 +396,15 @@ what your app sets. A webhook that expects a fast acknowledgement is at odds
 with having [no background workers](#workers) — acknowledge immediately and
 keep the work short.
 
+**WebSockets are not supported.** This includes libraries built on them
+(Socket.IO, `ws`, Pusher-style realtime). An app that needs live push — chat,
+multiplayer, live dashboards — will deploy but its realtime features won't
+work. Use plain HTTP requests instead, polling from the browser on an
+interval.
+
 **Unconfirmed:** request timeout, maximum request and response body size,
-and whether WebSockets or server-sent events are supported. These are not
-documented; do not design around a particular value until they are.
+and whether server-sent events are supported. These are not documented; do
+not design around a particular value until they are.
 
 ---
 
@@ -928,7 +937,8 @@ report it as such. No alerting and no metrics export.
 | Backups and restore | **Not available** — in progress | — |
 | Application authentication (end users) | **Not available** — in progress | — |
 | Access protection (private apps) | **Not available** — planned | — |
-| Scheduled jobs | **Not available** — planned | — |
+| WebSockets / realtime connections | **Not supported** | — |
+| Scheduled jobs / cron | **Not supported** | — |
 | Background jobs / workers | **Not available** — planned | — |
 | Managed object storage | **Not available** — planned | — |
 | Managed database service | **Not available** — planned | — |

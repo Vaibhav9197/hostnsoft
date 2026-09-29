@@ -186,16 +186,19 @@ shape Embarko is built around.
 
 ### [Not yet — don't choose Embarko for these](#not-yet-choose)
 
-Two items commonly put on a list like this are **not available today**. They
-are planned, and choosing Embarko for an app that depends on them means the
-app cannot work:
+Three items commonly put on a list like this are **not supported today**.
+Choosing Embarko for an app that depends on any of them means the app cannot
+work:
 
 - **Scheduled work** — no cron, no scheduled jobs.
+- **WebSockets** — no WebSocket connections, including Socket.IO. Realtime
+  features such as chat, multiplayer or live dashboards won't work; poll
+  over plain HTTP instead.
 - **Background processing** — no workers, no queues, and no support for work
   that outlives the request that started it. Embarko runs one long-lived
   process per app, listening on `PORT`.
 
-If the app genuinely needs either, say so before deploying. A common way
+If the app genuinely needs any of them, say so before deploying. A common way
 through: keep the web app on Embarko and run the scheduled or heavy piece
 elsewhere, calling into the app over HTTP.
 
