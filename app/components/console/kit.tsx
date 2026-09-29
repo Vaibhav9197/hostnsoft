@@ -181,7 +181,7 @@ export function Fact({ k, v, mono, flush }: { k: string; v: React.ReactNode; mon
 
 export function Skeleton({ className }: { className?: string }) {
   return (
-    <div className={cn("animate-pulse rounded-lg border border-border bg-elevated", className)} />
+    <div className={cn("animate-pulse rounded-lg border border-border bg-elevated motion-reduce:animate-none", className)} />
   );
 }
 
@@ -225,7 +225,7 @@ export function Tag({ children, tone }: { children: React.ReactNode; tone?: "war
       className={cn(
         "ml-2 shrink-0 rounded-full border border-border px-2 py-[0.1em] font-mono text-[0.62rem] uppercase tracking-[0.08em] text-faint",
         tone === "warn" && "border-transparent p-0 text-[0.7rem] normal-case tracking-normal text-warning",
-        tone === "ok" && "border-transparent bg-[var(--ok-soft)] text-success",
+        tone === "ok" && "border-transparent bg-[var(--ok-soft)] text-[var(--ok-ink)]",
         tone === "scheduled" && "border-amber-700/30 bg-amber-600/10 text-amber-700",
       )}
     >

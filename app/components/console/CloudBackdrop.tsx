@@ -25,9 +25,10 @@ const CLOUDS = [
    skies are — the backdrop is part of the product and shouldn't depend on a
    third-party host. */
 const NIGHT_CLOUDS = [
-  "/atmosphere/night-clear.jpg", // deep blue, stars, a few thin clouds
-  "/atmosphere/night-stars.jpg", // stars above a dark cloud bank
-  "/atmosphere/night-moonlit.jpg", // moonlight diffused through cloud
+  // Dark cloud with almost no stars; the moon sits low enough to be cropped
+  // or washed out by the gradient. The two star fields were too busy behind
+  // text, so night-clear.jpg and night-stars.jpg are no longer used.
+  "/atmosphere/night-moonlit.jpg",
 ];
 
 export function CloudBackdrop() {

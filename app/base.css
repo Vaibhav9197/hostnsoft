@@ -46,6 +46,9 @@
   --line-control:#8f887e;
   --ok:#16a34a;           /* green success */
   --ok-soft:rgba(22,163,74,.12);
+  /* Green for small text. --ok is 3.2:1 on a card, fine for a dot or an icon
+     but not for a word; this clears 4.6:1 on the page, a card and --ok-soft. */
+  --ok-ink:#15753a;
   --warn:#b45309;
   --warn-soft:rgba(180,83,9,.12);
   --info:#2563eb;
@@ -99,6 +102,7 @@
      against #14130f and read as muddy. */
   --ok:#4ade80;
   --ok-soft:rgba(74,222,128,.16);
+  --ok-ink:#4ade80;
   --warn:#fbbf24;
   --warn-soft:rgba(251,191,36,.16);
   --info:#60a5fa;

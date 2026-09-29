@@ -42,6 +42,15 @@ type Props = Omit<React.ComponentProps<"button">, "onClick"> & {
   /** What to put on the clipboard. Defaults to the prompt for the page the
       visitor is on; pass CONSOLE_DEPLOY_PROMPT for the signed-in console. */
   text?: string;
+  /** What a screen reader hears once the copy lands. Defaults to the deploy
+      prompt's wording; pass one for any other prompt. */
+  announce?: string;
+  /** Shown for a moment when the clipboard refused the copy. Without it a
+      blocked copy changes nothing on screen (the default, for every caller
+      that predates it). */
+  failedChildren?: React.ReactNode;
+  /** What a screen reader hears when the copy was refused. */
+  failedAnnounce?: string;
 };
 
 export function CopyPromptButton({
@@ -53,9 +62,13 @@ export function CopyPromptButton({
   onClicked,
   resetMs = RESET_MS,
   text,
+  announce = "Deploy prompt copied to clipboard.",
+  failedChildren,
+  failedAnnounce,
   ...props
 }: Props) {
   const [copied, setCopied] = useState(false);
+  const [failed, setFailed] = useState(false);
   const timerRef = useRef(0);
 
   useEffect(() => () => window.clearTimeout(timerRef.current), []);
@@ -72,11 +85,16 @@ export function CopyPromptButton({
          copy that did not happen — but still let onClicked run. */
       ok = false;
     }
+    window.clearTimeout(timerRef.current);
     if (ok) {
+      setFailed(false);
       setCopied(true);
       onCopied?.();
-      window.clearTimeout(timerRef.current);
       timerRef.current = window.setTimeout(() => setCopied(false), resetMs);
+    } else {
+      setCopied(false);
+      setFailed(true);
+      timerRef.current = window.setTimeout(() => setFailed(false), resetMs);
     }
     onClicked?.();
   }, [onCopied, onClicked, resetMs, text]);
@@ -89,11 +107,15 @@ export function CopyPromptButton({
         className={(copied && copiedClassName) || className}
         {...props}
       >
-        {copied && copiedChildren !== undefined ? copiedChildren : children}
+        {copied && copiedChildren !== undefined
+          ? copiedChildren
+          : failed && failedChildren !== undefined
+            ? failedChildren
+            : children}
       </button>
       {/* The label swap is visual; this is how it reaches a screen reader. */}
       <output className="sr-only" aria-live="polite">
-        {copied ? "Deploy prompt copied to clipboard." : ""}
+        {copied ? announce : failed && failedAnnounce ? failedAnnounce : ""}
       </output>
     </>
   );

@@ -208,6 +208,23 @@ Read ${SITE}/docs/agent-playbook.md#claim and follow it: redeploy this same app,
 Then confirm the deploy succeeded and tell me the app is now permanent.`;
 }
 
+/**
+ * The empty console's main action: keep an app deployed before signing up,
+ * with a token made on the spot. No app name — the agent that deployed it
+ * still has the project and knows the name it used, so the person has
+ * nothing to look up or paste.
+ */
+export function consoleKeepPromptWithToken(token: string): string {
+  return `Keep the Embarko app you deployed for me without an account. It will be deleted after 24 hours unless it's claimed.
+
+Read ${SITE}/docs/agent-playbook.md#claim and follow it: redeploy that same app with the exact same name, using this Embarko deploy token: ${token}
+Set it as DEPLOY_TOKEN and save it to ~/.embarko/credentials so later deploys reuse it. Don't print the token back to me.
+
+If you haven't deployed an app to Embarko in this project, tell me instead of deploying a new one.
+
+Then confirm the deploy succeeded and tell me the app is now permanent.`;
+}
+
 /** "my-app.embarko.app", "https://my-app.embarko.app/x" or "my-app" → "my-app". */
 export function appNameFromLink(input: string): string | null {
   const s = input.trim().toLowerCase().replace(/^https?:\/\//, "").split(/[/?#]/)[0];

@@ -28,6 +28,7 @@
     "nanoid": "^5.1.16",
     "next": "^15.5.22",
     "postcss": "^8.5.26",
+    "qrcode-generator": "^2.0.4",
     "radix-ui": "^1.6.7",
     "react": "19.0.0",
     "react-dom": "19.0.0",

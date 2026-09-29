@@ -130,19 +130,21 @@ export default function ProjectsPage() {
       {/* Only the projects list gets the sky — the rest of the console stays plain. */}
       <CloudBackdrop />
 
-      <PageHeader
-        title="Your apps"
-        /* Hidden while there are no apps: the empty state below is the same
-           action, and two of it split attention on the first screen. */
-        actions={
-          projects && projects.length > 0 ? (
+      {/* No header while there are no apps: the empty state below says what
+          goes here and carries the one action, so a title above it only
+          repeats it. It also stays hidden while the list is loading, so it
+          doesn't flash in before an empty result. */}
+      {projects && projects.length > 0 && (
+        <PageHeader
+          title="Your apps"
+          actions={
             <Button onClick={() => setCreating((v) => !v)}>
               <Plus />
               Deploy an app
             </Button>
-          ) : undefined
-        }
-      />
+          }
+        />
+      )}
 
       {/* Parked with createProject: naming an app up front is gone for now,
           because the deploy is what creates it.
@@ -172,7 +174,7 @@ export default function ProjectsPage() {
         </div>
       )}
 
-      {projects && projects.length === 0 && <FirstAppEmpty onWaitingChange={setListening} />}
+      {projects && projects.length === 0 && <FirstAppEmpty onWaitingChange={setListening} onCheckNow={() => load(true)} />}
 
       {projects && projects.length > 0 && (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">

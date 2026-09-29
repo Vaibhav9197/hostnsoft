@@ -11,8 +11,8 @@ function Switch({ className, ...props }: SwitchPrimitive.Root.Props) {
       data-slot="switch"
       className={cn(
         "peer inline-flex h-5 w-9 shrink-0 items-center rounded-full border border-transparent transition-colors outline-none",
-        "data-[checked]:bg-primary data-[unchecked]:bg-input",
-        "focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50",
+        "data-[checked]:bg-primary data-[unchecked]:bg-control",
+        "focus-visible:ring-[3px] focus-visible:ring-[color-mix(in_srgb,var(--accent)_50%,transparent)] disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       {...props}

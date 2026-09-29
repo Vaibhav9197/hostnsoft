@@ -1,438 +1,828 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import { ArrowUpRight, Check, Copy } from "lucide-react";
-
-import { COPIED_LABEL, CopyPromptButton } from "../../../components/CopyPromptButton";
-import { ConfirmDialog, type ConfirmRequest } from "../../../components/console/ConfirmDialog";
+import { useParams, usePathname, useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowUpRight, Copy, MoreVertical, Trash2 } from "lucide-react";
 import {
-  Alert,
-  EmptyState,
-  LinkButton,
-  Page,
-  PageHeader,
-  Panel,
-  PanelTitle,
-  Skeleton,
-  Tag,
-} from "../../../components/console/kit";
-import { Button, buttonVariants } from "../../../components/ui/button";
-import { Switch } from "../../../components/ui/switch";
-import { showcaseApi } from "../../../lib/hnsApi";
-import { HnsError } from "../../../lib/client";
-import { formatDate } from "../../../lib/format";
-import { showcaseListPrompt } from "../../../lib/showcasePrompt";
-import { useSession } from "../../../lib/session";
-import type { ShowcaseCollectionDetail, ShowcaseListing } from "../../../lib/types";
-import { SITE_HOST } from "../../../lib/site";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/app/components/ui/dropdown-menu";
+import { toast } from "sonner";
+
+import { COPIED_LABEL, CopyPromptButton } from "@/app/components/CopyPromptButton";
+import { ConfirmDialog, type ConfirmRequest } from "@/app/components/console/ConfirmDialog";
+import { Alert, EmptyState, LinkButton, Page, Panel, PanelTitle, Skeleton, Tag } from "@/app/components/console/kit";
+import { CopyButton } from "@/app/components/console/showcase/CopyButton";
+import { ListingRows, showingText } from "@/app/components/console/showcase/ListingRows";
+import { ShareKit } from "@/app/components/console/showcase/ShareKit";
+import { Button, buttonVariants } from "@/app/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
+import { HnsError } from "@/app/lib/client";
+import { projectsApi, showcaseApi } from "@/app/lib/hnsApi";
+import { useSession } from "@/app/lib/session";
+import { readSeen, writeSeen, type Seen } from "@/app/lib/showcaseSeen";
+import { showcaseListPrompt } from "@/app/lib/showcasePrompt";
+import { ListOnShowcaseDialog } from "@/app/components/console/showcase/ListOnShowcaseDialog";
+import { useOrigin } from "@/app/lib/showcaseShare";
+import { SITE_HOST } from "@/app/lib/site";
+import type { Project, ShowcaseCollectionDetail, ShowcaseListing } from "@/app/lib/types";
+import { cn } from "@/app/lib/utils";
 
 /**
- * One Showcase page, from the side of whoever owns it: your company page,
- * or an event page you created. The owner controls one thing per app —
- * whether it stays visible on the page. Taking an app off Showcase for good
- * is its owner's job, from their own console.
+ * One showcase page, from the side of whoever owns it. Two kinds:
+ *
+ *   Event page        — made by an organiser for a hackathon, class or demo
+ *                       day; anyone on Embarko can add an app to it. Here the
+ *                       job is getting the word out (the share kit), then
+ *                       keeping an eye on what arrives.
+ *   Embarko Showcase  — the workspace's own page, which is how its apps get
+ *                       into the public gallery. Here the job is "which of my
+ *                       apps are on it", and listing the ones that aren't.
+ *
+ * The owner controls one thing per app — whether it shows on the public
+ * page — and can take an app off. Everything else about an app is its
+ * builder's, from their own panel or their AI.
+ *
+ * An event page keeps itself current while it's open: new apps are held in
+ * a "2 new apps just added · Show" line rather than pushed into the list, so
+ * the list never moves under the organiser's cursor. Embarko Showcase only
+ * re-reads when you come back to the tab — usually after your AI listed an
+ * app — and puts what's new straight in the list.
  */
 
-/* One way of getting an app onto the page: what it is, who it is for, the
-   button that does it. */
-function ShareCard({
-  step,
-  title,
-  body,
-  detail,
-  action,
-}: {
-  step: string;
-  title: string;
-  body: string;
-  detail?: string;
-  action: React.ReactNode;
-}) {
+const POLL_MS = 30_000;
+/* After ten quiet minutes the page checks half as often. */
+const POLL_QUIET_MS = 60_000;
+const QUIET_AFTER_MS = 10 * 60_000;
+/* Matches the row's collapse transition in ListingRows. */
+const COLLAPSE_MS = 200;
+const UNLISTED_SHOWN = 5;
+
+const FOCUS = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
+
+type Meta = Omit<ShowcaseCollectionDetail, "projects">;
+
+function metaOf(d: ShowcaseCollectionDetail): Meta {
+  const { projects, ...meta } = d;
+  void projects;
+  return meta;
+}
+
+/* What counts as "something changed" for the poll's back-off. */
+function signature(list: ShowcaseListing[]): string {
+  return list
+    .map((l) => `${l.id}:${l.updatedAt}:${l.isPrivate ? 1 : 0}`)
+    .sort()
+    .join("|");
+}
+
+function withId(s: ReadonlySet<string>, id: string): ReadonlySet<string> {
+  return new Set(s).add(id);
+}
+
+function withoutId(s: ReadonlySet<string>, id: string): ReadonlySet<string> {
+  const next = new Set(s);
+  next.delete(id);
+  return next;
+}
+
+/* A navigation that looks like LinkButton, at a 44px target on phones. */
+function TextLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-border bg-elevated p-4">
-      <div className="flex items-center gap-2.5">
-        <span className="grid size-6 shrink-0 place-items-center rounded-full border border-current text-[0.7rem] font-bold leading-none text-foreground">
-          {step}
-        </span>
-        <span className="text-[0.95rem] font-semibold text-foreground">{title}</span>
-      </div>
-      <p className="flex-1 text-[0.86rem] leading-relaxed text-muted-foreground">{body}</p>
-      {detail && <code className="truncate font-mono text-[0.75rem] text-faint">{detail}</code>}
-      <div>{action}</div>
-    </div>
+    <Link
+      href={href}
+      className={cn(
+        "inline-flex min-h-11 items-center text-[0.84rem] font-semibold text-muted-foreground transition-colors hover:text-foreground hover:underline motion-reduce:transition-none sm:min-h-0",
+        FOCUS,
+      )}
+    >
+      {children}
+    </Link>
   );
 }
 
-export default function ShowcaseCollectionPage() {
+export default function ShowcaseManagePage() {
   const { collectionId } = useParams<{ collectionId: string }>();
-  const { activeCompanyId } = useSession();
+  const pathname = usePathname();
   const router = useRouter();
+  const { activeCompanyId } = useSession();
+  const origin = useOrigin();
 
-  const [detail, setDetail] = useState<ShowcaseCollectionDetail | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [notFound, setNotFound] = useState(false);
-
-  const [copied, setCopied] = useState<"page" | "link" | null>(null);
-  const [busyListing, setBusyListing] = useState<string | null>(null);
+  const [status, setStatus] = useState<"loading" | "ready" | "notFound" | "error">("loading");
+  const [meta, setMeta] = useState<Meta | null>(null);
+  /* The rows on screen, and the ones that arrived while you were looking. */
+  const [rows, setRows] = useState<ShowcaseListing[]>([]);
+  const [pending, setPending] = useState<ShowcaseListing[]>([]);
+  /* What this browser saw last visit, read once per page before it's
+     overwritten, and the ids that came in through "Show" since. */
+  const [prevSeen, setPrevSeen] = useState<Seen | null>(null);
+  const [revealed, setRevealed] = useState<ReadonlySet<string>>(() => new Set());
+  const [projects, setProjects] = useState<Project[] | null>(null);
+  const [projectsFailed, setProjectsFailed] = useState(false);
+  /* The app whose "List it" dialog is open. */
+  const [listTarget, setListTarget] = useState<Project | null>(null);
+  const [removing, setRemoving] = useState<ReadonlySet<string>>(() => new Set());
+  const [busy, setBusy] = useState<ReadonlySet<string>>(() => new Set());
   const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [celebrate, setCelebrate] = useState(false);
+  const [pageError, setPageError] = useState<string | null>(null);
+  const [showAllUnlisted, setShowAllUnlisted] = useState(false);
+
+  /* Read by the refresh, which runs outside render. */
+  const rowsRef = useRef(rows);
+  rowsRef.current = rows;
+  const removingRef = useRef(removing);
+  removingRef.current = removing;
+
+  /* listing id → the newest switch flip still waiting on the server. A
+     refresh leaves those rows alone so a slow poll can't undo a flip. */
+  const inflight = useRef(new Map<string, number>());
+  const opSeq = useRef(0);
+  /* A clock shared by refreshes and flips. A flip that settles after a
+     refresh began is newer than what that refresh read, so the refresh
+     keeps the row as it is on screen. */
+  const clock = useRef(0);
+  const settledAt = useRef(new Map<string, number>());
+  /* Listings removed here. A refresh that read the page before the removal
+     landed must not bring one back as "new". */
+  const removedIds = useRef(new Set<string>());
+  const lastSig = useRef("");
+  const lastChange = useRef(0);
+  const seenFor = useRef<string | null>(null);
+  const refreshing = useRef(false);
+  const celebrateHeading = useRef<HTMLHeadingElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+
+  /* Arriving from "Create event page": play the moment once, then drop the flag
+     from the address so a reload or a shared link never replays it. */
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("new") !== "1") return;
+    setCelebrate(true);
+    router.replace(pathname, { scroll: false });
+  }, [pathname, router]);
+
+  /* `quiet`: a re-read in the background, which keeps what's on screen if
+     it fails rather than hiding the sections that depend on it. */
+  const loadProjects = useCallback(async (companyId: string, quiet = false) => {
+    try {
+      setProjects(await projectsApi.list(companyId));
+      setProjectsFailed(false);
+    } catch {
+      if (quiet) return;
+      setProjects(null);
+      setProjectsFailed(true);
+    }
+  }, []);
 
   const load = useCallback(async () => {
     if (!activeCompanyId || !collectionId) return;
-    setError(null);
+    setStatus("loading");
     try {
-      setDetail(await showcaseApi.getCollection(activeCompanyId, collectionId));
-    } catch (e) {
-      if (e instanceof HnsError && e.status === 404) {
-        setNotFound(true);
-        return;
+      const d = await showcaseApi.getCollection(activeCompanyId, collectionId);
+      setMeta(metaOf(d));
+      setRows(d.projects);
+      setPending([]);
+      lastSig.current = signature(d.projects);
+      lastChange.current = Date.now();
+      if (seenFor.current !== d.id) {
+        seenFor.current = d.id;
+        setPrevSeen(readSeen(d.id));
+        writeSeen(d.id, d.projects.length);
       }
-      setError(e instanceof Error ? e.message : "Couldn’t load this page.");
+      setStatus("ready");
+      void loadProjects(activeCompanyId);
+    } catch (e) {
+      setStatus(e instanceof HnsError && e.status === 404 ? "notFound" : "error");
     }
-  }, [activeCompanyId, collectionId]);
+  }, [activeCompanyId, collectionId, loadProjects]);
 
   useEffect(() => {
-    load();
+    void load();
   }, [load]);
 
-  /* The submit form with this page preselected. Built at click time so it
-     uses the current origin. */
-  function inviteLink(slug: string) {
-    return `${window.location.origin}/app/showcase/submit?page=${encodeURIComponent(slug)}`;
-  }
-
-  async function copy(kind: "page" | "link") {
-    if (!detail) return;
-    try {
-      await navigator.clipboard.writeText(
-        kind === "page" ? `${window.location.origin}/showcase/${detail.slug}` : inviteLink(detail.slug)
-      );
-      setCopied(kind);
-      window.setTimeout(() => setCopied(null), 1800);
-    } catch {
-      setCopied(null);
-    }
-  }
-
-  async function setPrivate(listing: ShowcaseListing, isPrivate: boolean) {
-    if (!activeCompanyId || !collectionId) return;
-    setBusyListing(listing.id);
-    setError(null);
-    try {
-      const updated = await showcaseApi.setListingPrivate(activeCompanyId, collectionId, listing.id, isPrivate);
-      setDetail((d) => (d ? { ...d, projects: d.projects.map((p) => (p.id === updated.id ? updated : p)) } : d));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn’t change visibility.");
-    } finally {
-      setBusyListing(null);
-    }
-  }
-
-  function askRemoveListing(listing: ShowcaseListing) {
-    setConfirm({
-      title: `Remove ${listing.name} from this page?`,
-      body: "It comes off this page and the gallery straight away. The app’s owner can add it again if they want to.",
-      cta: "Remove from page",
-      destructive: true,
-      onConfirm: async () => {
-        if (!activeCompanyId || !collectionId) return;
-        setBusyListing(listing.id);
-        setError(null);
-        try {
-          await showcaseApi.removeListing(activeCompanyId, collectionId, listing.id);
-          setDetail((d) =>
-            d
-              ? {
-                  ...d,
-                  projects: d.projects.filter((p) => p.id !== listing.id),
-                  counts: { total: d.counts.total - 1, publicCount: d.counts.publicCount - (listing.isPrivate ? 0 : 1) },
-                }
-              : d
-          );
-        } catch (e) {
-          setError(e instanceof Error ? e.message : "Couldn’t remove that listing.");
-        } finally {
-          setBusyListing(null);
+  /**
+   * A quiet re-read: no skeleton, and search, chips and scroll stay put.
+   * Changes and removals apply at once; apps that are new to the screen wait
+   * in `pending` — unless `reveal`, or this is Embarko Showcase, where they
+   * go straight in the list. There nobody is watching the list fill up: the
+   * new app is almost always one your own AI just listed, and holding it
+   * back would leave the header counting an app the body doesn't show.
+   */
+  const refresh = useCallback(
+    async (reveal = false) => {
+      if (!activeCompanyId || !collectionId || refreshing.current) return;
+      refreshing.current = true;
+      const started = ++clock.current;
+      try {
+        const fresh = await showcaseApi.getCollection(activeCompanyId, collectionId);
+        const listings = fresh.projects.filter((p) => !removedIds.current.has(p.id));
+        const sig = signature(listings);
+        if (sig !== lastSig.current) {
+          lastSig.current = sig;
+          lastChange.current = Date.now();
         }
+        const byId = new Map(listings.map((p) => [p.id, p]));
+        const current = rowsRef.current;
+        const onScreen = new Set(current.map((r) => r.id));
+        const kept = current.flatMap((r) => {
+          const f = byId.get(r.id);
+          /* Gone upstream: drop it, unless it's mid-collapse from our own Remove. */
+          if (!f) return removingRef.current.has(r.id) ? [r] : [];
+          const newerHere = inflight.current.has(r.id) || (settledAt.current.get(r.id) ?? 0) > started;
+          return newerHere ? [r] : [f];
+        });
+        const arrived = listings.filter((p) => !onScreen.has(p.id));
+
+        setMeta(metaOf(fresh));
+        if (reveal || fresh.type === "company") {
+          setRows([...arrived, ...kept]);
+          setPending([]);
+          if (fresh.type === "public") setRevealed((s) => new Set([...s, ...arrived.map((a) => a.id)]));
+          writeSeen(fresh.id, arrived.length + kept.filter((r) => !removingRef.current.has(r.id)).length);
+        } else {
+          setRows(kept);
+          setPending(arrived);
+        }
+      } catch {
+        /* Keep what's on screen; the next check tries again. */
+      } finally {
+        refreshing.current = false;
+      }
+    },
+    [activeCompanyId, collectionId],
+  );
+
+  const isEvent = meta?.type === "public";
+
+  /* Coming back to the tab is when someone most expects fresh numbers. On
+     Embarko Showcase that is also when an app may have been deployed, so
+     "Not on Showcase yet" is re-read too. */
+  useEffect(() => {
+    if (status !== "ready") return;
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      void refresh();
+      if (activeCompanyId) void loadProjects(activeCompanyId, true);
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [status, refresh, isEvent, activeCompanyId, loadProjects]);
+
+  /* Event pages fill up while the organiser watches; poll while visible. */
+  useEffect(() => {
+    if (status !== "ready" || !isEvent) return;
+    let stopped = false;
+    let timer = 0;
+    const schedule = () => {
+      const quiet = Date.now() - lastChange.current > QUIET_AFTER_MS;
+      timer = window.setTimeout(
+        async () => {
+          if (document.visibilityState === "visible") await refresh();
+          if (!stopped) schedule();
+        },
+        quiet ? POLL_QUIET_MS : POLL_MS,
+      );
+    };
+    schedule();
+    return () => {
+      stopped = true;
+      window.clearTimeout(timer);
+    };
+  }, [status, isEvent, refresh]);
+
+  /* ------------------------------------------------------------ derived */
+
+  const liveRows = useMemo(() => rows.filter((r) => !removing.has(r.id)), [rows, removing]);
+  /* The header counts what's on the page now, including apps not yet shown. */
+  const everything = useMemo(() => [...liveRows, ...pending], [liveRows, pending]);
+  const total = everything.length;
+  const countText = showingText(everything);
+
+  const isNew = useCallback(
+    (l: ShowcaseListing) =>
+      revealed.has(l.id) || (prevSeen !== null && Date.parse(l.createdAt) > Date.parse(prevSeen.at)),
+    [revealed, prevSeen],
+  );
+  const projectSlugs = useMemo(() => new Map((projects ?? []).map((p) => [p.id, p.slug])), [projects]);
+  const unlisted = useMemo(() => {
+    const listed = new Set(everything.map((l) => l.projectId));
+    return (projects ?? []).filter((p) => !listed.has(p.id));
+  }, [everything, projects]);
+
+  const showCelebration = celebrate && isEvent && liveRows.length === 0;
+
+  useEffect(() => {
+    if (showCelebration) celebrateHeading.current?.focus();
+  }, [showCelebration]);
+
+  /* The moment plays once. After the first app is on the list it's spent,
+     so removing that app later doesn't bring "Your page is live." back. */
+  useEffect(() => {
+    if (liveRows.length > 0) setCelebrate(false);
+  }, [liveRows.length]);
+
+  /* "Can't be removed" stops being true once the page is empty again. */
+  useEffect(() => {
+    if (total === 0) setPageError(null);
+  }, [total]);
+
+  /* After "Show", focus moves to the first app it brought in; the button
+     that had it is gone. */
+  const [focusListing, setFocusListing] = useState<string | null>(null);
+  useEffect(() => {
+    if (!focusListing) return;
+    setFocusListing(null);
+    const target = document.querySelector<HTMLElement>(`[data-listing="${CSS.escape(focusListing)}"] a`);
+    (target ?? bodyRef.current)?.focus({ preventScroll: !target });
+  }, [focusListing]);
+
+  /* ------------------------------------------------------------ actions */
+
+  function showPending() {
+    if (!meta || pending.length === 0) return;
+    const ids = pending.map((p) => p.id);
+    setRows((rs) => [...pending, ...rs]);
+    setRevealed((s) => new Set([...s, ...ids]));
+    setPending([]);
+    setPageError(null);
+    writeSeen(meta.id, liveRows.length + pending.length);
+    /* The list is newest first, so the newest arrival is its first row. */
+    const newest = [...pending].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+    setFocusListing(newest?.id ?? null);
+  }
+
+  /* The switch answers at once; the server catches up. Only the newest flip
+     of a row may settle it, so quick double-taps can't land out of order. */
+  function toggle(l: ShowcaseListing, on: boolean) {
+    if (!activeCompanyId || !collectionId) return;
+    const seq = ++opSeq.current;
+    inflight.current.set(l.id, seq);
+    const before = rowsRef.current.find((r) => r.id === l.id)?.isPrivate ?? l.isPrivate;
+    setRows((rs) => rs.map((r) => (r.id === l.id ? { ...r, isPrivate: !on } : r)));
+    showcaseApi.setListingPrivate(activeCompanyId, collectionId, l.id, !on).then(
+      (updated) => {
+        if (inflight.current.get(l.id) !== seq) return;
+        inflight.current.delete(l.id);
+        settledAt.current.set(l.id, ++clock.current);
+        setRows((rs) => rs.map((r) => (r.id === updated.id ? updated : r)));
       },
+      () => {
+        if (inflight.current.get(l.id) !== seq) return;
+        inflight.current.delete(l.id);
+        settledAt.current.set(l.id, ++clock.current);
+        setRows((rs) => rs.map((r) => (r.id === l.id ? { ...r, isPrivate: before } : r)));
+        toast.error(on ? `Couldn’t show ${l.name}. Try again.` : `Couldn’t hide ${l.name}. Try again.`);
+      },
+    );
+  }
+
+  function askRemove(l: ShowcaseListing) {
+    if (!meta) return;
+    const own = l.companyId === activeCompanyId;
+    const where = meta.type === "public" ? meta.title : "Embarko Showcase";
+    const body =
+      meta.type === "public"
+        ? own
+          ? `It comes off ${meta.title} straight away. You can add it again any time.`
+          : `It comes off ${meta.title} straight away. The app itself stays live, and ${l.creatorName} can add it again.`
+        : "It comes off Embarko Showcase and its Showcase page goes away. The app itself stays live. You can list it again any time.";
+    setConfirm({
+      title: `Remove ${l.name} from this page?`,
+      body,
+      cta: "Remove",
+      destructive: true,
+      dismiss: "Keep it",
+      onConfirm: () => void removeListing(l, where),
     });
   }
 
-  function askDelete() {
-    if (!detail) return;
+  async function removeListing(l: ShowcaseListing, where: string) {
+    if (!activeCompanyId || !collectionId) return;
+    setBusy((s) => withId(s, l.id));
+    try {
+      await showcaseApi.removeListing(activeCompanyId, collectionId, l.id);
+      removedIds.current.add(l.id);
+      setRemoving((s) => withId(s, l.id));
+      toast.success(`${l.name} removed from ${where}.`);
+      /* One fewer app than last seen, and nothing new seen: without this,
+         apps that arrive later only to bring the count back up would never
+         show as "New apps" on the Showcase tab. */
+      if (meta) {
+        const seen = readSeen(meta.id);
+        if (seen) writeSeen(meta.id, Math.max(0, seen.total - 1), seen.at);
+      }
+      window.setTimeout(() => {
+        /* Focus went back to this row's Remove when the dialog closed; don't
+           let it fall to the top of the page when the row goes. */
+        const el = document.activeElement;
+        if (!el || el === document.body || (el instanceof HTMLElement && el.closest(`[data-listing="${l.id}"]`))) {
+          bodyRef.current?.focus({ preventScroll: true });
+        }
+        setRows((rs) => rs.filter((r) => r.id !== l.id));
+        setRemoving((s) => withoutId(s, l.id));
+      }, COLLAPSE_MS);
+    } catch {
+      toast.error(`Couldn’t remove ${l.name}. Try again.`);
+    } finally {
+      setBusy((s) => withoutId(s, l.id));
+    }
+  }
+
+  async function copyAddPrompt() {
+    if (!meta) return;
+    try {
+      await navigator.clipboard.writeText(showcaseListPrompt({ slug: meta.slug, title: meta.title, type: "public" }));
+      toast.success("Prompt copied. Share it with participants.");
+    } catch {
+      toast.error("Couldn’t copy. Try again.");
+    }
+  }
+
+  function askRemovePage() {
+    if (!meta) return;
+    const m = meta;
     setConfirm({
-      title: `Remove ${detail.title}?`,
-      body: "The page goes away and its address becomes free for anyone. Only possible while no apps are on it.",
+      title: `Remove ${m.title}?`,
+      body: `Its link, posters and QR codes stop working, and someone else could take ${SITE_HOST}/showcase/${m.slug}.`,
       cta: "Remove page",
       destructive: true,
-      onConfirm: async () => {
-        if (!activeCompanyId) return;
-        try {
-          await showcaseApi.removeCollection(activeCompanyId, detail.id);
-          router.push("/app/showcase");
-        } catch (e) {
-          setError(e instanceof Error ? e.message : "Couldn’t remove this page.");
-        }
-      },
+      dismiss: "Keep it",
+      onConfirm: () => void removePage(m),
     });
   }
 
-  if (notFound) {
+  async function removePage(m: Meta) {
+    if (!activeCompanyId) return;
+    setPageError(null);
+    try {
+      await showcaseApi.removeCollection(activeCompanyId, m.id);
+      toast.success(`${m.title} removed.`);
+      router.push("/app/showcase");
+    } catch (e) {
+      if (e instanceof HnsError && e.code === "SHOWCASE_COLLECTION_NOT_EMPTY") {
+        setPageError("Someone just added an app, so this page can’t be removed.");
+        await refresh(true);
+        return;
+      }
+      toast.error(`Couldn’t remove ${m.title}. Try again.`);
+    }
+  }
+
+  /* ------------------------------------------------------------- states */
+
+  if (status === "notFound") {
     return (
       <Page>
         <Alert variant="note">
-          This Showcase page isn’t one of yours.{" "}
-          <Link href="/app/showcase" className="underline">
+          This showcase page isn’t one of yours, or it was removed.{" "}
+          <Link href="/app/showcase" className={cn("font-semibold text-foreground underline underline-offset-2", FOCUS)}>
             Back to Showcase
           </Link>
-          .
         </Alert>
       </Page>
     );
   }
 
-  const isEvent = detail?.type === "public";
+  if (status === "error") {
+    return (
+      <Page>
+        <div role="alert">
+          <Alert>
+            Couldn’t load this page.{" "}
+            <LinkButton
+              danger
+              onClick={() => void load()}
+              className={cn("underline underline-offset-2 max-sm:inline-flex max-sm:min-h-11 max-sm:items-center", FOCUS)}
+            >
+              Try again
+            </LinkButton>
+          </Alert>
+        </div>
+      </Page>
+    );
+  }
+
+  if (status === "loading" || !meta) {
+    return (
+      <Page>
+        <div className="flex flex-col gap-3" aria-hidden="true">
+          <Skeleton className="h-5 w-24" />
+          <Skeleton className="h-8 w-64 max-w-full" />
+          <Skeleton className="h-4 w-80 max-w-full" />
+        </div>
+        <Skeleton className="h-[280px]" />
+      </Page>
+    );
+  }
+
+  const pendingText = pending.length === 1 ? "1 new app just added" : `${pending.length} new apps just added`;
+  const pendingLine = pending.length > 0 && (
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.85rem] text-muted-foreground">
+      <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-[var(--ok)]" />
+      {pendingText}
+      <LinkButton onClick={showPending} className={cn("min-h-11 px-1 sm:min-h-0", FOCUS)}>
+        Show
+      </LinkButton>
+    </div>
+  );
+
+  const rowsProps = {
+    page: { slug: meta.slug, title: meta.title, type: meta.type },
+    listings: rows,
+    activeCompanyId: activeCompanyId ?? "",
+    isNew,
+    removing,
+    busy,
+    onToggle: toggle,
+    onRemove: askRemove,
+  };
+
+  /* Below sm the header's buttons share one row, equal width, at 44px. */
+  const headerActions = "flex gap-2.5 [&>*]:h-11 [&>*]:flex-1 sm:shrink-0 sm:[&>*]:h-9 sm:[&>*]:flex-none";
+  /* Below sm the meta items stack and their "·" separators go. */
+  const metaLine =
+    "mt-1.5 flex flex-col items-start gap-1 text-[0.9rem] text-muted-foreground sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3";
+  const dot = (
+    <span aria-hidden="true" className="max-sm:hidden">
+      ·
+    </span>
+  );
+  /* An empty event page shows the share kit inline, with its own link and
+     Copy link. The header then steps back — no second copy button, and
+     Open page as outline — so Copy link is the one next step on screen. */
+  const kitInline = isEvent && liveRows.length === 0;
+  /* null = the public gallery itself, /showcase. */
+  const pageLink = (slug: string | null) => (
+    /* Wraps so a failed copy's select-it-yourself field gets a row of its own. */
+    <span className="inline-flex min-w-0 max-w-full flex-wrap items-center gap-1">
+      <a
+        href={slug ? `/showcase/${slug}` : "/showcase"}
+        target="_blank"
+        rel="noreferrer"
+        className={cn("min-w-0 break-all font-mono text-[0.85rem] text-foreground underline-offset-2 hover:underline", FOCUS)}
+      >
+        {SITE_HOST}/showcase{slug ? `/${slug}` : ""}
+      </a>
+      {origin && !kitInline && (
+        <CopyButton
+          iconOnly
+          text={`${origin}/showcase${slug ? `/${slug}` : ""}`}
+          aria-label="Copy page link"
+          announce="Link copied."
+          fallbackLabel="Page link to copy"
+          variant="ghost"
+          className="size-11 shrink-0 text-muted-foreground hover:text-foreground sm:size-8"
+        />
+      )}
+    </span>
+  );
 
   return (
     <Page>
-      <Link href="/app/showcase" className="text-[0.82rem] text-muted-foreground hover:text-foreground">
-        ← Showcase
-      </Link>
-
-      <PageHeader
-        title={
-          detail ? (
-            <span className="inline-flex flex-wrap items-center gap-2">
-              {detail.title}
-              {isEvent ? <Tag>Event page</Tag> : <Tag tone="ok">Your workspace page</Tag>}
-            </span>
-          ) : (
-            <Skeleton className="h-8 w-56" />
-          )
-        }
-        subtitle={
-          detail && (
-            <span className="inline-flex flex-wrap items-center gap-x-3 gap-y-1">
-              <span className="font-mono">{SITE_HOST}/showcase/{detail.slug}</span>
-              <span>
-                {detail.counts.total === 0
-                  ? "No apps yet"
-                  : `${detail.counts.publicCount} of ${detail.counts.total} ${detail.counts.total === 1 ? "app" : "apps"} visible`}
+      {isEvent ? (
+        /* ------------------------------------------------ event header */
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="break-words text-2xl font-extrabold leading-tight tracking-tight text-foreground">
+              {meta.title}
+            </h1>
+            <div className={metaLine}>
+              <span className="inline-flex items-center gap-1.5">
+                <span aria-hidden="true" className="size-2 rounded-full bg-[var(--ok)]" />
+                Live
               </span>
-            </span>
-          )
-        }
-        actions={
-          detail && (
-            <>
-              {isEvent && detail.counts.total === 0 && (
-                <Button variant="ghost" size="sm" onClick={askDelete}>
-                  Remove page
-                </Button>
-              )}
-              <Button variant="outline" size="sm" onClick={() => copy("page")}>
-                {copied === "page" ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
-                {copied === "page" ? "Copied" : "Copy page link"}
-              </Button>
-              <Button asChild size="sm">
-                <a href={`/showcase/${detail.slug}`} target="_blank" rel="noreferrer">
-                  Open page
-                  <ArrowUpRight aria-hidden="true" />
-                </a>
-              </Button>
-            </>
-          )
-        }
-      />
-
-      {error && <Alert>{error}</Alert>}
-
-      {/* ------------------------------------------------------ sharing */}
-      {/* Two ways in, side by side and equally weighted: each is the right
-          one for a different participant. The page's own address lives in
-          the header, so it is not repeated here. */}
-      {detail && (
-        <Panel padded className="flex flex-col gap-4">
-          <div>
-            <PanelTitle>{isEvent ? "Get apps onto this page" : "Add your apps to this page"}</PanelTitle>
-            <p className="mt-1 text-[0.9rem] text-muted-foreground">
-              {isEvent
-                ? "Give participants either of these. Their app appears here the moment they add it."
-                : "Either way, the app appears here and in the Showcase gallery straight away."}
-            </p>
+              {dot}
+              {pageLink(meta.slug)}
+              {dot}
+              <span>{countText}</span>
+            </div>
           </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <ShareCard
-              step="1"
-              title={isEvent ? "Invite link" : "Fill in a short form"}
-              body={
-                isEvent
-                  ? "Participants open it, pick their deployed app and say what it does. About a minute."
-                  : "Pick a deployed app and say what it does. Four fields."
-              }
-              detail={isEvent ? `${SITE_HOST}/app/showcase/submit?page=${detail.slug}` : undefined}
-              /* Display only; the copy uses the current origin. */
-              action={
-                isEvent ? (
-                  <Button onClick={() => copy("link")}>
-                    {copied === "link" ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
-                    {copied === "link" ? "Copied" : "Copy invite link"}
-                  </Button>
-                ) : (
-                  <Button asChild>
-                    <Link href="/app/showcase/submit">List an app</Link>
-                  </Button>
-                )
-              }
-            />
-            <ShareCard
-              step="2"
-              title={isEvent ? "Prompt for AI agents" : "Let your AI do it"}
-              body={
-                isEvent
-                  ? "For participants building with Claude, Cursor or Codex. Their agent deploys the app and lists it here."
-                  : "Paste it into the AI that built the app. It fills in the description, screenshot and tags from the code."
-              }
-              action={
-                <CopyPromptButton
-                  text={showcaseListPrompt(detail)}
-                  className={buttonVariants({ variant: "outline" })}
-                  copiedChildren={
-                    <>
-                      <Check aria-hidden="true" />
-                      {COPIED_LABEL}
-                    </>
-                  }
-                >
-                  <Copy aria-hidden="true" />
-                  Copy Showcase prompt
-                </CopyPromptButton>
-              }
-            />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="More actions" className="self-start sm:self-auto">
+                <MoreVertical aria-hidden="true" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onSelect={copyAddPrompt}>
+                <Copy aria-hidden="true" />
+                Copy prompt to add app
+              </DropdownMenuItem>
+              {/* Only while the page really is empty: the API refuses otherwise. */}
+              <DropdownMenuItem variant="destructive" disabled={total > 0} onSelect={askRemovePage}>
+                <Trash2 aria-hidden="true" />
+                <span className="flex flex-col">
+                  Remove this page
+                  {total > 0 && <span className="text-xs font-normal text-muted-foreground">Remove its apps first</span>}
+                </span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </header>
+      ) : (
+        /* ---------------------------------------------- company header */
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-extrabold leading-tight tracking-tight text-foreground">Embarko Showcase</h1>
+            <div className={metaLine}>
+              {pageLink(null)}
+              {dot}
+              <span>{countText}</span>
+            </div>
           </div>
-        </Panel>
+        </header>
       )}
 
-      {/* ---------------------------------------------------------- listings */}
-      {/* Rows, not a table: each app is a thing with a name, a maker and a
-          one-line description, and the one control that matters here is
-          whether it is showing. Hidden rows fade so the page reads at a
-          glance like the public one does. */}
-      <Panel padded className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <PanelTitle>Apps on this page</PanelTitle>
-            <p className="mt-1 text-[0.9rem] text-muted-foreground">
-              {isEvent
-                ? "Switch an app off to hide it from the public page without removing it. Owners can also take theirs off from their own console."
-                : "Switch an app off to hide it from the public page without removing it."}
-            </p>
-          </div>
-          {detail && detail.projects.length > 0 && (
-            <span className="text-[0.82rem] text-muted-foreground">
-              {detail.counts.publicCount} showing
-              {detail.counts.total - detail.counts.publicCount > 0 && ` · ${detail.counts.total - detail.counts.publicCount} hidden`}
-            </span>
-          )}
+      {/* Announced: it answers a Remove that has already closed its dialog. */}
+      {pageError && (
+        <div role="alert">
+          <Alert>{pageError}</Alert>
         </div>
+      )}
 
-        {!detail && <Skeleton className="h-[120px]" aria-hidden="true" />}
+      {/* Always mounted, so the arrival line is announced when it appears. */}
+      <output className="sr-only" aria-live="polite">
+        {pending.length > 0 ? `${pendingText}.` : ""}
+      </output>
 
-        {detail && detail.projects.length === 0 && (
-          <EmptyState title="No apps here yet">
-            {isEvent ? (
-              <>
-                Share the invite link above. Apps appear here the moment someone adds one.
-                <div className="mt-5">
-                  <Button onClick={() => copy("link")}>
-                    {copied === "link" ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
-                    {copied === "link" ? "Copied" : "Copy invite link"}
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <>
-                List one of your deployed apps and it appears here straight away.
-                <div className="mt-5">
-                  <Button asChild>
-                    <Link href="/app/showcase/submit">List an app</Link>
-                  </Button>
-                </div>
-              </>
-            )}
-          </EmptyState>
-        )}
-
-        {detail && detail.projects.length > 0 && (
-          <ul className="divide-y divide-border">
-            {detail.projects.map((p) => {
-              const busy = busyListing === p.id;
-              return (
-                <li
-                  key={p.id}
-                  className={`flex flex-wrap items-center justify-between gap-4 py-3.5 first:pt-0 last:pb-0 ${
-                    p.isPrivate ? "opacity-60" : ""
-                  }`}
-                >
-                  <div className="flex min-w-0 flex-1 items-start gap-3">
-                    <span className="grid size-9 shrink-0 place-items-center rounded-md bg-muted text-sm font-semibold text-primary">
-                      {p.name.charAt(0).toUpperCase()}
-                    </span>
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-x-2">
-                        <span className="truncate font-medium text-foreground">{p.name}</span>
-                        <span className="text-[0.8rem] text-muted-foreground">by {p.creatorName}</span>
-                        {p.isPrivate && <Tag>Hidden</Tag>}
-                      </div>
-                      <p className="mt-0.5 line-clamp-1 text-[0.82rem] text-muted-foreground">{p.tagline}</p>
-                      <div className="mt-1 flex flex-wrap items-center gap-x-3 text-[0.78rem] text-muted-foreground">
-                        <a
-                          href={p.appUrl}
-                          target="_blank"
-                          rel="noreferrer nofollow"
-                          className="inline-flex items-center gap-1 hover:text-foreground"
-                        >
-                          Open app
-                          <ArrowUpRight aria-hidden="true" className="size-3" />
-                        </a>
-                        {!p.isPrivate && (
-                          <a
-                            href={`/showcase/app/${p.slug}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 hover:text-foreground"
-                          >
-                            Showcase page
-                            <ArrowUpRight aria-hidden="true" className="size-3" />
-                          </a>
-                        )}
-                        <span className="text-faint">Added {formatDate(p.createdAt)}</span>
-                      </div>
+      {/* Focus lands here when a removed row takes the focused control with it. */}
+      <div ref={bodyRef} tabIndex={-1} className="flex flex-col gap-6 outline-none">
+        {isEvent ? (
+          liveRows.length === 0 ? (
+            /* ------------------------------------- event, nothing yet */
+            <>
+              {pendingLine}
+              <Panel padded>
+                {showCelebration ? (
+                  <div className="mb-8 animate-fade-up motion-reduce:animate-none">
+                    <div className="flex items-center gap-3">
+                      <span aria-hidden="true" className="relative flex size-2 shrink-0">
+                        <span className="absolute inset-0 animate-[ping_0.9s_cubic-bezier(0,0,0.2,1)_1_forwards] rounded-full bg-[var(--ok)] motion-reduce:hidden" />
+                        <span className="relative size-2 rounded-full bg-[var(--ok)]" />
+                      </span>
+                      <h2
+                        ref={celebrateHeading}
+                        tabIndex={-1}
+                        className="text-[1.6rem] font-extrabold leading-tight tracking-tight text-foreground outline-none"
+                      >
+                        Your page is <span className="ds-serif">live</span>.
+                      </h2>
                     </div>
+                    <p className="mt-1.5 text-[0.95rem] text-muted-foreground">
+                      Share it, and apps appear here as people add them.
+                    </p>
                   </div>
-
-                  <div className="flex shrink-0 items-center gap-4">
-                    <label className="inline-flex cursor-pointer items-center gap-2 text-[0.82rem] text-muted-foreground">
-                      {p.isPrivate ? "Hidden" : "Showing"}
-                      <Switch
-                        checked={!p.isPrivate}
-                        onCheckedChange={(on) => setPrivate(p, !on)}
-                        disabled={busy}
-                        aria-label={`Show ${p.name} on the page`}
-                      />
-                    </label>
-                    <LinkButton danger disabled={busy} onClick={() => askRemoveListing(p)}>
-                      Remove
-                    </LinkButton>
+                ) : (
+                  <div className="mb-5">
+                    <PanelTitle>No apps yet</PanelTitle>
                   </div>
-                </li>
-              );
-            })}
-          </ul>
+                )}
+                {/* The public page carries the "add your app" prompt, so the
+                    link is all an organiser needs to hand out. */}
+                <p className="-mt-3 text-[0.9rem] text-muted-foreground">
+                  Invite participants to add their apps. Share the page link, or send the prompt and their AI adds the app for them.
+                </p>
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <CopyButton
+                    text={`${origin ?? ""}/showcase/${meta.slug}`}
+                    announce="Link copied."
+                    fallbackLabel="Page link to copy"
+                    variant="default"
+                    className="h-11 w-full sm:h-9 sm:w-auto"
+                  >
+                    Share link
+                  </CopyButton>
+                  <CopyPromptButton
+                    text={showcaseListPrompt({ slug: meta.slug, title: meta.title, type: "public" })}
+                    announce="Prompt copied."
+                    copiedChildren={COPIED_LABEL}
+                    className={cn(buttonVariants({ variant: "outline" }), "h-11 w-full sm:h-9 sm:w-auto")}
+                  >
+                    Share prompt to add app
+                  </CopyPromptButton>
+                </div>
+              </Panel>
+            </>
+          ) : (
+            /* ------------------------------------------ event, with apps */
+            <>
+            <section className="flex flex-col gap-4">
+              <div>
+                <PanelTitle>Apps on this page</PanelTitle>
+              </div>
+              {pendingLine}
+              <ListingRows variant="event" {...rowsProps} />
+            </section>
+            </>
+          )
+        ) : liveRows.length === 0 ? (
+          /* ------------------------------------- company, nothing listed */
+          projects === null && !projectsFailed ? (
+            <Skeleton className="h-[240px]" />
+          ) : projects && projects.length === 0 ? (
+            <EmptyState title="Deploy an app first.">
+              Embarko Showcase shows apps that are live on Embarko.
+              <div className="mt-5">
+                <Button asChild className="h-11 sm:h-9">
+                  <Link href="/app">Deploy an app</Link>
+                </Button>
+              </div>
+            </EmptyState>
+          ) : (
+            <EmptyState title="None of your apps are on Embarko Showcase yet.">
+              List one and it gets its own public page in the gallery.
+              <div className="mt-5 flex flex-col items-center gap-2">
+                <Button asChild className="h-11 sm:h-9">
+                  <Link href="/app/showcase/submit">List an app</Link>
+                </Button>
+                <CopyPromptButton
+                  text={showcaseListPrompt({ slug: meta.slug, title: meta.title, type: "company" })}
+                  copiedChildren={COPIED_LABEL}
+                  announce="Prompt copied. Paste it in your AI."
+                  className={cn(
+                    "inline-flex min-h-11 cursor-pointer items-center text-[0.84rem] font-semibold text-muted-foreground transition-colors hover:text-foreground hover:underline motion-reduce:transition-none sm:min-h-8",
+                    FOCUS,
+                  )}
+                >
+                  Or copy a prompt for your AI
+                </CopyPromptButton>
+              </div>
+            </EmptyState>
+          )
+        ) : (
+          /* ------------------------------------------ company, with apps */
+          <section className="flex flex-col gap-4">
+            <div>
+              <PanelTitle>Your apps on Embarko Showcase</PanelTitle>
+            </div>
+            {pendingLine}
+            <ListingRows variant="company" projectSlugs={projectSlugs} {...rowsProps} />
+          </section>
         )}
-      </Panel>
+
+        {/* ---------------------------------------- company, not listed yet */}
+        {/* Your other apps load after the page itself, so hold their place. */}
+        {(isEvent || liveRows.length > 0) && projects === null && !projectsFailed && (
+          <section>
+            <Skeleton className="h-5 w-44" />
+            <div className="mt-4 flex flex-col gap-3">
+              <Skeleton className="h-12" />
+              <Skeleton className="h-12" />
+            </div>
+          </section>
+        )}
+        {unlisted.length > 0 && (
+          <section className="border-t border-border pt-6">
+            <PanelTitle>{isEvent ? "Your apps not on this page" : "Not on Showcase yet"}</PanelTitle>
+            <ul className="mt-2 divide-y divide-border">
+              {(showAllUnlisted ? unlisted : unlisted.slice(0, UNLISTED_SHOWN)).map((p) => (
+                <li key={p.id} className="flex items-center gap-3 py-3">
+                  <span
+                    aria-hidden="true"
+                    className="grid size-9 shrink-0 place-items-center bg-muted text-sm font-semibold text-foreground"
+                  >
+                    {(p.name.trim().charAt(0) || "?").toUpperCase()}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate font-medium text-foreground">{p.name}</span>
+                  <Button variant="outline" size="sm" className="h-11 sm:h-8" onClick={() => setListTarget(p)} aria-label={`List ${p.name}`}>
+                    List it
+                  </Button>
+                </li>
+              ))}
+            </ul>
+            {!showAllUnlisted && unlisted.length > UNLISTED_SHOWN && (
+              <LinkButton onClick={() => setShowAllUnlisted(true)} className={cn("mt-2 min-h-11 sm:min-h-0", FOCUS)}>
+                Show all {unlisted.length}
+              </LinkButton>
+            )}
+          </section>
+        )}
+      </div>
+
+      {(
+        <ListOnShowcaseDialog
+          project={listTarget}
+          companyId={activeCompanyId}
+          page={{ slug: meta.slug, title: meta.title, type: isEvent ? "public" : "company" }}
+          onClose={() => setListTarget(null)}
+          onListed={() => refresh(true)}
+        />
+      )}
+
+      {isEvent && (
+        <Dialog open={shareOpen} onOpenChange={(open) => setShareOpen(open)}>
+          <DialogContent className="max-h-[90dvh] w-[calc(100%-32px)] max-w-[760px] overflow-y-auto p-5 sm:p-7">
+            <DialogHeader>
+              <DialogTitle className="break-words pr-10 leading-tight">Share {meta.title}</DialogTitle>
+            </DialogHeader>
+            <ShareKit page={meta} />
+          </DialogContent>
+        </Dialog>
+      )}
 
       <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
     </Page>

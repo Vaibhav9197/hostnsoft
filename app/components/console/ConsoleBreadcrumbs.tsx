@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { ChevronRight } from "lucide-react";
 
+import { showcaseApi } from "@/app/lib/hnsApi";
 import { useSession } from "@/app/lib/session";
 import { useProject } from "@/app/lib/useProject";
 
-type Crumb = { label: string; href?: string };
+type Crumb = { label: React.ReactNode; href?: string };
 
 /* Top-level panel pages, by their first segment under /app. */
 const PAGES: Record<string, string> = {
@@ -17,6 +19,14 @@ const PAGES: Record<string, string> = {
   showcase: "Showcase",
   tokens: "Deploy tokens",
   "switch-workspace": "Switch workspace",
+};
+
+/* Fixed pages under Showcase. Any other segment there is a showcase page's
+   id, and the crumb names the page itself. */
+const SHOWCASE_PAGES: Record<string, string> = {
+  new: "New event page",
+  /* Matches the page's own title. */
+  submit: "List an app",
 };
 
 /* A project's sections, matching ProjectNav's labels. */
@@ -48,7 +58,7 @@ export function ConsoleBreadcrumbs() {
     const page = PAGES[parts[0]] ?? parts[0];
     if (parts.length > 1) {
       crumbs.push({ label: page, href: `/app/${parts[0]}` });
-      crumbs.push({ label: parts[0] === "showcase" && parts[1] === "submit" ? "Add an app" : "Event page" });
+      crumbs.push({ label: subPageLabel(parts[0], parts[1]) });
     } else {
       crumbs.push({ label: page });
     }
@@ -78,6 +88,37 @@ export function ConsoleBreadcrumbs() {
       </ol>
     </nav>
   );
+}
+
+function subPageLabel(section: string, segment: string): React.ReactNode {
+  if (section !== "showcase") return segment;
+  return SHOWCASE_PAGES[segment] ?? <CollectionName collectionId={segment} />;
+}
+
+/* The showcase page's own name, looked up from the workspace's list of
+   pages. "Page" until it arrives, and if it never does — a trail that
+   errors is worse than one that's briefly generic. */
+function CollectionName({ collectionId }: { collectionId: string }) {
+  const { activeCompanyId } = useSession();
+  const [name, setName] = useState<string | null>(null);
+
+  useEffect(() => {
+    setName(null);
+    if (!activeCompanyId) return;
+    let cancelled = false;
+    showcaseApi
+      .listCollections(activeCompanyId)
+      .then((all) => {
+        const c = all.find((x) => x.id === collectionId);
+        if (!cancelled && c) setName(c.type === "company" ? "Embarko Showcase" : c.title);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [activeCompanyId, collectionId]);
+
+  return <>{name ?? "Page"}</>;
 }
 
 function ProjectName({ projectId }: { projectId: string }) {
