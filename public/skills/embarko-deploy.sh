@@ -292,11 +292,15 @@ if [[ -n "$EMBARKO_AGENT_NAME" ]]; then
 fi
 
 echo "==> Deploying to ${DEPLOY_URL}"
+# Each array is expanded as ${A[@]+"${A[@]}"} rather than "${A[@]}": with
+# `set -u`, the bash 3.2 that ships with macOS treats an EMPTY array as
+# unbound and exits, which is every anonymous deploy (no auth header) and
+# most others (no landing-page, app-type or agent-name header).
 RESPONSE=$(curl -sS -X POST "$DEPLOY_URL" \
-  "${CURL_AUTH_ARGS[@]}" \
-  "${CURL_ATTRIBUTION_ARGS[@]}" \
-  "${CURL_APP_TYPE_ARGS[@]}" \
-  "${CURL_AGENT_ARGS[@]}" \
+  ${CURL_AUTH_ARGS[@]+"${CURL_AUTH_ARGS[@]}"} \
+  ${CURL_ATTRIBUTION_ARGS[@]+"${CURL_ATTRIBUTION_ARGS[@]}"} \
+  ${CURL_APP_TYPE_ARGS[@]+"${CURL_APP_TYPE_ARGS[@]}"} \
+  ${CURL_AGENT_ARGS[@]+"${CURL_AGENT_ARGS[@]}"} \
   -H "X-App-Name: ${APP_NAME}" \
   -H "X-App-Version: ${VERSION}" \
   -F "source=@${TARBALL}")
@@ -333,6 +337,17 @@ if ! echo "$RESPONSE" | grep -q '"success":true'; then
   exit 1
 fi
 
+# A static site usually publishes while the request waits, so the reply can
+# already say "live": report it and stop, no polling needed.
+if [[ "$(echo "$RESPONSE" | json_field status)" == "live" ]]; then
+  echo "==> Deploy succeeded."
+  NEXT=$(echo "$RESPONSE" | json_field next)
+  [[ -n "$NEXT" ]] && { echo "==> Next:"; echo "$NEXT"; }
+  APP_URL=$(echo "$RESPONSE" | json_field links.app)
+  [[ -n "$APP_URL" ]] && { echo "==> Live:"; echo "$APP_URL"; }
+  exit 0
+fi
+
 # Accepted (202), not live yet: the build runs in the background. Poll the
 # status link until the app is live or has failed, rather than reporting
 # success off the 202 alone. Every URL a reply carries is under `links`.
@@ -353,7 +368,7 @@ MAX_POLLS=$(( 600 / POLL_SECONDS ))
 echo ""
 echo "==> Deploy accepted — polling ${STATUS_URL}..."
 for _ in $(seq 1 "$MAX_POLLS"); do
-  STATUS_RESPONSE=$(curl -sS "${CURL_AUTH_ARGS[@]}" "$STATUS_URL")
+  STATUS_RESPONSE=$(curl -sS ${CURL_AUTH_ARGS[@]+"${CURL_AUTH_ARGS[@]}"} "$STATUS_URL")
   STATUS=$(echo "$STATUS_RESPONSE" | json_field status)
   NEXT=$(echo "$STATUS_RESPONSE" | json_field next)
   case "$STATUS" in
@@ -379,7 +394,7 @@ for _ in $(seq 1 "$MAX_POLLS"); do
       LOGS_URL=$(echo "$STATUS_RESPONSE" | json_field links.logs)
       if [[ -n "$LOGS_URL" ]]; then
         echo "==> Logs (${LOGS_URL}):"
-        curl -sS "${CURL_AUTH_ARGS[@]}" "$LOGS_URL"
+        curl -sS ${CURL_AUTH_ARGS[@]+"${CURL_AUTH_ARGS[@]}"} "$LOGS_URL"
         echo ""
       fi
       [[ -n "$NEXT" ]] && { echo "==> Next:"; echo "$NEXT"; }
