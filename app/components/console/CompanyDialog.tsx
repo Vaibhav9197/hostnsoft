@@ -74,7 +74,7 @@ export function CompanyDialog({
     }
   }
 
-  const title = mode === "new" ? "New company" : mode === "rename" ? "Rename company" : "Delete company";
+  const title = mode === "new" ? "New workspace" : mode === "rename" ? "Rename workspace" : "Delete workspace";
   const nameInvalid = !name.trim() || (mode === "rename" && name.trim() === company?.companyName);
   const deleteBlocked = confirm !== company?.companyName;
 
@@ -87,12 +87,12 @@ export function CompanyDialog({
             {mode === "delete" ? (
               <>
                 Deleting <b className="text-foreground">{company?.companyName}</b> can’t be undone. This is
-                blocked while the company still has any apps — delete or transfer them first.
+                blocked while the workspace still has any apps — delete or transfer them first.
               </>
             ) : mode === "new" ? (
-              "Create a company to hold its own apps, members and deploy tokens."
+              "Create a workspace to hold its own apps, members and deploy tokens."
             ) : (
-              "Rename this company. Apps and members are unaffected."
+              "Rename this workspace. Apps and members are unaffected."
             )}
           </DialogDescription>
         </DialogHeader>
@@ -107,7 +107,7 @@ export function CompanyDialog({
             </div>
           ) : (
             <div className="grid gap-1.5">
-              <label className="text-sm font-semibold text-foreground">Company name</label>
+              <label className="text-sm font-semibold text-foreground">Workspace name</label>
               <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={60} autoFocus placeholder="e.g. Acme Robotics" />
             </div>
           )}
@@ -121,7 +121,7 @@ export function CompanyDialog({
             >
               {busy
                 ? mode === "delete" ? "Deleting…" : "Saving…"
-                : mode === "delete" ? "Delete company" : mode === "new" ? "Create company" : "Save changes"}
+                : mode === "delete" ? "Delete workspace" : mode === "new" ? "Create workspace" : "Save changes"}
             </Button>
           </DialogFooter>
         </form>

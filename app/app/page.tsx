@@ -250,25 +250,25 @@ function NoCompany({ onCreated }: { onCreated: () => Promise<void> }) {
       await companiesApi.create(name.trim());
       await onCreated();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn’t create the company.");
+      setError(e instanceof Error ? e.message : "Couldn’t create the workspace.");
       setBusy(false);
     }
   }
 
   return (
     <Page>
-      <PageHeader title="Welcome to Embarko" subtitle="Create a company to hold your apps and team." />
+      <PageHeader title="Welcome to Embarko" subtitle="Create a workspace to hold your apps and team." />
       {error && <Alert>{error}</Alert>}
       <form className="flex flex-wrap gap-2.5" onSubmit={create}>
         <Input
           className="min-w-[220px] flex-1"
-          placeholder="Company name — e.g. Acme Robotics"
+          placeholder="Workspace name — e.g. Acme Robotics"
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={60}
           autoFocus
         />
-        <Button type="submit" disabled={busy || !name.trim()}>{busy ? "Creating…" : "Create company"}</Button>
+        <Button type="submit" disabled={busy || !name.trim()}>{busy ? "Creating…" : "Create workspace"}</Button>
       </form>
     </Page>
   );

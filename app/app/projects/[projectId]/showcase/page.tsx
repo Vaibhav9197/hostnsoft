@@ -96,7 +96,7 @@ export default function ProjectShowcasePage({ params }: { params: Promise<{ proj
               <PanelTitle>Let your AI list it</PanelTitle>
               <p className="mt-1 text-[0.9rem] text-muted-foreground">
                 Paste this into the AI that built {project.name}. It writes the description, adds a
-                screenshot and tags from the code, and puts the app on your company page.
+                screenshot and tags from the code, and puts the app on your workspace page.
               </p>
             </div>
             <CopyPromptButton
@@ -122,7 +122,7 @@ export default function ProjectShowcasePage({ params }: { params: Promise<{ proj
               <a href="/showcase" target="_blank" rel="noreferrer" className="text-foreground underline underline-offset-2">
                 {SITE_HOST}/showcase
               </a>{" "}
-              and puts it on your company page.
+              and puts it on your workspace page.
             </p>
             <Steps steps={["Say what it does", "Who built it", "It’s live"]} />
             <div className="mt-6">
@@ -146,7 +146,7 @@ export default function ProjectShowcasePage({ params }: { params: Promise<{ proj
                 <PanelTitle>
                   {companyListing
                     ? companyListing.isPrivate
-                      ? "On Showcase, hidden on your company page"
+                      ? "On Showcase, hidden on your workspace page"
                       : "On Showcase"
                     : `On ${eventListings[0].collection.title}`}
                 </PanelTitle>
@@ -161,7 +161,7 @@ export default function ProjectShowcasePage({ params }: { params: Promise<{ proj
               <Button asChild variant="outline" size="sm">
                 <Link href={`${listUrl}${companyListing ? "&where=event" : ""}`}>
                   <Plus aria-hidden="true" />
-                  {companyListing ? "Add to an event page" : "Add to your company page"}
+                  {companyListing ? "Add to an event page" : "Add to your workspace page"}
                 </Link>
               </Button>
               {visible && (
@@ -197,7 +197,7 @@ export default function ProjectShowcasePage({ params }: { params: Promise<{ proj
                         rel="noreferrer"
                         className="font-medium text-foreground hover:underline"
                       >
-                        {l.collection.type === "company" ? "Your company page" : l.collection.title}
+                        {l.collection.type === "company" ? "Your workspace page" : l.collection.title}
                       </a>
                       {l.collection.type !== "company" && <Tag>Event page</Tag>}
                       {l.isPrivate && <Tag>Hidden by organiser</Tag>}

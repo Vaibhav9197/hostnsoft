@@ -24,7 +24,7 @@ export default function PrivacyPage() {
         <List>
           <Item>
             <Term>Account identity.</Term> Your email address or phone number, verified through our
-            authentication provider, plus the company you belong to and your role in it. Sign-in is
+            authentication provider, plus the workspace you belong to and your role in it. Sign-in is
             by one-time code, so we never hold a password for you.
           </Item>
           <Item>
@@ -109,7 +109,7 @@ export default function PrivacyPage() {
 
       <Section title="How long we keep it">
         <List>
-          <Item>Account and company records: for as long as your account exists.</Item>
+          <Item>Account and workspace records: for as long as your account exists.</Item>
           <Item>Apps, their data, and their backups: until you delete the app or close the account.</Item>
           <Item>
             Build and deploy logs, runtime logs, and raw request records: <Fill>retention window</Fill>,

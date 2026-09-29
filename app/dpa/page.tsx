@@ -74,7 +74,7 @@ export default function DpaPage() {
           </Item>
           <Item>
             <Term>Account and membership data</Term> — the email addresses, roles, and join records of
-            the people in your company, processed to operate access control.
+            the people in your workspace, processed to operate access control.
           </Item>
         </List>
         <P>
@@ -88,7 +88,7 @@ export default function DpaPage() {
           <Item>We process personal data for as long as your app exists on Embarko.</Item>
           <Item>
             Deleting an app permanently removes its running instance, its stored data, and its
-            backups. Deleting a company does the same for all of its apps.
+            backups. Deleting a workspace does the same for all of its apps.
           </Item>
           <Item>
             Closing an account deletes its apps and their data within <Fill>deletion window</Fill>;
@@ -134,7 +134,7 @@ export default function DpaPage() {
           <Item>All traffic is served over HTTPS, on both <code className="font-mono text-[0.9em]">*.embarko.app</code> and connected custom domains.</Item>
           <Item>Data is encrypted in transit, and encrypted at rest by our storage provider.</Item>
           <Item>Environment variables and app secrets are encrypted at rest under a separate key.</Item>
-          <Item>Deploy tokens are stored hashed, are scoped to one company, and can be revoked individually.</Item>
+          <Item>Deploy tokens are stored hashed, are scoped to one workspace, and can be revoked individually.</Item>
           <Item>Each app runs isolated from every other app, with its own persistent storage.</Item>
           <Item>Access to production infrastructure is restricted to the people who need it and is logged.</Item>
         </List>

@@ -74,7 +74,7 @@ export default function Apps() {
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl font-bold mb-2">All Apps</h1>
           <p className="text-muted-foreground mb-8">
-            Every app deployed on the platform, across all companies.
+            Every app deployed on the platform, across all workspaces.
             {apps && apps.length > 0 && ` ${apps.length} total.`}
           </p>
 
@@ -99,7 +99,7 @@ export default function Apps() {
                   <thead className="bg-elevated border-b">
                     <tr>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">App</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Company</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Workspace</th>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Status</th>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Last deployed by</th>
                       <th className="px-6 py-4 text-right text-sm font-semibold text-foreground">Deploys</th>

@@ -29,7 +29,7 @@ export default function SettingsPage() {
       setCompany(data);
       setName(data.name);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn’t load company settings.");
+      setError(e instanceof Error ? e.message : "Couldn’t load workspace settings.");
     }
   }, [activeCompanyId]);
 
@@ -45,10 +45,10 @@ export default function SettingsPage() {
     setError(null);
     try {
       await companiesApi.rename(activeCompanyId, name.trim());
-      setNotice("Company name updated.");
+      setNotice("Workspace name updated.");
       await Promise.all([load(), reload()]);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn’t rename the company.");
+      setError(e instanceof Error ? e.message : "Couldn’t rename the workspace.");
     } finally {
       setSavingName(false);
     }
@@ -63,14 +63,14 @@ export default function SettingsPage() {
       await reload();
       window.location.href = "/app";
     } catch (e) {
-      setDelErr(e instanceof Error ? e.message : "Couldn’t delete the company.");
+      setDelErr(e instanceof Error ? e.message : "Couldn’t delete the workspace.");
       setDeleting(false);
     }
   }
 
   return (
     <Page>
-      <PageHeader title="Settings" subtitle="Your account and this company." />
+      <PageHeader title="Settings" subtitle="Your account and this workspace." />
 
       {error && <Alert>{error}</Alert>}
 
@@ -83,7 +83,7 @@ export default function SettingsPage() {
       </Panel>
 
       <Panel padded>
-        <PanelTitle>Company</PanelTitle>
+        <PanelTitle>Workspace</PanelTitle>
         {!company ? (
           <Skeleton className="mt-3 h-20" aria-hidden="true" />
         ) : (
@@ -106,13 +106,13 @@ export default function SettingsPage() {
         <Panel padded tone="danger">
           <PanelTitle tone="danger">Danger zone</PanelTitle>
           <p className="mt-1 text-[0.92rem] text-muted-foreground">
-            Deleting <b className="text-foreground">{company.name}</b> can’t be undone. It’s blocked while the company still has any
+            Deleting <b className="text-foreground">{company.name}</b> can’t be undone. It’s blocked while the workspace still has any
             apps — delete or transfer them first.
           </p>
           {delErr && <Alert className="mt-3">{delErr}</Alert>}
           <div className="mt-3.5 flex flex-wrap gap-2.5">
             <Input className="min-w-[220px] flex-1" placeholder={`Type “${company.name}” to confirm`} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
-            <Button variant="destructive" disabled={deleting || confirm !== company.name} onClick={del}>{deleting ? "Deleting…" : "Delete company"}</Button>
+            <Button variant="destructive" disabled={deleting || confirm !== company.name} onClick={del}>{deleting ? "Deleting…" : "Delete workspace"}</Button>
           </div>
         </Panel>
       )}

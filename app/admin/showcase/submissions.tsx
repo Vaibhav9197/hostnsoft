@@ -18,7 +18,7 @@ type Filter = ShowcaseType | "all";
 const FILTERS: { value: Filter; label: string }[] = [
   { value: "all", label: "All" },
   { value: "public", label: "Event pages" },
-  { value: "company", label: "Company pages" },
+  { value: "company", label: "Workspace pages" },
 ];
 
 const TYPE_STYLE: Record<ShowcaseType, string> = {

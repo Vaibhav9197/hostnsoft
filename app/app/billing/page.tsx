@@ -194,7 +194,7 @@ export default function BillingPage() {
 
   const currentPlan = active?.plan ?? null;
   const hasDefaultCard = cards.kind === "ready" && cards.cards.some((c) => c.isDefault);
-  const companyName = activeCompany?.companyName ?? "this company";
+  const companyName = activeCompany?.companyName ?? "this workspace";
 
   return (
     <Page>
@@ -574,7 +574,7 @@ function describe(action: NonNullable<PendingAction>, currentPlan: BillingPlan |
         body: (
           <>
             <span className="capitalize">{c.card?.brand ?? c.type}</span>
-            {c.card && <> ending in <b>{c.card.last4}</b></>} will be removed from this company.
+            {c.card && <> ending in <b>{c.card.last4}</b></>} will be removed from this workspace.
             {c.isDefault && <> It’s your default card — add another one afterwards to keep a paid plan active.</>}
           </>
         ),

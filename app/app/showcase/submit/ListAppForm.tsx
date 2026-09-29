@@ -209,7 +209,7 @@ export function ListAppForm({
       if (e instanceof HnsError && e.code === "SHOWCASE_ALREADY_LISTED") {
         setError("That app is already on this page.");
       } else if (e instanceof HnsError && e.code === "SHOWCASE_COLLECTION_PRIVATE") {
-        setError("That’s another company’s own page; only their apps can go there. Pick an event page instead.");
+        setError("That’s another workspace’s own page; only their apps can go there. Pick an event page instead.");
       } else if (e instanceof HnsError && e.code === "SHOWCASE_COLLECTION_UNKNOWN") {
         setError("That Showcase page doesn’t exist any more.");
       } else if (e instanceof HnsError && e.details?.length) {
@@ -234,7 +234,7 @@ export function ListAppForm({
           subtitle={
             onEvent
               ? `It’s live on ${done.collection.title} and in the Showcase gallery.`
-              : "It’s live on your company page and in the Showcase gallery, with a public page of its own."
+              : "It’s live on your workspace page and in the Showcase gallery, with a public page of its own."
           }
         />
         <div className="flex flex-wrap gap-2.5">
@@ -246,7 +246,7 @@ export function ListAppForm({
           </Button>
           <Button asChild variant="outline">
             <a href={`/showcase/${done.collection.slug}`} target="_blank" rel="noreferrer">
-              {onEvent ? `See ${done.collection.title}` : "See your company page"}
+              {onEvent ? `See ${done.collection.title}` : "See your workspace page"}
             </a>
           </Button>
           <Button asChild variant="ghost">
@@ -302,7 +302,7 @@ export function ListAppForm({
             <p className="mt-1 text-[0.9rem] text-muted-foreground">
               Paste this into the AI that built the app. It fills in the description, screenshot and tags
               from the code and puts the app on{" "}
-              {promptTarget?.type === "public" ? promptTarget.title : "your company page"}.
+              {promptTarget?.type === "public" ? promptTarget.title : "your workspace page"}.
             </p>
           </div>
           <CopyPromptButton
@@ -342,7 +342,7 @@ export function ListAppForm({
           {projects === null && <Skeleton className="h-9" aria-hidden="true" />}
           {noApps && (
             <Alert variant="note">
-              Showcase lists apps that are live on Embarko, and this company has none yet.{" "}
+              Showcase lists apps that are live on Embarko, and this workspace has none yet.{" "}
               <Link href="/app" className="underline">
                 Deploy one first
               </Link>
@@ -475,7 +475,7 @@ export function ListAppForm({
               <WhereOption
                 checked={where === "company"}
                 onSelect={() => setWhere("company")}
-                title="Your company page"
+                title="Your workspace page"
                 detail={
                   companyPage
                     ? `${SITE_HOST}/showcase/${companyPage.slug} — and the main Showcase gallery`
@@ -513,7 +513,7 @@ export function ListAppForm({
                     )}
                     {foreignCompanyPage && (
                       <p role="alert" className="text-[0.85rem] text-destructive">
-                        That’s another company’s own page. Only their apps can go there.
+                        That’s another workspace’s own page. Only their apps can go there.
                       </p>
                     )}
                     {unknownEvent && (

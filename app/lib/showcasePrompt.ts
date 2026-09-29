@@ -18,7 +18,7 @@ export function showcaseListPrompt(
   const where =
     page.type === "public"
       ? `the Embarko Showcase event page "${page.title}" (${SITE_HOST}/showcase/${page.slug})`
-      : `my company's Embarko Showcase page "${page.title}" (${SITE_HOST}/showcase/${page.slug})`;
+      : `my workspace's Embarko Showcase page "${page.title}" (${SITE_HOST}/showcase/${page.slug})`;
 
   const which = appSlug ? `my Embarko app "${appSlug}"` : "this app";
 
@@ -51,7 +51,7 @@ If it isn't deployed to Embarko yet, deploy it first: read ${SITE}/docs/agent-qu
 Use my deploy token — DEPLOY_TOKEN or ~/.embarko/credentials if either is set; if neither is, ask me for one from ${SITE}/app/tokens.
 
 Then list it: read ${SITE}/docs/api.md#showcase for how to call the Showcase API.
-Use my company's own Showcase page as the page slug (ask me for it if you can't tell), and these details, inferring what you can from the project and asking me for the rest:
+Use my workspace's own Showcase page as the page slug (ask me for it if you can't tell), and these details, inferring what you can from the project and asking me for the rest:
 - name and a one-line tagline
 - what it does, and why it was built (a short paragraph each)
 - creator name, and a profile link if I have one

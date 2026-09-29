@@ -56,7 +56,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           <main className="w-full max-w-5xl px-8 py-8">
             {!apiConnected && (
               <Alert variant="warn" className="mb-6">
-                You're signed in, but the Embarko API service is unreachable right now — company and
+                You're signed in, but the Embarko API service is unreachable right now — workspace and
                 app data can't be loaded until it's back.
               </Alert>
             )}
@@ -82,7 +82,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto w-full max-w-5xl px-4 pb-24 pt-8 sm:px-8">
           {!apiConnected && (
             <Alert variant="warn" className="mb-6">
-              You're signed in, but the Embarko API service is unreachable right now — company and
+              You're signed in, but the Embarko API service is unreachable right now — workspace and
               app data can't be loaded until it's back.
             </Alert>
           )}

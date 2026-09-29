@@ -4,6 +4,8 @@ import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 const nextConfig = {
   async redirects() {
     return [
+      // "Company" became "workspace" in the panel; keep old links working.
+      { source: "/app/switch-company", destination: "/app/switch-workspace", permanent: true },
       // www.embarko.ai is bound to the same Worker as embarko.ai (see the
       // routes in wrangler.jsonc), so without this it serves a second full
       // copy of the site. Every page already names the apex host as its

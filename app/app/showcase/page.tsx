@@ -138,7 +138,7 @@ export default function ShowcasePage() {
             <a href="/showcase" target="_blank" rel="noreferrer" className="text-foreground underline underline-offset-2">
               {SITE_HOST}/showcase
             </a>{" "}
-            and appears on your company page.
+            and appears on your workspace page.
           </>
         }
         actions={
@@ -158,7 +158,7 @@ export default function ShowcasePage() {
       <Panel padded className="flex flex-col gap-3">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            <PanelTitle>Your company page</PanelTitle>
+            <PanelTitle>Your workspace page</PanelTitle>
             <p className="mt-1 text-[0.9rem] text-muted-foreground">
               Every app you list appears here. Share this one link to show all your work.
             </p>
@@ -196,7 +196,7 @@ export default function ShowcasePage() {
         )}
         {collections !== null && !companyPage && (
           <p className="text-[0.85rem] text-muted-foreground">
-            Your company page is being set up. Sign out and back in if it doesn’t appear.
+            Your workspace page is being set up. Sign out and back in if it doesn’t appear.
           </p>
         )}
       </Panel>
@@ -297,7 +297,7 @@ function AppRow({
             {listed ? (
               <>
                 <span className={company && !company.isPrivate ? "text-success" : "text-foreground"}>
-                  {company ? (company.isPrivate ? "Hidden on your company page" : "On Showcase") : `On ${events[0].collection.title}`}
+                  {company ? (company.isPrivate ? "Hidden on your workspace page" : "On Showcase") : `On ${events[0].collection.title}`}
                 </span>
                 {company &&
                   events.map((l) => (
@@ -334,7 +334,7 @@ function AppRow({
             href={`/app/showcase/submit?app=${encodeURIComponent(project.id)}${company ? "&where=event" : ""}`}
             className="text-[0.84rem] font-semibold text-muted-foreground hover:text-foreground hover:underline"
           >
-            {company ? "Add to an event page" : "Add to your company page"}
+            {company ? "Add to an event page" : "Add to your workspace page"}
           </Link>
         )}
         {listed && listings.length === 1 && (

@@ -63,8 +63,8 @@ export default function SecurityPage() {
       <Section title="Deploy tokens and accounts">
         <List>
           <Item>
-            <Term>Tokens are company-scoped.</Term> A deploy token authenticates as a company, so a
-            deploy lands under that company&apos;s apps no matter who or what ran it.
+            <Term>Tokens are workspace-scoped.</Term> A deploy token authenticates as a workspace, so a
+            deploy lands under that workspace&apos;s apps no matter who or what ran it.
           </Item>
           <Item>
             <Term>Tokens are stored hashed and are individually revocable,</Term> so a leaked one can
@@ -109,7 +109,7 @@ export default function SecurityPage() {
         <List>
           <Item>Automatic backups are included from the Creator plan up; see <A href="/pricing">pricing</A> for what each plan covers.</Item>
           <Item>Backup frequency and how far back you can restore: <Fill>schedule and retention</Fill>.</Item>
-          <Item>Deleting an app permanently removes its instance, its stored data, and its backups. So does deleting the company that owns it.</Item>
+          <Item>Deleting an app permanently removes its instance, its stored data, and its backups. So does deleting the workspace that owns it.</Item>
           <Item>Closing an account deletes its apps and their data within <Fill>deletion window</Fill>.</Item>
         </List>
       </Section>

@@ -1,15 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { Building2, Check, ChevronsUpDown, CreditCard, KeyRound, LayoutGrid, LogOut, Shield, Sparkles, User, Users } from "lucide-react";
+import { Building2, ChevronDown, CreditCard, KeyRound, LayoutGrid, LogOut, Shield, Sparkles, Settings, Users } from "lucide-react";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
@@ -24,32 +22,30 @@ import { cn } from "@/app/lib/utils";
  * the console still works when the sidebar goes away — nothing here depends on
  * the sidebar being mounted or expanded.
  */
+// Tint the row under the pointer; the shared item only tints on focus, which
+// barely shows on the dark header.
+const HOVER = "gap-2.5 hover:bg-[color-mix(in_srgb,var(--ink)_8%,transparent)] focus:bg-[color-mix(in_srgb,var(--ink)_8%,transparent)]";
+
 export function HeaderUserMenu() {
-  const { user, companies, activeCompanyId, activeCompany, isSuperAdmin, setActiveCompanyId, signOut } = useSession();
-  const pathname = usePathname();
-  const router = useRouter();
+  const { user, activeCompany, isSuperAdmin, signOut } = useSession();
 
-  // Every console page is scoped to the active company, so whatever's on
-  // screen (a project, its settings, deployments…) belongs to the company we're
-  // leaving. Land on the projects list of the new company instead of letting
-  // the old URL 404 against it.
-  function switchCompany(companyId: string) {
-    setActiveCompanyId(companyId);
-    router.push("/app");
-  }
-
-  const workspace = [
-    { href: "/app", label: "Apps", icon: LayoutGrid, exact: true },
-    { href: "/app/members", label: "Members", icon: Users },
-    { href: "/app/tokens", label: "Deploy tokens", icon: KeyRound },
-    { href: "/app/showcase", label: "Showcase", icon: Sparkles },
-    { href: "/app/billing", label: "Billing", icon: CreditCard },
-    // Platform-wide, not company-scoped, so it sits last and only for admins.
-    // Everyone else never sees it; the pages guard themselves regardless.
-    ...(isSuperAdmin ? [{ href: "/admin", label: "Admin", icon: Shield }] : []),
+  // Switching workspace changes what every other page shows, so it sits on
+  // its own at the top. Admin is platform-wide and only for admins; the pages
+  // guard themselves regardless.
+  const groups = [
+    [{ href: "/app/switch-workspace", label: "Switch workspace", icon: Building2 }],
+    [
+      { href: "/app", label: "Your apps", icon: LayoutGrid },
+      { href: "/app/tokens", label: "Deploy tokens", icon: KeyRound },
+      { href: "/app/showcase", label: "Showcase", icon: Sparkles },
+    ],
+    [
+      { href: "/app/members", label: "Members", icon: Users },
+      { href: "/app/billing", label: "Billing", icon: CreditCard },
+      { href: "/app/settings", label: "Settings", icon: Settings },
+      ...(isSuperAdmin ? [{ href: "/admin", label: "Admin", icon: Shield }] : []),
+    ],
   ];
-  const isCurrent = (href: string, exact?: boolean) =>
-    exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
 
   const name = user?.name?.trim() || null;
   const email = user?.email ?? "";
@@ -73,87 +69,38 @@ export function HeaderUserMenu() {
             lead with, so the email moves up and stands alone. Hidden on narrow
             screens, where the avatar alone carries it. */}
         <span className="hidden min-w-0 flex-col leading-tight sm:flex">
-          <span className="truncate text-[0.8rem] font-medium text-foreground">
+          <span className="truncate text-sm font-medium text-foreground">
             {activeCompany ? activeCompany.companyName : email || "—"}
           </span>
-          {activeCompany && email && (
-            <span className="truncate text-[0.7rem] text-muted-foreground">{email}</span>
-          )}
         </span>
-        <ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+        <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-64">
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col gap-0.5">
-            {name && <span className="truncate text-sm font-semibold text-foreground">{name}</span>}
-            <span className="truncate text-xs text-muted-foreground">{email}</span>
+        {groups.map((items, i) => (
+          <div key={i}>
+            <DropdownMenuGroup>
+              {items.map(({ href, label, icon: Icon }) => (
+                <DropdownMenuItem key={href} asChild className={HOVER}>
+                  <Link href={href}>
+                    <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                    {label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
           </div>
-        </DropdownMenuLabel>
+        ))}
 
-        <DropdownMenuSeparator />
-
-        <DropdownMenuGroup>
-          {workspace.map(({ href, label, icon: Icon, exact }) => {
-            const current = isCurrent(href, exact);
-            return (
-              <DropdownMenuItem key={href} asChild className={current ? "gap-2.5 bg-[color-mix(in_srgb,var(--ink)_8%,transparent)]" : "gap-2.5"}>
-                <Link href={href} aria-current={current ? "page" : undefined}>
-                  <Icon className={`size-4 shrink-0 ${current ? "text-foreground" : "text-muted-foreground"}`} aria-hidden="true" />
-                  <span className={current ? "font-medium text-foreground" : undefined}>{label}</span>
-                </Link>
-              </DropdownMenuItem>
-            );
-          })}
-        </DropdownMenuGroup>
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Company</DropdownMenuLabel>
-        <DropdownMenuGroup>
-          {companies.map((company) => {
-            const isActive = company.companyId === activeCompanyId;
-            return (
-              <DropdownMenuItem
-                key={company.companyId}
-                onClick={() => !isActive && switchCompany(company.companyId)}
-                className="gap-2.5"
-              >
-                <span className="grid size-6 shrink-0 place-items-center rounded bg-foreground text-[0.65rem] font-bold text-background">
-                  {company.companyName.charAt(0).toUpperCase()}
-                </span>
-                <span className="flex min-w-0 flex-col leading-tight">
-                  <span className="truncate text-[0.8rem]">{company.companyName}</span>
-                </span>
-                {isActive && <Check className="ml-auto size-4 shrink-0" aria-label="Current company" />}
-              </DropdownMenuItem>
-            );
-          })}
-        </DropdownMenuGroup>
-
-        <DropdownMenuItem asChild className="gap-2.5">
-          <Link href="/app/switch-company">
-            <Building2 className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-            Manage companies
-          </Link>
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuItem asChild className="gap-2.5">
-          <Link href="/app/settings">
-            <User className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-            Profile
-          </Link>
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuItem onClick={() => signOut()} className="gap-2.5">
-          <LogOut className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-          Log out
+        {/* Log out and the signed-in email are one row, so the whole block is
+            the click target. */}
+        <DropdownMenuItem onClick={() => signOut()} className={cn(HOVER, "items-start")}>
+          <LogOut className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <span className="flex min-w-0 flex-col leading-tight">
+            <span>Log out</span>
+            <span className="truncate text-xs font-normal text-muted-foreground">{email}</span>
+          </span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -151,7 +151,7 @@ export default function SuperAdmins() {
   async function revoke(admin: SuperAdmin) {
     if (
       !window.confirm(
-        `Remove platform administrator access from ${admin.email}? They will lose access to every company's data in this panel.`,
+        `Remove platform administrator access from ${admin.email}? They will lose access to every workspace's data in this panel.`,
       )
     ) {
       return;
@@ -189,7 +189,7 @@ export default function SuperAdmins() {
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl font-bold mb-2">Super Admins</h1>
           <p className="text-muted-foreground mb-8">
-            Everyone who can reach this admin panel. Administrators see every company’s data and can
+            Everyone who can reach this admin panel. Administrators see every workspace’s data and can
             add further administrators.
           </p>
 

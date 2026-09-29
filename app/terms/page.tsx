@@ -35,24 +35,24 @@ export default function TermsPage() {
         </P>
       </Section>
 
-      <Section title="3. Accounts, companies, and deploy tokens">
+      <Section title="3. Accounts, workspaces, and deploy tokens">
         <P>
-          An Embarko account belongs to a person; apps belong to a company. A deploy token
-          authenticates as a company rather than as a user, so anything deployed with it belongs to
-          that company and is manageable by its members — not only by whoever ran the deploy.
+          An Embarko account belongs to a person; apps belong to a workspace. A deploy token
+          authenticates as a workspace rather than as a user, so anything deployed with it belongs to
+          that workspace and is manageable by its members — not only by whoever ran the deploy.
         </P>
         <List>
           <Item>
             <Term>Projects create themselves.</Term> The first deploy of a new app name creates its
-            project under your token&apos;s company. No dashboard step is required first.
+            project under your token&apos;s workspace. No dashboard step is required first.
           </Item>
           <Item>
             <Term>App names are unique platform-wide,</Term> because an app name is also its
-            subdomain. A name already held by another company cannot be reused.
+            subdomain. A name already held by another workspace cannot be reused.
           </Item>
           <Item>
             <Term>Tokens are secrets, and yours to guard.</Term> Anyone holding a token can deploy as
-            your company. Revoke a leaked token from <A href="/app/tokens">your token settings</A>; we are
+            your workspace. Revoke a leaked token from <A href="/app/tokens">your token settings</A>; we are
             not responsible for deploys made with a token you failed to protect.
           </Item>
         </List>
@@ -119,8 +119,8 @@ export default function TermsPage() {
           your plan includes backups — to keep the copies needed to restore it.
         </P>
         <P>
-          Apps deployed to a company belong to that company. Its members can update, redeploy, or
-          delete them, and the apps stay with the company if the person who deployed them leaves.
+          Apps deployed to a workspace belong to that workspace. Its members can update, redeploy, or
+          delete them, and the apps stay with the workspace if the person who deployed them leaves.
         </P>
       </Section>
 
@@ -159,7 +159,7 @@ export default function TermsPage() {
         <P>
           You can delete an app at any time from the console or the API, and you can close your
           account whenever you like. Deleting an app removes its running instance, its stored data,
-          and its backups; deleting a company removes all of its apps the same way. Deletion is
+          and its backups; deleting a workspace removes all of its apps the same way. Deletion is
           permanent and we cannot recover it for you afterwards.
         </P>
         <P>

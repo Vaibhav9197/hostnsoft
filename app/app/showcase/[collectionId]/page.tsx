@@ -205,7 +205,7 @@ export default function ShowcaseCollectionPage() {
           detail ? (
             <span className="inline-flex flex-wrap items-center gap-2">
               {detail.title}
-              {isEvent ? <Tag>Event page</Tag> : <Tag tone="ok">Your company page</Tag>}
+              {isEvent ? <Tag>Event page</Tag> : <Tag tone="ok">Your workspace page</Tag>}
             </span>
           ) : (
             <Skeleton className="h-8 w-56" />

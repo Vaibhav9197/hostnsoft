@@ -29,18 +29,18 @@ export default function SwitchCompanyPage() {
   return (
     <div className="flex flex-col gap-7">
       <PageHeader
-        title="Switch company"
-        subtitle="Choose which company to work in, or manage them."
+        title="Switch workspace"
+        subtitle="Choose which workspace to work in, or manage them."
         actions={
           <Button onClick={() => open("new", null)}>
             <Plus />
-            New company
+            New workspace
           </Button>
         }
       />
 
       {companies.length === 0 ? (
-        <EmptyState title="No companies yet">Create your first company to start deploying apps.</EmptyState>
+        <EmptyState title="No workspaces yet">Create your first workspace to start deploying apps.</EmptyState>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {companies.map((c) => {

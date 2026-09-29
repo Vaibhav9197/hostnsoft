@@ -186,7 +186,7 @@ export default function Queries() {
                 <table className="w-full">
                   <thead className="bg-elevated border-b">
                     <tr>
-                      {['Source', 'Type', 'Message', 'From', 'Company', 'Project', 'Agent', 'When'].map((h) => (
+                      {['Source', 'Type', 'Message', 'From', 'Workspace', 'Project', 'Agent', 'When'].map((h) => (
                         <th
                           key={h}
                           className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap"

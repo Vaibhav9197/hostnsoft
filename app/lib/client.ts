@@ -133,5 +133,5 @@ export async function authSwitchCompany(companyId: string): Promise<void> {
     body: JSON.stringify({ companyId }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new HnsError(data?.error ?? "Couldn’t switch company", res.status, data?.details);
+  if (!res.ok) throw new HnsError(data?.error ?? "Couldn’t switch workspace", res.status, data?.details);
 }

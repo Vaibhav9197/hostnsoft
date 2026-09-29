@@ -13,10 +13,10 @@ type Crumb = { label: string; href?: string };
 const PAGES: Record<string, string> = {
   billing: "Billing",
   members: "Members",
-  settings: "Profile",
+  settings: "Settings",
   showcase: "Showcase",
   tokens: "Deploy tokens",
-  "switch-company": "Switch company",
+  "switch-workspace": "Switch workspace",
 };
 
 /* A project's sections, matching ProjectNav's labels. */
