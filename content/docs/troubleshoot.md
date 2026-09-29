@@ -255,7 +255,7 @@ now `.../customer-query`. Same data, same behavior, `type` now also accepts `"ot
 ## Async operations (not actual failures)
 
 ### 202 Accepted misread as "live" (deploy)
-- match: `{"success":true,"status":"building"}` (or `"publishing"`), HTTP 202, from `POST /apps`
+- match: `{"success":true,"status":"building"}` (or `"publishing"` for a very large static site), HTTP 202, from `POST /apps`. A static site that published in time answers `200` with `"status":"live"` instead, and needs no polling
 - cause: not a failure — the deploy API responds immediately and the build continues in the background
 - fix: poll `links.status` from the response until `status` is `"live"` or `"failed"`; never treat
   `202` itself as done

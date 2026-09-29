@@ -141,8 +141,9 @@ can appear: `not_deployed` (nothing under this name) and `unknown` (no record
 of a recent deploy — the service may have restarted; if the URL responds, the
 app is live).
 
-Poll every 10 seconds for a server app and every 2 seconds for a static
-site. Give up after 10 minutes and read the logs.
+Poll every 10 seconds for a server app. A static site usually needs no
+polling at all: its deploy reply is already `live`. If it came back
+`publishing` (a very large site), poll every 2 seconds. Give up after 10 minutes and read the logs.
 
 ### [How every reply is shaped](#reply-shape)
 
@@ -153,7 +154,7 @@ four fields:
 | --- | --- |
 | `status` | Where things stand, in one word. |
 | `app` | Only the facts the next step needs: `name`, `kind` (`service` or `static`), `claimed`, and `expiresAt` while the app is temporary. No URLs. |
-| `next` | **One** instruction: what to do now. Follow it. Later steps (claiming, the showcase) appear in later replies, once they apply. |
+| `next` | **One** short sentence: what to do now. Follow it. Later steps (claiming, the showcase) appear in later replies, once they apply. When a step needs more than a sentence, `links.help` points to the [capabilities topic](#capabilities-endpoint) with the full steps. |
 | `links` | **Every URL in the reply, and only here**: the ones `next` refers to, plus `feedback`. The app's own address is `links.app`, present once the app is live. `next` names them (`links.status`) rather than repeating the URL. |
 
 Errors keep `error` and `code` (branch on `code`) and add `next` and
@@ -275,7 +276,7 @@ curl -X POST "https://ship.embarko.ai/apps" \
     "claimed": false,
     "expiresAt": "2026-09-30T10:04:00.000Z"
   },
-  "next": "Accepted, not live yet. The build can take a few minutes. Poll links.status every 10 seconds until status is \"live\" or \"failed\", and don't give the user the URL as working before that.",
+  "next": "Building: poll links.status every 10 seconds until it says \"live\" or \"failed\".",
   "links": {
     "status": "https://ship.embarko.ai/apps/my-app/status",
     "feedback": "https://ship.embarko.ai/apps/my-app/customer-query"
@@ -284,8 +285,28 @@ curl -X POST "https://ship.embarko.ai/apps" \
 ```
 
 **A static site** (an `index.html` and assets, nothing to build) is
-published directly: `status` is `"publishing"`, `app.kind` is `"static"`, and
-`next` says to check `links.status` in 2 seconds.
+published while the request waits, so the reply is the result. It is
+**`200 OK`** with `status: "live"`, `app.kind: "static"`, and the same
+`next` and `links` as a live status reply: the claim step with `links.help`
+→ `capabilities/claim` while the app is temporary, or the showcase step once
+it's claimed. The wait is capped at 5 seconds; a site that takes longer gets
+`202` with `status: "publishing"` and `next` says to check `links.status`.
+If publishing fails, the reply is `500` with `success: false`,
+`code: "publish_failed"` and `status: "failed"`.
+
+```json
+{
+  "success": true,
+  "status": "live",
+  "app": { "name": "my-site", "kind": "static", "claimed": false, "expiresAt": "2026-09-30T10:04:00.000Z" },
+  "next": "Live: give the user links.app and tell them it will be deleted at 2026-09-30T10:04:00.000Z unless claimed. To claim it, follow links.help.",
+  "links": {
+    "app": "https://my-site.embarko.app",
+    "feedback": "https://ship.embarko.ai/apps/my-site/customer-query",
+    "help": "https://ship.embarko.ai/capabilities/claim"
+  }
+}
+```
 
 **With a token**, `app.claimed` is `true` and there is no `expiresAt`. When
 the redeploy claims a temporary app, `next` starts with "Claimed: this app is
@@ -304,8 +325,10 @@ that, not a vague "24 hours". There is no reminder email.
 {
   "error": "App name \"my-app\" is already in use by a different company",
   "code": "app_name_taken",
-  "next": "That name belongs to someone else. Pick a different app name (X-App-Name) and deploy again.",
-  "links": { "feedback": "https://ship.embarko.ai/api/public/customer-query" }
+  "next": "That name belongs to someone else: pick a different one.",
+  "links": {
+    "feedback": "https://ship.embarko.ai/api/public/customer-query"
+  }
 }
 ```
 
@@ -337,6 +360,7 @@ the public feedback address, which takes the user's `email` in the body.
 | `rename_in_progress` | 409 | Yes, later | The app's web address is being changed. Wait, then deploy under its new name. |
 | `app_name_check_failed` | 502 | **Yes** | Transient. Retry the identical request. |
 | `deploy_failed` | 500 | Once | Build or schedule step failed. Read `details`. |
+| `publish_failed` | 500 | Once | A static site's files couldn't be published. Redeploy once; if it fails again, report it to `links.feedback`. |
 
 **After a `202`:** poll `links.status` until `status` is `live` (or
 `failed` / `crashed`). Report the URL only on `live`.
@@ -363,13 +387,15 @@ company's token once claimed.
     "claimed": false,
     "expiresAt": "2026-09-30T10:04:00.000Z"
   },
-  "next": "Live. Give the user links.app. Tell the user it is temporary and will be deleted at 2026-09-30T10:04:00.000Z unless claimed. To claim it: ask the user for their email, POST {\"email\": \"<their email>\"} to links.claim (it always answers 202; the token is emailed), ask them to paste the token back, save it to ~/.embarko/credentials, then redeploy with the same app name and the header \"Authorization: Bearer <token>\". That redeploy makes the app permanent at the same URL.",
+  "next": "Live: give the user links.app and tell them it will be deleted at 2026-09-30T10:04:00.000Z unless claimed. To claim it, follow links.help.",
   "links": {
     "app": "https://my-app.embarko.app",
-    "claim": "https://ship.embarko.ai/api/public/deploy-tokens/request",
-    "feedback": "https://ship.embarko.ai/apps/my-app/customer-query"
+    "feedback": "https://ship.embarko.ai/apps/my-app/customer-query",
+    "help": "https://ship.embarko.ai/capabilities/claim"
   },
-  "deploy": { "status": "success" }
+  "deploy": {
+    "status": "success"
+  }
 }
 ```
 
@@ -378,14 +404,20 @@ company's token once claimed.
 ```json
 {
   "status": "live",
-  "app": { "name": "my-app", "kind": "service", "claimed": true },
-  "next": "Live. Give the user links.app. If they would like it listed publicly, point them to links.showcase.",
+  "app": {
+    "name": "my-app",
+    "kind": "service",
+    "claimed": true
+  },
+  "next": "Live: give the user links.app. If they want it listed publicly, follow links.help.",
   "links": {
     "app": "https://my-app.embarko.app",
-    "showcase": "https://embarko.ai/showcase",
-    "feedback": "https://ship.embarko.ai/apps/my-app/customer-query"
+    "feedback": "https://ship.embarko.ai/apps/my-app/customer-query",
+    "help": "https://ship.embarko.ai/capabilities/showcase"
   },
-  "deploy": { "status": "success" }
+  "deploy": {
+    "status": "success"
+  }
 }
 ```
 
@@ -394,14 +426,21 @@ company's token once claimed.
 ```json
 {
   "status": "failed",
-  "app": { "name": "my-app", "kind": "service", "claimed": true },
-  "error": "Exit code 127 means a command in the build script was not found inside the build image. …",
-  "next": "Read links.logs to find the cause, fix it, and redeploy under the same app name. If the cause isn't clear, report it to links.feedback. …",
-  "links": {
-    "logs": "https://ship.embarko.ai/apps/my-app/logs?stream=stderr",
-    "feedback": "https://ship.embarko.ai/apps/my-app/customer-query"
+  "app": {
+    "name": "my-app",
+    "kind": "service",
+    "claimed": true
   },
-  "deploy": { "status": "failed" }
+  "error": "Exit code 127 means a command in the build script was not found inside the build image. …",
+  "next": "Build failed: read links.logs, fix the cause, and redeploy with the same name. If it isn't clear, report it to links.feedback (see links.help).",
+  "links": {
+    "feedback": "https://ship.embarko.ai/apps/my-app/customer-query",
+    "logs": "https://ship.embarko.ai/apps/my-app/logs?stream=stderr",
+    "help": "https://ship.embarko.ai/capabilities/feedback"
+  },
+  "deploy": {
+    "status": "failed"
+  }
 }
 ```
 
@@ -455,9 +494,15 @@ while the previous version is still running.
   "status": "not_available",
   "available": false,
   "reason": "This is a static site, so there are no app logs: nothing runs on the server.",
-  "app": { "name": "my-site", "kind": "static" },
-  "next": "This is a static site, so there are no app logs: nothing runs on the server. If a page looks wrong, check the uploaded files and redeploy. …",
-  "links": { "feedback": "https://ship.embarko.ai/apps/my-site/customer-query" }
+  "app": {
+    "name": "my-site",
+    "kind": "static"
+  },
+  "next": "Static sites have no logs: if a page looks wrong, check the files and redeploy (see links.help).",
+  "links": {
+    "feedback": "https://ship.embarko.ai/apps/my-site/customer-query",
+    "help": "https://ship.embarko.ai/capabilities/static-sites"
+  }
 }
 ```
 
@@ -467,8 +512,11 @@ while the previous version is still running.
 {
   "available": false,
   "reason": "No allocation has ever been created for this app yet",
-  "next": "No logs yet: the app has not started. Check links.status; if it says \"building\", wait and try again.",
-  "links": { "status": "https://ship.embarko.ai/apps/my-app/status", "feedback": "https://ship.embarko.ai/apps/my-app/customer-query" }
+  "next": "No logs yet because the app hasn't started: check links.status.",
+  "links": {
+    "status": "https://ship.embarko.ai/apps/my-app/status",
+    "feedback": "https://ship.embarko.ai/apps/my-app/customer-query"
+  }
 }
 ```
 
@@ -739,13 +787,35 @@ The anonymous equivalent is `POST /api/public/customer-query` with an
 
 **`GET https://ship.embarko.ai/capabilities`** · sync · safe · no auth
 
-The machine-readable list of what exists, cached for an hour. Each feature
-carries `status` and a `via` array naming who can invoke it (`agent`,
-`dashboard`, or both).
+A contents page: one line per topic, saying what it covers and where to read
+it. Open only the topic you need.
 
-**Call this before relying on a feature.** Anything reported `"unavailable"`
-is genuinely not built — do not design around it. This endpoint wins over
-any prose page, including this one.
+```json
+{
+  "version": "2026-09-29",
+  "about": "What Embarko can and can't do. Open the topic you need; each one answers fully on its own.",
+  "topics": [
+    { "topic": "deploy", "covers": "Uploading an app, what it needs to run here, and waiting for it to go live", "url": "https://ship.embarko.ai/capabilities/deploy" },
+    { "topic": "custom-domain", "covers": "Using your own domain for an app, including the DNS step a person has to do", "url": "https://ship.embarko.ai/capabilities/custom-domain" }
+  ],
+  "links": { "all": "https://ship.embarko.ai/capabilities/all", "docs": "https://embarko.ai/docs/capabilities" }
+}
+```
+
+**`GET https://ship.embarko.ai/capabilities/<topic>`** answers one question
+in full: `available`, `who` can do it (`agent`, `dashboard`), `needsHuman`
+if a person has to do a step, `summary`, `how` (the steps), `limits`, one
+`next`, and every URL under `links`. Topics: `deploy`, `static-sites`, `claim`, `files`, `env-vars`, `custom-domain`, `logs`, `rollback`, `scale-to-zero`, `showcase`, `feedback` and `not-supported`. Common
+other names work too (`domains`, `database`, `secrets`, `cron`…), and
+`?feature=<topic>` on the contents URL is the same thing. An unknown topic is
+`404` `unknown_topic` with the list of topics.
+
+**`GET https://ship.embarko.ai/capabilities/all`** is the whole contract at
+once, for anyone who wants every field in one go.
+
+All three need no token and are cached for an hour (with an `ETag`).
+**Read the topic before relying on a feature.** It wins over any prose page,
+including this one.
 
 ---
 

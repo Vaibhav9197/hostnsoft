@@ -48,7 +48,9 @@ as JSON to the same endpoint — same auth, response and errors:
 
 Four rules that decide whether this goes right:
 
-- 202 is NOT live. Poll statusUrl until deploy.status is "success", then report the URL.
+- 202 is NOT live. Poll links.status until status is "live", then report links.app. Every reply
+  has { status, app, next, links }: do what next says; links.help has the details when needed.
+  A static site is usually "live" in the deploy reply itself (200), so there is nothing to poll.
 - An app deployed without a token is DELETED AFTER 24 HOURS. Tell the user when you hand over the
   URL. Redeploying the same name with a token claims it permanently.
 - App names are unique PLATFORM-WIDE, not per account. 409 app_name_taken means another company
@@ -79,7 +81,8 @@ Every capability, each with what it is, when to use it, how to use it, and its l
 list of what is not built yet.
 
     https://embarko.ai/docs/capabilities
-    https://ship.embarko.ai/capabilities        machine-readable, no token, authoritative
+    https://ship.embarko.ai/capabilities        machine-readable contents page, no token, authoritative
+    https://ship.embarko.ai/capabilities/<topic>  one question answered in full, e.g. /capabilities/custom-domain
 
 ## API
 

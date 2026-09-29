@@ -204,16 +204,24 @@ background:
 {
   "success": true,
   "status": "building",
-  "app": { "name": "my-app", "kind": "service", "claimed": false, "expiresAt": "2026-09-30T10:04:00.000Z" },
-  "next": "Accepted, not live yet. … Poll links.status every 10 seconds until status is \"live\" or \"failed\" …",
-  "links": { "status": "https://ship.embarko.ai/apps/my-app/status", "feedback": "https://ship.embarko.ai/apps/my-app/customer-query" }
+  "app": {
+    "name": "my-app",
+    "kind": "service",
+    "claimed": false,
+    "expiresAt": "2026-09-30T10:04:00.000Z"
+  },
+  "next": "Building: poll links.status every 10 seconds until it says \"live\" or \"failed\".",
+  "links": {
+    "status": "https://ship.embarko.ai/apps/my-app/status",
+    "feedback": "https://ship.embarko.ai/apps/my-app/customer-query"
+  }
 }
 ```
 
 Every reply has this shape: `status`, `app`, `next` (the one thing to do
 now) and `links` (only the URLs `next` mentions, plus `feedback`). A plain
-static site comes back as `app.kind: "static"` and `status: "publishing"`, and
-is live within a couple of seconds.
+static site is published while the request waits, so it usually comes back
+already `live` (HTTP `200`), with the claim step in `next`.
 
 **2. Poll until it's live** — no credential needed for an app deployed this
 way:
@@ -254,7 +262,7 @@ token before there is anything to look at.
 ## [App names](#app-names)
 
 An app name is also its live subdomain, so it has to be a valid hostname
-label. `GET /capabilities` reports these under `limits`, and they are what
+label. `GET /capabilities/deploy` lists these under `limits`, and they are what
 `X-App-Name` is checked against:
 
 | Rule | Value |
@@ -274,32 +282,25 @@ is free because it isn't listed here.
 this page's constraints. No authentication, cached for an hour, and safe to
 read before you have a token.
 
-It answers the questions you need settled *before* writing an app: the
-runtime contract (`PORT`, `0.0.0.0`, no Dockerfile), what survives a
-redeploy and what doesn't, how to obtain a credential, the memory defaults,
-and which features exist. Each feature also says **who can invoke it** —
-each names who can invoke it, so an agent can tell in advance whether it
-can do a thing itself or has to hand it to a person.
+It works like a book. The URL itself is a contents page, one line per topic:
 
 ```json
 {
-  "runtime": { "port_env": "PORT", "bind_address": "0.0.0.0", "dockerfile": "rejected" },
-  "persistence": { "data_dir_env": "DATA_DIR", "survives_redeploy": true, "survives_node_loss": false },
-  "features": {
-    "deploy":         { "status": "available", "via": ["agent", "dashboard"] },
-    "env_vars":       { "status": "available", "via": ["agent", "dashboard"] },
-    "rollback":       { "status": "available", "via": ["agent", "dashboard"] },
-    "custom_domains": { "status": "available", "via": ["agent", "dashboard"] },
-    "analytics":      { "status": "available", "via": ["agent", "dashboard"] },
-    "rename_app":     { "status": "available", "via": ["agent", "dashboard"] },
-    "delete_app":     { "status": "available", "via": ["agent", "dashboard"] },
-    "backups":        { "status": "unavailable" }
-  }
+  "topics": [
+    { "topic": "deploy", "covers": "Uploading an app, what it needs to run here, and waiting for it to go live", "url": "https://ship.embarko.ai/capabilities/deploy" },
+    { "topic": "claim", "covers": "Temporary apps, the 24-hour deletion, and getting a deploy token to keep them", "url": "https://ship.embarko.ai/capabilities/claim" },
+    { "topic": "custom-domain", "covers": "Using your own domain for an app, including the DNS step a person has to do", "url": "https://ship.embarko.ai/capabilities/custom-domain" }
+  ]
 }
 ```
 
-Anything reported `"unavailable"` is genuinely not built — don't design
-around it.
+Open only the topic you need. Each one answers fully on its own: whether the
+feature exists, **who can do it** (you, the person in the dashboard, or
+both), any step a person has to do, the steps, the limits, and one `next`.
+So "can you add my domain?" is one small call to
+`/capabilities/custom-domain`, not the whole document.
+`/capabilities/not-supported` lists what won't work here, and
+`/capabilities/all` has everything at once.
 
 ## [Authentication](#authentication)
 
@@ -442,10 +443,20 @@ curl "https://ship.embarko.ai/apps/my-app/status" -H "Authorization: Bearer $DEP
 ```json
 {
   "status": "live",
-  "app": { "name": "my-app", "kind": "service", "claimed": true },
-  "next": "Live. Give the user links.app. If they would like it listed publicly, point them to links.showcase.",
-  "links": { "app": "https://my-app.embarko.app", "showcase": "https://embarko.ai/showcase", "feedback": "https://ship.embarko.ai/apps/my-app/customer-query" },
-  "deploy": { "status": "success" }
+  "app": {
+    "name": "my-app",
+    "kind": "service",
+    "claimed": true
+  },
+  "next": "Live: give the user links.app. If they want it listed publicly, follow links.help.",
+  "links": {
+    "app": "https://my-app.embarko.app",
+    "feedback": "https://ship.embarko.ai/apps/my-app/customer-query",
+    "help": "https://ship.embarko.ai/capabilities/showcase"
+  },
+  "deploy": {
+    "status": "success"
+  }
 }
 ```
 

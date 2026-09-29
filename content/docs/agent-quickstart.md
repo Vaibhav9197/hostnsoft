@@ -21,6 +21,11 @@ Four things, each a common cause of a failed deploy:
 - The app's manifest (`package.json`, `requirements.txt`, …) or
   `index.html` sits at the **root** of the folder you package. If the repo
   root delegates its build to a subfolder, package that subfolder instead.
+- It doesn't need WebSockets, cron jobs or background workers, which don't
+  work here. For any "can Embarko do X?" question, open the one topic you
+  need from the contents page at
+  [`GET /capabilities`](https://ship.embarko.ai/capabilities), for example
+  `/capabilities/custom-domain`.
 
 Pick a name while you're here: lowercase letters, numbers and dashes, 3–63
 characters, not starting or ending with a dash. It becomes the public subdomain, so slugify anything in prose —
@@ -65,9 +70,12 @@ the same four fields: `status` (where things stand), `app`, `next` (the one
 thing to do now) and `links` (the URLs `next` refers to, always including
 `links.feedback`). Follow `next`.
 
-A plain static site (just `index.html` and assets) is published directly:
-`app.kind` is `"static"` and it is live within a couple of seconds. It has no
-logs and takes no env vars, because nothing runs on the server.
+A plain static site (just `index.html` and assets) is published while the
+request waits, usually in about a second, so the reply is already the result:
+`200` with `status: "live"`, and `next` goes straight to the claim step (or
+the showcase, once claimed). A very large site that takes longer than a few
+seconds gets `202` with `status: "publishing"` instead: check `links.status`.
+It has no logs and takes no env vars, because nothing runs on the server.
 
 If you get `409 app_name_taken`, another company owns that name. Pick a
 different one and send it again — don't retry the same name.
@@ -78,8 +86,9 @@ different one and send it again — don't retry the same name.
 curl "https://ship.embarko.ai/apps/my-app/status"
 ```
 
-Poll `links.status` every 10 seconds (2 for a static site) until `status`
-is no longer `building` or `publishing`:
+Skip this if the deploy reply already says `status: "live"` (a static site
+usually does). Otherwise poll `links.status` every 10 seconds (2 for a static
+site) until `status` is no longer `building` or `publishing`:
 
 - **`live`** → continue to step 4.
 - **`failed`** or **`crashed`** → read `links.logs` from the same reply, fix

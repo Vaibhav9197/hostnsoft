@@ -160,7 +160,7 @@ table: [deploy errors](api.md#deploy). Skip to step 4.
 curl "https://ship.embarko.ai/apps/my-app/status"
 ```
 
-`errorDetail` on a `failed` deploy names what happened.
+`error` on a `failed` deploy names what happened, and `next` says what to do.
 
 **3. Read the logs — stderr first:**
 

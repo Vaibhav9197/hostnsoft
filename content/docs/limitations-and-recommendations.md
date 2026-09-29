@@ -7,8 +7,9 @@ around it. [`capabilities.md`](capabilities.md) lists what exists,
 [`api.md`](api.md) is the call-by-call contract and
 [`troubleshoot.md`](troubleshoot.md) is the error reference; this one is
 about designing for the platform's real shape rather than an idealized one.
-[`GET /capabilities`](https://ship.embarko.ai/capabilities) is
-machine-readable and wins over any of them if they disagree.
+[`GET /capabilities`](https://ship.embarko.ai/capabilities) (a contents page;
+open the topic you need) is machine-readable and wins over any of them if
+they disagree.
 
 ## Compute & isolation
 
