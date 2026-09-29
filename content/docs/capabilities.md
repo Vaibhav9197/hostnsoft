@@ -87,8 +87,9 @@ ask the user once. If they skip it, leave it out. `X-Agent-Name` is your own
 name as an agent (`claude-code`, `claude`, `chatgpt`...). Always send it. Full parameter and
 error reference: [API contract](api.md#deploy).
 
-**Limitations:** Answers `202` — accepted, not live. Poll `statusUrl` until
-`deploy.status` is `success` before reporting anything. One deploy is one
+**Limitations:** Answers `202` — accepted, not live. Poll `links.status`
+until `status` is `live` before reporting anything, and follow the `next`
+field each reply carries. One deploy is one
 app. The manifest or `index.html` must be at the archive root. No Dockerfile
 and no custom build pipeline. Never package secrets.
 
@@ -116,6 +117,35 @@ domains and `DATA_DIR` data all carry over untouched; you do not resend
 them. A redeploy schedules a fresh container, so anything written outside
 `DATA_DIR` is lost. Each redeploy is a new history entry, so it is safe to
 repeat but not free.
+
+---
+
+## [Static sites](#static-sites)
+
+**What:** An upload that is just files — an `index.html` and its assets, a
+`public/` folder, or a `Staticfile` — is published directly. There is no
+build and no server process.
+
+**Why:** A plain website doesn't need a server. Publishing the files is
+faster and has nothing to crash.
+
+**When:** Detected automatically on every deploy. The reply says so:
+`app.kind` is `"static"` and `status` is `"publishing"`. A single-page app
+that needs a build step (Vite, Create React App and similar) is still built
+and run as a server app.
+
+**How:** Deploy it like any other app. It is usually live within a couple of
+seconds; `GET .../status` then reads `live`.
+
+**Limitations:** Because nothing runs on the server:
+
+- **No logs.** `GET .../logs` answers that a static site has no app logs.
+- **No env vars.** Setting or applying one is refused with `409`
+  `not_supported_for_static`. Put configuration in the files instead.
+- **No memory setting**, no `DATA_DIR`, and no scale-to-zero.
+- **One way only.** A server app can be redeployed as a static site (its
+  server is removed), but a static site can't become a server app:
+  that upload is refused with `422` `app_kind_changed`. Use a new app name.
 
 ---
 
@@ -164,12 +194,16 @@ know whether the app it just uploaded actually works.
 curl "https://ship.embarko.ai/apps/my-app/status"
 ```
 
-`deploy.status` is exactly one of `in_progress`, `success`, `failed`. Poll
-every 3–5 seconds. Report the live URL only on `success`.
+The reply's `status` is `building` or `publishing` while it works, then
+`live`, `failed` or `crashed`. Each reply also carries `next`, the one thing
+to do now: while building, poll again; once live, give the user the URL and
+claim the app if it is temporary; once claimed, offer the showcase; on a
+failure, read the logs it links to. Poll every 10 seconds (2 for a static
+site). Report the live URL only on `live`.
 
 **Limitations:** No token while the app is an unclaimed anonymous deploy;
 the owning company's token once claimed — and a wrong token then returns
-`404`, never confirming the app exists. `deploy` is held in memory and
+`404`, never confirming the app exists. The status is held in memory and
 reflects the latest attempt only; for durable history use
 [deployment history](#history). Give up after about 10 minutes and read the
 logs.
@@ -183,7 +217,7 @@ logs.
 **Why:** A failed build starts no container, so runtime logs don't exist —
 without this, a failed deploy would be undiagnosable from outside.
 
-**When:** `deploy.status` is `failed` and the app never came up.
+**When:** `status` is `failed` and the app never came up.
 
 **How:** The same logs call. When there are no runtime logs, it returns the
 **build** output instead, carrying `source: "build"` and an explanatory
@@ -221,7 +255,8 @@ curl "https://ship.embarko.ai/apps/my-app/logs?stream=stderr"
 ```
 
 Returns `{ available, allocId, stream, logs }`. If nothing has ever
-deployed: `{"available": false, "reason": "..."}`.
+deployed: `{"available": false, "reason": "..."}` with a `next` step. A
+[static site](#static-sites) has no logs at all, and the reply says so.
 
 **Limitations:** **A snapshot at call time, not a live stream** — poll to
 follow along. No retention guarantee, and always the most recent allocation
@@ -297,7 +332,9 @@ to that app's runtime.
 **Why:** Secrets must not live in the source — the tarball becomes an image,
 and anything in it ships with the app.
 
-**When:** Any API key, credential, or environment-specific setting.
+**When:** Any API key, credential, or environment-specific setting. Not
+for [static sites](#static-sites): they run no process, so env var writes
+to them are refused.
 
 **How:** Requires a deploy token. Write, then **apply**:
 
@@ -645,8 +682,8 @@ limited number of times and then stops, logging
 about downtime, they need external monitoring pointed at their URL.
 
 **Unconfirmed:** the exact fields inside `health`, and whether a
-readiness/liveness check can be configured per app. Branch only on
-`deploy.status`, which is specified.
+readiness/liveness check can be configured per app. Branch only on the
+status reply's `status` field (`live`, `crashed`, …), which is specified.
 
 ---
 
@@ -871,8 +908,9 @@ claimed later. **Why:** It removes signup from the first deploy entirely.
 **When:** Every first deploy, unless you already hold a token. **How:** Omit
 `Authorization`; claim by redeploying the same name with a token.
 **Limitations:** **Deleted 24 hours after creation.** No reminder email — the
-only warnings are `orphan.message` in the deploy response and a countdown
-banner injected into HTML pages (a JSON-only API has nothing to inject
+only warnings are `app.expiresAt` with the claim steps in the `next` field of
+the status reply once the app is live, and a countdown banner injected into
+HTML pages (a JSON-only API has nothing to inject
 into).
 
 ### [Showcase listing](#showcase)
@@ -915,10 +953,11 @@ report it as such. No alerting and no metrics export.
 | Application identity | Available | Agent |
 | Deployment status | Available | Agent |
 | Build errors | Available | Agent |
-| Runtime logs | Available | Agent |
+| Runtime logs | Available (server apps only) | Agent |
 | Database (embedded SQLite) | Available | Agent |
 | Persistent files under `DATA_DIR` | Available | Agent |
-| Secrets / env vars | Available | Agent |
+| Secrets / env vars | Available (server apps only) | Agent |
+| Static sites (no build, no server) | Available | Agent |
 | Public HTTP and webhook routes | Available | Agent |
 | Default domain + automatic HTTPS | Available | Agent |
 | Deployment history | Available | Agent |

@@ -16,9 +16,9 @@ load-bearing ones. Everything below this section is detail.
 2. **An anonymous app is deleted after 24 hours.** Say this when you report
    the URL. Redeploying the same `X-App-Name` *with* a token claims it
    permanently.
-3. **`202` is not "live".** Poll the response's `statusUrl` until
-   `deploy.status` is `"success"` or `"failed"`. Only report the URL after
-   `"success"`.
+3. **`202` is not "live".** Poll the response's `links.status` until
+   `status` is `"live"` (or `"failed"`). Only report the URL on `"live"`.
+   Every reply carries `next`, the one thing to do now: follow it.
 4. **The app must read `PORT` and bind `0.0.0.0`.** Not a hardcoded port, not
    `localhost`. No Dockerfile.
 5. **Only `DATA_DIR` survives a redeploy.** Anything else written at runtime
@@ -44,7 +44,7 @@ load-bearing ones. Everything below this section is detail.
 
 | The user says | What you do |
 | --- | --- |
-| "Deploy this app." | [Quick start](#quick-start) — package, `POST /apps`, poll `statusUrl`, report the URL. |
+| "Deploy this app." | [Quick start](#quick-start) — package, `POST /apps`, poll `links.status`, report the URL. |
 | "The deployment failed." | [Diagnosing a failed deploy](#diagnosing-a-failure) — status, then logs, then the `code` in [`troubleshoot.md`](troubleshoot.md), then fix and redeploy. |
 | "Add a custom domain." | [Custom domains](#custom-domains) — register and verify it yourself; only the DNS record needs the user. |
 | "Roll it back." | [Rollback](#rollback) — list deployments, pick the last good one, roll back, poll until it's applied. |
@@ -201,8 +201,19 @@ You'll get a `202` immediately — the build/deploy itself continues in the
 background:
 
 ```json
-{ "accepted": true, "statusUrl": "https://ship.embarko.ai/apps/my-app/status", "logsUrl": "https://ship.embarko.ai/apps/my-app/logs" }
+{
+  "success": true,
+  "status": "building",
+  "app": { "name": "my-app", "kind": "service", "claimed": false, "expiresAt": "2026-09-30T10:04:00.000Z" },
+  "next": "Accepted, not live yet. … Poll links.status every 10 seconds until status is \"live\" or \"failed\" …",
+  "links": { "status": "https://ship.embarko.ai/apps/my-app/status", "feedback": "https://ship.embarko.ai/apps/my-app/customer-query" }
+}
 ```
+
+Every reply has this shape: `status`, `app`, `next` (the one thing to do
+now) and `links` (only the URLs `next` mentions, plus `feedback`). A plain
+static site comes back as `app.kind: "static"` and `status: "publishing"`, and
+is live within a couple of seconds.
 
 **2. Poll until it's live** — no credential needed for an app deployed this
 way:
@@ -211,8 +222,10 @@ way:
 curl "https://ship.embarko.ai/apps/my-app/status"
 ```
 
-Wait for `deploy.status` to be `"success"` (or `"failed"` — check `.../logs`
-if so). Once successful, your app is live at `https://my-app.embarko.app`.
+Wait for `status` to be `"live"` (or `"failed"` — the reply's `links.logs`
+says where to look). Once live, your app is at `links.app`, and `next` says
+what comes after: claiming it if it is temporary, the showcase once it is
+claimed.
 Full details on both endpoints: [Checking deploy status & logs](#status-and-logs).
 
 **3. Keep it, when you're ready.** A deploy with no credential is real and
@@ -428,26 +441,25 @@ curl "https://ship.embarko.ai/apps/my-app/status" -H "Authorization: Bearer $DEP
 
 ```json
 {
-  "appName": "my-app",
-  "deploy": {
-    "status": "success",
-    "appVersion": "v1.2.0",
-    "startedAt": "2026-09-09T10:00:00.000Z",
-    "finishedAt": "2026-09-09T10:01:32.000Z",
-    "errorDetail": null
-  },
-  "health": { "...": "live status of the running app" }
+  "status": "live",
+  "app": { "name": "my-app", "kind": "service", "claimed": true },
+  "next": "Live. Give the user links.app. If they would like it listed publicly, point them to links.showcase.",
+  "links": { "app": "https://my-app.embarko.app", "showcase": "https://embarko.ai/showcase", "feedback": "https://ship.embarko.ai/apps/my-app/customer-query" },
+  "deploy": { "status": "success" }
 }
 ```
 
-`deploy.status` is `"in_progress"`, `"success"`, or `"failed"` — this is
-what `POST /apps`'s `statusUrl` is for: poll this after the `202`
-until it's no longer `"in_progress"`. `deploy` reflects the **most recent
+`status` is `"building"` or `"publishing"` while it works, then `"live"`,
+`"failed"` or `"crashed"` (built, but stops right after starting). This is
+what `POST /apps`'s `links.status` is for: poll it after the `202` until it's
+`"live"` or a failure, and do what `next` says. It reflects the **most recent
 deploy attempt this process has seen** (in-memory, not a durable history —
 see your project's **Deployments** tab in the dashboard, or
-[Monitoring your app](#monitoring) below, for durable history). `health`
-reflects the app's actual current running state, independent of the last
-deploy's outcome.
+[Monitoring your app](#monitoring) below, for durable history). For a static
+site, `"live"` means its files are published; there is no server to check.
+
+`deploy.status` (`"in_progress"`, `"success"`, `"failed"`) is deprecated and
+kept only for older copies of the deploy script. Read `status`.
 
 ### [Logs](#logs)
 
@@ -467,7 +479,9 @@ the tail of the most recent allocation's logs at the moment you call it**
 Always the most recent allocation regardless of whether it's currently
 healthy, since the most common reason to check logs is a build/runtime
 failure. If nothing's deployed yet: `{"available": false, "reason": "No
-allocation has ever been created for this app yet"}`.
+allocation has ever been created for this app yet"}`, with a `next` step. A
+static site has no logs at all (nothing runs on the server), and the reply
+says exactly that.
 
 ### [Diagnosing a failed deploy](#diagnosing-a-failure)
 
@@ -484,15 +498,16 @@ something to retry. Several of them tell you the fix in the response itself:
 `foundNestedAt` and `deployThisInstead` name the folder you should have
 packaged.
 
-**2. Otherwise poll status and read `errorDetail`:**
+**2. Otherwise poll status and read `error`:**
 
 ```bash
 curl "https://ship.embarko.ai/apps/my-app/status"
 ```
 
-`deploy.status` of `"failed"` means the build or the first run failed.
-`errorDetail` names what happened. If it is still `"in_progress"`, nothing
-has failed yet — keep polling.
+`status` of `"failed"` means the build failed, and `"crashed"` means it built
+but the app stops right after starting. `error` names what happened and
+`next` says what to do. If it is still `"building"`, nothing has failed yet —
+keep polling.
 
 **3. Read the logs.** This works even when the build failed and no container
 ever started: the response falls back to build output, marked
@@ -727,8 +742,20 @@ curl -X POST "https://ship.embarko.ai/apps/my-app/customer-query" \
   -H "Authorization: Bearer $DEPLOY_TOKEN" \
   -H "X-Agent-Name: Claude Code" \
   -H "Content-Type: application/json" \
-  -d '{"type": "feedback", "message": "Deploy docs did not mention DATA_DIR clearly enough"}'
+  -d '{"type": "docs_issue", "message": "Deploy docs did not mention DATA_DIR clearly enough"}'
 ```
+
+`type` says what kind of problem it was:
+
+| `type` | Use it when |
+| --- | --- |
+| `platform_bug` | Embarko itself misbehaved |
+| `missing_capability` | the app needs something Embarko doesn't have |
+| `docs_issue` | the docs were wrong or unclear |
+| `unexpected_behavior` | it worked, but not the way the docs say |
+| `other` | anything else |
+
+`feature` and `feedback` are still accepted too.
 
 `X-Agent-Name` is required — free text, so any current or future agent can
 identify itself without needing a platform change to be recognized. Note

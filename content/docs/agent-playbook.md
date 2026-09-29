@@ -21,8 +21,9 @@ hosting questions you must never put to them, is
 [When to involve the human](escalation.md).
 
 **Never report success you haven't verified.** A `202` is not a live app.
-The only proof is `deploy.status: "success"`, and the only honest next step
-is fetching the URL and finding it serves.
+The only proof is `status: "live"` from the status reply, and the only
+honest next step is fetching the URL and finding it serves. Every reply
+carries `next`, the one thing to do now — follow it.
 
 **Tell them the 24-hour rule.** If you deployed anonymously, the app is
 deleted in 24 hours. Say so in the same message as the URL, every time.
@@ -98,13 +99,14 @@ applies too.
 - Any other `4xx`/`422` → read `code`, fix the cause, resend. See
   [the error table](api.md#deploy).
 
-**7. Wait for it to be live.** Poll every 3–5 seconds:
+**7. Wait for it to be live.** Poll `links.status` every 10 seconds (every
+2 for a static site, which is live almost immediately):
 
 ```bash
 curl "https://ship.embarko.ai/apps/my-app/status"
 ```
 
-Until `deploy.status` is no longer `in_progress`. On `failed`, go to
+Until `status` is `live`. On `failed` or `crashed`, go to
 [Deployment failed](#deploy-failed). Give up after 10 minutes and read logs.
 
 **8. Verify, then report.** Fetch `https://my-app.embarko.app` and

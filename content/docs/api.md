@@ -122,26 +122,47 @@ Nothing here takes an idempotency key. What each call does when repeated:
 Two actions are asynchronous. Both answer immediately with `202` and finish
 in the background:
 
-- **Deploy** (`POST /apps`) — poll `statusUrl`.
+- **Deploy** (`POST /apps`) — poll `links.status`.
 - **Rollback** — poll the returned deployment.
 
 `202` means *accepted*, never *live*. Reporting a URL on the `202` is the
 single most common autonomous failure.
 
-Deploy states, from `GET .../status`:
+States, from `GET .../status` (the `status` field):
 
 ```
-in_progress  ──▶  success   → the app is live; report the URL now
-             └─▶  failed    → read logs, fix, redeploy
+building / publishing ──▶ starting ──▶ live     → report the URL, then do what `next` says
+                      └─▶ failed               → read links.logs, fix, redeploy
+                                  └─▶ crashed  → built, but stops on start: read links.logs
 ```
 
-There are no other values. `health` is a separate field describing the
-running app right now, independent of the last deploy's outcome — an app can
-be healthy while the newest deploy failed, because the previous version is
-still serving.
+`publishing` is a static site (no build, live in seconds). Two more values
+can appear: `not_deployed` (nothing under this name) and `unknown` (no record
+of a recent deploy — the service may have restarted; if the URL responds, the
+app is live).
 
-Poll every 3–5 seconds. A normal build finishes in tens of seconds; give up
-after 10 minutes and read the logs.
+Poll every 10 seconds for a server app and every 2 seconds for a static
+site. Give up after 10 minutes and read the logs.
+
+### [How every reply is shaped](#reply-shape)
+
+`POST /apps`, `GET .../status` and `GET .../logs` all answer with the same
+four fields:
+
+| Field | What it holds |
+| --- | --- |
+| `status` | Where things stand, in one word. |
+| `app` | Only the facts the next step needs: `name`, `kind` (`service` or `static`), `claimed`, and `expiresAt` while the app is temporary. No URLs. |
+| `next` | **One** instruction: what to do now. Follow it. Later steps (claiming, the showcase) appear in later replies, once they apply. |
+| `links` | **Every URL in the reply, and only here**: the ones `next` refers to, plus `feedback`. The app's own address is `links.app`, present once the app is live. `next` names them (`links.status`) rather than repeating the URL. |
+
+Errors keep `error` and `code` (branch on `code`) and add `next` and
+`links` too. `links.feedback` is on every reply: when something fails or
+is confusing, report it there.
+
+Use the links the reply gives you rather than building them from the app
+name. If the address format ever changes, a caller that used them keeps
+working.
 
 ---
 
@@ -242,53 +263,54 @@ curl -X POST "https://ship.embarko.ai/apps" \
   }'
 ```
 
-**Success — `202 Accepted`:**
+**Success — `202 Accepted`** (a server app, deployed without a token):
 
 ```json
 {
   "success": true,
-  "accepted": true,
-  "message": "Deployment accepted and is building in the background...",
-  "version": "1788947902193",
-  "image": "my-app:1788947902193",
-  "memory": "256MB",
-  "url": "https://my-app.embarko.app",
-  "statusUrl": "https://ship.embarko.ai/apps/my-app/status",
-  "logsUrl": "https://ship.embarko.ai/apps/my-app/logs"
-}
-```
-
-**Use the URLs the response gives you.** `url`, `statusUrl` and `logsUrl`
-are all returned — don't assemble them from the app name. If the address
-format ever changes, a caller that used these keeps working and one that
-guessed does not. `url` is also the live address to report to the user once
-the deploy succeeds, so there is nothing to construct.
-
-`version` is what was actually deployed — the value you sent, or the
-timestamp the platform generated if you omitted `X-App-Version`. Record it;
-it is how this deploy appears in [history](#history).
-
-**Anonymous deploys** return every field above **plus an `orphan` object**:
-
-```json
-{
-  "orphan": {
-    "expiresAt": "2026-09-10T10:08:08.319Z",
-    "message": "This app was deployed without a deploy token, so it is temporary and will be deleted at ... unless claimed.",
-    "statusUrl": "https://ship.embarko.ai/apps/orphan-3/status",
-    "logsUrl": "https://ship.embarko.ai/apps/orphan-3/logs"
+  "status": "building",
+  "app": {
+    "name": "my-app",
+    "kind": "service",
+    "claimed": false,
+    "expiresAt": "2026-09-30T10:04:00.000Z"
+  },
+  "next": "Accepted, not live yet. The build can take a few minutes. Poll links.status every 10 seconds until status is \"live\" or \"failed\", and don't give the user the URL as working before that.",
+  "links": {
+    "status": "https://ship.embarko.ai/apps/my-app/status",
+    "feedback": "https://ship.embarko.ai/apps/my-app/customer-query"
   }
 }
 ```
 
-`orphan.expiresAt` is the exact deadline — give the user that, not a vague
-"24 hours". It is the only warning they get; there is no reminder email.
+**A static site** (an `index.html` and assets, nothing to build) is
+published directly: `status` is `"publishing"`, `app.kind` is `"static"`, and
+`next` says to check `links.status` in 2 seconds.
+
+**With a token**, `app.claimed` is `true` and there is no `expiresAt`. When
+the redeploy claims a temporary app, `next` starts with "Claimed: this app is
+now permanent".
+
+**When a server app is replaced by a static site**, `next` starts with a
+warning: its server is removed and it can't be turned back into a server
+app.
+
+`app.expiresAt` is the exact deletion time of a temporary app. Give the user
+that, not a vague "24 hours". There is no reminder email.
 
 **Failure — `409`:**
 
 ```json
-{ "error": "App name 'my-app' is already in use by a different company", "code": "app_name_taken" }
+{
+  "error": "App name \"my-app\" is already in use by a different company",
+  "code": "app_name_taken",
+  "next": "That name belongs to someone else. Pick a different app name (X-App-Name) and deploy again.",
+  "links": { "feedback": "https://ship.embarko.ai/api/public/customer-query" }
+}
 ```
+
+Before the app exists (a rejected name, a bad token), `links.feedback` is
+the public feedback address, which takes the user's `email` in the body.
 
 **Errors:**
 
@@ -310,11 +332,14 @@ it is how this deploy appears in [history](#history).
 | `unsupported_storage_pattern` | 422 | No | App calls `window.storage`. Replace with SQLite under `DATA_DIR`. |
 | `no_manifest_at_root` | 422 | No | Manifest is nested. Read `foundNestedAt`, repackage from that folder. |
 | `app_nested_in_subdirectory` | 422 | No | Root delegates the build to a subfolder. Deploy the folder named in `deployThisInstead`. One deploy is one app. |
+| `invalid_static_root` | 422 | No | The Staticfile's `root` points outside the upload. Point it at a folder inside it. |
+| `app_kind_changed` | 422 | No | The app is a static site and this upload is a server app. A static site can't become one: deploy under a new app name. |
+| `rename_in_progress` | 409 | Yes, later | The app's web address is being changed. Wait, then deploy under its new name. |
 | `app_name_check_failed` | 502 | **Yes** | Transient. Retry the identical request. |
 | `deploy_failed` | 500 | Once | Build or schedule step failed. Read `details`. |
 
-**After a `202`:** poll `statusUrl` until `deploy.status` is no longer
-`in_progress`. Report the live URL only on `success`.
+**After a `202`:** poll `links.status` until `status` is `live` (or
+`failed` / `crashed`). Report the URL only on `live`.
 
 ---
 
@@ -327,28 +352,75 @@ company's token once claimed.
 
 **Parameters:** none beyond the app name in the path.
 
-**Success — `200`:**
+**Live, not claimed yet — `200`.** This is the reply that brings up claiming:
 
 ```json
 {
-  "appName": "my-app",
-  "deploy": {
-    "status": "success",
-    "appVersion": "v1.2.0",
-    "startedAt": "2026-09-09T10:00:00.000Z",
-    "finishedAt": "2026-09-09T10:01:32.000Z",
-    "errorDetail": null
+  "status": "live",
+  "app": {
+    "name": "my-app",
+    "kind": "service",
+    "claimed": false,
+    "expiresAt": "2026-09-30T10:04:00.000Z"
   },
-  "health": { "...": "current running state of the app" }
+  "next": "Live. Give the user links.app. Tell the user it is temporary and will be deleted at 2026-09-30T10:04:00.000Z unless claimed. To claim it: ask the user for their email, POST {\"email\": \"<their email>\"} to links.claim (it always answers 202; the token is emailed), ask them to paste the token back, save it to ~/.embarko/credentials, then redeploy with the same app name and the header \"Authorization: Bearer <token>\". That redeploy makes the app permanent at the same URL.",
+  "links": {
+    "app": "https://my-app.embarko.app",
+    "claim": "https://ship.embarko.ai/api/public/deploy-tokens/request",
+    "feedback": "https://ship.embarko.ai/apps/my-app/customer-query"
+  },
+  "deploy": { "status": "success" }
 }
 ```
 
-**States:** `deploy.status` is exactly one of `in_progress`, `success`,
-`failed`. `errorDetail` is populated on `failed`.
+**Live and claimed — `200`.** This is the reply that brings up the showcase:
 
-**Errors:** `404` — not yours, or no such app. Not retryable; check the name
-and the token. `deploy` reflects the most recent attempt held in memory, not
-durable history — use [deployment history](#history) for that.
+```json
+{
+  "status": "live",
+  "app": { "name": "my-app", "kind": "service", "claimed": true },
+  "next": "Live. Give the user links.app. If they would like it listed publicly, point them to links.showcase.",
+  "links": {
+    "app": "https://my-app.embarko.app",
+    "showcase": "https://embarko.ai/showcase",
+    "feedback": "https://ship.embarko.ai/apps/my-app/customer-query"
+  },
+  "deploy": { "status": "success" }
+}
+```
+
+**Failed — `200`.** `error` names the cause and `links.logs` points at stderr:
+
+```json
+{
+  "status": "failed",
+  "app": { "name": "my-app", "kind": "service", "claimed": true },
+  "error": "Exit code 127 means a command in the build script was not found inside the build image. …",
+  "next": "Read links.logs to find the cause, fix it, and redeploy under the same app name. If the cause isn't clear, report it to links.feedback. …",
+  "links": {
+    "logs": "https://ship.embarko.ai/apps/my-app/logs?stream=stderr",
+    "feedback": "https://ship.embarko.ai/apps/my-app/customer-query"
+  },
+  "deploy": { "status": "failed" }
+}
+```
+
+**States:** `status` is one of `building`, `publishing`, `starting`, `live`,
+`failed`, `crashed`, `not_deployed`, `unknown` — see
+[Async behaviour and states](#async). A sleeping app (scale-to-zero) reads
+`live`; `next` says it wakes on the first request.
+
+**Static sites** have no server, so `live` means the files are published —
+there is no separate health check. `next` never mentions logs for them.
+
+**Deprecated field.** `deploy.status` (`in_progress`, `success`, `failed`,
+`unknown`) is kept for older copies of the deploy script. Read `status`
+instead; `deploy` will be removed.
+
+**Errors:** `404` `not_found` — not yours, or no such app. Check the name
+and the token. `401` `unauthorized` — the token was rejected. Both carry
+`next` and `links.feedback`. The status reflects the most recent attempt held
+in memory, not durable history — use [deployment history](#history) for that.
 
 ---
 
@@ -371,14 +443,33 @@ durable history — use [deployment history](#history) for that.
 }
 ```
 
-When the build failed and no container ever started, the response instead
-carries the **build** output, with `source: "build"` and an explanatory
-`note`. That is where the failing command is named.
+When the latest build failed, the response carries the **build** output
+instead, with `source: "build"` and a `next` saying the cause is in there.
+That is where the failing command is named. This includes a failed redeploy
+while the previous version is still running.
+
+**Static site — `200`.** Nothing runs on the server, so there are no logs:
+
+```json
+{
+  "status": "not_available",
+  "available": false,
+  "reason": "This is a static site, so there are no app logs: nothing runs on the server.",
+  "app": { "name": "my-site", "kind": "static" },
+  "next": "This is a static site, so there are no app logs: nothing runs on the server. If a page looks wrong, check the uploaded files and redeploy. …",
+  "links": { "feedback": "https://ship.embarko.ai/apps/my-site/customer-query" }
+}
+```
 
 **Nothing deployed yet — `200`:**
 
 ```json
-{ "available": false, "reason": "No allocation has ever been created for this app yet" }
+{
+  "available": false,
+  "reason": "No allocation has ever been created for this app yet",
+  "next": "No logs yet: the app has not started. Check links.status; if it says \"building\", wait and try again.",
+  "links": { "status": "https://ship.embarko.ai/apps/my-app/status", "feedback": "https://ship.embarko.ai/apps/my-app/customer-query" }
+}
 ```
 
 **Behaviour:** a snapshot at call time, not a stream. Poll to follow along.
@@ -563,6 +654,12 @@ running on the old value.
 **Values are write-only.** You cannot read a secret back — not with the
 token, not ever. If you need to know a value, ask the user.
 
+**Static sites have no env vars.** Nothing runs on the server to read them,
+so setting or applying one on a static site (`app.kind: "static"`) is refused
+with `409` `not_supported_for_static`. Put configuration in the site's files
+instead, or deploy it as a server app under a new name. Listing and deleting
+still work.
+
 ---
 
 ## [List on Showcase](#showcase)
@@ -615,11 +712,23 @@ wasted round trip through their inbox.
 
 **Auth:** same rule as status — none while unclaimed, token once claimed.
 
-**Required:** header `X-Agent-Name` (free text), body `type` (exactly
-`"feature"`, `"feedback"` or `"other"`) and `message` (1–5000 chars).
+**Required:** header `X-Agent-Name` (free text), body `type` and `message`
+(1–5000 chars).
 
-**Errors:** `400` if `X-Agent-Name` is missing (not retryable); `502`
-transient (retry once).
+`type` says what kind of problem it was:
+
+| `type` | Use it when |
+| --- | --- |
+| `platform_bug` | Embarko itself misbehaved |
+| `missing_capability` | the app needs something Embarko doesn't have |
+| `docs_issue` | the docs were wrong or unclear |
+| `unexpected_behavior` | it worked, but not the way the docs say |
+| `other` | anything else |
+
+`feature` and `feedback` are still accepted too.
+
+**Errors:** `400` if `X-Agent-Name` is missing, or `invalid_feedback_type`
+for an unknown `type` (not retryable); `502` transient (retry once).
 
 The anonymous equivalent is `POST /api/public/customer-query` with an
 `email` in the body, rate limited to 10/email, 20/IP and 500/hour globally.

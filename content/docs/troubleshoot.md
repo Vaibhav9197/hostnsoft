@@ -186,8 +186,9 @@ now `.../customer-query`. Same data, same behavior, `type` now also accepts `"ot
 ### 502 from the agent customer-query endpoint
 - match: HTTP 502 from `POST .../apps/:appName/customer-query`
 - cause: an internal error forwarding or storing the request
-- fix: transient — safe to retry. If it persists, the message/type may be invalid (`type` must be exactly
-  `"feature"`, `"feedback"`, or `"other"`; `message` 1–5000 characters)
+- fix: transient — safe to retry. If it persists, the message/type may be invalid (`type` must be one of
+  `platform_bug`, `missing_capability`, `docs_issue`, `unexpected_behavior`, `other`, `feature` or `feedback`;
+  `message` 1–5000 characters)
 
 ## Custom domains
 
@@ -239,25 +240,35 @@ now `.../customer-query`. Same data, same behavior, `type` now also accepts `"ot
   removed) 24 hours after creation, unless claimed first
 - fix: redeploy the same `X-App-Name` **with** a valid token before it expires — this claims
   the project under your company, cancels the expiry, and behaves exactly like any other
-  project from then on. There is only one warning: the deploy response's `orphan.message`
-  and an in-app banner (see below) — no reminder email as it approaches expiry.
+  project from then on. The warnings are `app.expiresAt` plus the claim steps in the status
+  reply's `next` once the app is live, and an in-app banner (see below) — no reminder email as it approaches expiry.
 
 ### The in-app "will be deleted" banner doesn't show up
 - no `match` — a known scope limitation, not a bug
 - cause: the banner is injected by rewriting `text/html` HTTP responses only (a sidecar
   proxy in front of your app, working regardless of your app's language/framework). A
-  JSON-only API with no HTML page has nothing for it to inject into — the deploy response's
-  `orphan.message` is still the authoritative notice, it just never reaches a browser
-- fix: nothing to fix — this is expected for non-HTML apps; rely on the deploy response
-  message instead of the in-app banner for those
+  JSON-only API with no HTML page has nothing for it to inject into — the status reply's
+  `app.expiresAt` and `next` are still the authoritative notice, they just never reach a browser
+- fix: nothing to fix — this is expected for non-HTML apps; rely on the status reply
+  instead of the in-app banner for those
 
 ## Async operations (not actual failures)
 
 ### 202 Accepted misread as "live" (deploy)
-- match: `{"accepted":true}`, HTTP 202, from `POST /apps`
+- match: `{"success":true,"status":"building"}` (or `"publishing"`), HTTP 202, from `POST /apps`
 - cause: not a failure — the deploy API responds immediately and the build continues in the background
-- fix: poll `statusUrl` from the response until `deploy.status` is `"success"` or `"failed"`; never treat
+- fix: poll `links.status` from the response until `status` is `"live"` or `"failed"`; never treat
   `202` itself as done
+
+### Env var write refused on a static site
+- match: `{"code":"not_supported_for_static"}`, HTTP 409, from `PUT .../env-vars`, `PUT .../env-vars/<key>` or `POST .../env-vars/apply`
+- cause: the app is a static site (`app.kind: "static"`): it is served straight from its files and nothing runs on the server, so env vars have nowhere to go
+- fix: put the configuration in the site's files (for example a `config.js`), or deploy it as a server app under a new app name
+
+### "No logs" for a static site
+- match: `{"status":"not_available"}` from `GET .../logs`, with `app.kind: "static"`
+- cause: not a failure — a static site runs no process, so there is nothing to log
+- fix: nothing to fix; if a page looks wrong, check the uploaded files and redeploy
 
 ### 202 Accepted misread as "done" (rollback)
 - match: `{"accepted":true,"deploymentId":"...","statusUrl":"..."}`, HTTP 202, from

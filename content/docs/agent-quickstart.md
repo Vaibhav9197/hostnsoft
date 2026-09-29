@@ -60,7 +60,14 @@ No `Authorization` header. That's deliberate — the first deploy needs no
 credential, and asking the user for one before anything is running is the
 most common way this goes wrong.
 
-You get `202` with a `statusUrl`. **`202` does not mean live.**
+You get `202`. **`202` does not mean live.** Every reply from here on has
+the same four fields: `status` (where things stand), `app`, `next` (the one
+thing to do now) and `links` (the URLs `next` refers to, always including
+`links.feedback`). Follow `next`.
+
+A plain static site (just `index.html` and assets) is published directly:
+`app.kind` is `"static"` and it is live within a couple of seconds. It has no
+logs and takes no env vars, because nothing runs on the server.
 
 If you get `409 app_name_taken`, another company owns that name. Pick a
 different one and send it again — don't retry the same name.
@@ -71,12 +78,12 @@ different one and send it again — don't retry the same name.
 curl "https://ship.embarko.ai/apps/my-app/status"
 ```
 
-Poll every 3–5 seconds until `deploy.status` is no longer `in_progress`:
+Poll `links.status` every 10 seconds (2 for a static site) until `status`
+is no longer `building` or `publishing`:
 
-- **`success`** → continue to step 4.
-- **`failed`** → read
-  `https://ship.embarko.ai/apps/my-app/logs?stream=stderr`, fix the app, and
-  deploy again under the same name. Full procedure:
+- **`live`** → continue to step 4.
+- **`failed`** or **`crashed`** → read `links.logs` from the same reply, fix
+  the app, and deploy again under the same name. Full procedure:
   [Deployment failed](agent-playbook.md#deploy-failed).
 
 ## [4. Verify, then report](#report)
@@ -84,9 +91,10 @@ Poll every 3–5 seconds until `deploy.status` is no longer `in_progress`:
 Fetch `https://my-app.embarko.app` and confirm it actually serves. Only
 then give the user the URL.
 
-**Say this with it:** the app is deleted 24 hours from now unless it's
-claimed, and you can make it permanent whenever they want. That warning is
-not optional — there is no reminder email.
+**Say this with it:** the app is deleted at `app.expiresAt` unless it's
+claimed, and you can make it permanent whenever they want. The live status
+reply's `next` spells out how. That warning is not optional — there is no
+reminder email.
 
 ## [Keeping it](#keeping-it)
 
