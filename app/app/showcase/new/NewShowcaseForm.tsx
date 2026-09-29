@@ -331,7 +331,7 @@ export function NewShowcaseForm({ onDraftChange }: { onDraftChange?: (draft: Sho
         <div>
           <div className="flex items-baseline justify-between gap-3">
             <label htmlFor={nameId} className={LABEL}>
-              Event name
+              Showcase name
             </label>
             {name.length >= NAME_COUNT_FROM && <span className={COUNT}>{NAME_MAX - name.length} left</span>}
           </div>
@@ -411,7 +411,7 @@ export function NewShowcaseForm({ onDraftChange }: { onDraftChange?: (draft: Sho
               autoCapitalize="off"
               autoComplete="off"
               autoCorrect="off"
-              placeholder="your-event"
+              placeholder="your-showcase"
               readOnly={creating}
               aria-invalid={addressInvalid || undefined}
               aria-describedby={`${addressId}-host ${addressId}-help`}
@@ -469,7 +469,7 @@ export function NewShowcaseForm({ onDraftChange }: { onDraftChange?: (draft: Sho
           <div className="flex flex-col gap-2.5 sm:flex-row">
             <Button type="submit" disabled={creating} className="max-sm:h-11 max-sm:w-full">
               {creating && <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}
-              {creating ? "Creating…" : "Create event page"}
+              {creating ? "Creating…" : "Create showcase page"}
             </Button>
             <Button asChild variant="ghost" className="max-sm:h-11 max-sm:w-full">
               <Link href="/app/showcase">Cancel</Link>

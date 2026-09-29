@@ -18,7 +18,7 @@ export function showcaseListPrompt(
 ): string {
   const where =
     page.type === "public"
-      ? `the Embarko Showcase event page "${page.title}" (${SITE_HOST}/showcase/${page.slug})`
+      ? `the Embarko Showcase page "${page.title}" (${SITE_HOST}/showcase/${page.slug})`
       : `my workspace's Embarko Showcase page "${page.title}" (${SITE_HOST}/showcase/${page.slug})`;
 
   const which = appSlug ? `my Embarko app "${appSlug}"` : "this app";
@@ -66,7 +66,7 @@ export function showcaseScreenshotPrompt(
 ): string {
   const where =
     page.type === "public"
-      ? `the Embarko Showcase event page "${page.title}" (${SITE_HOST}/showcase/${page.slug})`
+      ? `the Embarko Showcase page "${page.title}" (${SITE_HOST}/showcase/${page.slug})`
       : `my workspace's Embarko Showcase page "${page.title}" (${SITE_HOST}/showcase/${page.slug})`;
   const which = appSlug ? `my Embarko app "${appSlug}"` : "this app";
 
@@ -99,14 +99,15 @@ When it's done, give me the link to its Showcase page.`;
  * API still needs a page slug, so the listing goes on the company's own page,
  * which every company has from signup and which feeds the public gallery.
  */
-export function showcaseGeneralPrompt(): string {
+/** `pageSlug`: the workspace's own page, when the caller knows it, so the agent needn't ask. */
+export function showcaseGeneralPrompt(pageSlug?: string): string {
   return `List this app on the Embarko Showcase (${SITE_HOST}/showcase).
 
 If it isn't deployed to Embarko yet, deploy it first: read ${SITE}/docs/agent-quickstart.md and follow it.
 Use my deploy token — DEPLOY_TOKEN or ~/.embarko/credentials if either is set; if neither is, ask me for one from ${SITE}/app/tokens.
 
 Then list it: read ${SITE}/docs/api.md#showcase for how to call the Showcase API.
-Use my workspace's own Showcase page as the page slug (ask me for it if you can't tell), and these details, inferring what you can from the project and asking me for the rest:
+${pageSlug ? `Use page slug "${pageSlug}" (my workspace's own Showcase page)` : "Use my workspace's own Showcase page as the page slug (ask me for it if you can't tell)"}, and these details, inferring what you can from the project and asking me for the rest:
 - name and a one-line tagline
 - what it does, and why it was built (a short paragraph each)
 - creator name, and a profile link if I have one

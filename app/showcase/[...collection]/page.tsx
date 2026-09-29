@@ -61,13 +61,13 @@ export default async function CollectionPage({ params }: Props) {
         title={meta.title}
         /* Says which kind of page this is, so a visitor who landed here from
            a share link knows what they are looking at. */
-        lede={meta.type === "company" ? `Apps built by ${meta.title}` : `An event page — ${count} built and shared here`}
+        lede={meta.type === "company" ? `Apps built by ${meta.title}` : `A showcase page — ${count} built and shared here`}
         intro={meta.intro}
         /* An event page exists to collect apps, so it says how right away:
            the button copies a prompt that lists the visitor's app here. */
         note={
           meta.type === "public"
-            ? "Built something for this event? Copy the prompt, paste it into your AI agent, and your app appears on this page."
+            ? "Built something for this showcase? Copy the prompt, paste it into your AI agent, and your app appears on this page."
             : null
         }
         apps={apps}

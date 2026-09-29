@@ -66,7 +66,7 @@ const CARD_BOTTOM_MAX =
 export type PosterFonts = { sans: string; serif: string; mono: string };
 
 export type PosterInput = {
-  /** Raw; blank draws "Your event name" as a placeholder. */
+  /** Raw; blank draws "Your showcase name" as a placeholder. */
   title: string;
   intro?: string | null;
   /** What the QR encodes. Its host and path are printed as the address. */
@@ -222,7 +222,7 @@ export function drawPoster(ctx: CanvasRenderingContext2D, input: PosterInput, fo
 
   // 2. Title: the largest size, stepping down, that fits in three lines.
   const title = input.title.trim();
-  const titleText = title || "Your event name";
+  const titleText = title || "Your showcase name";
   let size = TITLE_MAX;
   let lines: string[] = [];
   for (; size >= TITLE_MIN; size -= TITLE_STEP) {

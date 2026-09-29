@@ -32,7 +32,7 @@ const DEVELOP_DELAY_MS = 150;
    accept yet falls back to the placeholder rather than printing garbage. */
 function shownSlug(slug: string): string {
   const s = /^[a-z0-9-]*$/.test(slug) ? slug.replace(/^-+|-+$/g, "") : "";
-  return s || "your-event";
+  return s || "your-showcase";
 }
 
 function safeMatrix(text: string): boolean[][] | null {
@@ -147,7 +147,7 @@ export function PosterPreview({
 
   const faint = mode === "ghost" || (mode === "develop" && !developed);
   const address = pageUrl ? posterAddress(pageUrl) : `${SITE_HOST}/showcase/${shownSlug(slug)}`;
-  const name = title.trim() || "your event";
+  const name = title.trim() || "your showcase";
 
   return (
     <div

@@ -209,7 +209,7 @@ export function ListAppForm({
       if (e instanceof HnsError && e.code === "SHOWCASE_ALREADY_LISTED") {
         setError("That app is already on this page.");
       } else if (e instanceof HnsError && e.code === "SHOWCASE_COLLECTION_PRIVATE") {
-        setError("That’s another workspace’s own page; only their apps can go there. Pick an event page instead.");
+        setError("That’s another workspace’s own page; only their apps can go there. Pick a showcase page instead.");
       } else if (e instanceof HnsError && e.code === "SHOWCASE_COLLECTION_UNKNOWN") {
         setError("That Showcase page doesn’t exist any more.");
       } else if (e instanceof HnsError && e.details?.length) {
@@ -486,7 +486,7 @@ export function ListAppForm({
               <WhereOption
                 checked={where === "event"}
                 onSelect={() => setWhere("event")}
-                title="An event page"
+                title="A showcase page"
                 detail="Type the page address the organiser shared with you. Also appears in the gallery."
               >
                 {where === "event" && (
@@ -502,7 +502,7 @@ export function ListAppForm({
                         maxLength={40}
                         spellCheck={false}
                         autoComplete="off"
-                        aria-label="Event page address"
+                        aria-label="Showcase page address"
                       />
                     </div>
                     {checking && <p className="text-[0.85rem] text-muted-foreground">Checking…</p>}

@@ -176,7 +176,7 @@ function PageList({ data }: { data: Data }) {
                 </span>
               }
               title="Running a hackathon or demo day?"
-              sub="Create an event page. Everyone’s apps live on one link."
+              sub="Create a showcase page. Everyone’s apps live on one link."
             />
             <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
           </Link>
@@ -208,7 +208,7 @@ function PageList({ data }: { data: Data }) {
 
       {/* -------------------------------- other people's event pages */}
       {elsewhere.size > 0 && (
-        <Group label="Your apps on other event pages">
+        <Group label="Your apps on other showcase pages">
           {[...elsewhere].map(([id, { collection, count }]) => (
             <a
               key={id}

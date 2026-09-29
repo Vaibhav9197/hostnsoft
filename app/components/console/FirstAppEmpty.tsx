@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeft, Copy, KeyRound, Loader2, RefreshCw } from "lucide-react";
+import { ArrowLeft, Check, Copy, KeyRound, Loader2, RefreshCw } from "lucide-react";
 
 import { CopyPromptButton } from "../CopyPromptButton";
 import { Button } from "../ui/button";
@@ -40,6 +40,9 @@ export function FirstAppEmpty({
   const [token, setToken] = useState<string | null>(null);
   const keepPrompt = token ? consoleKeepPromptWithToken(token) : null;
   const [preparing, setPreparing] = useState(false);
+  /* The claim prompt went onto the clipboard on its own once the token was
+     made; from then on the page listens for the claimed app. */
+  const [claimCopied, setClaimCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
 
@@ -52,20 +55,30 @@ export function FirstAppEmpty({
     }
   }
   useEffect(() => {
-    onWaitingChange(waiting !== null);
+    onWaitingChange(waiting !== null || claimCopied);
     if (!waiting) return;
     setSlow(false);
     const id = window.setTimeout(() => setSlow(true), PATIENCE_MS);
     return () => window.clearTimeout(id);
-  }, [waiting, onWaitingChange]);
+  }, [waiting, claimCopied, onWaitingChange]);
 
   async function generateToken() {
     if (!activeCompanyId) return;
     setError(null);
     setPreparing(true);
     try {
-      const created = await tokensApi.create(activeCompanyId, "Claim my app");
+      /* Held for a beat so the scramble reads as "making your key", not a flicker. */
+      const [created] = await Promise.all([
+        tokensApi.create(activeCompanyId, "Claim my app"),
+        new Promise((r) => setTimeout(r, 1200)),
+      ]);
       setToken(created.token);
+      try {
+        await navigator.clipboard.writeText(consoleKeepPromptWithToken(created.token));
+        setClaimCopied(true);
+      } catch {
+        // The browser refused (the click is a moment old); the button below finishes it.
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn’t generate the token. Try again.");
     } finally {
@@ -77,24 +90,12 @@ export function FirstAppEmpty({
     const again = waiting === "deploy" ? CONSOLE_DEPLOY_PROMPT : keepPrompt ?? "";
     return (
       <div className="relative rounded-xl bg-card/50 px-6 py-14 text-center">
-        <Button variant="ghost" size="sm" onClick={() => setWaiting(null)} className="absolute left-4 top-4 gap-1.5 text-muted-foreground">
-          <ArrowLeft className="size-4" aria-hidden="true" />
-          Back
-        </Button>
         <div className="mx-auto flex w-fit items-center gap-2 text-sm font-medium text-foreground" role="status" aria-live="polite">
           <span className="relative flex size-2.5">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--ok)] opacity-60 motion-reduce:hidden" />
             <span className="relative inline-flex size-2.5 rounded-full bg-[var(--ok)]" />
           </span>
           {waiting === "deploy" ? "Waiting for your AI to deploy…" : "Waiting for your AI to claim your app…"}
-        </div>
-        {/* Quiet on purpose: the page already checks every few seconds, so
-            this is for the impatient, not a step. */}
-        <div className="mt-2 flex justify-center">
-          <Button variant="ghost" size="sm" onClick={checkNow} disabled={checking} className="h-7 gap-1.5 px-2 text-xs text-muted-foreground">
-            <RefreshCw className={`size-3.5 ${checking ? "animate-spin" : ""}`} aria-hidden="true" />
-            {checking ? "Checking…" : "Check now"}
-          </Button>
         </div>
         <p className="mx-auto mt-4 max-w-[46ch] text-[0.92rem] text-muted-foreground">
           {slow
@@ -103,11 +104,14 @@ export function FirstAppEmpty({
               ? "Paste the prompt into the same AI chat that deployed your app. It will appear here on its own."
               : "Paste the prompt into Claude, Cursor or any AI agent. Your app will appear here on its own."}
         </p>
-        <p className="mt-4 text-sm text-muted-foreground">
-          <CopyPromptButton text={again} className="underline underline-offset-4 hover:text-foreground" copiedChildren="Copied">
-            Copy prompt again
-          </CopyPromptButton>
-        </p>
+        {/* Quiet on purpose: the page already checks every few seconds, so
+            this is for the impatient, not a step. */}
+        <div className="mt-4 flex justify-center">
+          <Button variant="ghost" size="sm" onClick={() => { setChecking(true); window.location.assign("/app"); }} disabled={checking} className="h-7 gap-1.5 px-2 text-xs text-muted-foreground">
+            <RefreshCw className={`size-3.5 ${checking ? "animate-spin" : ""}`} aria-hidden="true" />
+            {checking ? "Checking…" : "Check now"}
+          </Button>
+        </div>
       </div>
     );
   }
@@ -118,7 +122,12 @@ export function FirstAppEmpty({
 
       {/* Two steps on purpose: make the token, then copy the prompt that
           carries it. */}
-      {!keepPrompt ? (
+      {preparing ? (
+        <div className="mx-auto mt-5 max-w-2xl" role="status" aria-live="polite">
+          <ScrambleToken />
+          <p className="mt-2 text-center text-xs text-muted-foreground">Generating token…</p>
+        </div>
+      ) : !keepPrompt ? (
         <div className="mt-5 flex justify-center">
           <button
             type="button"
@@ -126,28 +135,43 @@ export function FirstAppEmpty({
             disabled={preparing || !activeCompanyId}
             className="inline-flex h-10 items-center gap-2 rounded-md bg-foreground px-5 text-sm font-semibold text-background hover:bg-foreground/90 disabled:opacity-70"
           >
-            {preparing ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <KeyRound className="size-4" aria-hidden="true" />}
-            {preparing ? "Preparing…" : "Get my claim prompt"}
+            <KeyRound className="size-4" aria-hidden="true" />
+            Get my claim prompt
           </button>
         </div>
       ) : (
-        <div className="mx-auto mt-5 max-w-md">
-          <div className="rounded-md border border-border bg-background/60 px-3 py-2 text-center font-mono text-sm break-all text-foreground">
+        <div className="mx-auto mt-5 max-w-2xl">
+          <div className="px-3 py-2 text-center font-mono text-sm break-all text-foreground">
             {token}
           </div>
-          <p className="mt-2 text-center text-xs text-muted-foreground">The prompt already includes the token.</p>
           <div className="mt-4 flex justify-center">
-            <CopyPromptButton
-              text={keepPrompt}
-              onCopied={() => setWaiting("keep")}
-              className="inline-flex h-10 items-center gap-2 rounded-md bg-foreground px-5 text-sm font-semibold text-background hover:bg-foreground/90"
-            >
-              <Copy className="size-4" aria-hidden="true" />
-              Copy claim prompt
-            </CopyPromptButton>
+            {claimCopied ? (
+              <p className="inline-flex items-center gap-2 text-lg font-semibold text-[var(--ok-ink)]" role="status">
+                <Check className="size-5" aria-hidden="true" />
+                Claim prompt copied including token
+              </p>
+            ) : (
+              <CopyPromptButton
+                text={keepPrompt}
+                onCopied={() => setClaimCopied(true)}
+                className="inline-flex h-10 items-center gap-2 rounded-md bg-foreground px-5 text-sm font-semibold text-background hover:bg-foreground/90"
+              >
+                <Copy className="size-4" aria-hidden="true" />
+                Copy claim prompt
+              </CopyPromptButton>
+            )}
           </div>
           {/* 5: the agent that deployed the app still has it, so the chat matters. */}
-          <p className="mt-3 text-center text-xs text-muted-foreground">Paste it into the same AI chat that deployed your app.</p>
+          <p className="mt-3 text-center text-xs text-foreground">Paste it into the same AI chat that deployed your app.</p>
+          {claimCopied && (
+            <div className="mt-3 flex justify-center">
+              {/* A full reload of /app: the plainest "show me what's there now". */}
+              <Button variant="ghost" size="sm" onClick={() => { setChecking(true); window.location.assign("/app"); }} disabled={checking} className="h-7 gap-1.5 px-2 text-xs text-muted-foreground">
+                <RefreshCw className={`size-3.5 ${checking ? "animate-spin motion-reduce:animate-none" : ""}`} aria-hidden="true" />
+                {checking ? "Checking…" : "Check now"}
+              </Button>
+            </div>
+          )}
         </div>
       )}
       {error && (
@@ -156,17 +180,44 @@ export function FirstAppEmpty({
         </p>
       )}
 
-      <p className="mx-auto mt-10 max-w-md border-t border-border pt-6 text-[0.9rem] text-muted-foreground">
-        New app?{" "}
-        <CopyPromptButton
-          text={CONSOLE_DEPLOY_PROMPT}
-          onCopied={() => setWaiting("deploy")}
-          className="ml-2 inline-flex items-center gap-1.5 font-semibold text-foreground underline underline-offset-4"
-        >
-          <Copy className="size-3.5" aria-hidden="true" />
-          Copy deploy prompt
-        </CopyPromptButton>
-      </p>
+      {/* Once a token is made the job is claiming; a second path would only distract. */}
+      {!token && !preparing && (
+        <p className="mx-auto mt-8 max-w-md text-[0.9rem] text-muted-foreground">
+          New app?{" "}
+          <CopyPromptButton
+            text={CONSOLE_DEPLOY_PROMPT}
+            onCopied={() => setWaiting("deploy")}
+            className="ml-2 inline-flex items-center gap-1.5 font-semibold text-foreground underline underline-offset-4"
+          >
+            <Copy className="size-3.5" aria-hidden="true" />
+            Copy deploy prompt
+          </CopyPromptButton>
+        </p>
+      )}
     </div>
   );
+}
+
+const SCRAMBLE = "abcdef0123456789";
+
+/* A made-up token that keeps changing while the real one is made. Decoration
+   only: screen readers hear "Generating token…" beside it instead. */
+function ScrambleToken() {
+  const [text, setText] = useState(() => randomToken());
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = window.setInterval(() => setText(randomToken()), 180);
+    return () => window.clearInterval(id);
+  }, []);
+  return (
+    <div aria-hidden="true" className="px-3 py-2 text-center font-mono text-sm break-all text-muted-foreground">
+      {text}
+    </div>
+  );
+}
+
+function randomToken(): string {
+  let out = "emb_";
+  for (let i = 0; i < 64; i++) out += SCRAMBLE[Math.floor(Math.random() * SCRAMBLE.length)];
+  return out;
 }

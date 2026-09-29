@@ -81,16 +81,19 @@ export default function SwitchCompanyPage() {
                   {isActive ? (
                     <span className="text-[0.82rem] font-medium text-muted-foreground">You’re working here</span>
                   ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => choose(c.companyId)}
-                      className="gap-1.5 group-hover:border-input group-hover:text-foreground"
-                      aria-label={`Switch to ${c.companyName}`}
-                    >
-                      Switch
-                      <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-                    </Button>
+                    <>
+                      {/* Stretched over the whole card, so anywhere on it switches. */}
+                      <button
+                        type="button"
+                        onClick={() => choose(c.companyId)}
+                        aria-label={`Switch to ${c.companyName}`}
+                        className="absolute inset-0 z-10 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+                      />
+                      <span className="inline-flex items-center gap-1.5 text-[0.84rem] font-semibold text-muted-foreground transition-colors group-hover:text-foreground">
+                        Switch
+                        <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                      </span>
+                    </>
                   )}
                   {/* Rename and delete are parked for now — the dialog and its
                       handlers stay wired up, only the entry points are hidden.

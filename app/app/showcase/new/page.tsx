@@ -26,7 +26,7 @@ export default function NewShowcasePage() {
       <div className="grid gap-10 md:grid-cols-[minmax(0,1fr)_300px]">
         <div className="flex min-w-0 flex-col gap-6">
           <PageHeader
-            title="New event page"
+            title="New showcase page"
             subtitle="For a hackathon, class or demo day. Anyone on Embarko can add their app to it."
           />
           <NewShowcaseForm onDraftChange={setDraft} />

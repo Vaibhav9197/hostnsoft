@@ -24,7 +24,7 @@ const PAGES: Record<string, string> = {
 /* Fixed pages under Showcase. Any other segment there is a showcase page's
    id, and the crumb names the page itself. */
 const SHOWCASE_PAGES: Record<string, string> = {
-  new: "New event page",
+  new: "New showcase page",
   /* Matches the page's own title. */
   submit: "List an app",
 };

@@ -24,7 +24,7 @@ import { HnsError } from "@/app/lib/client";
 import { projectsApi, showcaseApi } from "@/app/lib/hnsApi";
 import { useSession } from "@/app/lib/session";
 import { readSeen, writeSeen, type Seen } from "@/app/lib/showcaseSeen";
-import { showcaseListPrompt } from "@/app/lib/showcasePrompt";
+import { showcaseGeneralPrompt, showcaseListPrompt } from "@/app/lib/showcasePrompt";
 import { ListOnShowcaseDialog } from "@/app/components/console/showcase/ListOnShowcaseDialog";
 import { useOrigin } from "@/app/lib/showcaseShare";
 import { SITE_HOST } from "@/app/lib/site";
@@ -724,12 +724,18 @@ export default function ShowcaseManagePage() {
           projects === null && !projectsFailed ? (
             <Skeleton className="h-[240px]" />
           ) : projects && projects.length === 0 ? (
-            <EmptyState title="Deploy an app first.">
-              Embarko Showcase shows apps that are live on Embarko.
+            <EmptyState title="First deploy an app to showcase">
+              Show off your apps on Embarko Showcase.
               <div className="mt-5">
-                <Button asChild className="h-11 sm:h-9">
-                  <Link href="/app">Deploy an app</Link>
-                </Button>
+                <CopyPromptButton
+                  text={showcaseGeneralPrompt(meta.slug)}
+                  announce="Prompt copied."
+                  copiedChildren={COPIED_LABEL}
+                  className={cn(buttonVariants(), "h-11 sm:h-9")}
+                >
+                  <Copy aria-hidden="true" />
+                  Copy deploy prompt
+                </CopyPromptButton>
               </div>
             </EmptyState>
           ) : (
