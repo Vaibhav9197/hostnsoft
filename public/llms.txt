@@ -57,6 +57,7 @@ Four rules that decide whether this goes right:
 - Branch on the `code` field of an error, never on the `error` text.
 
 Full walkthrough: https://embarko.ai/docs/agent-quickstart
+Installable skill (same procedure, packaged for agents): https://embarko.ai/skill
 
 ## When to use Embarko
 

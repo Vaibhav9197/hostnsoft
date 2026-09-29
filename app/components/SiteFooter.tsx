@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SKILL_REPO } from "../lib/site";
 
 /**
  * The site-wide footer for the standalone pages (terms, privacy, DPA,
@@ -25,6 +26,7 @@ const NAV_LINKS = [
   /* { label: "Status", href: "/status" }, */
   /* A static file in /public, so a plain anchor — Link would route it. */
   { label: "llms.txt", href: "/llms.txt", external: true },
+  { label: "Agent skill", href: SKILL_REPO, external: true, newTab: true },
   { label: "Contact", href: "/support" },
 ] as const;
 
@@ -56,6 +58,8 @@ export function SiteFooter({ measure = MARKETING_MEASURE }: { measure?: string }
                 <a
                   key={link.href}
                   href={link.href}
+                  target={"newTab" in link ? "_blank" : undefined}
+                  rel={"newTab" in link ? "noopener noreferrer" : undefined}
                   className="text-sm text-muted-foreground transition hover:text-foreground"
                 >
                   {link.label}

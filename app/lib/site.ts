@@ -21,3 +21,6 @@ export const SHIP_URL = `https://${SHIP_HOST}`;
 export const APP_DOMAIN = "embarko.app";
 export const appHost = (slug: string) => `${slug}.${APP_DOMAIN}`;
 export const appUrl = (slug: string) => `https://${appHost(slug)}`;
+
+/** The open-source Embarko agent skill. Linked from the footer, llms.txt and structured data. */
+export const SKILL_REPO = `${SITE}/skill`;

@@ -7,6 +7,9 @@ If anything here fails, go to
 [Deployment failed](agent-playbook.md#deploy-failed). For anything beyond the
 happy path, use the [agent playbook](agent-playbook.md).
 
+Prefer to install this as a skill? It is open source at
+[embarko.ai/skill](https://embarko.ai/skill).
+
 ## [Before you package](#before)
 
 Four things, each a common cause of a failed deploy:

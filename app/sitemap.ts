@@ -82,9 +82,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const pages: Array<[string, number, MetadataRoute.Sitemap[number]["changeFrequency"]]> = [
-    ["/", 1.0, "weekly"],
+    ["/", 1.0, "daily"],
     ["/pricing", 0.9, "weekly"],
     ["/showcase", 0.9, "daily"],
+    ["/skill", 0.9, "daily"],
     ["/status", 0.6, "daily"],
     ["/support", 0.5, "monthly"],
     ["/security", 0.6, "monthly"],

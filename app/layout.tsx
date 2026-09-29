@@ -6,7 +6,7 @@ import { GoogleTagManager, GoogleTagManagerNoScript } from "./components/analyti
 import { NavDepth } from "./components/NavDepth";
 import { PageViewTracker } from "./components/analytics/PageViewTracker";
 import { ConnectorTokenPickup } from "./components/connector/ConnectorTokenPickup";
-import { SITE } from "./lib/site";
+import { SITE, SKILL_REPO } from "./lib/site";
 import { BetaBanner } from "./components/BetaBanner";
 
 /** The default link-preview card, 1200×630. */
@@ -106,6 +106,7 @@ const STRUCTURED_DATA = {
       name: "Embarko",
       url: SITE,
       logo: `${SITE}/assets/android-chrome-512x512.png`,
+      sameAs: [SKILL_REPO],
     },
     {
       "@type": "SoftwareApplication",
@@ -115,6 +116,7 @@ const STRUCTURED_DATA = {
       operatingSystem: "Web",
       description: "Instant hosting for every app you build with AI.",
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      downloadUrl: SKILL_REPO,
       publisher: { "@id": `${SITE}/#organization` },
     },
   ],
