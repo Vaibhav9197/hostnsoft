@@ -168,6 +168,8 @@ Or send the source as JSON instead of a file — see [JSON source](#deploy) belo
 | --- | --- | --- | --- |
 | header | `Authorization` | none (anonymous) | `Bearer <token>` |
 | header | `X-App-Version` | a timestamp | `^[a-zA-Z0-9._-]+$`. Pass a git SHA or tag. Never reuse a tag for different code. |
+| header | `X-App-Type` | none | What the app is for, as a short plain-text label: e.g. `personal website`, `portfolio`, `landing page`, `blog`, `task management`, `feedback system`, `dashboard`, `e-commerce store`. Printable ASCII, at most 60 characters. See **App type** below. |
+| header | `X-Agent-Name` | none | Which agent is deploying, in lowercase: `claude-code`, `claude`, `chatgpt`, `codex`, `cursor`, `copilot`, `gemini`, and so on. Printable ASCII, at most 60 characters. See **Agent name** below. |
 
 **Example request:**
 
@@ -179,8 +181,34 @@ curl -X POST "https://ship.embarko.ai/apps" \
   -H "Authorization: Bearer $DEPLOY_TOKEN" \
   -H "X-App-Name: my-app" \
   -H "X-App-Version: $(git rev-parse --short HEAD)" \
+  -H "X-App-Type: portfolio" \
+  -H "X-Agent-Name: claude" \
   -F "source=@/tmp/my-app.tar.gz"
 ```
+
+**App type (`X-App-Type`).** Optional, but send it
+whenever you can. It says what the app is for, in plain words. Use the label
+that fits best: one from the examples above, or your own short phrase if none
+fits. To choose it:
+
+1. If what the app does is already clear, from what you built or from what the
+   user said, use that and don't ask.
+2. If it isn't clear, ask the user once, when you confirm the app name:
+   *"What kind of app is this (for example a personal website, portfolio, task
+   manager or feedback system)? You can skip this."*
+3. If the user skips the question, leave the header out. The deploy works
+   without it.
+
+You only need to send it once. A redeploy without the header keeps the
+earlier value, and a redeploy with a new value replaces it. It doesn't change
+how the app is built or run.
+
+**Agent name (`X-Agent-Name`).** Optional, but always send it. It is the name
+of the agent or product you are running as. The app's deploy history shows
+it, so the owner can see which agent deployed what. It is only a label: it
+doesn't change what you can do, and nothing checks it. Send the same value on
+[rollback](#rollback) and on [env var](#env-vars) writes and applies, which
+also create deploy history entries.
 
 **Sending the source as JSON instead.** If you can't upload a file — for
 example you're calling this through an MCP tool, or from a sandbox that
@@ -193,6 +221,8 @@ build) is identical to the multipart upload.
 | `appName` | Yes (or `X-App-Name` header) | Same rules as `X-App-Name`. A header wins if both are sent. |
 | `files` | Yes | Array of `{ "path", "content", "encoding"? }`. `path` is relative to the app root (manifest at the root). `encoding` is `"utf8"` (default) or `"base64"` for binary files. |
 | `version` | No | Same as `X-App-Version`. |
+| `appType` | No | Same as `X-App-Type`. |
+| `agentName` | No | Same as `X-Agent-Name`. |
 
 Limits: 25 MB body, 2000 files. Leave out `node_modules`, build output,
 `.git` and `.env*` — the platform installs and builds for you. Send text
@@ -266,6 +296,8 @@ it is how this deploy appears in [history](#history).
 | --- | --- | --- | --- |
 | `invalid_app_name` | 400 | No | Missing, or fails the pattern. Slugify and resend. |
 | `invalid_app_version` | 400 | No | Fails `^[a-zA-Z0-9._-]+$`. |
+| `invalid_app_type` | 400 | No | `X-App-Type` is longer than 60 characters or contains non-printable or non-ASCII characters. Shorten it, or leave it out. |
+| `invalid_agent_name` | 400 | No | `X-Agent-Name` is longer than 60 characters or contains non-printable or non-ASCII characters. Use a plain name like `claude`, or leave it out. |
 | `missing_source_file` | 400 | No | No `source` in the multipart body, or no non-empty `files` array in a JSON body. |
 | `invalid_file_path` | 400 | No | JSON body only. A `files[].path` is absolute or contains `..`. Use paths relative to the app root. |
 | `invalid_file_content` | 400 | No | JSON body only. A `files[].content` isn't a string. |
@@ -365,6 +397,14 @@ least an **id**, a **status**, and the **version** deployed. Use the id for
 `GET /deployments/<id>` and for rollback. Only entries whose status is
 `success` are valid rollback targets.
 
+Each entry also says who made it:
+
+| Field | Values |
+| --- | --- |
+| `source` | `"dashboard"` (a person in the dashboard) or `"agent"` (anything using a deploy token: an AI agent, CI or a script). `null` on some very old entries. |
+| `agentName` | Whatever `X-Agent-Name` the deploy sent, or `null`. |
+| `triggeredBy` | The dashboard user, or the deploy token's label. |
+
 **`GET .../deployments/<id>`** returns one entry — this is also how you poll
 a rollback to completion.
 
@@ -391,7 +431,8 @@ curl "https://ship.embarko.ai/api/apps/my-app/deployments" \
 
 curl -X POST \
   "https://ship.embarko.ai/api/apps/my-app/deployments/<deploymentId>/rollback" \
-  -H "Authorization: Bearer $DEPLOY_TOKEN"
+  -H "Authorization: Bearer $DEPLOY_TOKEN" \
+  -H "X-Agent-Name: claude"
 ```
 
 **Success — `202 Accepted`**, carrying the new deployment and a `statusUrl`.
@@ -506,8 +547,13 @@ curl -X PUT "https://ship.embarko.ai/api/apps/my-app/env-vars/STRIPE_KEY" \
   -d '{"value": "sk_live_..."}'
 
 curl -X POST "https://ship.embarko.ai/api/apps/my-app/env-vars/apply" \
-  -H "Authorization: Bearer $DEPLOY_TOKEN"
+  -H "Authorization: Bearer $DEPLOY_TOKEN" \
+  -H "X-Agent-Name: claude"
 ```
+
+Applying creates a deploy history entry, so send `X-Agent-Name` on the apply
+call and on any write with `"apply": true`. On these calls a malformed name is
+ignored rather than rejected.
 
 **The behaviour that catches agents:** a write only *stores* the value. The
 running app does not see it until you call `POST /env-vars/apply` or deploy

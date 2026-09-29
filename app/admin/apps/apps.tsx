@@ -14,6 +14,9 @@ interface AdminApp {
   createdAt: string;
   memoryMb: number;
   deploymentCount: number;
+  /** Who made the latest deploy — "dashboard" | "agent", or null. */
+  lastDeploySource: 'dashboard' | 'agent' | null;
+  lastDeployAgentName: string | null;
   status: 'success' | 'failed' | 'in_progress' | 'no_deployments' | string;
 }
 
@@ -98,6 +101,7 @@ export default function Apps() {
                       <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">App</th>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Company</th>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Status</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Last deployed by</th>
                       <th className="px-6 py-4 text-right text-sm font-semibold text-foreground">Deploys</th>
                       <th className="px-6 py-4 text-right text-sm font-semibold text-foreground">Memory</th>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Created</th>
@@ -127,6 +131,13 @@ export default function Apps() {
                             <span className={`rounded px-2 py-1 text-xs font-medium ${status.className}`}>
                               {status.label}
                             </span>
+                          </td>
+                          <td className="px-6 py-4 text-muted-foreground text-sm">
+                            {a.lastDeploySource === 'dashboard'
+                              ? 'Dashboard'
+                              : a.lastDeploySource === 'agent'
+                                ? a.lastDeployAgentName ?? 'AI agent'
+                                : '—'}
                           </td>
                           <td className="px-6 py-4 text-right text-muted-foreground text-sm">{a.deploymentCount}</td>
                           <td className="px-6 py-4 text-right text-muted-foreground text-sm whitespace-nowrap">

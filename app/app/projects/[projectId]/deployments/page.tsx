@@ -19,6 +19,15 @@ import type { AppLogs, Deployment, LogStream } from "../../../../lib/types";
    the line above it have to agree. */
 const REDEPLOYABLE = 3;
 
+/** Who made a deploy, in plain words: the agent's name when it gave one,
+ *  otherwise the kind of caller. Falls back to the raw triggeredBy for rows
+ *  older than the source field. */
+function deployedBy(d: Deployment): string {
+  if (d.source === "dashboard") return "Dashboard";
+  if (d.source === "agent") return d.agentName ?? "AI agent";
+  return d.triggeredBy ?? "—";
+}
+
 export default function DeploymentsPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = use(params);
   const { activeCompanyId } = useSession();
@@ -177,7 +186,7 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
                   <TableCell><StatusPill status={d.status} /></TableCell>
                   <TableCell className="font-mono text-[0.78rem] text-faint">{d.appVersion}</TableCell>
                   <TableCell className="font-mono text-[0.78rem] text-faint">{d.memoryMb != null ? `${d.memoryMb} MB` : "—"}</TableCell>
-                  <TableCell>{d.triggeredBy ?? "—"}</TableCell>
+                  <TableCell>{deployedBy(d)}</TableCell>
                   <TableCell className="font-mono text-[0.78rem] text-faint">{relativeTime(d.createdAt)}</TableCell>
                   {/* Clicking the row opens the detail panel, so the button has
                       to stop the click from bubbling into that toggle. */}
@@ -270,6 +279,7 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
                   <Fact flush k="App version" v={active.appVersion} mono />
                   <Fact flush k="Image tag" v={active.imageTag ?? "—"} mono />
                   <Fact flush k="Memory" v={active.memoryMb != null ? `${active.memoryMb} MB` : "—"} mono />
+                  <Fact flush k="Deployed by" v={deployedBy(active)} />
                   <Fact flush k="Triggered by" v={active.triggeredBy ?? "—"} />
                   <Fact flush k="Started" v={relativeTime(active.createdAt)} />
                   <Fact flush k="Finished" v={active.finishedAt ? relativeTime(active.finishedAt) : "—"} />

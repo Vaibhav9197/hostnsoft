@@ -155,6 +155,12 @@ export interface Deployment {
   status: DeploymentStatus;
   errorDetail: string | null;
   triggeredBy: string | null;
+  /** "dashboard" (a person here) or "agent" (anything using a deploy token).
+   *  Null on a few rows older than the field. */
+  source: "dashboard" | "agent" | null;
+  /** The agent's own name for itself ("claude-code", "chatgpt"...), when it
+   *  sent one. Self-reported. */
+  agentName: string | null;
   /** Whether this is the deploy currently serving traffic. Exactly one row
    *  carries it, and a rollback moves it onto the new row it creates rather
    *  than onto the deploy being restored. */

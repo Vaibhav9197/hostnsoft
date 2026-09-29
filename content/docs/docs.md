@@ -384,6 +384,8 @@ just upload new source under the same `X-App-Name`):
 | `Authorization` | no | `Bearer <token>` — omit for an anonymous deploy |
 | `X-App-Name` | yes | see [App names](#app-names) |
 | `X-App-Version` | no | defaults to a timestamp; pass a git SHA or semver tag for a meaningful history — never reuse a version tag for different code |
+| `X-App-Type` | no | what the app is for, as a short label (60 characters at most): `personal website`, `portfolio`, `task management`, `feedback system`, and so on. Use what you already know about the app, or ask the user once. If they skip it, leave it out. See [the API contract](api.md#deploy). |
+| `X-Agent-Name` | no | which agent is deploying, e.g. `claude-code`, `claude`, `chatgpt`, `cursor`. Shown in the app's deploy history. Always send it if you're an agent. |
 
 Body: multipart, field `source`, a `.tar.gz` of your app's source.
 
@@ -393,6 +395,8 @@ curl -X POST "https://ship.embarko.ai/apps" \
   -H "Authorization: Bearer $DEPLOY_TOKEN" \
   -H "X-App-Name: my-app" \
   -H "X-App-Version: v1.2.0" \
+  -H "X-App-Type: portfolio" \
+  -H "X-Agent-Name: claude" \
   -F "source=@/tmp/my-app.tar.gz"
 ```
 

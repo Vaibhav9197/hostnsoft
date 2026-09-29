@@ -39,8 +39,19 @@ image.
 curl -X POST "https://ship.embarko.ai/apps" \
   -H "X-App-Name: my-app" \
   -H "X-App-Version: $(git rev-parse --short HEAD 2>/dev/null || date +%s)" \
+  -H "X-App-Type: portfolio" \
+  -H "X-Agent-Name: claude" \
   -F "source=@/tmp/app.tar.gz"
 ```
+
+`X-Agent-Name` is your own name as an agent, in lowercase (`claude-code`,
+`claude`, `chatgpt`, `cursor`...). It shows the owner which agent deployed
+the app. Always send it.
+
+`X-App-Type` is optional. It says what the app is for, for example
+`personal website`, `portfolio`, `task management` or `feedback system`.
+If you already know, set it. If you don't, ask the user once and tell them
+they can skip it. If they skip it, leave the header out.
 
 No `Authorization` header. That's deliberate — the first deploy needs no
 credential, and asking the user for one before anything is running is the

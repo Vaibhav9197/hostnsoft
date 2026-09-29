@@ -61,6 +61,14 @@ than after a failure:
 characters; no leading or trailing dash. Slugify anything given in prose: "My Landing Page" →
 `my-landing-page`. This becomes the public subdomain.
 
+**4a. Choose the app type (optional).** A short label for what the app is
+for: `personal website`, `portfolio`, `landing page`, `task management`,
+`feedback system`, or your own phrase if none of these fit (60 characters at
+most). If what you built makes it obvious, use that and don't ask. If not,
+ask the user once, together with the app name, and say they can skip it. If
+they skip it, leave the `X-App-Type` header out. Never hold up a deploy
+waiting for this answer.
+
 **5. Check for an existing token** — `$DEPLOY_TOKEN`, then
 `~/.embarko/credentials`. **Do not ask the user for one.** If neither
 exists, deploy anonymously; that is the intended first deploy.
@@ -74,10 +82,16 @@ tar -czf /tmp/app.tar.gz --exclude=node_modules --exclude=.git \
 curl -X POST "https://ship.embarko.ai/apps" \
   -H "X-App-Name: my-app" \
   -H "X-App-Version: $(git rev-parse --short HEAD 2>/dev/null || date +%s)" \
+  -H "X-App-Type: portfolio" \
+  -H "X-Agent-Name: claude" \
   -F "source=@/tmp/app.tar.gz"
 ```
 
 Add `-H "Authorization: Bearer $DEPLOY_TOKEN"` if you found one in step 5.
+Use the app type from step 4a, or leave out the `X-App-Type` line if there
+isn't one. Set `X-Agent-Name` to your own name as an agent (`claude-code`,
+`claude`, `chatgpt`, `cursor`...), and send it on rollbacks and env var
+applies too.
 
 - `409 app_name_taken` → another company owns the name. **Pick a different
   one and go back to step 6.** Do not retry the same name.

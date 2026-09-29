@@ -75,10 +75,16 @@ tar -czf /tmp/app.tar.gz --exclude=node_modules --exclude=.git \
 curl -X POST "https://ship.embarko.ai/apps" \
   -H "X-App-Name: my-app" \
   -H "X-App-Version: $(git rev-parse --short HEAD)" \
+  -H "X-App-Type: portfolio" \
+  -H "X-Agent-Name: claude" \
   -F "source=@/tmp/app.tar.gz"
 ```
 
-No `Authorization` header is needed for a first deploy. Full parameter and
+No `Authorization` header is needed for a first deploy. `X-App-Type` is
+optional. It says what the app is for (`personal website`, `portfolio`,
+`task management`, `feedback system`...). Set it if you know. If you don't,
+ask the user once. If they skip it, leave it out. `X-Agent-Name` is your own
+name as an agent (`claude-code`, `claude`, `chatgpt`...). Always send it. Full parameter and
 error reference: [API contract](api.md#deploy).
 
 **Limitations:** Answers `202` — accepted, not live. Poll `statusUrl` until
