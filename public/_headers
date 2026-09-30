@@ -1,0 +1,12 @@
+# Cloudflare Workers static-assets headers. Assets default to
+# `max-age=0, must-revalidate`, so every visit re-checked every script.
+
+# Build output: the file name carries a content hash, so a changed file is a
+# new URL and the old one can be kept forever.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# The panel's sky photos. Not hashed, so a day rather than forever — a
+# replaced photo shows up by tomorrow.
+/atmosphere/*
+  Cache-Control: public, max-age=86400
