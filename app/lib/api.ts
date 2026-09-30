@@ -11,6 +11,7 @@
 
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { timeoutFor } from "./hnsForward";
 
 export const API_BASE = (process.env.HOSTNSOFT_API_URL ?? "http://localhost:4100").replace(/\/$/, "");
 
@@ -29,7 +30,7 @@ export const PAT_COOKIE = "hns_pat"; // MSG91 proxy_auth_token — the login ses
 const PAT_MAX_AGE = 30 * 24 * 60 * 60; // 30 days
 
 /** An upload is a file transfer plus the deploy service accepting it, so it
- *  gets its own budget rather than the 10s every read is held to. */
+ *  gets its own budget rather than the 5s/10s reads and changes are held to. */
 const UPLOAD_TIMEOUT_MS = 120_000;
 
 function cookieOpts(maxAge: number) {
@@ -57,7 +58,9 @@ async function msg91GetDetails(proxyToken: string): Promise<Identity | null> {
     const res = await fetch(`${MSG91_BASE}/api/c/getDetails`, {
       headers: { proxy_auth_token: proxyToken },
       cache: "no-store",
-      signal: AbortSignal.timeout(10_000),
+      // A read, and on /auth/me it only runs after hostnsoft-api has already
+      // failed — so the whole sign-in check is capped at 5s + 5s, not 10s + 10s.
+      signal: AbortSignal.timeout(timeoutFor("GET")),
     });
     if (!res.ok) return null;
     const raw = (await res.json().catch(() => null)) as Record<string, unknown> | null;
@@ -123,8 +126,9 @@ async function upstream(path: string, init: UpstreamInit): Promise<Response> {
       body: init.body ?? undefined,
       cache: "no-store",
       redirect: "manual",
-      // Never let a slow/unreachable backend hang the request (and freeze the UI).
-      signal: AbortSignal.timeout(10_000),
+      // Never let a slow/unreachable backend hang the request (and freeze the
+      // UI). 5s for reads, 10s for changes — see timeoutFor in hnsForward.ts.
+      signal: AbortSignal.timeout(timeoutFor(init.method ?? "GET")),
     });
   } catch {
     // Network-level failure (backend down / unreachable). Surface as a clean

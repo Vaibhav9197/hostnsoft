@@ -11,7 +11,17 @@
 /** MSG91 proxy_auth_token — the login session. Same cookie as api.ts. */
 export const PAT_COOKIE = "hns_pat";
 
-const TIMEOUT_MS = 10_000;
+/* How long to wait on hostnsoft-api before answering with a 502. Reads get
+   5s: on the live Worker they finish in about a second even at P99, so 5s is
+   generous, and a page stuck on a dead read is what someone sees as "frozen".
+   Changes keep 10s: a write we give up on may still land upstream, and an
+   error for something that actually happened is worse than a slow success. */
+const READ_TIMEOUT_MS = 5_000;
+const WRITE_TIMEOUT_MS = 10_000;
+
+export function timeoutFor(method: string): number {
+  return method.toUpperCase() === "GET" ? READ_TIMEOUT_MS : WRITE_TIMEOUT_MS;
+}
 
 /** Read one cookie off a raw Cookie header, decoded the way Next's cookies() does. */
 export function readCookie(header: string | null, name: string): string | null {
@@ -62,7 +72,7 @@ export async function forwardToApi(opts: {
       cache: "no-store",
       redirect: "manual",
       // Never let a slow/unreachable backend hang the request (and freeze the UI).
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutFor(opts.method)),
     });
   } catch {
     // Network-level failure (backend down / unreachable): a clean 502 instead
