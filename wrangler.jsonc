@@ -1,7 +1,9 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "hostnsoft",
-  "main": ".open-next/worker.js",
+  // worker.ts wraps the OpenNext-generated .open-next/worker.js so /api/hns/*
+  // is answered without booting the Next server. See the file's header.
+  "main": "worker.ts",
   "compatibility_date": "2025-03-25",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": {
