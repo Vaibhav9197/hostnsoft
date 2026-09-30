@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 
 import { ShotImage } from "./ShotImage";
-import { PrimaryCta } from "../components/ds";
+import { Pill, PrimaryCta, Steps as DsSteps } from "../components/ds";
 import { COPIED_LABEL, CopyPromptButton } from "../components/CopyPromptButton";
 import { showcaseGeneralPrompt } from "../lib/showcasePrompt";
 
@@ -235,20 +235,22 @@ export function Steps({ steps }: { steps: string[] }) {
 
 /** The closing section every gallery-style page ends on: go make one. */
 export function DeployCta({ listPrompt = showcaseGeneralPrompt() }: { listPrompt?: string | null }) {
+  /* Same words as the homepage (v4) hero, inside the card. */
   return (
     <section className="sc-mega" id="deploy" aria-labelledby="deploy-h">
+      <Pill grad>
+        <Sparkles aria-hidden="true" />
+        Hosting for apps already built by your agent
+      </Pill>
       <h2 id="deploy-h">
-        Your idea deserves
-        <br />a <span className="sc-serif">real</span> link.
+        Instant hosting for every app <br className="sc-br-wide" />
+        you build with <span className="sc-serif">AI</span>
       </h2>
-      <p>
-        Paste this into Claude, Cursor or any agent. It builds the app, Embarko puts it online, and
-        it can show up right here.
-      </p>
-      <div className="sc-ctas mb-[18px]">
+      <p>Your agent builds it. Embarko hosts it.</p>
+      <div className="sc-ctas">
         <PrimaryCta />
       </div>
-      <Steps steps={["Copy the prompt", "Paste into your agent", "Share your live link"]} />
+      <DsSteps />
       {listPrompt && (
         <p className="sc-list">
           Already live on Embarko?{" "}

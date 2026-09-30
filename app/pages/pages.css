@@ -1,0 +1,92 @@
+/* /pages — the organizer landing. Luma-style hero: posters float around a
+   centred headline. Page-only styles; tokens from app/design.css. */
+
+.pg-stage{position:relative;isolation:isolate;overflow:hidden;min-height:min(860px,calc(100dvh - var(--ds-top)));display:flex;align-items:center}
+.pg-stage>.ds-wrap{width:100%;position:relative;z-index:1}
+.pg-hero{padding:96px 0 88px}
+.pg-hero h1{max-width:900px}
+.pg-actions{display:flex;flex-direction:column;align-items:center;gap:18px}
+.pg-quiet{display:inline-flex;align-items:center;gap:6px;font-size:15px;color:var(--ds-mute);text-decoration:none}
+.pg-quiet:hover{color:var(--ds-ink)}
+.pg-quiet svg{width:15px;height:15px}
+
+/* Twinkling dot grid behind everything. Softer in the middle so the
+   headline stays calm. */
+.pg-dots{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;
+  -webkit-mask-image:radial-gradient(ellipse 60% 55% at 50% 50%,rgba(0,0,0,.7),#000 75%);
+          mask-image:radial-gradient(ellipse 60% 55% at 50% 50%,rgba(0,0,0,.7),#000 75%)}
+
+/* Posters */
+.pg-tiles{position:absolute;inset:0;margin:0;padding:0;list-style:none;z-index:0;pointer-events:none}
+.pg-tile{position:absolute;width:150px;padding:12px 12px 14px;border-radius:18px;background:var(--ds-card);border:1px solid var(--ds-line);box-shadow:var(--ds-sh);display:flex;flex-direction:column;gap:6px;animation:pg-float 9s var(--ds-ease) infinite alternate}
+.pg-tile-art{display:grid;place-items:center;aspect-ratio:4/3;border-radius:12px;background:var(--pg-tone,var(--ds-soft));color:var(--pg-tone-ink,var(--ds-ink))}
+
+/* Bright poster tones — one per poster, none repeated, no purple/pink.
+   The icon is a deep shade of the same tone; dark theme dims the fill. */
+.pg-tile{--pg-tone-ink:color-mix(in srgb,var(--pg-tone) 38%,#1a1916)}
+:root[data-theme="dark"] .pg-tile{--pg-tone-ink:var(--pg-tone)}
+:root[data-theme="dark"] .pg-tile-art{background:color-mix(in srgb,var(--pg-tone) 24%,var(--ds-card))}
+.pg-tile-1{--pg-tone:#ffd166}   /* amber */
+.pg-tile-2{--pg-tone:#8ecbff}   /* sky */
+.pg-tile-3{--pg-tone:#ffb38a}   /* peach */
+.pg-tile-4{--pg-tone:#a8e28f}   /* leaf */
+.pg-tile-5{--pg-tone:#fff27a}   /* lemon */
+.pg-tile-6{--pg-tone:#8fe3d2}   /* mint */
+.pg-tile-7{--pg-tone:#ff9966}   /* tangerine */
+.pg-tile-8{--pg-tone:#6fcfd9}   /* aqua */
+.pg-tile-9{--pg-tone:#d4ec6a}   /* lime */
+.pg-tile-10{--pg-tone:#9fb4ff}  /* cornflower */
+.pg-tile-11{--pg-tone:#ff8f80}  /* coral */
+.pg-tile-12{--pg-tone:#e8c79a}  /* sand */
+.pg-tile-art svg{width:38px;height:38px}
+.pg-tile-kind{font-size:13px;font-weight:700;letter-spacing:-.01em;color:var(--ds-ink)}
+.pg-tile-line{font-family:var(--ds-serif);font-style:italic;font-size:15px;line-height:1.15;color:var(--ds-mute)}
+
+/* Scattered like Luma's: a loose ring, a slight tilt each, never over the copy. */
+.pg-tile-1{top:6%;left:7%;rotate:-5deg}
+.pg-tile-2{top:3%;left:30%;rotate:3deg;width:130px;animation-delay:-2s}
+.pg-tile-3{top:5%;right:28%;rotate:-2deg;width:132px;animation-delay:-4s}
+.pg-tile-4{top:8%;right:6%;rotate:5deg;animation-delay:-1s}
+.pg-tile-5{top:38%;left:2%;rotate:4deg;width:160px;animation-delay:-3s}
+.pg-tile-6{top:36%;right:2%;rotate:-4deg;animation-delay:-5s}
+.pg-tile-7{bottom:8%;left:8%;rotate:-3deg;width:138px;animation-delay:-6s}
+.pg-tile-8{bottom:3%;left:28%;rotate:4deg;width:132px;animation-delay:-2.5s}
+.pg-tile-9{bottom:4%;right:27%;rotate:-5deg;width:136px;animation-delay:-4.5s}
+.pg-tile-10{bottom:9%;right:7%;rotate:3deg;animation-delay:-1.5s}
+.pg-tile-11{top:62%;left:17%;rotate:6deg;width:120px;animation-delay:-7s}
+.pg-tile-12{top:60%;right:17%;rotate:-6deg;width:120px;animation-delay:-3.5s}
+/* The two inner posters crowd the copy on narrower desktops. */
+@media (max-width:1280px){.pg-tile-11,.pg-tile-12{display:none}}
+
+@keyframes pg-float{from{translate:0 0}to{translate:0 -10px}}
+
+/* Tablet: fewer posters, pushed to the edges. */
+@media (max-width:1100px){
+  .pg-tile-2,.pg-tile-3,.pg-tile-8,.pg-tile-9{display:none}
+  .pg-tile{width:124px}
+  .pg-tile-5,.pg-tile-6{top:42%}
+  .pg-tile-5{left:-24px}.pg-tile-6{right:-24px}
+}
+
+/* Phone: the posters become a quiet row above the headline. */
+@media (max-width:760px){
+  .pg-stage{flex-direction:column;align-items:stretch;min-height:0}
+  .pg-tiles{position:relative;inset:auto;display:flex;gap:12px;justify-content:center;padding:28px 0 0;overflow:hidden}
+  .pg-tile{position:relative;inset:auto;display:flex;width:104px;flex:none;padding:8px 8px 10px;border-radius:14px}
+  .pg-tile:nth-child(n+4){display:none}
+  .pg-tile-1{rotate:-5deg}.pg-tile-2{rotate:3deg;margin-top:14px}.pg-tile-3{rotate:-3deg}
+  .pg-tile-art svg{width:28px;height:28px}
+  .pg-tile-kind{font-size:12px}
+  .pg-tile-line{font-size:13px}
+  .pg-hero{padding:32px 0 48px}
+}
+
+/* Everything it's for: one flowing paragraph of plain text. */
+.pg-uses{margin:0;max-width:1120px;font-size:clamp(19px,2vw,26px);line-height:1.6;letter-spacing:-.015em;font-weight:500;color:var(--ds-mute);text-wrap:pretty}
+.pg-uses>span{white-space:nowrap}
+.pg-use-ink{color:var(--ds-ink)}
+.pg-use-serif{font-family:var(--ds-serif);font-style:italic;font-weight:400;font-size:1.12em;color:var(--ds-ink)}
+.pg-uses-dot{color:var(--ds-dim);font-weight:400;padding:0 .1em}
+@media (max-width:600px){.pg-uses>span{white-space:normal}}
+
+@media (prefers-reduced-motion:reduce){.pg-tile{animation:none}}

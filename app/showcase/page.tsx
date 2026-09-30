@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Copy } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Copy } from "lucide-react";
 
 import { SiteHeader } from "../components/SiteHeader";
 import { SiteFooter } from "../components/SiteFooter";
@@ -33,6 +34,21 @@ export default async function ShowcasePage() {
 
       <div className="sc-wrap sc-layer">
         <Hero
+          chip={
+            <Link href="/pages" className="sc-pages-chip">
+              <span className="sc-pages-chip-dots" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+              </span>
+              <span className="sc-pages-chip-new">New</span>
+              <span className="sc-pages-chip-text">
+                <b>Create a page</b>
+                <span className="sc-pages-chip-sub"> for your hackathon, class, event and more</span>
+              </span>
+              <ArrowRight aria-hidden="true" className="sc-pages-chip-arrow" />
+            </Link>
+          }
           title={
             <>
               <Serif grad>Hosted</Serif> on Embarko.

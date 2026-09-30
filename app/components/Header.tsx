@@ -115,9 +115,6 @@ export function Header({ onAuthClick, links }: HeaderProps) {
           <Link href="/pricing" className={`hidden ${NAV_LINK} ${hasLinks ? "lg:block" : "sm:block"}`}>
             Pricing
           </Link>
-          <Link href="/docs" className={`hidden ${NAV_LINK} ${hasLinks ? "lg:block" : "sm:block"}`}>
-            Docs
-          </Link>
           <button
             type="button"
             /* Both auth buttons open the same modal, so the only place the
@@ -182,13 +179,6 @@ export function Header({ onAuthClick, links }: HeaderProps) {
               className="border-t border-[var(--line)] py-3 text-[15px] font-medium text-neutral-700 hover:text-neutral-950"
             >
               Pricing
-            </Link>
-            <Link
-              href="/docs"
-              onClick={() => setMenuOpen(false)}
-              className="border-t border-[var(--line)] py-3 text-[15px] font-medium text-neutral-700 hover:text-neutral-950"
-            >
-              Docs
             </Link>
             <button
               type="button"

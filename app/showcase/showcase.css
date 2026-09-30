@@ -135,7 +135,7 @@
 
 /* big CTA */
 .sc .sc-mega{position:relative;margin:60px 0 72px;border-radius:34px;padding:clamp(34px,6vw,72px) clamp(20px,6vw,72px);text-align:center;overflow:hidden;background:var(--sc-card);border:1px solid var(--sc-line);box-shadow:var(--sc-sh2);isolation:isolate}
-.sc .sc-mega h2{font-size:clamp(34px,5.4vw,72px);line-height:.98;letter-spacing:-.05em;margin:14px 0;font-weight:800}
+.sc .sc-mega h2{font-size:clamp(30px,4vw,52px);line-height:1;letter-spacing:-.045em;margin:18px 0 14px;font-weight:800}
 .sc .sc-mega>p{color:var(--sc-mute);font-size:17px;max-width:520px;margin:0 auto 26px}
 .sc .sc-prompt{display:flex;align-items:center;gap:10px;max-width:640px;margin:0 auto 18px;padding:8px 8px 8px 18px;border-radius:18px;background:var(--sc-dark);color:#e6e6ee;text-align:left;box-shadow:0 20px 50px -20px rgba(11,11,15,.6)}
 .sc .sc-prompt code{flex:1;min-width:0;font-family:var(--mono);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -317,3 +317,30 @@
 /* App page: the Back / Showcase link above the title. */
 .sc .sc-topback{padding-top:24px}
 .sc .sc-topback + .sc-top{padding-top:24px}
+
+/* "New · Showcase pages" chip above the hero — links to /pages. A slow
+   rainbow of the /pages poster tones runs round its border. */
+@property --sc-chip-a{syntax:"<angle>";inherits:false;initial-value:0deg}
+.sc-pages-chip{position:relative;display:inline-flex;align-items:center;gap:10px;max-width:100%;margin:0 auto 24px;padding:6px 14px 6px 8px;border-radius:999px;font-size:14px;color:var(--ds-ink);text-decoration:none;text-align:left;
+  background:
+    linear-gradient(var(--ds-card),var(--ds-card)) padding-box,
+    conic-gradient(from var(--sc-chip-a),#f5a300,#ff6a2b,#ff3d5a,#4f6bff,#1f8ef1,#12b39a,#3fb52a,#e0b800,#f5a300) border-box;
+  border:1.5px solid transparent;box-shadow:var(--ds-sh);animation:sc-chip-spin 6s linear infinite;transition:box-shadow .25s var(--ds-ease)}
+.sc-pages-chip:hover{box-shadow:var(--ds-sh2)}
+.sc-pages-chip:hover .sc-pages-chip-arrow{translate:3px 0}
+.sc-pages-chip-dots{display:inline-flex;flex:none}
+.sc-pages-chip-dots i{width:16px;height:16px;border-radius:5px;border:2px solid var(--ds-card);margin-left:-5px}
+.sc-pages-chip-dots i:first-child{margin-left:0;background:#ffd166;rotate:-8deg}
+.sc-pages-chip-dots i:nth-child(2){background:#8ecbff;rotate:4deg}
+.sc-pages-chip-dots i:nth-child(3){background:#a8e28f;rotate:-3deg}
+.sc-pages-chip-new{flex:none;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:var(--ds-ink);color:var(--ds-card)}
+.sc-pages-chip-text{min-width:0}
+.sc-pages-chip-text b{font-weight:600}
+.sc-pages-chip-sub{color:var(--ds-mute)}
+.sc-pages-chip-arrow{flex:none;width:15px;height:15px;color:var(--ds-mute);transition:translate .2s var(--ds-ease)}
+@keyframes sc-chip-spin{to{--sc-chip-a:360deg}}
+@media (max-width:600px){.sc-pages-chip{font-size:13px}.sc-pages-chip-sub{display:none}}
+@media (prefers-reduced-motion:reduce){.sc-pages-chip{animation:none}}
+
+.sc .sc-mega .ds-steps{margin-top:24px}
+@media (max-width:600px){.sc .sc-br-wide{display:none}}
