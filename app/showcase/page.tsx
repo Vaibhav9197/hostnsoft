@@ -45,7 +45,7 @@ export default async function ShowcasePage() {
             </>
           }
           actions={
-            <PrimaryCta label="Copy prompt to add your app" text={showcaseGeneralPrompt()} />
+            <PrimaryCta label="Copy prompt to showcase your app" text={showcaseGeneralPrompt()} />
           }
         />
 
@@ -75,7 +75,7 @@ function EmptyState() {
             Copy deployment prompt
           </CopyPromptButton>
           <CopyPromptButton className="sc-btn" text={showcaseGeneralPrompt()} copiedChildren={COPIED_LABEL}>
-            Copy prompt to add your app
+            Copy prompt to showcase your app
           </CopyPromptButton>
         </div>
         <div className="mt-5">

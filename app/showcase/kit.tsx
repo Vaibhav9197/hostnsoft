@@ -253,7 +253,7 @@ export function DeployCta({ listPrompt = showcaseGeneralPrompt() }: { listPrompt
         <p className="sc-list">
           Already live on Embarko?{" "}
           <CopyPromptButton className="sc-list-copy" text={listPrompt} copiedChildren={COPIED_LABEL}>
-            Copy prompt to add your app
+            Copy prompt to showcase your app
           </CopyPromptButton>
         </p>
       )}

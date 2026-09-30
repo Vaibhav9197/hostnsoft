@@ -79,7 +79,7 @@ export default async function CollectionPage({ params }: Props) {
         actions={
           <>
             {meta.type === "public" ? (
-              <PrimaryCta size="md" glow={false} label="Copy prompt to add your app" text={showcaseListPrompt(meta)} />
+              <PrimaryCta size="md" glow={false} label="Copy prompt to showcase your app" text={showcaseListPrompt(meta)} />
             ) : (
               <Link href="/showcase" className="sc-btn">
                 Browse the Showcase <ArrowRight aria-hidden="true" />
@@ -97,7 +97,7 @@ export default async function CollectionPage({ params }: Props) {
               : `Apps appear here as soon as ${meta.title} lists them.`,
           action:
             meta.type === "public" ? (
-              <PrimaryCta size="md" glow={false} label="Copy prompt to add your app" text={showcaseListPrompt(meta)} />
+              <PrimaryCta size="md" glow={false} label="Copy prompt to showcase your app" text={showcaseListPrompt(meta)} />
             ) : undefined,
         }}
       />

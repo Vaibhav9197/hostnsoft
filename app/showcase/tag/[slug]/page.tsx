@@ -50,14 +50,14 @@ export default async function TagPage({ params }: Props) {
         shareTitle={`${tag} apps — ${count} on Embarko Showcase`}
         actions={
           <>
-            <PrimaryCta size="md" glow={false} label="Copy prompt to add your app" text={showcaseGeneralPrompt()} />
+            <PrimaryCta size="md" glow={false} label="Copy prompt to showcase your app" text={showcaseGeneralPrompt()} />
           </>
         }
         empty={{
           title: "No apps yet.",
           body: `No apps tagged \u201c${tag}\u201d have been listed so far. Yours could be the first.`,
           action: (
-            <PrimaryCta size="md" glow={false} label="Copy prompt to add your app" text={showcaseGeneralPrompt()} />
+            <PrimaryCta size="md" glow={false} label="Copy prompt to showcase your app" text={showcaseGeneralPrompt()} />
           ),
         }}
       />

@@ -55,14 +55,14 @@ export default async function CategoryPage({ params }: Props) {
         shareTitle={`${category} apps — ${count} on Embarko Showcase`}
         actions={
           <>
-            <PrimaryCta size="md" glow={false} label="Copy prompt to add your app" text={showcaseGeneralPrompt()} />
+            <PrimaryCta size="md" glow={false} label="Copy prompt to showcase your app" text={showcaseGeneralPrompt()} />
           </>
         }
         empty={{
           title: "No apps yet.",
           body: `No ${category} apps have been listed so far. Yours could be the first.`,
           action: (
-            <PrimaryCta size="md" glow={false} label="Copy prompt to add your app" text={showcaseGeneralPrompt()} />
+            <PrimaryCta size="md" glow={false} label="Copy prompt to showcase your app" text={showcaseGeneralPrompt()} />
           ),
         }}
       />
