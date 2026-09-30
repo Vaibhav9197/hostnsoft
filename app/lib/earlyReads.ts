@@ -1,9 +1,9 @@
-import { billingApi, projectsApi } from "./hnsApi";
-import type { BillingPlan, BillingStatus, Project } from "./types";
+import { projectsApi } from "./hnsApi";
+import type { Project } from "./types";
 
 /* The console can't render until /auth/me says who is signed in, and the apps
-   list and billing chip can't ask for their data until they know the active
-   workspace — so every page load ran identity, then data, one after the other.
+   list can't ask for its data until it knows the active workspace — so every
+   page load ran identity, then data, one after the other.
 
    The workspace the person used last is already in localStorage. Session asks
    for that workspace's data at the same moment it asks who you are, and the
@@ -32,18 +32,30 @@ function start(key: string, run: () => Promise<unknown>) {
 
 export function startEarlyReads(companyId: string) {
   // The apps list is only read by the home page. Anywhere else it is a wasted
-  // call competing with the ones that page does need.
+  // call competing with the ones that page does need. Billing is not started
+  // here at all: see whenMainDataSettled below.
   if (window.location.pathname === "/app") {
     start(`projects:${companyId}`, () => projectsApi.list(companyId));
   }
-  start(`billing:${companyId}`, () => billingApi.status(companyId));
-  start("plans", () => billingApi.plans());
 }
 
 export const earlyProjects = (companyId: string) =>
   (reads.get(`projects:${companyId}`) as Promise<Project[]> | undefined) ?? null;
 
-export const earlyBilling = (companyId: string) =>
-  (reads.get(`billing:${companyId}`) as Promise<BillingStatus> | undefined) ?? null;
+/* The API answers several reads at once slower than one: on the live site the
+   apps list took ~650ms alone and 850–1240ms with billing running beside it.
+   Billing only feeds the plan chip in the header, so outside the Billing page
+   it waits until the page's own data has landed — the home page's apps list or
+   a project page's detail mark that — or a short fallback for pages with no
+   main read of their own. */
+let settle: () => void = () => {};
+const settled = new Promise<void>((resolve) => { settle = resolve; });
 
-export const earlyPlans = () => (reads.get("plans") as Promise<BillingPlan[]> | undefined) ?? null;
+/** Call once the page's main data has arrived (or failed). Later calls are no-ops. */
+export function markMainDataSettled() {
+  settle();
+}
+
+export function whenMainDataSettled(fallbackMs = 1500): Promise<void> {
+  return Promise.race([settled, new Promise<void>((r) => setTimeout(r, fallbackMs))]);
+}

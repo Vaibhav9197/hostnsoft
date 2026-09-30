@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { markMainDataSettled } from "./earlyReads";
 import { projectsApi } from "./hnsApi";
 import { readLastSeen, writeLastSeen } from "./lastSeen";
 import type { ProjectDetail } from "./types";
@@ -88,6 +89,9 @@ export function useProject(companyId: string | null, projectId: string) {
       // under the error; a failed refresh keeps what is on screen.
       if (first) setProject(null);
       setError(e instanceof Error ? e.message : "This project couldn’t be found.");
+    } finally {
+      // Lets the header's billing read go (earlyReads.ts).
+      if (first) markMainDataSettled();
     }
   }, [companyId, projectId]);
 

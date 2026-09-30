@@ -1,7 +1,8 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { earlyBilling, earlyPlans } from "./earlyReads";
+import { usePathname } from "next/navigation";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { whenMainDataSettled } from "./earlyReads";
 import { billingApi } from "./hnsApi";
 import { useSession } from "./session";
 import type { BillingPlan, BillingSubscription } from "./types";
@@ -40,33 +41,48 @@ export function BillingProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const enabled = status === "authed" && !!activeCompanyId && apiConnected;
 
-  // Status is per company and changes with every mutation. Only the first read
-  // of a page load may take the one Session already started (earlyReads.ts) —
-  // a reload after an upgrade or cancel has to hear the new state.
-  const read = useCallback(async (first: boolean) => {
+  const pathname = usePathname();
+  const onBillingPage = pathname === "/app/billing";
+
+  // Status is per company and changes with every mutation.
+  const read = useCallback(async () => {
     if (!enabled || !activeCompanyId) return;
     setSubs(null);
     setError(null);
     try {
-      const res = await ((first && earlyBilling(activeCompanyId)) || billingApi.status(activeCompanyId));
+      const res = await billingApi.status(activeCompanyId);
       setSubs(res.subscriptions ?? []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn’t load billing.");
     }
   }, [enabled, activeCompanyId]);
 
-  const reload = useCallback(() => read(false), [read]);
+  const reload = read;
 
+  /* Outside the Billing page this only feeds the header chip, so it waits for
+     the page's own data first instead of slowing it down (earlyReads.ts). The
+     Billing page is about billing and reads straight away. Read once, when the
+     provider mounts or the workspace changes — not on every navigation. */
+  const deferFirstRead = !onBillingPage;
+  const deferRef = useRef(deferFirstRead);
+  deferRef.current = deferFirstRead;
   useEffect(() => {
-    read(true);
+    let cancelled = false;
+    (deferRef.current ? whenMainDataSettled() : Promise.resolve()).then(() => {
+      if (!cancelled) read();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [read]);
 
-  // The plan catalogue is org-wide and static; fetch it once per session.
-  // Best-effort: status responses embed each subscription's plan anyway.
+  // The plan catalogue is org-wide and static, and only the Billing page lists
+  // it — so it's fetched the first time that page is open, then kept for the
+  // session. Best-effort: status responses embed each subscription's plan anyway.
   useEffect(() => {
-    if (!enabled || plans.length > 0) return;
-    (earlyPlans() ?? billingApi.plans()).then(setPlans, () => {});
-  }, [enabled, plans.length]);
+    if (!enabled || !onBillingPage || plans.length > 0) return;
+    billingApi.plans().then(setPlans, () => {});
+  }, [enabled, onBillingPage, plans.length]);
 
   const value = useMemo<BillingValue>(() => {
     const active = subs?.find((s) => s.status === "active") ?? null;

@@ -11,7 +11,7 @@ import { DeployPromptDialog } from "../components/console/DeployPromptDialog";
 import { FirstAppEmpty } from "../components/console/FirstAppEmpty";
 import { HnsError } from "../lib/client"; // used by the parked createProject below
 import { HealthPill } from "../components/console/HealthPill";
-import { earlyProjects } from "../lib/earlyReads";
+import { earlyProjects, markMainDataSettled } from "../lib/earlyReads";
 import { readLastSeen, writeLastSeen } from "../lib/lastSeen";
 import { companiesApi, projectsApi } from "../lib/hnsApi";
 import { formatDateTime } from "../lib/format";
@@ -63,6 +63,9 @@ export default function ProjectsPage() {
         setProjects(null);
         setError(e instanceof Error ? e.message : "Couldn’t load your apps.");
       }
+    } finally {
+      // Lets the header's billing read go now that this one is out of the way.
+      markMainDataSettled();
     }
   }, [activeCompanyId]);
 
