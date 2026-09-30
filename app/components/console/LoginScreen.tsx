@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { authExchange, markExchanged, wasExchanged } from "../../lib/client";
 import { Alert } from "./kit";
 import { useSession } from "../../lib/session";
@@ -26,6 +27,8 @@ const WIDGET_SRC =
   "https://proxy.msg91.com/assets/proxy-auth/proxy-auth.js";
 
 export function LoginScreen() {
+  /* The line under the title says what signing in is for, when we know. */
+  const pathname = usePathname();
   const { authError, reload } = useSession();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -45,10 +48,14 @@ export function LoginScreen() {
       window.initVerification({
         referenceId: REFERENCE_ID,
         type: "authorization",
-        // Redirect variant: MSG91 lands back on /app with the token appended;
+        // Redirect variant: MSG91 lands back with the token appended;
         // SessionProvider consumes it. Works alongside the success callback.
+        // Back to the page they signed in from (e.g. /app/showcase/new from
+        // "Create a showcase page"), not always the apps list.
         addInfo: {
-          redirect_path: "/app",
+          redirect_path: window.location.pathname.startsWith("/app")
+            ? window.location.pathname + window.location.search
+            : "/app",
         },
         // Required by the widget: it delivers the verified token here.
         success: async (data: unknown) => {
@@ -104,8 +111,8 @@ export function LoginScreen() {
 
   return (
     <div className="grid min-h-screen place-items-center bg-background p-6">
-      <div className="w-full max-w-[420px] border border-border bg-card p-7">
-        <div className="flex items-center gap-3">
+      <div className="w-full max-w-[420px] border border-border bg-card p-7 text-center">
+        <div className="flex flex-col items-center gap-3">
           <span className="grid size-8 shrink-0 place-items-center bg-primary text-base font-extrabold text-primary-foreground" aria-hidden="true">H</span>
           <div>
             <div className="text-[1.15rem] font-extrabold tracking-tight text-foreground">Sign in to Embarko</div>
@@ -124,8 +131,10 @@ export function LoginScreen() {
           </Alert>
         ) : (
           <>
-            <p className="mt-3 text-[0.92rem] text-muted-foreground">
-              Verify your email to continue. You’ll land in your workspace once you’re in.
+            <p className="mt-4 text-[0.92rem] text-muted-foreground">
+              {pathname === "/app/showcase/new"
+                ? "Sign in to create your showcase page."
+                : "Verify your email to continue. You’ll land in your workspace once you’re in."}
             </p>
             {/* MSG91 renders the widget into the element whose id === referenceId */}
             <div id={REFERENCE_ID} ref={containerRef} className="login-widget mt-3" />

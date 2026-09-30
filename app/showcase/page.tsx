@@ -41,7 +41,6 @@ export default async function ShowcasePage() {
                 <i />
                 <i />
               </span>
-              <span className="sc-pages-chip-new">New</span>
               <span className="sc-pages-chip-text">
                 <b>Create a page</b>
                 <span className="sc-pages-chip-sub"> for your hackathon, class, event and more</span>

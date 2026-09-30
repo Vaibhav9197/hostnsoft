@@ -9,7 +9,7 @@ import { Alert, LinkButton, Panel } from "@/app/components/console/kit";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { HnsError } from "@/app/lib/client";
-import { showcaseApi } from "@/app/lib/hnsApi";
+import { companiesApi, showcaseApi } from "@/app/lib/hnsApi";
 import { useSession } from "@/app/lib/session";
 import {
   finalizeSlug,
@@ -60,7 +60,7 @@ const COUNT = "text-[0.8rem] tabular-nums text-faint";
 
 export function NewShowcaseForm({ onDraftChange }: { onDraftChange?: (draft: ShowcaseDraft) => void }) {
   const router = useRouter();
-  const { activeCompanyId } = useSession();
+  const { activeCompanyId, user, reload, setActiveCompanyId } = useSession();
   const ids = useId();
   const nameId = `${ids}-name`;
   const addressId = `${ids}-address`;
@@ -292,14 +292,20 @@ export function NewShowcaseForm({ onDraftChange }: { onDraftChange?: (draft: Sho
       addressRef.current?.focus();
       return;
     }
-    if (!activeCompanyId) {
-      setFormError("Couldn’t create the page. Choose a workspace first.");
-      return;
-    }
-
     setCreating(true);
     try {
-      const created = await showcaseApi.createCollection(activeCompanyId, {
+      /* Someone who just signed up from /pages has no workspace yet. Make one
+         for them rather than stopping here — the page needs a home, and they
+         can rename it later. */
+      let companyId = activeCompanyId;
+      if (!companyId) {
+        const who = user?.name?.trim().split(/\s+/)[0] || user?.email?.split("@")[0] || "My";
+        const company = await companiesApi.create(`${who}'s workspace`);
+        companyId = company.id;
+        setActiveCompanyId(companyId);
+        await reload();
+      }
+      const created = await showcaseApi.createCollection(companyId, {
         slug,
         title,
         intro: intro.trim() || null,

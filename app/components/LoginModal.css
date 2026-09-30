@@ -59,6 +59,7 @@
 }
 .login-modal-root .lm-title {
   margin: 0 0 0.5rem;
+  text-align: center;
   font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -68,7 +69,16 @@
   font-size: 0.92rem;
   color: #6b665f;
   line-height: 1.55;
+  text-align: center;
 }
 .login-modal-root .lm-widget {
   min-height: 8rem;
+}
+/* Same fix as the console sign-in card (base.css): the MSG91 widget pins its
+   host to display:block and lays its buttons out from the left, so shrink it
+   to the buttons and centre it. */
+.login-modal-root .lm-widget proxy-auth {
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
 }

@@ -193,3 +193,9 @@ html{scroll-padding-top:var(--beta-bar-h)}
 body{padding-top:var(--beta-bar-h)}
 /* Pages that don't render the bar (the signed-in panel) get no offset. */
 html:not(:has([data-beta-bar])){--beta-bar-h:0px}
+
+/* Sign-in card (LoginScreen). The MSG91 widget's buttons are fixed-width
+   children of its <proxy-auth> host, which it pins to display:block with
+   !important, so they sit on the left of whatever width it is given. Its
+   width is ours to set: shrink it to the buttons and centre it. */
+.login-widget proxy-auth{width:fit-content;max-width:100%;margin-inline:auto}

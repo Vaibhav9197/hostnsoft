@@ -194,3 +194,6 @@
 @media (prefers-reduced-motion:reduce){
   .v4-root .v4-world-app{animation:none}
 }
+
+/* Hero headline: same size as v3. */
+.v4-hero h1{font-size:clamp(40px,6.4vw,84px);max-width:900px}

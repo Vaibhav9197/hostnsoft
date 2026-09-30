@@ -170,7 +170,7 @@ export default function PagesPage() {
         </div>
       </div>
 
-      <Section labelledBy="for-h">
+      <Section labelledBy="for-h" className="pg-for">
         <SectionHeading id="for-h" title="Made for anything people build together." />
         <p className="pg-uses">
           {USES.map((u, i) => (

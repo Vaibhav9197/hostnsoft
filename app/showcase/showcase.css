@@ -318,7 +318,7 @@
 .sc .sc-topback{padding-top:24px}
 .sc .sc-topback + .sc-top{padding-top:24px}
 
-/* "New · Showcase pages" chip above the hero — links to /pages. A slow
+/* "Create a page" chip above the hero — links to /pages. A slow
    rainbow of the /pages poster tones runs round its border. */
 @property --sc-chip-a{syntax:"<angle>";inherits:false;initial-value:0deg}
 .sc-pages-chip{position:relative;display:inline-flex;align-items:center;gap:10px;max-width:100%;margin:0 auto 24px;padding:6px 14px 6px 8px;border-radius:999px;font-size:14px;color:var(--ds-ink);text-decoration:none;text-align:left;
@@ -333,7 +333,6 @@
 .sc-pages-chip-dots i:first-child{margin-left:0;background:#ffd166;rotate:-8deg}
 .sc-pages-chip-dots i:nth-child(2){background:#8ecbff;rotate:4deg}
 .sc-pages-chip-dots i:nth-child(3){background:#a8e28f;rotate:-3deg}
-.sc-pages-chip-new{flex:none;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:var(--ds-ink);color:var(--ds-card)}
 .sc-pages-chip-text{min-width:0}
 .sc-pages-chip-text b{font-weight:600}
 .sc-pages-chip-sub{color:var(--ds-mute)}

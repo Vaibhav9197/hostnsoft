@@ -81,7 +81,8 @@
 }
 
 /* Everything it's for: one flowing paragraph of plain text. */
-.pg-uses{margin:0;max-width:1120px;font-size:clamp(19px,2vw,26px);line-height:1.6;letter-spacing:-.015em;font-weight:500;color:var(--ds-mute);text-wrap:pretty}
+.pg-for .ds-sech h2{font-size:clamp(34px,4.6vw,60px)}
+.pg-uses{margin:0;max-width:1180px;font-size:clamp(22px,2.6vw,34px);line-height:1.6;letter-spacing:-.015em;font-weight:500;color:var(--ds-mute);text-wrap:pretty}
 .pg-uses>span{white-space:nowrap}
 .pg-use-ink{color:var(--ds-ink)}
 .pg-use-serif{font-family:var(--ds-serif);font-style:italic;font-weight:400;font-size:1.12em;color:var(--ds-ink)}

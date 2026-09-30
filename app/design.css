@@ -44,7 +44,10 @@
 /* ---- primitives ---- */
 .ds-wrap{max-width:var(--ds-wrap);margin:0 auto;padding:0 var(--ds-gutter)}
 .ds-serif{font-family:var(--ds-serif);font-style:italic;font-weight:400;letter-spacing:-.01em}
-.ds-gtext{background:var(--ds-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* Was gradient-clipped text. --ds-grad is solid ink now, and background-clip
+   cropped the italic serif where its letters lean past their box, so it is
+   plain colour. */
+.ds-gtext{color:var(--ds-ink)}
 .ds-layer{position:relative;z-index:1}
 .ds-btn:focus-visible,.ds-pill:focus-visible{outline:2px solid var(--ds-v1);outline-offset:3px}
 

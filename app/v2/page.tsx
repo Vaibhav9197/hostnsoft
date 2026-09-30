@@ -66,7 +66,6 @@ function TrafficLights() {
 export default function EmbarkoV2() {
   const [step, setStep] = useState(0);
   const [trustOpen, setTrustOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => {
     // Track page view
@@ -112,14 +111,18 @@ export default function EmbarkoV2() {
         }
       `}</style>
 
+      <div className="relative flex min-h-0 flex-1 flex-col">
       {step > 0 && (
         <button
           onClick={() => setStep((s) => s - 1)}
           aria-label="Previous step"
-          /* Centred under the 64px header, which owns the top row. */
+          /* Centred with auto margins, not a translate: the ds-btn hover and
+             press rules reset `transform`, which made a translate-centred
+             button jump sideways. No transform at all means nothing to reset,
+             and it stays put — no colour shift, no shrink. */
           /* Opaque, not a tint: it floats over a scrolling column, and a
              translucent fill lets the cards behind it read straight through. */
-          className={buttonClass('secondary', 'lg', 'absolute bottom-8 left-1/2 z-20 w-[52px] -translate-x-1/2 !px-0 hover:-translate-x-1/2')}
+          className={buttonClass('secondary', 'lg', 'absolute inset-x-0 bottom-8 z-20 mx-auto w-[52px] !px-0 ![transform:none] ![translate:none] ![scale:none] !transition-none hover:!border-[color:var(--line-control)]')}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -151,22 +154,14 @@ export default function EmbarkoV2() {
           {step === 2 && <ChatStep />}
         </div>
       </div>
-
-      {/* Bottom right, opposite the back button's bottom-centre. Same opaque
-          fill and ring as that button: this deck scrolls under both, and a
-          translucent pill lets the content read straight through it. */}
-      <button
-        onClick={() => setMoreOpen(true)}
-        className={buttonClass('secondary', 'sm', 'absolute bottom-8 right-8 z-20 max-[600px]:right-4')}
-      >
-        More
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M5 12h14M12 5l7 7-7 7" />
-        </svg>
-      </button>
+      </div>
 
       <TrustDialog open={trustOpen} onOpenChange={setTrustOpen} />
-      <MoreDialog open={moreOpen} onOpenChange={setMoreOpen} />
+      {/* The footer sits under the deck, always visible, in place of the old
+          "More" dialog. */}
+      <div className="flex-none">
+        <SiteFooter />
+      </div>
     </main>
   );
 }
@@ -175,7 +170,8 @@ export default function EmbarkoV2() {
 
    /v2 is a single 100dvh deck with `overflow-hidden`, so unlike the other
    three versions it has nowhere to put a long section or a footer. Both live
-   in dialogs instead: the trust chip opens the first, "More" opens the second.
+   in dialogs instead: the trust chip opens one. The footer now sits under
+   the deck.
 
    Both get `max-h-[86dvh] overflow-y-auto` because their content is taller
    than a laptop viewport — without it the dialog grows past the screen and the
@@ -214,22 +210,6 @@ function TrustDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: 
           wrapClassName="max-w-none px-0"
           cta={<V2CopyButton />}
         />
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function MoreDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={DIALOG}>
-        <DialogTitle className="sr-only">More from Embarko</DialogTitle>
-        {/* SiteFooter owns its own top border and py-16; the measure is dropped
-            to the dialog's padding so the columns are not centred inside a
-            1120px column they do not have room for. */}
-        <div className="[&>footer]:border-t-0 [&>footer]:py-10">
-          <SiteFooter measure="w-full px-9 max-[640px]:px-6" />
-        </div>
       </DialogContent>
     </Dialog>
   );
@@ -483,8 +463,8 @@ function ChatStep() {
     <div>
       <div className="text-center">
         <StepNumeral n="02" />
-        <Heading>Paste it into your <Serif grad>AI</Serif>, That&apos;s all</Heading>
-        <Sub>Your agent runs the deploy itself. You just watch.</Sub>
+        <Heading>Paste it and ask your <Serif grad>AI</Serif> to deploy</Heading>
+        <Sub>Your agent runs the deploy itself. You get a live link.</Sub>
       </div>
 
       {/* Same treatment as v1's strip: one row of bare marks under a small
