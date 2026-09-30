@@ -19,7 +19,7 @@
 /* Posters */
 .pg-tiles{position:absolute;inset:0;margin:0;padding:0;list-style:none;z-index:0;pointer-events:none}
 .pg-tile{position:absolute;width:150px;padding:12px 12px 14px;border-radius:18px;background:var(--ds-card);border:1px solid var(--ds-line);box-shadow:var(--ds-sh);display:flex;flex-direction:column;gap:6px;animation:pg-float 9s var(--ds-ease) infinite alternate}
-.pg-tile-art{display:grid;place-items:center;aspect-ratio:4/3;border-radius:12px;background:var(--pg-tone,var(--ds-soft));color:var(--pg-tone-ink,var(--ds-ink))}
+.pg-tile-art{display:grid;place-items:center;aspect-ratio:4/3;border-radius:12px;overflow:hidden;background:var(--pg-tone,var(--ds-soft));color:var(--pg-tone-ink,var(--ds-ink))}
 
 /* Bright poster tones — one per poster, none repeated, no purple/pink.
    The icon is a deep shade of the same tone; dark theme dims the fill. */
@@ -38,7 +38,7 @@
 .pg-tile-10{--pg-tone:#9fb4ff}  /* cornflower */
 .pg-tile-11{--pg-tone:#ff8f80}  /* coral */
 .pg-tile-12{--pg-tone:#e8c79a}  /* sand */
-.pg-tile-art svg{width:38px;height:38px}
+.pg-tile-art svg{width:100%;height:100%;display:block}
 .pg-tile-kind{font-size:13px;font-weight:700;letter-spacing:-.01em;color:var(--ds-ink)}
 .pg-tile-line{font-family:var(--ds-serif);font-style:italic;font-size:15px;line-height:1.15;color:var(--ds-mute)}
 
@@ -75,7 +75,6 @@
   .pg-tile{position:relative;inset:auto;display:flex;width:104px;flex:none;padding:8px 8px 10px;border-radius:14px}
   .pg-tile:nth-child(n+4){display:none}
   .pg-tile-1{rotate:-5deg}.pg-tile-2{rotate:3deg;margin-top:14px}.pg-tile-3{rotate:-3deg}
-  .pg-tile-art svg{width:28px;height:28px}
   .pg-tile-kind{font-size:12px}
   .pg-tile-line{font-size:13px}
   .pg-hero{padding:32px 0 48px}

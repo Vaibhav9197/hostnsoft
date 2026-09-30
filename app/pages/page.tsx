@@ -1,27 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Fragment } from "react";
-import {
-  ArrowRight,
-  Briefcase,
-  Code2,
-  FlaskConical,
-  Gamepad2,
-  GraduationCap,
-  Heart,
-  Lightbulb,
-  Mic,
-  Rocket,
-  Sparkles,
-  Trophy,
-  Users,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { SiteHeader } from "../components/SiteHeader";
 import { SiteFooter } from "../components/SiteFooter";
 import { ButtonLink, CtaSection, Hero, Section, SectionHeading, Serif } from "../components/ds";
 import { HeroDots } from "./HeroDots";
+import { PosterArt } from "./PosterArt";
 import "./pages.css";
 
 export const metadata: Metadata = {
@@ -41,23 +27,23 @@ export const metadata: Metadata = {
    screen in place, then lands back on the form. */
 const CREATE_HREF = "/app/showcase/new";
 
-type Tile = { icon: LucideIcon; kind: string; line: string };
+type Tile = { kind: string; line: string };
 
 /* The posters floating around the hero, like Luma's. Each is a kind of page
    someone could make — not a real event, so no names, dates or counts. */
 const TILES: Tile[] = [
-  { icon: Trophy, kind: "Hackathon", line: "48 hours. One page." },
-  { icon: Gamepad2, kind: "Game jam", line: "Play every entry" },
-  { icon: Mic, kind: "Demo day", line: "Every pitch, live" },
-  { icon: GraduationCap, kind: "Class projects", line: "The whole class" },
-  { icon: Lightbulb, kind: "Workshop", line: "Everyone ships one app today" },
-  { icon: Briefcase, kind: "Hack week", line: "What the team built" },
-  { icon: Sparkles, kind: "Prompt-a-thon", line: "Built with AI" },
-  { icon: FlaskConical, kind: "Tech fair", line: "Walk the stalls online" },
-  { icon: Rocket, kind: "Startup weekend", line: "Idea to live link" },
-  { icon: Users, kind: "Build night", line: "Student club" },
-  { icon: Code2, kind: "Bootcamp finals", line: "Cohort projects" },
-  { icon: Heart, kind: "Social good", line: "Apps that help" },
+  { kind: "Hackathon", line: "48 hours. One page." },
+  { kind: "Game jam", line: "Play every entry" },
+  { kind: "Demo day", line: "Every pitch, live" },
+  { kind: "Class projects", line: "The whole class" },
+  { kind: "Workshop", line: "Everyone ships one app today" },
+  { kind: "Hack week", line: "What the team built" },
+  { kind: "Prompt-a-thon", line: "Built with AI" },
+  { kind: "Tech fair", line: "Walk the stalls online" },
+  { kind: "Startup weekend", line: "Idea to live link" },
+  { kind: "Build night", line: "Student club" },
+  { kind: "Bootcamp finals", line: "Cohort projects" },
+  { kind: "Social good", line: "Apps that help" },
 ];
 
 /* What a showcase page can be for. Plain text, one flowing list. */
@@ -147,10 +133,10 @@ export default function PagesPage() {
       <div className="pg-stage">
         <HeroDots />
         <ul className="pg-tiles" aria-hidden="true">
-          {TILES.map(({ icon: Icon, kind, line }, i) => (
+          {TILES.map(({ kind, line }, i) => (
             <li key={kind} className={`pg-tile pg-tile-${i + 1}`}>
               <span className="pg-tile-art">
-                <Icon strokeWidth={1.4} />
+                <PosterArt kind={kind} />
               </span>
               <span className="pg-tile-kind">{kind}</span>
               <span className="pg-tile-line">{line}</span>
@@ -209,13 +195,13 @@ export default function PagesPage() {
         pill="Free to create"
         title={
           <>
-            One link.
+            Your event
             <br />
-            Every <Serif>project</Serif>.
+            deserves a <Serif>home</Serif>.
           </>
         }
         line="Make the page in a minute. Share it. Watch it fill up as people deploy."
-        steps={["Name it", "Share the link", "Apps appear, live"]}
+        steps={false}
         action={
           <ButtonLink href={CREATE_HREF} variant="primary" size="lg">
             Create a showcase page

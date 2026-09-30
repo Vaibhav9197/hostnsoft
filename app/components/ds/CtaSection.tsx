@@ -13,7 +13,8 @@ type Props = {
   /** Defaults to "Seen enough? / Ship something." */
   title?: React.ReactNode;
   line?: React.ReactNode;
-  steps?: string[];
+  /** Pass false to leave the steps row out. */
+  steps?: string[] | false;
   /** Replaces the PrimaryCta (e.g. to pass onClicked from a client page). */
   action?: React.ReactNode;
   className?: string;
@@ -48,7 +49,7 @@ export function CtaSection({
       <h2 id={h}>{title}</h2>
       {line && <p>{line}</p>}
       <div className="ds-ctas">{action ?? <PrimaryCta />}</div>
-      <Steps steps={steps} />
+      {steps !== false && <Steps steps={steps} />}
     </section>
   );
 }
