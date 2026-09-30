@@ -2,6 +2,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { authExchange, authLogout, authMe, authSwitchCompany, markExchanged, wasExchanged } from "./client";
+import { startEarlyReads } from "./earlyReads";
+import { clearLastSeen, readLastSeen, writeLastSeen } from "./lastSeen";
 import type { CompanyMembershipSummary, MeResponse } from "./types";
 
 type Status = "loading" | "authed" | "anon";
@@ -27,6 +29,14 @@ interface SessionValue {
 const SessionContext = createContext<SessionValue | null>(null);
 
 const ACTIVE_KEY = "hns.activeCompany";
+
+function storedCompanyId(): string | null {
+  try {
+    return window.localStorage.getItem(ACTIVE_KEY);
+  } catch {
+    return null;
+  }
+}
 
 // Map MSG91 / hostnsoft-api redirect error codes to human messages.
 function authErrorMessage(code: string): string {
@@ -124,21 +134,43 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const load = useCallback(async () => {
     // First, if we just came back from the MSG91 redirect, turn the one-time
     // token into a session before asking who we are.
-    await consumeRedirectToken(setAuthError);
+    const signingIn = await consumeRedirectToken(setAuthError);
+    // Open on who was signed in last time instead of a spinner; /auth/me below
+    // confirms or replaces it. Not straight after a sign-in, which may be
+    // somebody else. See lastSeen.ts.
+    const last = signingIn ? null : readLastSeen<MeResponse>("me");
+    if (last) {
+      setMe(last);
+      setStatus("authed");
+      setActiveState((prev) => {
+        const stored = storedCompanyId();
+        if (prev) return prev;
+        if (stored && last.companies.some((c) => c.companyId === stored)) return stored;
+        return last.companies[0]?.companyId ?? null;
+      });
+    }
+    // Ask for the last-used workspace's data while /auth/me is still answering,
+    // instead of after it. See earlyReads.ts.
+    const lastCompanyId = storedCompanyId();
+    if (lastCompanyId) startEarlyReads(lastCompanyId);
     try {
       // Identity comes from hostnsoft-api when up, else the MSG91 proxy session.
       const data = await authMe<MeResponse>();
       setMe(data);
       setStatus("authed");
       setAuthError(null);
+      // Only a full answer is worth opening on next time; the MSG91 fallback
+      // has no workspaces in it.
+      if (data.apiConnected) writeLastSeen("me", data);
       setActiveState((prev) => {
-        const stored = typeof window !== "undefined" ? window.localStorage.getItem(ACTIVE_KEY) : null;
+        const stored = storedCompanyId();
         const ids = data.companies.map((c) => c.companyId);
         if (prev && ids.includes(prev)) return prev;
         if (stored && ids.includes(stored)) return stored;
         return data.companies[0]?.companyId ?? null;
       });
     } catch {
+      clearLastSeen();
       setMe(null);
       setStatus("anon");
     }
@@ -162,6 +194,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = useCallback(async () => {
     await authLogout();
+    clearLastSeen();
     setMe(null);
     setStatus("anon");
     setActiveState(null);

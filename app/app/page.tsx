@@ -11,6 +11,8 @@ import { DeployPromptDialog } from "../components/console/DeployPromptDialog";
 import { FirstAppEmpty } from "../components/console/FirstAppEmpty";
 import { HnsError } from "../lib/client"; // used by the parked createProject below
 import { HealthPill } from "../components/console/HealthPill";
+import { earlyProjects } from "../lib/earlyReads";
+import { readLastSeen, writeLastSeen } from "../lib/lastSeen";
 import { companiesApi, projectsApi } from "../lib/hnsApi";
 import { formatDateTime } from "../lib/format";
 import { useSession } from "../lib/session";
@@ -39,16 +41,28 @@ export default function ProjectsPage() {
       setProjects([]);
       return;
     }
-    if (!quiet) setProjects(null);
+    const lastSeenKey = `projects:${activeCompanyId}`;
+    /* The first load opens on the list from last visit, if there is one, and
+       swaps in the real answer when it lands — skeletons only for a first ever
+       visit. See lastSeen.ts. */
+    if (!quiet) setProjects(readLastSeen<Project[]>(lastSeenKey));
     setError(null);
     try {
-      const data = await projectsApi.list(activeCompanyId);
+      /* Only the first read takes the one Session already started. A quiet
+         re-read is asking what changed just now, so it always goes out fresh. */
+      const data = await ((!quiet && earlyProjects(activeCompanyId)) || projectsApi.list(activeCompanyId));
       setProjects(data);
+      writeLastSeen(lastSeenKey, data);
     } catch (e) {
       /* A failed poll keeps the cards it already has — `error` replaces them,
          and one blip mid-build is not a reason to take the grid away from
-         someone watching it. */
-      if (!quiet) setError(e instanceof Error ? e.message : "Couldn’t load your apps.");
+         someone watching it. A failed first load does take last visit's cards
+         away: saying the apps are Live under an error that says we couldn't
+         find out would be two states at once. */
+      if (!quiet) {
+        setProjects(null);
+        setError(e instanceof Error ? e.message : "Couldn’t load your apps.");
+      }
     }
   }, [activeCompanyId]);
 

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { projectsApi } from "./hnsApi";
+import { readLastSeen, writeLastSeen } from "./lastSeen";
 import type { ProjectDetail } from "./types";
 
 /* "Shared fetcher" means shared endpoint, not shared state: every caller gets
@@ -20,8 +21,36 @@ import type { ProjectDetail } from "./types";
 let revision = 0;
 const listeners = new Set<() => void>();
 
+/* The breadcrumbs, the project nav and the page itself each mount a useProject
+   for the same project at the same moment, so every project page asked the API
+   for the same detail three times — and the backend answers three concurrent
+   reads slower than one, so the page waited on the slowest of them. Instances
+   now share one request while it is in flight and for a moment after it lands,
+   which covers everything mounted by the same navigation. Short on purpose:
+   opening the project again later must not show what it looked like before. */
+const SHARE_MS = 2000;
+const shared = new Map<string, { read: Promise<ProjectDetail>; settledAt: number | null }>();
+
+function readShared(companyId: string, projectId: string): Promise<ProjectDetail> {
+  const key = `${companyId}:${projectId}`;
+  const hit = shared.get(key);
+  if (hit && (hit.settledAt === null || Date.now() - hit.settledAt < SHARE_MS)) return hit.read;
+
+  const entry = { read: projectsApi.get(companyId, projectId), settledAt: null as number | null };
+  shared.set(key, entry);
+  entry.read.then(
+    () => { entry.settledAt = Date.now(); },
+    // A failure is dropped at once, so the next mount retries instead of inheriting it.
+    () => { if (shared.get(key) === entry) shared.delete(key); },
+  );
+  return entry.read;
+}
+
 /** Re-fetch every mounted useProject. Call after changing a project. */
 export function refreshProjects() {
+  // Everything shared predates the change. Clearing it first makes the
+  // instances that re-read below share one fresh request.
+  shared.clear();
   revision += 1;
   for (const notify of listeners) notify();
 }
@@ -43,22 +72,33 @@ export function useProject(companyId: string | null, projectId: string) {
   const rev = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const seenRev = useRef(rev);
 
-  const reload = useCallback(async () => {
+  /* Mounting and a refreshProjects() re-read share a request with the other
+     instances; the reload() a page calls after its own change always goes out
+     fresh, since it is asking for the state that change just produced. */
+  const read = useCallback(async (share: boolean, first = false) => {
     if (!companyId) return;
+    const lastSeenKey = `project:${companyId}:${projectId}`;
     try {
-      const data = await projectsApi.get(companyId, projectId);
+      const data = await (share ? readShared(companyId, projectId) : projectsApi.get(companyId, projectId));
       setProject(data);
       setError(null);
+      writeLastSeen(lastSeenKey, data);
     } catch (e) {
+      // A failed first read drops last visit's copy rather than showing it
+      // under the error; a failed refresh keeps what is on screen.
+      if (first) setProject(null);
       setError(e instanceof Error ? e.message : "This project couldn’t be found.");
     }
   }, [companyId, projectId]);
 
+  const reload = useCallback(() => read(false), [read]);
+
   useEffect(() => {
-    setProject(null);
+    // Open on last visit's copy, if any, while the real one loads. See lastSeen.ts.
+    setProject(companyId ? readLastSeen<ProjectDetail>(`project:${companyId}:${projectId}`) : null);
     setError(null);
-    reload();
-  }, [reload]);
+    read(true, true);
+  }, [read, companyId, projectId]);
 
   /* Separate from the mount/identity effect above so a refresh doesn't blank
      `project` first: that would flash every consumer back to its skeleton for
@@ -67,8 +107,8 @@ export function useProject(companyId: string | null, projectId: string) {
   useEffect(() => {
     if (seenRev.current === rev) return;
     seenRev.current = rev;
-    reload();
-  }, [rev, reload]);
+    read(true);
+  }, [rev, read]);
 
   return { project, error, reload };
 }
