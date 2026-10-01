@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { Panel, Tag } from "@/app/components/console/kit";
+import { ApprovalCodeDialog } from "@/app/components/console/showcase/ApprovalCodeDialog";
+import { Button } from "@/app/components/ui/button";
 import { showcaseApi } from "@/app/lib/hnsApi";
 import { formatDate } from "@/app/lib/format";
 import { SITE_HOST } from "@/app/lib/site";
@@ -24,6 +27,8 @@ export function ProjectShowcasePages({
   projectId: string;
 }) {
   const [listings, setListings] = useState<ShowcaseListing[] | null>(null);
+  /* The waiting listing whose code is being entered, if any. */
+  const [codeFor, setCodeFor] = useState<ShowcaseListing | null>(null);
 
   useEffect(() => {
     if (!companyId) return;
@@ -67,7 +72,7 @@ export function ProjectShowcasePages({
       <Panel>
         <ul className="divide-y divide-border">
           {listings.map((l) => (
-            <li key={l.id} className="px-5 py-4">
+            <li key={l.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-x-2">
                   <span className="text-[0.95rem] font-semibold text-foreground">{l.collection.title}</span>
@@ -95,10 +100,28 @@ export function ProjectShowcasePages({
                   </p>
                 )}
               </div>
+              {/* Only while waiting: a code from the organiser puts it on the
+                  page now, without listing it again through the AI. */}
+              {l.status === "pending" && (
+                <Button variant="outline" size="sm" onClick={() => setCodeFor(l)}>
+                  I have an approval code
+                </Button>
+              )}
             </li>
           ))}
         </ul>
       </Panel>
+
+      <ApprovalCodeDialog
+        companyId={companyId}
+        listing={codeFor}
+        onClose={() => setCodeFor(null)}
+        onApproved={(updated) => {
+          setListings((ls) => ls?.map((x) => (x.id === updated.id ? updated : x)) ?? ls);
+          setCodeFor(null);
+          toast.success(`Approved — ${updated.name} is on ${updated.collection.title} now.`);
+        }}
+      />
     </section>
   );
 }
