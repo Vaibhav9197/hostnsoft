@@ -56,7 +56,7 @@ export function ContactDev({ slug, appName, creatorName }: { slug: string; appNa
 
   return (
     <>
-      <button type="button" className="sc-btn pri lg" onClick={() => onOpenChange(true)}>
+      <button type="button" className="sc-btn lg" onClick={() => onOpenChange(true)}>
         <Mail aria-hidden="true" />
         Contact Dev
       </button>

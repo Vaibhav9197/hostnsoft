@@ -70,11 +70,16 @@ export function PricingPageClient({ plans: fetched }: { plans: BillingPlan[] }) 
               </>
             }
             sub="Build apps with AI. Tell your AI to deploy to Embarko, and we'll take care of the rest."
+            /* Above the fold on every screen: the plans start below it, and
+               the free plan needs nothing but the prompt. */
+            actions={<PrimaryCta />}
           />
         </div>
 
         {/* Pricing Cards */}
-        <section aria-labelledby="plans-h" className="relative">
+        {/* Clipped sideways: the highlighted card's glow reaches past the
+            screen edge on phones and would scroll the page. */}
+        <section aria-labelledby="plans-h" className="relative overflow-x-clip">
           <SectionHeading id="plans-h" kicker="01 — Plans" title="Choose your plan" center />
 
           {hasBothIntervals && (
