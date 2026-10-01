@@ -27,7 +27,7 @@ import { formatDate, formatMoney, intervalSuffix } from "../../lib/format";
 import { billingApi } from "../../lib/hnsApi";
 import { useSession } from "../../lib/session";
 import { cn } from "../../lib/utils";
-import { monthlyCents, planDetails, planFamily } from "../../lib/plans";
+import { monthlyCents, planDetails, planFamily, takePlanAfterLogin } from "../../lib/plans";
 import type { BillingPlan, PaymentMethod } from "../../lib/types";
 
 type PendingAction =
@@ -191,6 +191,38 @@ export default function BillingPage() {
       await billingApi.removePaymentMethod(id, card.id);
       return "Card removed.";
     }, "cards");
+
+  /* Arriving from a plan's button on /pricing: start that change once
+     billing is ready, so the pick made there isn't lost. The pick comes from
+     ?plan=<code> or, after a sign-in, from sessionStorage (the login widget
+     won't carry a query string). Read once and cleared, so a reload doesn't
+     start it again. */
+  const [planFromLink, setPlanFromLink] = useState<string | null>(null);
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get("plan") ?? takePlanAfterLogin();
+    if (!code) return;
+    setPlanFromLink(code);
+    if (url.searchParams.has("plan")) {
+      url.searchParams.delete("plan");
+      window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+    }
+  }, []);
+  useEffect(() => {
+    if (!planFromLink || setup !== "ready" || plans.length === 0) return;
+    const plan = plans.find((p) => p.code === planFromLink);
+    setPlanFromLink(null);
+    if (!plan) return;
+    if (active?.plan?.code === plan.code) {
+      setNotice(`You’re already on ${plan.name}.`);
+      return;
+    }
+    // Same period on screen as the plan picked, so its card is the one in view.
+    if (plan.amount_cents > 0) setInterval(plan.interval === "yearly" ? "yearly" : "monthly");
+    startChange(plan);
+    // startChange is recreated every render; the pick is acted on once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planFromLink, setup, plans, active]);
 
   const currentPlan = active?.plan ?? null;
   const hasDefaultCard = cards.kind === "ready" && cards.cards.some((c) => c.isDefault);

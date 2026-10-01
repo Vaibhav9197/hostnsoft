@@ -77,6 +77,9 @@ a.ds-pill:hover{border-color:var(--ds-line2)}
 .ds-hero .ds-pill{margin-bottom:22px}
 .ds-hero h1{font-size:clamp(44px,8.4vw,112px);line-height:.94;letter-spacing:-.055em;font-weight:800;margin:0 auto 20px;max-width:1000px}
 .ds-hero h1 .ds-serif{font-size:1.06em;letter-spacing:-.02em;padding-right:.06em}
+/* Inner pages (pricing…): a step down from the home page's headline, so the
+   content the visitor came for starts higher. */
+.ds-hero.ds-hero-sm h1{font-size:clamp(40px,5.6vw,72px);line-height:1;letter-spacing:-.045em}
 .ds-hero>p{font-size:clamp(16px,1.6vw,19px);color:var(--ds-mute);max-width:600px;margin:0 auto 30px}
 .ds-hero .ds-steps{margin-top:28px}
 

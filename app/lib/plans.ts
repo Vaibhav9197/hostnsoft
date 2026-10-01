@@ -94,3 +94,28 @@ export const planDetails = (plan: BillingPlan): PlanDetails | null => {
   const family = planFamily(plan);
   return family ? PLAN_DETAILS[family] ?? null : null;
 };
+
+/* A plan picked on /pricing before signing in. MSG91's login widget rejects
+   a redirect path with a query string (422 "redirect path format is
+   invalid"), so the pick can't ride in the URL; it waits in this tab's
+   sessionStorage until the billing page picks it up. */
+const PLAN_AFTER_LOGIN = "embarko.planAfterLogin";
+
+export function rememberPlanAfterLogin(code: string): void {
+  try {
+    sessionStorage.setItem(PLAN_AFTER_LOGIN, code);
+  } catch {
+    // Storage blocked: the visitor lands on billing and picks the plan there.
+  }
+}
+
+/** Reads and clears the remembered plan, so it is acted on only once. */
+export function takePlanAfterLogin(): string | null {
+  try {
+    const code = sessionStorage.getItem(PLAN_AFTER_LOGIN);
+    sessionStorage.removeItem(PLAN_AFTER_LOGIN);
+    return code;
+  } catch {
+    return null;
+  }
+}

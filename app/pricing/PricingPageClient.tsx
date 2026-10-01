@@ -10,7 +10,7 @@ import { LoginModal } from "../components/LoginModal";
 import { cn } from "../lib/utils";
 import { agentIconSrc } from "../lib/agents";
 import { formatMoney } from "../lib/format";
-import { monthlyCents, planDetails as sharedPlanDetails, planFamily, type PlanDetails } from "../lib/plans";
+import { monthlyCents, planDetails as sharedPlanDetails, planFamily, rememberPlanAfterLogin, type PlanDetails } from "../lib/plans";
 import type { BillingPlan } from "../lib/types";
 
 type Interval = "monthly" | "yearly";
@@ -31,6 +31,13 @@ const FALLBACK_PLANS: BillingPlan[] = [
 
 export function PricingPageClient({ plans: fetched }: { plans: BillingPlan[] }) {
   const [loginOpen, setLoginOpen] = useState(false);
+  /* Where sign-in lands: the apps list, or — from a paid plan's button —
+     billing with that plan picked, so the choice isn't lost on the way. */
+  const [loginTarget, setLoginTarget] = useState("/app");
+  const openLogin = (target = "/app") => {
+    setLoginTarget(target);
+    setLoginOpen(true);
+  };
 
   const plans = fetched.length > 0 ? fetched : FALLBACK_PLANS;
 
@@ -54,19 +61,20 @@ export function PricingPageClient({ plans: fetched }: { plans: BillingPlan[] }) 
 
   return (
     <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased">
-      <Header onAuthClick={() => setLoginOpen(true)} />
-      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
+      <Header onAuthClick={() => openLogin()} />
+      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} redirectPath={loginTarget} />
 
       <div className="ds-wrap">
         <div className="relative isolate">
           <GlowBackdrop position="top" />
           <Hero
+            className="ds-hero-sm"
             eyebrow="Pricing"
             title={
               <>
-                You build it
+                You build it.
                 <br />
-                Embarko makes it <Serif grad>real</Serif>
+                Embarko makes it <Serif grad>real</Serif>.
               </>
             }
             sub="Build apps with AI. Tell your AI to deploy to Embarko, and we'll take care of the rest."
@@ -168,7 +176,11 @@ export function PricingPageClient({ plans: fetched }: { plans: BillingPlan[] }) 
 
                     <button
                       type="button"
-                      onClick={() => setLoginOpen(true)}
+                      onClick={() => {
+                        if (plan.amount_cents === 0) return openLogin("/app");
+                        rememberPlanAfterLogin(plan.code);
+                        openLogin("/app/billing");
+                      }}
                       className={buttonClass(hi ? "glow" : "secondary", "lg", "mb-7 w-full")}
                     >
                       {details.cta}
