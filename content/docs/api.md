@@ -52,7 +52,9 @@ vars, deployment history, rollback, showcase and slug-change sit under
 action's own section below.
 
 The token is `Authorization: Bearer <token>`, is company-wide rather than
-per-app, and deploys only — it does not sign in to the dashboard.
+per-app, and deploys only — it does not sign in to the dashboard. How to get
+one, and the two ways in that need no token at all (a connector, or signing
+in on embarko.ai), are in [Authentication](capabilities.md#agent-auth).
 
 **An absent header and a bad header are different things.** Omitting
 `Authorization` entirely is a valid anonymous deploy. Sending a present but

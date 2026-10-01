@@ -42,7 +42,10 @@ it.
   certified to ISO/IEC 27001, with every app isolated from every other.
 
 All of that is callable by the agent with a deploy token — including custom
-domains, analytics, renaming and deletion. The one step that needs the
+domains, analytics, renaming and deletion. There are three ways in: the
+person signs in on embarko.ai with Google, their AI gets a token by email,
+or their AI tool uses an [Embarko connector](connectors.md). All three reach
+the same account. Details: [Authentication](capabilities.md#agent-auth). The one step that needs the
 person is creating the DNS record for a custom domain, at their own
 registrar.
 

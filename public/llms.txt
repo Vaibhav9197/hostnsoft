@@ -84,6 +84,17 @@ list of what is not built yet.
     https://ship.embarko.ai/capabilities        machine-readable contents page, no token, authoritative
     https://ship.embarko.ai/capabilities/<topic>  one question answered in full, e.g. /capabilities/custom-domain
 
+## Authentication and connectors
+
+Three ways in, all reaching the same account (matched by email): an Embarko connector in the
+person's AI tool (no token), a deploy token requested by email, or the person signing in on
+embarko.ai with Google. The first deploy needs none of them. Check for a connector first, then
+$DEPLOY_TOKEN / ~/.embarko/credentials, then request a token by email.
+
+    https://embarko.ai/docs/capabilities#agent-auth
+    https://embarko.ai/docs/connectors          every connector, with the link to add it (Claude)
+    https://embarko.ai/docs/agent-playbook#choose-auth
+
 ## API
 
 Per action: method, auth, required and optional parameters, response schema, states, error codes,

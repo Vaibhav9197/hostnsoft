@@ -386,7 +386,9 @@ is also how you recover a token you've lost** — there is no way to read an
 existing one back.
 
 Deploy tokens are company-wide (not scoped to one project) and authenticate
-deploys only — they don't sign in to the dashboard itself.
+deploys only — they don't sign in to the dashboard itself. Tokens are one of three ways in — the others are an
+[Embarko connector](connectors.md) and signing in on embarko.ai; see
+[Authentication](capabilities.md#agent-auth).
 
 ## [Deploying / redeploying](#deploy)
 

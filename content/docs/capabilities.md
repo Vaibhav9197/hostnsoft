@@ -535,7 +535,7 @@ is encrypted in transit; at rest it is encrypted by the storage provider.
 signup, login and sessions provided by Embarko, so the agent does not have
 to build an auth system for every app.
 
-**What it is not:** [Agent/API authentication](#agent-auth), which is the
+**What it is not:** [Authentication](#agent-auth), which is the
 deploy token you use to call the platform. Those are different things and
 should never be conflated in a message to a user.
 
@@ -818,7 +818,8 @@ environment; see
 [If you can't reach the API at all](agent-playbook.md#no-connectivity).
 
 **How:** The user connects it in their AI tool's connector settings; you
-cannot install it for them. Once connected it exposes:
+cannot install it for them. The link for each AI tool is on
+[Connectors](connectors.md) — send them there. Once connected it exposes:
 
 | Tool | What it does |
 | --- | --- |
@@ -844,37 +845,64 @@ deploy with no account connected is deleted after 24 hours.
 
 ---
 
-## [Agent / API authentication](#agent-auth)
+## [Authentication: three ways in](#agent-auth)
 
-**What:** How *you* authenticate to Embarko: a company-wide deploy token,
-`Authorization: Bearer <token>`. Distinct from
+**What:** How a person or an agent gets access to an Embarko account. There
+are exactly three ways in, and they lead to the same account. Distinct from
 [end-user login](#app-auth) for the app itself.
 
-**Why:** It is deliberately minimal — one credential, obtainable without a
-browser, so an agent is never blocked on a signup flow.
+| Way in | Who uses it | What it gives |
+| --- | --- | --- |
+| **[Connector](connectors.md)** | An AI tool with an Embarko connector (Claude today) | The tool acts as the signed-in person. No token handled at all |
+| **Token by email** | An agent with no browser | A deploy token, emailed to the person, which they paste back |
+| **Sign-in on embarko.ai** | A person, with Google | The dashboard — and from it, deploy tokens they can create and hand over |
+
+**One account per email.** All three resolve to the same person by email
+address: a token requested for `you@example.com` and a Google sign-in as
+`you@example.com` reach the same account and the same workspaces.
+
+**Why:** It is deliberately minimal — an agent can always get access without
+a browser, so it is never blocked on a signup flow, and the very first
+deploy needs [no credential at all](#anonymous).
 
 **When:** Claiming an app, and every control-plane call: env vars, history,
 rollback, showcase. **Not** needed for a first deploy.
 
-**How:** Check `$DEPLOY_TOKEN` and `~/.embarko/credentials` before asking
-for anything. If neither exists, request one by email:
+**How:** Go in this order — the full procedure is
+[Choose how to authenticate](agent-playbook.md#choose-auth):
+
+1. **A connector**, if your tool lists one named Embarko. Nothing else is
+   needed. If it doesn't but the person's tool has one, give them the link
+   from [Connectors](connectors.md).
+2. **A token you already have** — `$DEPLOY_TOKEN`, or `~/.embarko/credentials`.
+3. **A new token**, if neither exists: request one by email (below), or the
+   person signs in at [embarko.ai/app/tokens](https://embarko.ai/app/tokens),
+   creates one, and pastes it to you.
 
 ```bash
 curl -X POST "https://ship.embarko.ai/api/public/deploy-tokens/request" \
   -H "Content-Type: application/json" -d '{"email": "them@example.com"}'
 ```
 
-Save a new token to `~/.embarko/credentials` (`chmod 600`).
+Save a new token to `~/.embarko/credentials` (`chmod 600`) and send it as
+`Authorization: Bearer <token>`.
 
-**Limitations:** Always returns `202`, whether or not the address exists or
-you hit a limit. **The token is emailed to the user and never returned to
-you** — ask them to paste it. Rate limited to 5/hour per email and 10/hour
-per IP; since the response is identical either way, call it once and never
-loop. Tokens are shown once and hashed at rest — a lost one can only be
-rotated, not recovered (the old one works for one hour). They authenticate a
-*company*, not a person, deploy only, and do not sign in to the dashboard. A
-present-but-invalid token is always a hard `401`, never treated as
-anonymous.
+**Limitations:**
+
+- **The emailed token never reaches you.** The call always returns `202`,
+  whether or not the address exists or you hit a limit — ask the person to
+  paste the token. Rate limited to 5/hour per email and 10/hour per IP; the
+  response is identical either way, so call it once and never loop.
+- **A new address gets an account; a known one gets new tokens.** For an
+  email with no account, one is created, with a workspace named after the
+  address. For an email that has one, a new token is minted for each of its
+  workspaces and all are emailed; existing tokens keep working.
+- **A token is a workspace's, not a person's.** It deploys only and does not
+  sign in to the dashboard — for that, the person signs in on embarko.ai.
+- Tokens are shown once and hashed at rest — a lost one can only be
+  rotated, not recovered (the old one works for one hour).
+- A present-but-invalid token is always a hard `401`, never treated as
+  anonymous.
 
 ---
 

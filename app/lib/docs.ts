@@ -17,6 +17,7 @@ import apiMd from "../../content/docs/api.md";
 import troubleshootMd from "../../content/docs/troubleshoot.md";
 import limitationsMd from "../../content/docs/limitations-and-recommendations.md";
 import hackathonsMd from "../../content/docs/hackathons.md";
+import connectorsMd from "../../content/docs/connectors.md";
 
 export interface DocMeta {
   /** The file's basename under content/docs/, e.g. "docs" for docs.md. */
@@ -92,6 +93,17 @@ export const DOCS: DocMeta[] = [
     description: "What an agent must decide itself, and the five cases where it should ask the user.",
   },
   {
+    // Every connector, with the link to add it. The one page an agent can
+    // send a person to instead of "look in your tool's settings"; what a
+    // connector can do stays in capabilities.md#mcp-connector.
+    slug: "connectors",
+    group: "Working with Embarko",
+    path: "/docs/connectors",
+    keywords: ["Embarko connector","Embarko MCP connector","Claude connector for hosting","deploy from Claude"],
+    title: "Connectors",
+    description: "Every Embarko connector for AI tools, with the link to add it — starting with Claude.",
+  },
+  {
     // The capability manifest. One entry per feature, each answering the
     // same four questions (what / when / how / limits), so an agent can
     // decide whether a thing is possible before writing code against it.
@@ -160,6 +172,7 @@ const MARKDOWN: Record<string, string> = {
   troubleshoot: troubleshootMd,
   "limitations-and-recommendations": limitationsMd,
   hackathons: hackathonsMd,
+  connectors: connectorsMd,
 };
 
 /**

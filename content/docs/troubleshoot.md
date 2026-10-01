@@ -24,7 +24,7 @@ for the platform's real constraints and how to design around them —
   before it leaves your environment, so nothing was submitted: there is no deploy, no status to
   poll and no logs to read
 - fix: **don't retry** — the same call will fail identically. Use the Embarko MCP connector if one
-  is available (its requests don't originate from your sandbox), otherwise tell the user it's your
+  is available (its requests don't originate from your sandbox; links on [Connectors](connectors.md)), otherwise tell the user it's your
   environment that can't reach the API, not their app, and give them a script to run themselves.
   Full procedure: [agent playbook](agent-playbook.md#no-connectivity). Do **not** fall back to an
   anonymous deploy — same host, same block, and it hands the user a temporary app they didn't ask

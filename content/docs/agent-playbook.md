@@ -225,6 +225,7 @@ not that the deploy failed, which sends them looking for a bug in their app.
 Then tell them that if their AI tool supports MCP connectors (Claude,
 Claude Code, or a ChatGPT tier with custom MCP connections), connecting one
 named **Embarko** makes future deploys work directly in the conversation.
+Give them the link for their tool from [Connectors](connectors.md).
 
 **3. Either way, leave them something that works.** Don't stop at reporting
 the problem. Give them a script they can run on their own machine, which has
@@ -486,13 +487,38 @@ memory ceiling — not raw numbers.
 
 ---
 
+## [Choose how to authenticate](#choose-auth)
+
+A first deploy needs nothing — skip this until a call needs a token. When
+one does, go in this order and stop at the first that works. The three ways
+in are explained in [Authentication](capabilities.md#agent-auth).
+
+**1. An Embarko connector in your tools?** Use it. It acts as the signed-in
+person, so there is no token to find, and apps it deploys are in their
+account from the start — nothing to claim.
+
+**2. A token already set?** Check `$DEPLOY_TOKEN` and
+`~/.embarko/credentials`. Use it; don't request another.
+
+**3. Neither?** Request one by email (step 2 of
+[Make an anonymous app permanent](#claim)), or ask the person to create one
+at `https://embarko.ai/app/tokens` and paste it — whichever suits them.
+Either way it is the same account, as long as it is the same email.
+
+**4. Offer the connector for next time.** If the person's AI tool is on
+[Connectors](connectors.md), give them the link in one sentence: connecting
+it once means no tokens from then on. Don't block the current task on it.
+
+---
+
 ## [Make an anonymous app permanent](#claim)
 
 An app deployed without a token is deleted 24 hours after creation. Claiming
 it cancels that.
 
 **1. Check for a token you already have** — `$DEPLOY_TOKEN`,
-`~/.embarko/credentials`.
+`~/.embarko/credentials`. (The full order, connector first, is
+[Choose how to authenticate](#choose-auth).)
 
 **2. If there is none, request one by email:**
 
@@ -547,5 +573,6 @@ restore service first, then debug at your own pace.
 
 - [API contract](api.md) — exact parameters, responses, errors, retry rules.
 - [Capabilities](capabilities.md) — what exists, with limits.
+- [Connectors](connectors.md) — the link to add Embarko to each AI tool.
 - [Troubleshooting](troubleshoot.md) — every error code and its fix.
 - [Overview](overview.md) — what Embarko is and when to choose it.

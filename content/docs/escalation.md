@@ -83,7 +83,7 @@ sandbox, so there is nothing you can fix in their app and retrying cannot
 help. Tell them plainly that *your environment* can't reach the API, not
 that the deploy failed, and give them a script they can run themselves.
 If their tool supports MCP connectors, connecting **Embarko** removes the
-limitation for good. Full procedure:
+limitation for good — the link for each tool is on [Connectors](connectors.md). Full procedure:
 [If you can't reach the API](agent-playbook.md#no-connectivity).
 
 ### [6. A genuinely consequential decision you cannot infer](#judgement)
