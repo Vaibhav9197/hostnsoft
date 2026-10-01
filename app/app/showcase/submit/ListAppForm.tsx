@@ -80,7 +80,7 @@ export function ListAppForm({
   /* Where the person came from, and goes back to. */
   const back =
     fromApp && initialApp
-      ? { href: `/app/projects/${encodeURIComponent(initialApp)}/showcase`, label: "Your app" }
+      ? { href: `/app/projects/${encodeURIComponent(initialApp)}`, label: "Your app" }
       : { href: "/app/showcase", label: "Showcase" };
 
   const [pages, setPages] = useState<ShowcasePage[] | null>(null);

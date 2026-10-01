@@ -107,12 +107,12 @@ export function FeedbackWidget() {
           if (!open && !busy && !sent) startDictation(true);
         }}
         aria-label="Say what’s missing or share feedback"
-        className="fixed bottom-4 right-4 z-40 inline-flex h-12 items-center justify-center gap-2 border border-control bg-card px-3.5 text-sm font-medium text-foreground shadow-lg outline-none transition-colors hover:border-[color:color-mix(in_srgb,var(--ink)_45%,transparent)] hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-[color:color-mix(in_srgb,var(--accent)_50%,transparent)] sm:bottom-6 sm:right-6 sm:px-4"
+        className="fixed bottom-4 right-4 z-40 inline-flex h-9 items-center justify-center gap-2 border border-control bg-card px-3 text-sm font-medium text-foreground shadow-lg outline-none transition-colors hover:border-[color:color-mix(in_srgb,var(--ink)_45%,transparent)] hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-[color:color-mix(in_srgb,var(--accent)_50%,transparent)] sm:bottom-6 sm:right-6 sm:px-3"
       >
         {open ? (
-          <X aria-hidden="true" className="size-5" />
+          <X aria-hidden="true" className="size-4" />
         ) : (
-          <MessageSquare aria-hidden="true" className="size-5" />
+          <MessageSquare aria-hidden="true" className="size-4" />
         )}
         {/* Icon-only on phones, where it would otherwise cover content. */}
         <span className="hidden sm:inline">What’s missing?</span>
