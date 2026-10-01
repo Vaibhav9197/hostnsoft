@@ -77,7 +77,7 @@ export default async function CollectionPage({ params }: Props) {
         shareWhenEmpty={meta.type === "event"}
         /* Beside the note that asks for it. The prompt names this page and its
            URL, so the visitor's AI lists the app here, not on the gallery. */
-        actions={<PrimaryCta size="md" glow={false} label="Copy prompt to showcase your app" text={showcaseListPrompt(meta)} />}
+        actions={<PrimaryCta label="Copy prompt to showcase your app" text={showcaseListPrompt(meta)} />}
         /* A collection can exist before anything is in it — it is created
            with the event, and the projects arrive over the following days. */
         empty={{
