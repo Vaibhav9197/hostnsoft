@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Alert } from "../../components/console/kit";
+import { ConnectorRedirecting, destinationHost } from "../../components/connector/ConnectorRedirecting";
 import { CONNECTOR_PENDING_REDIRECT_KEY, CONNECTOR_PENDING_STATE_KEY } from "../../lib/connectorPendingRedirect";
 
 // Login entry point for AI-connector OAuth flows (e.g. a generic MCP OAuth
@@ -37,7 +38,7 @@ const WIDGET_SRC =
 // there) - see ConnectorTokenPickup.tsx, mounted in the root layout, which
 // looks for these on every page load and finishes the handoff if MSG91
 // dropped the browser somewhere unexpected with a token in tow.
-const DEBUG = true; // TEMPORARY - remove once this flow is confirmed working live.
+const DEBUG = false; // Flip on locally to trace the hand-off; it logs the redirect target.
 function debugLog(...args: unknown[]) {
   if (DEBUG) console.log("[ConnectorLogin]", ...args);
 }
@@ -48,6 +49,11 @@ function ConnectorLoginInner() {
   const state = searchParams.get("state");
 
   const [error, setError] = useState<string | null>(null);
+  /* Set the moment the widget hands over a token: the browser is on its way
+     back to the AI tool, which takes a few seconds, and the sign-in form
+     sitting there unchanged read as "nothing happened". */
+  const [redirecting, setRedirecting] = useState(false);
+  const host = destinationHost(redirectUri);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const started = useRef(false);
 
@@ -102,6 +108,8 @@ function ConnectorLoginInner() {
           bridge.searchParams.set("redirect_uri", targetRedirectUri);
           if (state) bridge.searchParams.set("state", state);
           debugLog("in-page success path forwarding to bridge:", bridge.toString());
+          setError(null);
+          setRedirecting(true);
           window.location.href = bridge.toString();
         },
         failure: (err: unknown) => {
@@ -143,19 +151,28 @@ function ConnectorLoginInner() {
     <div className="grid min-h-screen place-items-center bg-background p-6">
       <div className="w-full max-w-[420px] border border-border bg-card p-7">
         <div className="flex items-center gap-3">
-          <span className="grid size-8 shrink-0 place-items-center bg-primary text-base font-extrabold text-primary-foreground" aria-hidden="true">H</span>
+          {/* The same static mark the site header uses. */}
+          <img src="/assets/embarko-icon.svg" alt="" aria-hidden="true" className="size-8 shrink-0 rounded" />
           <div>
             <div className="text-[1.15rem] font-extrabold tracking-tight text-foreground">Sign in to Embarko</div>
-            <div className="mt-0.5 font-mono text-[0.66rem] uppercase tracking-[0.12em] text-primary">Connecting an AI client</div>
+            <div className="mt-0.5 font-mono text-[0.66rem] uppercase tracking-[0.12em] text-primary">
+              Connecting {host ?? "an AI tool"}
+            </div>
           </div>
         </div>
 
         {error && <Alert variant="err" className="mt-4">{error}</Alert>}
 
-        <p className="mt-3 text-[0.92rem] text-muted-foreground">
-          Verify your email to continue. You'll be sent back to the app you connected from.
-        </p>
-        <div id={REFERENCE_ID} ref={containerRef} className="login-widget mt-3" />
+        {redirecting ? (
+          <ConnectorRedirecting host={host} />
+        ) : (
+          <p className="mt-3 text-[0.92rem] text-muted-foreground">
+            Sign in to connect Embarko to {host ?? "your AI tool"}. You&apos;ll be sent straight back.
+          </p>
+        )}
+        {/* Kept mounted while redirecting, only hidden: the widget owns this
+            node, and unmounting it mid-hand-off isn't worth the risk. */}
+        <div id={REFERENCE_ID} ref={containerRef} className="login-widget mt-3" hidden={redirecting} />
       </div>
     </div>
   );
