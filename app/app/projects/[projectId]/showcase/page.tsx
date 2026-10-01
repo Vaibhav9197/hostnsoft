@@ -34,8 +34,8 @@ export default function ProjectShowcasePage({ params }: { params: Promise<{ proj
   const [error, setError] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
 
-  const companyListing = listings?.find((l) => l.collection.type === "company") ?? null;
-  const eventListings = listings?.filter((l) => l.collection.type !== "company") ?? [];
+  const companyListing = listings?.find((l) => l.collection.type === "public") ?? null;
+  const eventListings = listings?.filter((l) => l.collection.type !== "public") ?? [];
 
   const load = useCallback(async () => {
     if (!activeCompanyId) return;
@@ -45,7 +45,7 @@ export default function ProjectShowcasePage({ params }: { params: Promise<{ proj
         showcaseApi.listPages(activeCompanyId),
       ]);
       setListings(mine);
-      setCompanyPage(pages.find((p) => p.type === "company") ?? null);
+      setCompanyPage(pages.find((p) => p.type === "public") ?? null);
     } catch (e) {
       setListings([]);
       setError(e instanceof Error ? e.message : "Couldn’t load Showcase.");
@@ -58,7 +58,7 @@ export default function ProjectShowcasePage({ params }: { params: Promise<{ proj
 
   function askRemove(l: ShowcaseListing) {
     setConfirm({
-      title: `Remove ${l.name} from ${l.collection.type === "company" ? "Showcase" : l.collection.title}?`,
+      title: `Remove ${l.name} from ${l.collection.type === "public" ? "Showcase" : l.collection.title}?`,
       body: "Its public page goes away straight away. You can list it again any time.",
       cta: "Remove",
       destructive: true,
@@ -100,7 +100,7 @@ export default function ProjectShowcasePage({ params }: { params: Promise<{ proj
               </p>
             </div>
             <CopyPromptButton
-              text={showcaseListPrompt(companyPage ?? { slug: "", title: "", type: "company" }, project.slug)}
+              text={showcaseListPrompt(companyPage ?? { slug: "", title: "", type: "public" }, project.slug)}
               className={buttonVariants()}
               disabled={!companyPage}
               copiedChildren={
@@ -197,14 +197,22 @@ export default function ProjectShowcasePage({ params }: { params: Promise<{ proj
                         rel="noreferrer"
                         className="font-medium text-foreground hover:underline"
                       >
-                        {l.collection.type === "company" ? "Your workspace page" : l.collection.title}
+                        {l.collection.type === "public" ? "Your workspace page" : l.collection.title}
                       </a>
-                      {l.collection.type !== "company" && <Tag>Event page</Tag>}
+                      {l.collection.type !== "public" && <Tag>Event page</Tag>}
+                      {l.status === "pending" && <Tag tone="scheduled">Awaiting approval</Tag>}
+                      {l.status === "rejected" && <Tag>Turned down</Tag>}
                       {l.isPrivate && <Tag>Hidden by organiser</Tag>}
                     </div>
                     <p className="text-[0.8rem] text-muted-foreground">
                       {SITE_HOST}/showcase/{l.collection.slug} · added {formatDate(l.createdAt)}
                     </p>
+                    {l.status === "rejected" && (
+                      <p className="text-[0.8rem] text-muted-foreground">
+                        {l.rejectionReason ? `Organiser: “${l.rejectionReason}”` : "The organiser turned it down."} Submit again with the
+                        event’s code, or after fixing it.
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-wrap items-center gap-4">
                     <CopyPromptButton
@@ -220,7 +228,7 @@ export default function ProjectShowcasePage({ params }: { params: Promise<{ proj
                       <Copy aria-hidden="true" className="size-3" />
                       Update with AI
                     </CopyPromptButton>
-                    {!l.isPrivate && (
+                    {!l.isPrivate && l.status === "approved" && (
                       <a
                         href={`/showcase/app/${l.slug}`}
                         target="_blank"

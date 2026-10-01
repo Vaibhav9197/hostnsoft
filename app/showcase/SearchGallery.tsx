@@ -16,7 +16,7 @@ function matches(app: ShowcaseApp, query: string): boolean {
   const haystack = [
     app.name,
     app.tagline,
-    app.whatItDoes,
+    app.description,
     app.creatorName,
     app.category,
     app.builtWith,

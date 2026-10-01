@@ -17,13 +17,13 @@ type Filter = ShowcaseType | "all";
 
 const FILTERS: { value: Filter; label: string }[] = [
   { value: "all", label: "All" },
-  { value: "public", label: "Event pages" },
-  { value: "company", label: "Workspace pages" },
+  { value: "event", label: "Event pages" },
+  { value: "public", label: "Workspace pages" },
 ];
 
 const TYPE_STYLE: Record<ShowcaseType, string> = {
-  company: "bg-[var(--ok-soft)] text-success",
-  public: "bg-elevated text-foreground",
+  public: "bg-[var(--ok-soft)] text-success",
+  event: "bg-elevated text-foreground",
 };
 
 function describe(e: unknown, fallback: string): string {
@@ -237,6 +237,11 @@ function Listings({ onError }: { onError: (m: string | null) => void }) {
                     {l.isPrivate && (
                       <span className="rounded-full bg-elevated px-2 py-[0.1em] font-mono text-[0.62rem] uppercase tracking-[0.08em]">
                         hidden by organiser
+                      </span>
+                    )}
+                    {l.status !== "approved" && (
+                      <span className="rounded-full bg-elevated px-2 py-[0.1em] font-mono text-[0.62rem] uppercase tracking-[0.08em]">
+                        {l.status === "pending" ? "awaiting approval" : "rejected"}
                       </span>
                     )}
                   </div>

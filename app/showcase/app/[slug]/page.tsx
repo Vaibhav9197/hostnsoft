@@ -24,16 +24,16 @@ import { ShowcaseBreadcrumbs } from "../../breadcrumbs";
    separately from the visible copy below rather than instead of it.
 
    tagline is required at submission and short — the more useful signal for
-   both a search snippet and a schema description. whatItDoes only backs it
+   both a search snippet and a schema description. description only backs it
    up on the rare listing predating that requirement; nothing here can
    produce an empty description, since name is always assigned and tagline
-   always exists whenever whatItDoes might not. */
+   always exists whenever description might not. */
 function structuredData(app: ShowcaseApp) {
   return {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     name: app.name,
-    description: app.tagline || app.whatItDoes || app.name,
+    description: app.tagline || app.description || app.name,
     url: `${SITE}/showcase/app/${app.slug}`,
     image: app.screenshotUrl || undefined,
     applicationCategory: app.category || undefined,
@@ -60,8 +60,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!app) return {};
   /* tagline is required at submission, short, and to the point — the
      stronger element for a search snippet than a longer free-text field.
-     whatItDoes is optional and only fills in on a listing without one. */
-  const description = app.tagline || app.whatItDoes || undefined;
+     description is optional and only fills in on a listing without one. */
+  const description = app.tagline || app.description || undefined;
   return {
     title: `${app.name} — Showcase`,
     description,
@@ -117,8 +117,8 @@ export default async function ShowcaseAppPage({ params }: Props) {
   const related = [...others].sort((a, b) => score(b) - score(a)).slice(0, 3);
 
   const sections = [
-    app.whatItDoes && { key: "what", eyebrow: "The product", title: "What it does", text: app.whatItDoes },
-    app.whyBuilt && { key: "why", eyebrow: "The reason", title: "Why it was built", text: app.whyBuilt },
+    app.description && { key: "what", eyebrow: "The product", title: "What it does", text: app.description },
+    app.story && { key: "why", eyebrow: "The reason", title: "Why it was built", text: app.story },
   ].filter((s): s is { key: string; eyebrow: string; title: string; text: string } => !!s);
 
   const listed = Number.isNaN(Date.parse(app.createdAt)) ? null : LISTED.format(new Date(app.createdAt));

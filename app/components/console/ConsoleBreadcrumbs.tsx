@@ -110,7 +110,7 @@ function CollectionName({ collectionId }: { collectionId: string }) {
       .listCollections(activeCompanyId)
       .then((all) => {
         const c = all.find((x) => x.id === collectionId);
-        if (!cancelled && c) setName(c.type === "company" ? "Embarko Showcase" : c.title);
+        if (!cancelled && c) setName(c.type === "public" ? "Embarko Showcase" : c.title);
       })
       .catch(() => {});
     return () => {

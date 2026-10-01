@@ -329,17 +329,22 @@ export type AppLogs =
 export type LogStream = "stdout" | "stderr";
 
 // ------------------------------------------------------------------ Showcase
-// hostnsoft-api docs/showcase.md. Two kinds of page at /showcase/<slug>: a
-// COMPANY page (its own apps only) and PUBLIC boards (anyone's apps). No
-// approval — everything is live at once.
+// hostnsoft-api docs/showcase.md. Two places an app is shown: the PUBLIC
+// gallery at /showcase, and EVENT pages at /showcase/<slug> (anyone's apps).
+// No approval — everything is live at once.
 
-export type ShowcaseType = "company" | "public";
+export type ShowcaseType = "public" | "event";
 
 export interface ShowcaseCollectionCounts {
   total: number;
-  // Not hidden by the organiser — what the public page actually shows.
+  // Approved and not hidden by the organiser — what the public page actually shows.
   publicCount: number;
+  // Awaiting the organiser's review. Always 0 on the public page.
+  pending: number;
 }
+
+// An event listing's review state. Public-page placements are always approved.
+export type ShowcaseListingStatus = "pending" | "approved" | "rejected";
 
 // The owner's view of a page it owns.
 export interface ShowcaseCollection {
@@ -350,6 +355,8 @@ export interface ShowcaseCollection {
   type: ShowcaseType;
   companyId: string;
   createdBy: string;
+  // Handed to participants; submitting with it skips review. Absent on the public page.
+  submitCode?: string;
   createdAt: string;
   updatedAt: string;
   counts: ShowcaseCollectionCounts;
@@ -371,17 +378,22 @@ export interface ShowcaseListing {
   slug: string;
   name: string;
   tagline: string;
-  whatItDoes: string | null;
-  whyBuilt: string | null;
+  description: string | null;
+  story: string | null;
   // Derived from the Project at listing time, never typed.
   appUrl: string;
   screenshotUrl: string | null;
   videoUrl: string | null;
   creatorName: string;
   creatorProfile: string | null;
+  // "Contact Dev" recipient, shown in the owner's console only.
+  contactEmail: string | null;
   builtWith: string | null;
   category: string | null;
   tags: string[];
+  // Creator-supplied HTML for the app details page, and the spec it was built from.
+  customHtml: string | null;
+  prd: string | null;
   featured: boolean;
   createdAt: string;
   collection: { slug: string; title: string; type: ShowcaseType };
@@ -392,6 +404,8 @@ export interface ShowcaseListing {
   submittedBy: string;
   // The organiser's switch: hidden from the public page.
   isPrivate: boolean;
+  status: ShowcaseListingStatus;
+  rejectionReason: string | null;
   updatedAt: string;
 }
 
@@ -402,18 +416,23 @@ export interface ShowcaseCollectionDetail extends ShowcaseCollection {
 // What a member sends to list one of their company's apps.
 export interface ShowcaseSubmissionInput {
   collectionSlug: string;
+  // The event's submit code, if the person has one. Wrong code = pending, not an error.
+  code?: string;
   projectId: string;
   name: string;
   tagline: string;
-  whatItDoes?: string;
-  whyBuilt?: string;
+  description?: string;
+  story?: string;
   creatorName: string;
   creatorProfile?: string;
+  contactEmail?: string;
   builtWith?: string;
   category?: string;
   tags?: string[];
   videoUrl?: string;
   screenshotUrl?: string;
+  customHtml?: string;
+  prd?: string;
 }
 
 // Admin views.

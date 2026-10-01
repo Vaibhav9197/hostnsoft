@@ -122,16 +122,16 @@ export default function ShowcasePage() {
 }
 
 function PageList({ data }: { data: Data }) {
-  const company = data.collections.find((c) => c.type === "company") ?? null;
-  const events = data.collections.filter((c) => c.type === "public").sort(byNewest);
-  const companyListings = data.mine.filter((l) => l.collection.type === "company").sort(byNewest);
+  const company = data.collections.find((c) => c.type === "public") ?? null;
+  const events = data.collections.filter((c) => c.type === "event").sort(byNewest);
+  const companyListings = data.mine.filter((l) => l.collection.type === "public").sort(byNewest);
 
   /* Event pages someone else runs that this workspace's apps are on. Grouped
      per page, the page with the most recent listing first. */
   const ownIds = new Set(data.collections.map((c) => c.id));
   const elsewhere = new Map<string, { collection: ShowcaseListing["collection"]; count: number }>();
   for (const l of [...data.mine].sort(byNewest)) {
-    if (l.collection.type !== "public" || ownIds.has(l.collectionId)) continue;
+    if (l.collection.type !== "event" || ownIds.has(l.collectionId)) continue;
     const entry = elsewhere.get(l.collectionId);
     if (entry) entry.count += 1;
     else elsewhere.set(l.collectionId, { collection: l.collection, count: 1 });
@@ -363,6 +363,8 @@ function Thumb({ listing }: { listing: ShowcaseListing }) {
 /* "New apps" since the organiser last opened the page. The manage page
    records what it saw; nothing is shown for a page never opened here. */
 function NewAppsTag({ collection }: { collection: ShowcaseCollection }) {
+  const pending = collection.counts.pending;
+  if (pending > 0) return <Tag tone="scheduled">{pending === 1 ? "1 to review" : `${pending} to review`}</Tag>;
   const seen = readSeen(collection.id);
   if (!seen || collection.counts.total <= seen.total) return null;
   return <Tag tone="ok">New apps</Tag>;

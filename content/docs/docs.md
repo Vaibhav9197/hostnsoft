@@ -648,9 +648,11 @@ curl -X PUT "https://ship.embarko.ai/api/apps/my-app/showcase" \
   -H "Content-Type: application/json" \
   -d '{
     "collectionSlug": "iit-indore-2026",
+    "code": "K7P2QW4M",
     "name": "My App",
     "tagline": "One line on what it does",
     "creatorName": "Jane Doe",
+    "contactEmail": "jane@example.com",
     "whatItDoes": "A short paragraph on what it does.",
     "whyBuilt": "A short paragraph on why it was built.",
     "builtWith": "Claude",
@@ -661,17 +663,24 @@ curl -X PUT "https://ship.embarko.ai/api/apps/my-app/showcase" \
   }'
 ```
 
-`collectionSlug`, `name`, `tagline`, and `creatorName` are required;
-everything else is optional. `collectionSlug` is the page's slug from its
-URL (`/showcase/<slug>`) — an event page, or your own company page, which
-exists from signup. `404 SHOWCASE_COLLECTION_UNKNOWN` for an unknown slug;
-`403 SHOWCASE_COLLECTION_PRIVATE` if it's another company's page.
+`name`, `tagline`, and `creatorName` are required the first time an app
+is listed; everything else is optional. `contactEmail` adds a "Contact Dev"
+button to the app's page; visitors' messages are mailed there and the
+address is never shown. `collectionSlug` is an event page's slug from its URL
+(`/showcase/<slug>`); leave it empty for the public gallery.
+`404 SHOWCASE_COLLECTION_UNKNOWN` for an unknown slug.
 
-Calling this again for the same app and board **updates** the existing
-listing instead of erroring — there's no separate edit endpoint, so fixing
-a tagline or swapping a screenshot is just calling it again with new
-values. `201` on first listing, `200` on update, both with the listing
-(including its `/showcase/<slug>/<app-slug>` page).
+**An event page needs the organiser's approval.** The reply comes back with
+`status: "pending"` and the app appears on the page once they approve it.
+If the organiser gave you the event's **code**, send it as `code` and the
+listing is `"approved"` at once. A wrong code is not an error — it just
+waits. A `"rejected"` reply carries the organiser's reason in `next`; fix
+that and call again. The public gallery has no approval step.
+
+Calling this again for the same app **merges** into its details — only
+the fields you send change, and `""` clears one — so adding a screenshot is
+a call with just `screenshotUrl`. There's no separate edit endpoint. `201` on first listing, `200` on update, both with the listing,
+its `status`, and a one-line `next` saying whether it's live.
 
 In the dashboard, the same thing: open the app's **Showcase** tab (or
 **Showcase** from the account menu), click **List an app**, and say what it

@@ -26,8 +26,8 @@ export interface ShowcaseApp {
   slug: string;
   name: string;
   tagline: string;
-  whatItDoes: string | null;
-  whyBuilt: string | null;
+  description: string | null;
+  story: string | null;
   appUrl: string;
   screenshotUrl: string | null;
   videoUrl: string | null;
@@ -36,21 +36,23 @@ export interface ShowcaseApp {
   builtWith: string | null;
   /** The product spec the app was built from, when the creator shared one.
       Drives "Build similar app"; absent on most listings. */
-  prd?: string | null;
+  prd: string | null;
+  /** Creator-supplied HTML, rendered on the app details page. */
+  customHtml: string | null;
   category: string | null;
   tags: string[];
   featured: boolean;
   createdAt: string;
   /** The page this is listed under. Every listing has one. */
-  collection: { slug: string; title: string; type: "company" | "public" };
+  collection: { slug: string; title: string; type: "public" | "event" };
 }
 
-/** A showcase page: /showcase/<slug>. A company's own, or a public board. */
+/** An event page: /showcase/<slug>. */
 export interface Collection {
   slug: string;
   title: string;
   intro: string | null;
-  type: "company" | "public";
+  type: "public" | "event";
   projectCount: number;
   createdAt: string;
 }
@@ -127,12 +129,6 @@ export async function getCollectionWithApps(
   );
   if (!found) return null;
   return { collection: found.collection, apps: withScreenshot((found.projects as RawApp[]).map(withoutOwnerEmail)) };
-}
-
-/** Collections worth linking to from the gallery — only those with at least
- *  one public app, so the discover rail never points at an empty page. */
-export async function listIndexableCollections(): Promise<Collection[]> {
-  return (await read<Collection[]>("/public/showcase/collections")) ?? [];
 }
 
 /* The API has no category filter yet, so this reads the whole public list

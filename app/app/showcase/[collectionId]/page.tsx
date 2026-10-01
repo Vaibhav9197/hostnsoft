@@ -17,6 +17,7 @@ import { ConfirmDialog, type ConfirmRequest } from "@/app/components/console/Con
 import { Alert, EmptyState, LinkButton, Page, Panel, PanelTitle, Skeleton, Tag } from "@/app/components/console/kit";
 import { CopyButton } from "@/app/components/console/showcase/CopyButton";
 import { ListingRows, showingText } from "@/app/components/console/showcase/ListingRows";
+import { RequestRows } from "@/app/components/console/showcase/RequestRows";
 import { ShareKit } from "@/app/components/console/showcase/ShareKit";
 import { Button, buttonVariants } from "@/app/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
@@ -74,7 +75,7 @@ function metaOf(d: ShowcaseCollectionDetail): Meta {
 /* What counts as "something changed" for the poll's back-off. */
 function signature(list: ShowcaseListing[]): string {
   return list
-    .map((l) => `${l.id}:${l.updatedAt}:${l.isPrivate ? 1 : 0}`)
+    .map((l) => `${l.id}:${l.updatedAt}:${l.isPrivate ? 1 : 0}:${l.status}`)
     .sort()
     .join("|");
 }
@@ -235,13 +236,16 @@ export default function ShowcaseManagePage() {
           const newerHere = inflight.current.has(r.id) || (settledAt.current.get(r.id) ?? 0) > started;
           return newerHere ? [r] : [f];
         });
-        const arrived = listings.filter((p) => !onScreen.has(p.id));
+        const arrived = listings.filter((p) => !onScreen.has(p.id) && p.status === "approved");
+        /* Requests (and reviews of them) show at once: they're the organiser's to act on. */
+        const requests = listings.filter((p) => !onScreen.has(p.id) && p.status !== "approved");
+        if (requests.length > 0) kept.unshift(...requests);
 
         setMeta(metaOf(fresh));
-        if (reveal || fresh.type === "company") {
+        if (reveal || fresh.type === "public") {
           setRows([...arrived, ...kept]);
           setPending([]);
-          if (fresh.type === "public") setRevealed((s) => new Set([...s, ...arrived.map((a) => a.id)]));
+          if (fresh.type === "event") setRevealed((s) => new Set([...s, ...arrived.map((a) => a.id)]));
           writeSeen(fresh.id, arrived.length + kept.filter((r) => !removingRef.current.has(r.id)).length);
         } else {
           setRows(kept);
@@ -256,7 +260,7 @@ export default function ShowcaseManagePage() {
     [activeCompanyId, collectionId],
   );
 
-  const isEvent = meta?.type === "public";
+  const isEvent = meta?.type === "event";
 
   /* Coming back to the tab is when someone most expects fresh numbers. On
      Embarko Showcase that is also when an app may have been deployed, so
@@ -296,7 +300,9 @@ export default function ShowcaseManagePage() {
 
   /* ------------------------------------------------------------ derived */
 
-  const liveRows = useMemo(() => rows.filter((r) => !removing.has(r.id)), [rows, removing]);
+  /* Approved listings are "the page"; the rest are requests, shown above it. */
+  const liveRows = useMemo(() => rows.filter((r) => !removing.has(r.id) && r.status === "approved"), [rows, removing]);
+  const requestRows = useMemo(() => rows.filter((r) => !removing.has(r.id) && r.status !== "approved"), [rows, removing]);
   /* The header counts what's on the page now, including apps not yet shown. */
   const everything = useMemo(() => [...liveRows, ...pending], [liveRows, pending]);
   const total = everything.length;
@@ -380,12 +386,62 @@ export default function ShowcaseManagePage() {
     );
   }
 
+  /* Approve / reject a request. The reply replaces the row, so an approved
+     app moves down into the page and a rejected one stays up with its reason. */
+  async function review(l: ShowcaseListing, approve: boolean, reason?: string) {
+    if (!activeCompanyId || !collectionId) return;
+    setBusy((s) => withId(s, l.id));
+    try {
+      const updated = approve
+        ? await showcaseApi.approveListing(activeCompanyId, collectionId, l.id)
+        : await showcaseApi.rejectListing(activeCompanyId, collectionId, l.id, reason);
+      settledAt.current.set(l.id, ++clock.current);
+      setRows((rs) => rs.map((r) => (r.id === updated.id ? updated : r)));
+      toast.success(approve ? `${l.name} is on the page.` : `${l.name} turned down.`);
+    } catch (e) {
+      if (e instanceof HnsError && e.status === 409) {
+        toast.error(`${l.name} was already reviewed.`);
+        void refresh(true);
+      } else {
+        toast.error(`Couldn’t ${approve ? "approve" : "reject"} ${l.name}. Try again.`);
+      }
+    } finally {
+      setBusy((s) => withoutId(s, l.id));
+    }
+  }
+
+  function askReject(l: ShowcaseListing) {
+    /* Uncontrolled: the dialog closes before onConfirm runs, so read the box then. */
+    const box = { current: "" };
+    setConfirm({
+      title: `Turn down ${l.name}?`,
+      body: (
+        <div className="flex flex-col gap-2">
+          <p>{l.creatorName} sees this in their console and can submit again.</p>
+          <label className="flex flex-col gap-1 text-[0.85rem] text-foreground">
+            Reason (optional)
+            <textarea
+              rows={3}
+              maxLength={500}
+              onChange={(e) => (box.current = e.target.value)}
+              className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:bg-input/30"
+            />
+          </label>
+        </div>
+      ),
+      cta: "Reject",
+      destructive: true,
+      dismiss: "Keep waiting",
+      onConfirm: () => void review(l, false, box.current.trim() || undefined),
+    });
+  }
+
   function askRemove(l: ShowcaseListing) {
     if (!meta) return;
     const own = l.companyId === activeCompanyId;
-    const where = meta.type === "public" ? meta.title : "Embarko Showcase";
+    const where = meta.type === "event" ? meta.title : "Embarko Showcase";
     const body =
-      meta.type === "public"
+      meta.type === "event"
         ? own
           ? `It comes off ${meta.title} straight away. You can add it again any time.`
           : `It comes off ${meta.title} straight away. The app itself stays live, and ${l.creatorName} can add it again.`
@@ -435,7 +491,7 @@ export default function ShowcaseManagePage() {
   async function copyAddPrompt() {
     if (!meta) return;
     try {
-      await navigator.clipboard.writeText(showcaseListPrompt({ slug: meta.slug, title: meta.title, type: "public" }));
+      await navigator.clipboard.writeText(showcaseListPrompt({ slug: meta.slug, title: meta.title, type: "event" }, null, meta.submitCode));
       toast.success("Prompt copied. Share it with participants.");
     } catch {
       toast.error("Couldn’t copy. Try again.");
@@ -532,7 +588,7 @@ export default function ShowcaseManagePage() {
 
   const rowsProps = {
     page: { slug: meta.slug, title: meta.title, type: meta.type },
-    listings: rows,
+    listings: rows.filter((r) => r.status === "approved"),
     activeCompanyId: activeCompanyId ?? "",
     isNew,
     removing,
@@ -599,6 +655,24 @@ export default function ShowcaseManagePage() {
               {pageLink(meta.slug)}
               {dot}
               <span>{countText}</span>
+              {meta.submitCode && (
+                <>
+                  {dot}
+                  {/* Hand this to participants: an app submitted with it skips the review below. */}
+                  <span className="inline-flex items-center gap-1">
+                    Code <span className="font-mono text-foreground">{meta.submitCode}</span>
+                    <CopyButton
+                      iconOnly
+                      text={meta.submitCode}
+                      aria-label="Copy submit code"
+                      announce="Code copied."
+                      fallbackLabel="Submit code to copy"
+                      variant="ghost"
+                      className="size-11 shrink-0 text-muted-foreground hover:text-foreground sm:size-8"
+                    />
+                  </span>
+                </>
+              )}
             </div>
           </div>
           <DropdownMenu>
@@ -651,6 +725,24 @@ export default function ShowcaseManagePage() {
 
       {/* Focus lands here when a removed row takes the focused control with it. */}
       <div ref={bodyRef} tabIndex={-1} className="flex flex-col gap-6 outline-none">
+        {/* ------------------------------------------- event, requests */}
+        {isEvent && requestRows.length > 0 && (
+          <section className="flex flex-col gap-4">
+            <div>
+              <PanelTitle>Requests</PanelTitle>
+              <p className="mt-1 text-[0.9rem] text-muted-foreground">
+                Apps submitted without the code wait here. Approve to put them on the page.
+              </p>
+            </div>
+            <RequestRows
+              listings={requestRows}
+              busy={busy}
+              onApprove={(l) => void review(l, true)}
+              onReject={askReject}
+              onRemove={askRemove}
+            />
+          </section>
+        )}
         {isEvent ? (
           liveRows.length === 0 ? (
             /* ------------------------------------- event, nothing yet */
@@ -697,7 +789,7 @@ export default function ShowcaseManagePage() {
                     Share link
                   </CopyButton>
                   <CopyPromptButton
-                    text={showcaseListPrompt({ slug: meta.slug, title: meta.title, type: "public" })}
+                    text={showcaseListPrompt({ slug: meta.slug, title: meta.title, type: "event" }, null, meta.submitCode)}
                     announce="Prompt copied."
                     copiedChildren={COPIED_LABEL}
                     className={cn(buttonVariants({ variant: "outline" }), "h-11 w-full sm:h-9 sm:w-auto")}
@@ -746,7 +838,7 @@ export default function ShowcaseManagePage() {
                   <Link href="/app/showcase/submit">List an app</Link>
                 </Button>
                 <CopyPromptButton
-                  text={showcaseListPrompt({ slug: meta.slug, title: meta.title, type: "company" })}
+                  text={showcaseListPrompt({ slug: meta.slug, title: meta.title, type: "public" })}
                   copiedChildren={COPIED_LABEL}
                   announce="Prompt copied. Paste it in your AI."
                   className={cn(
@@ -813,7 +905,7 @@ export default function ShowcaseManagePage() {
         <ListOnShowcaseDialog
           project={listTarget}
           companyId={activeCompanyId}
-          page={{ slug: meta.slug, title: meta.title, type: isEvent ? "public" : "company" }}
+          page={{ slug: meta.slug, title: meta.title, type: isEvent ? "event" : "public" }}
           onClose={() => setListTarget(null)}
           onListed={() => refresh(true)}
         />

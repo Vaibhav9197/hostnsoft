@@ -658,7 +658,8 @@ create a second, empty app.
 
 **Not affected:** a custom domain is carried over and keeps working
 throughout, so an app that has one does not change its real address. A
-Showcase listing keeps its own separate URL.
+Showcase listing follows the rename: its page moves to
+`/showcase/app/<new-name>`.
 
 ---
 
@@ -717,13 +718,21 @@ idempotent
 
 **Auth:** deploy token.
 
-**Required body fields:** `collectionSlug`, `name`, `tagline`,
-`creatorName`. **Optional:** `whatItDoes`, `whyBuilt`, `builtWith`,
-`category`, `tags`, `screenshotUrl`, `videoUrl`.
+**Required on the first listing:** `name`, `tagline`, `creatorName`.
+**Optional:** `collectionSlug`, `code`, `description`, `story`, `contactEmail`, `builtWith`,
+`category`, `tags`, `screenshotUrl`, `videoUrl`, `customHtml`, `prd`.
 
 **Success:** `201` on first listing, `200` on update — both return the
-listing, including its `/showcase/<slug>/<app-slug>` page. Calling it again
-updates rather than erroring; there is no separate edit endpoint.
+listing with `status` and a one-line `next`. Calling it again **merges**: only the
+fields you send change (`""` clears one), so a single-field update is fine.
+There is no separate edit endpoint.
+
+**Approval:** an empty `collectionSlug` is the public gallery, live at once.
+An event page needs the organiser's approval: the listing comes back
+`status: "pending"` and appears on the page once approved. Send the event's
+`code` (the organiser hands it out) and it is `"approved"` at once. A wrong
+code is not an error — it just waits. `"rejected"` carries the organiser's
+reason in `next`; fix that and call again.
 
 **Errors:** `404 SHOWCASE_COLLECTION_UNKNOWN` (bad slug),
 `403 SHOWCASE_COLLECTION_PRIVATE` (another company's page). Neither is

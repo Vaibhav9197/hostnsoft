@@ -61,21 +61,21 @@ export default async function CollectionPage({ params }: Props) {
         title={meta.title}
         /* Says which kind of page this is, so a visitor who landed here from
            a share link knows what they are looking at. */
-        lede={meta.type === "company" ? `Apps built by ${meta.title}` : `A showcase page — ${count} built and shared here`}
+        lede={meta.type === "event" ? `Apps built by ${meta.title}` : `A showcase page — ${count} built and shared here`}
         intro={meta.intro}
         /* An event page exists to collect apps, so it says how right away:
            the button copies a prompt that lists the visitor's app here. */
         note={
-          meta.type === "public"
+          meta.type === "event"
             ? "Built something for this showcase? Copy the prompt, paste it into your AI agent, and your app appears on this page."
             : null
         }
         apps={apps}
         /* Only an event page takes anyone's app; a company page takes that
            company's own, which it lists from its console. */
-        listPrompt={meta.type === "public" ? showcaseListPrompt(meta) : null}
-        shareTitle={meta.type === "public" ? `${meta.title} — list your AI-built app on Embarko` : `${meta.title} — ${count} built with AI`}
-        shareWhenEmpty={meta.type === "public"}
+        listPrompt={meta.type === "event" ? showcaseListPrompt(meta) : null}
+        shareTitle={meta.type === "event" ? `${meta.title} — list your AI-built app on Embarko` : `${meta.title} — ${count} built with AI`}
+        shareWhenEmpty={meta.type === "event"}
         actions={
           <>
             {meta.type === "public" ? (
@@ -92,7 +92,7 @@ export default async function CollectionPage({ params }: Props) {
         empty={{
           title: "No apps here yet.",
           body:
-            meta.type === "public"
+            meta.type === "event"
               ? "Apps appear here as soon as participants add them."
               : `Apps appear here as soon as ${meta.title} lists them.`,
           action:

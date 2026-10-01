@@ -12,18 +12,26 @@ import type { ShowcaseListing } from "./types";
  * whatever it can't infer.
  */
 export function showcaseListPrompt(
-  page: { slug: string; title: string; type: "company" | "public" },
+  page: { slug: string; title: string; type: "public" | "event" },
   /** Names the app so the agent lists this one, not whatever it guesses. */
   appSlug?: string | null,
+  /** The event's submit code, when the organiser is the one sharing the prompt. */
+  code?: string | null,
 ): string {
   const where =
-    page.type === "public"
+    page.type === "event"
       ? `the Embarko Showcase page "${page.title}" (${SITE_HOST}/showcase/${page.slug})`
       : `my workspace's Embarko Showcase page "${page.title}" (${SITE_HOST}/showcase/${page.slug})`;
 
   const which = appSlug ? `my Embarko app "${appSlug}"` : "this app";
+  const approval =
+    page.type !== "event"
+      ? ""
+      : code
+        ? `\nSend code "${code}" with it so it goes on the page at once.`
+        : `\nIf I have the event's code, send it with the listing so it goes on the page at once; otherwise it waits for the organiser's approval.`;
 
-  return `List ${which} on ${where}.
+  return `List ${which} on ${where}.${approval}
 
 If it isn't deployed to Embarko yet, deploy it first: read ${SITE}/docs/agent-quickstart.md and follow it.
 Use my deploy token — DEPLOY_TOKEN or ~/.embarko/credentials if either is set; if neither is, ask me for one from ${SITE}/app/tokens.
@@ -33,11 +41,12 @@ page slug "${page.slug}" and these details, inferring what you can from the proj
 - name and a one-line tagline
 - what it does, and why it was built (a short paragraph each)
 - creator name, and a profile link if I have one
+- a contact email if I want a "Contact Dev" button on the page (visitors never see the address)
 - which AI built it (Claude, Codex, Cursor, Lovable, Replit, or other)
 - a category (AI Tool, Personal, Business, Productivity, Education, Game, Developer Tool, Other) and a few tags
 - a screenshot URL, and a video URL if there is one
 
-When it's live, give me the link to its Showcase page.`;
+When it's live, give me the link to its Showcase page. If the reply says it's awaiting approval, tell me that instead.`;
 }
 
 /**
@@ -48,15 +57,15 @@ When it's live, give me the link to its Showcase page.`;
  * asking the person to type them all over again.
  */
 export function showcaseScreenshotPrompt(
-  page: { slug: string; title: string; type: "company" | "public" },
+  page: { slug: string; title: string; type: "public" | "event" },
   listing: Pick<
     ShowcaseListing,
     | "name"
     | "tagline"
     | "creatorName"
     | "creatorProfile"
-    | "whatItDoes"
-    | "whyBuilt"
+    | "description"
+    | "story"
     | "builtWith"
     | "category"
     | "tags"
@@ -65,7 +74,7 @@ export function showcaseScreenshotPrompt(
   appSlug?: string | null,
 ): string {
   const where =
-    page.type === "public"
+    page.type === "event"
       ? `the Embarko Showcase page "${page.title}" (${SITE_HOST}/showcase/${page.slug})`
       : `my workspace's Embarko Showcase page "${page.title}" (${SITE_HOST}/showcase/${page.slug})`;
   const which = appSlug ? `my Embarko app "${appSlug}"` : "this app";
@@ -75,8 +84,8 @@ export function showcaseScreenshotPrompt(
     `- tagline: ${listing.tagline}`,
     `- creator name: ${listing.creatorName}`,
     listing.creatorProfile && `- creator profile link: ${listing.creatorProfile}`,
-    listing.whatItDoes && `- what it does: ${listing.whatItDoes}`,
-    listing.whyBuilt && `- why it was built: ${listing.whyBuilt}`,
+    listing.description && `- what it does: ${listing.description}`,
+    listing.story && `- why it was built: ${listing.story}`,
     listing.builtWith && `- built with: ${listing.builtWith}`,
     listing.category && `- category: ${listing.category}`,
     listing.tags?.length && `- tags: ${listing.tags.join(", ")}`,

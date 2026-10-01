@@ -6,7 +6,6 @@ import { ArrowUpRight, Check, Copy, Loader2 } from "lucide-react";
 import { CopyPromptButton } from "@/app/components/CopyPromptButton";
 import { Button } from "@/app/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
-import { HnsError } from "@/app/lib/client";
 import { showcaseApi } from "@/app/lib/hnsApi";
 import { showcaseListPrompt } from "@/app/lib/showcasePrompt";
 import { SITE_HOST } from "@/app/lib/site";
@@ -45,7 +44,7 @@ export function ListOnShowcaseDialog({
   project: Project | null;
   companyId: string | null;
   /** The workspace's own page, which feeds the public gallery. */
-  page: { slug: string; title: string; type: "company" | "public" };
+  page: { slug: string; title: string; type: "public" | "event" };
   onClose: () => void;
   onListed: () => void;
 }) {
@@ -81,8 +80,8 @@ export function ListOnShowcaseDialog({
         projectId: project.id,
         name: from.name,
         tagline: from.tagline,
-        whatItDoes: from.whatItDoes ?? undefined,
-        whyBuilt: from.whyBuilt ?? undefined,
+        description: from.description ?? undefined,
+        story: from.story ?? undefined,
         creatorName: from.creatorName,
         creatorProfile: from.creatorProfile ?? undefined,
         builtWith: from.builtWith ?? undefined,
@@ -93,19 +92,15 @@ export function ListOnShowcaseDialog({
       });
       setState({ kind: "listed", listing });
       onListed();
-    } catch (e) {
-      const message =
-        e instanceof HnsError && e.code === "SHOWCASE_ALREADY_LISTED"
-          ? `${project.name} is already on ${where}.`
-          : "Couldn’t list it. Try again.";
-      setState({ kind: "error", message, from });
+    } catch {
+      setState({ kind: "error", message: "Couldn’t list it. Try again.", from });
     }
   }
 
   const name = project?.name ?? "";
   /* Where it lands, in words: the gallery, or the event page by name. */
-  const where = page.type === "company" ? "Embarko Showcase" : page.title;
-  const whereUrl = page.type === "company" ? `${SITE_HOST}/showcase` : `${SITE_HOST}/showcase/${page.slug}`;
+  const where = page.type === "public" ? "Embarko Showcase" : page.title;
+  const whereUrl = page.type === "public" ? `${SITE_HOST}/showcase` : `${SITE_HOST}/showcase/${page.slug}`;
 
   return (
     <Dialog open={project !== null} onOpenChange={(open) => !open && onClose()}>
@@ -171,8 +166,14 @@ export function ListOnShowcaseDialog({
         {state.kind === "listed" && (
           <>
             <DialogHeader>
-              <DialogTitle className="break-words pr-10 leading-tight">{name} is live</DialogTitle>
-              <DialogDescription>It’s on {whereUrl} now, with a page of its own.</DialogDescription>
+              <DialogTitle className="break-words pr-10 leading-tight">
+                {state.listing.status === "pending" ? `${name} is awaiting approval` : `${name} is live`}
+              </DialogTitle>
+              <DialogDescription>
+                {state.listing.status === "pending"
+                  ? `The organiser of ${where} reviews it first. It appears on ${whereUrl} once approved.`
+                  : `It’s on ${whereUrl} now, with a page of its own.`}
+              </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <Button variant="ghost" onClick={onClose}>

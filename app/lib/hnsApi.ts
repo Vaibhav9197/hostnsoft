@@ -353,6 +353,18 @@ export const showcaseApi = {
       body: { isPrivate },
     }),
 
+  // Same route with {approve:true} / {reject:true, reason?} — review a pending listing.
+  approveListing: (companyId: string, collectionId: string, listingId: string) =>
+    hns<ShowcaseListing>(`/companies/${companyId}/showcase/collections/${collectionId}/projects/${listingId}`, {
+      method: "PATCH",
+      body: { approve: true },
+    }),
+  rejectListing: (companyId: string, collectionId: string, listingId: string, reason?: string) =>
+    hns<ShowcaseListing>(`/companies/${companyId}/showcase/collections/${collectionId}/projects/${listingId}`, {
+      method: "PATCH",
+      body: { reject: true, reason: reason || undefined },
+    }),
+
   // Same route with {remove:true} — take a listing off this page for good.
   removeListing: (companyId: string, collectionId: string, listingId: string) =>
     hns<null>(`/companies/${companyId}/showcase/collections/${collectionId}/projects/${listingId}`, {

@@ -91,6 +91,9 @@ export function ListAppForm({
      names a page starts on "event" with that page filled in. */
   const [where, setWhere] = useState<"company" | "event">(initialPage || startOnEvent ? "event" : "company");
   const [eventSlug, setEventSlug] = useState(initialPage.trim().toLowerCase());
+  /* The organiser's submit code. With it the app goes on the page at once;
+     without it the organiser approves first. A wrong one just means waiting. */
+  const [code, setCode] = useState("");
   /* There can be thousands of event pages, so there is no picker: the typed
      address is resolved via the public route. Pages this company already
      knows skip the round trip. */
@@ -106,6 +109,7 @@ export function ListAppForm({
   const [whatItDoes, setWhatItDoes] = useState("");
   const [whyBuilt, setWhyBuilt] = useState("");
   const [creatorProfile, setCreatorProfile] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
   const [category, setCategory] = useState("");
   const [tags, setTags] = useState("");
   const [screenshotUrl, setScreenshotUrl] = useState("");
@@ -148,8 +152,8 @@ export function ListAppForm({
     setName(p?.name ?? "");
   }, [projectId, projects, nameTouched]);
 
-  const companyPage = pages?.find((p) => p.type === "company") ?? null;
-  const knownEvents = pages?.filter((p) => p.type === "public") ?? [];
+  const companyPage = pages?.find((p) => p.type === "public") ?? null;
+  const knownEvents = pages?.filter((p) => p.type === "event") ?? [];
   const knownEvent = knownEvents.find((p) => p.slug === eventSlug) ?? null;
 
   useEffect(() => {
@@ -171,7 +175,7 @@ export function ListAppForm({
 
   const eventPage = knownEvent ?? (lookedUp?.slug === eventSlug ? lookedUp.page : null);
   /* Another company's own page: only its apps may go there. */
-  const foreignCompanyPage = where === "event" && !knownEvent && eventPage?.type === "company";
+  const foreignCompanyPage = where === "event" && !knownEvent && eventPage?.type === "public";
   const unknownEvent = where === "event" && pages !== null && eventSlug !== "" && lookedUp?.slug === eventSlug && !eventPage;
   const checking = where === "event" && !knownEvent && eventSlug.length >= 3 && lookedUp?.slug !== eventSlug;
 
@@ -191,13 +195,15 @@ export function ListAppForm({
     try {
       const listing = await showcaseApi.submit(activeCompanyId, {
         collectionSlug: target.slug,
+        code: where === "event" ? code.trim() || undefined : undefined,
         projectId,
         name: name.trim(),
         tagline: tagline.trim(),
-        whatItDoes: whatItDoes.trim() || undefined,
-        whyBuilt: whyBuilt.trim() || undefined,
+        description: whatItDoes.trim() || undefined,
+        story: whyBuilt.trim() || undefined,
         creatorName: creatorName.trim(),
         creatorProfile: creatorProfile.trim() || undefined,
+        contactEmail: contactEmail.trim() || undefined,
         builtWith: builtWith || undefined,
         category: category || undefined,
         tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
@@ -206,9 +212,7 @@ export function ListAppForm({
       });
       setDone(listing);
     } catch (e) {
-      if (e instanceof HnsError && e.code === "SHOWCASE_ALREADY_LISTED") {
-        setError("That app is already on this page.");
-      } else if (e instanceof HnsError && e.code === "SHOWCASE_COLLECTION_PRIVATE") {
+      if (e instanceof HnsError && e.code === "SHOWCASE_COLLECTION_PRIVATE") {
         setError("That’s another workspace’s own page; only their apps can go there. Pick a showcase page instead.");
       } else if (e instanceof HnsError && e.code === "SHOWCASE_COLLECTION_UNKNOWN") {
         setError("That Showcase page doesn’t exist any more.");
@@ -223,7 +227,7 @@ export function ListAppForm({
   }
 
   if (done) {
-    const onEvent = done.collection.type === "public";
+    const onEvent = done.collection.type === "event";
     return (
       <Page>
         <Link href={back.href} className="text-[0.82rem] text-muted-foreground hover:text-foreground">
@@ -233,7 +237,9 @@ export function ListAppForm({
           title={`${done.name} is on Showcase.`}
           subtitle={
             onEvent
-              ? `It’s live on ${done.collection.title} and in the Showcase gallery.`
+              ? done.status === "pending"
+                ? `Sent to the organiser of ${done.collection.title}. It appears on the page once they approve it; you'll see the status on the app's Showcase page here.`
+                : `It’s live on ${done.collection.title} and in the Showcase gallery.`
               : "It’s live on your workspace page and in the Showcase gallery, with a public page of its own."
           }
         />
@@ -302,11 +308,11 @@ export function ListAppForm({
             <p className="mt-1 text-[0.9rem] text-muted-foreground">
               Paste this into the AI that built the app. It fills in the description, screenshot and tags
               from the code and puts the app on{" "}
-              {promptTarget?.type === "public" ? promptTarget.title : "your workspace page"}.
+              {promptTarget?.type === "event" ? promptTarget.title : "your workspace page"}.
             </p>
           </div>
           <CopyPromptButton
-            text={showcaseListPrompt(promptTarget ?? { slug: "", title: "", type: "company" }, project?.slug)}
+            text={showcaseListPrompt(promptTarget ?? { slug: "", title: "", type: "public" }, project?.slug)}
             className={buttonVariants()}
             disabled={!promptTarget}
             copiedChildren={
@@ -458,6 +464,9 @@ export function ListAppForm({
                 <Field label="Your profile or social link">
                   <Input className={field} type="url" value={creatorProfile} onChange={(e) => setCreatorProfile(e.target.value)} placeholder="https://" />
                 </Field>
+                <Field label="Contact email" hint="Adds a “Contact Dev” button to the app page. Visitors never see the address.">
+                  <Input className={field} type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="you@example.com" />
+                </Field>
               </div>
               <Field label="Tags" hint="Comma separated">
                 <Input className={field} value={tags} onChange={(e) => setTags(e.target.value)} placeholder="college, finance, health" />
@@ -478,7 +487,7 @@ export function ListAppForm({
                 title="Your workspace page"
                 detail={
                   companyPage
-                    ? `${SITE_HOST}/showcase/${companyPage.slug} — and the main Showcase gallery`
+                    ? `${SITE_HOST}/showcase — the main Showcase gallery`
                     : "Being set up. Sign out and back in if it doesn’t appear."
                 }
                 disabled={!companyPage}
@@ -505,6 +514,18 @@ export function ListAppForm({
                         aria-label="Showcase page address"
                       />
                     </div>
+                    {eventPage && !foreignCompanyPage && (
+                      <Input
+                        value={code}
+                        onChange={(e) => setCode(e.target.value.toUpperCase())}
+                        placeholder="Event code, if the organiser gave you one"
+                        maxLength={32}
+                        spellCheck={false}
+                        autoComplete="off"
+                        aria-label="Event code (optional)"
+                        className="h-9 font-mono"
+                      />
+                    )}
                     {checking && <p className="text-[0.85rem] text-muted-foreground">Checking…</p>}
                     {eventPage && !foreignCompanyPage && (
                       <p className="text-[0.85rem] text-muted-foreground">

@@ -13,7 +13,7 @@ import { showcaseGeneralPrompt } from "../lib/showcasePrompt";
 
 export const metadata: Metadata = {
   title: "Showcase — See what people are building with AI",
-  keywords: ["apps built with AI","AI generated apps examples","vibe coded apps","Embarko showcase"],
+  keywords: ["apps built with AI", "AI generated apps examples", "vibe coded apps", "Embarko showcase"],
   description:
     "Browse real apps people built with AI agents like Claude Code, Cursor and Codex, all live on Embarko. Open any of them, or list your own.",
 };
@@ -60,7 +60,9 @@ export default async function ShowcasePage() {
             </>
           }
           actions={
-            <PrimaryCta label="Copy prompt to showcase your app" text={showcaseGeneralPrompt()} />
+            apps.length > 0 ? (
+              <PrimaryCta label="Copy prompt to showcase your app" text={showcaseGeneralPrompt()} />
+            ) : undefined
           }
         />
 
