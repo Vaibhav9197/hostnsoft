@@ -7,9 +7,8 @@ import type { ShowcaseListing } from "./types";
  * restate endpoints — those live with the platform and would go stale in a
  * chat history.
  *
- * The listing fields are named because they are the one thing only the person
- * and their agent know; the agent fills them from the codebase and asks for
- * whatever it can't infer.
+ * The listing fields are not listed here either: the docs name them, say
+ * which the agent can infer from the project, and which to ask the person for.
  */
 export function showcaseListPrompt(
   page: { slug: string; title: string; type: "public" | "event" },
@@ -37,14 +36,7 @@ If it isn't deployed to Embarko yet, deploy it first: read ${SITE}/docs/agent-qu
 Use my deploy token — DEPLOY_TOKEN or ~/.embarko/credentials if either is set; if neither is, ask me for one from ${SITE}/app/tokens.
 
 Then list it: read ${SITE}/docs/api.md#showcase for how to call the Showcase API with
-page slug "${page.slug}" and these details, inferring what you can from the project and asking me for the rest:
-- name and a one-line tagline
-- what it does, and why it was built (a short paragraph each)
-- creator name, and a profile link if I have one
-- a contact email if I want a "Contact Dev" button on the page (visitors never see the address)
-- which AI built it (Claude, Codex, Cursor, Lovable, Replit, or other)
-- a category (AI Tool, Personal, Business, Productivity, Education, Game, Developer Tool, Other) and a few tags
-- a screenshot URL, and a video URL if there is one
+page slug "${page.slug}".
 
 When it's live, give me the link to its Showcase page. If the reply says it's awaiting approval, tell me that instead.`;
 }
@@ -116,13 +108,7 @@ If it isn't deployed to Embarko yet, deploy it first: read ${SITE}/docs/agent-qu
 Use my deploy token — DEPLOY_TOKEN or ~/.embarko/credentials if either is set; if neither is, ask me for one from ${SITE}/app/tokens.
 
 Then list it: read ${SITE}/docs/api.md#showcase for how to call the Showcase API.
-${pageSlug ? `Use page slug "${pageSlug}" (my workspace's own Showcase page)` : "Use my workspace's own Showcase page as the page slug (ask me for it if you can't tell)"}, and these details, inferring what you can from the project and asking me for the rest:
-- name and a one-line tagline
-- what it does, and why it was built (a short paragraph each)
-- creator name, and a profile link if I have one
-- which AI built it (Claude, Codex, Cursor, Lovable, Replit, or other)
-- a category (AI Tool, Personal, Business, Productivity, Education, Game, Developer Tool, Other) and a few tags
-- a screenshot URL, and a video URL if there is one
+${pageSlug ? `Use page slug "${pageSlug}" (my workspace's own Showcase page).` : "Use my workspace's own Showcase page as the page slug (ask me for it if you can't tell)."}
 
 When it's live, give me the link to its Showcase page.`;
 }

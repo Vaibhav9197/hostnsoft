@@ -718,9 +718,56 @@ idempotent
 
 **Auth:** deploy token.
 
-**Required on the first listing:** `name`, `tagline`, `creatorName`.
-**Optional:** `collectionSlug`, `code`, `description`, `story`, `contactEmail`, `builtWith`,
-`category`, `tags`, `screenshotUrl`, `videoUrl`, `customHtml`, `prd`.
+**Fill the details from the project.** Infer what you can from the code,
+README and live app — name, tagline, what it does, the AI that built it, a
+category and tags. Ask the user for the rest: who they are, a profile link,
+a contact email, and anything you can't tell. Never send placeholder text —
+listing publishes at once.
+
+**Body:**
+
+| Field | Required | What to send |
+| --- | --- | --- |
+| `collectionSlug` | | The Showcase page to list on, e.g. `"walkover"`. Empty is the public gallery. |
+| `code` | | The event's code, if the user has one. Skips the organiser's review. |
+| `name` | first listing | The app's name. Up to 80 characters. |
+| `tagline` | first listing | One line about it. Up to 160 characters. |
+| `description` | | What it does — a short paragraph. |
+| `story` | | Why it was built — a short paragraph. |
+| `creatorName` | first listing | Who built it. Up to 80 characters. |
+| `creatorProfile` | | A link to the creator's profile, if they have one. |
+| `contactEmail` | | Adds a "Contact Dev" button to the page. Visitors never see the address. |
+| `builtWith` | | The AI that built it: `Claude`, `Codex`, `Cursor`, `Lovable`, `Replit` or `Other`. |
+| `category` | | One of `AI Tool`, `Personal`, `Business`, `Productivity`, `Education`, `Game`, `Developer Tool`, `Other`. |
+| `tags` | | A few short tags, as an array. Up to 20. |
+| `screenshotUrls` | | Public image URLs of the app's main screens, as an array. Without one the app doesn't show on the page. |
+| `videoUrl` | | A video of the app, if there is one. |
+| `customHtml` | | Your own HTML section for the listing page. |
+| `prd` | | The app's product spec, for "Build similar app". |
+
+**Example:**
+
+```bash
+curl -X PUT "https://ship.embarko.ai/api/apps/my-app/showcase" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN" -H "Content-Type: application/json" \
+  -d '{
+    "collectionSlug": "walkover",
+    "code": "Z3H63FRD",
+    "name": "My App",
+    "tagline": "One line about it",
+    "description": "What it does",
+    "story": "Why it was built",
+    "creatorName": "Jane",
+    "creatorProfile": "https://x.com/jane",
+    "contactEmail": "jane@example.com",
+    "builtWith": "Claude",
+    "category": "AI Tool",
+    "tags": ["chat", "notes"],
+    "screenshotUrls": ["https://example.com/1.png"],
+    "videoUrl": "https://youtube.com/watch?v=abc",
+    "customHtml": "<section>...</section>"
+  }'
+```
 
 **Success:** `201` on first listing, `200` on update — both return the
 listing with `status` and a one-line `next`. Calling it again **merges**: only the

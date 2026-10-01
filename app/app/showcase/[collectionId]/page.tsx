@@ -16,6 +16,7 @@ import { COPIED_LABEL, CopyPromptButton } from "@/app/components/CopyPromptButto
 import { ConfirmDialog, type ConfirmRequest } from "@/app/components/console/ConfirmDialog";
 import { Alert, EmptyState, LinkButton, Page, Panel, PanelTitle, Skeleton, Tag } from "@/app/components/console/kit";
 import { CopyButton } from "@/app/components/console/showcase/CopyButton";
+import { InviteCard } from "@/app/components/console/showcase/InviteCard";
 import { ListingRows, showingText } from "@/app/components/console/showcase/ListingRows";
 import { RequestRows } from "@/app/components/console/showcase/RequestRows";
 import { ShareKit } from "@/app/components/console/showcase/ShareKit";
@@ -129,6 +130,10 @@ export default function ShowcaseManagePage() {
   const [busy, setBusy] = useState<ReadonlySet<string>>(() => new Set());
   const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  /* Whether shared prompts carry the page code (apps then skip review).
+     One choice for the card and the ⋮ menu, so both copy the same prompt.
+     Off by default: skipping review is something the owner opts into. */
+  const [includeCode, setIncludeCode] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
   const [showAllUnlisted, setShowAllUnlisted] = useState(false);
@@ -491,7 +496,7 @@ export default function ShowcaseManagePage() {
   async function copyAddPrompt() {
     if (!meta) return;
     try {
-      await navigator.clipboard.writeText(showcaseListPrompt({ slug: meta.slug, title: meta.title, type: "event" }, null, meta.submitCode));
+      await navigator.clipboard.writeText(showcaseListPrompt({ slug: meta.slug, title: meta.title, type: "event" }, null, includeCode ? meta.submitCode : null));
       toast.success("Prompt copied. Share it with participants.");
     } catch {
       toast.error("Couldn’t copy. Try again.");
@@ -655,24 +660,6 @@ export default function ShowcaseManagePage() {
               {pageLink(meta.slug)}
               {dot}
               <span>{countText}</span>
-              {meta.submitCode && (
-                <>
-                  {dot}
-                  {/* Hand this to participants: an app submitted with it skips the review below. */}
-                  <span className="inline-flex items-center gap-1">
-                    Code <span className="font-mono text-foreground">{meta.submitCode}</span>
-                    <CopyButton
-                      iconOnly
-                      text={meta.submitCode}
-                      aria-label="Copy submit code"
-                      announce="Code copied."
-                      fallbackLabel="Submit code to copy"
-                      variant="ghost"
-                      className="size-11 shrink-0 text-muted-foreground hover:text-foreground sm:size-8"
-                    />
-                  </span>
-                </>
-              )}
             </div>
           </div>
           <DropdownMenu>
@@ -748,9 +735,14 @@ export default function ShowcaseManagePage() {
             /* ------------------------------------- event, nothing yet */
             <>
               {pendingLine}
-              <Panel padded>
-                {showCelebration ? (
-                  <div className="mb-8 animate-fade-up motion-reduce:animate-none">
+              <InviteCard
+                page={meta}
+                origin={origin}
+                includeCode={includeCode}
+                onIncludeCodeChange={setIncludeCode}
+                heading={
+                  showCelebration ? (
+                  <div className="mb-5 animate-fade-up motion-reduce:animate-none">
                     <div className="flex items-center gap-3">
                       <span aria-hidden="true" className="relative flex size-2 shrink-0">
                         <span className="absolute inset-0 animate-[ping_0.9s_cubic-bezier(0,0,0.2,1)_1_forwards] rounded-full bg-[var(--ok)] motion-reduce:hidden" />
@@ -769,39 +761,29 @@ export default function ShowcaseManagePage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="mb-5">
+                  <div className="mb-2">
                     <PanelTitle>No apps yet</PanelTitle>
                   </div>
-                )}
-                {/* The public page carries the "add your app" prompt, so the
-                    link is all an organiser needs to hand out. */}
-                <p className="-mt-3 text-[0.9rem] text-muted-foreground">
-                  Invite participants to add their apps. Share the page link, or send the prompt and their AI adds the app for them.
-                </p>
-                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                  <CopyButton
-                    text={`${origin ?? ""}/showcase/${meta.slug}`}
-                    announce="Link copied."
-                    fallbackLabel="Page link to copy"
-                    variant="default"
-                    className="h-11 w-full sm:h-9 sm:w-auto"
-                  >
-                    Share link
-                  </CopyButton>
-                  <CopyPromptButton
-                    text={showcaseListPrompt({ slug: meta.slug, title: meta.title, type: "event" }, null, meta.submitCode)}
-                    announce="Prompt copied."
-                    copiedChildren={COPIED_LABEL}
-                    className={cn(buttonVariants({ variant: "outline" }), "h-11 w-full sm:h-9 sm:w-auto")}
-                  >
-                    Share prompt to add app
-                  </CopyPromptButton>
-                </div>
-              </Panel>
+                )
+                }
+              />
             </>
           ) : (
             /* ------------------------------------------ event, with apps */
             <>
+            {/* Stays after the first app arrives: inviting more people, and the
+                code that skips review, are still needed. */}
+            <InviteCard
+              page={meta}
+              origin={origin}
+              includeCode={includeCode}
+              onIncludeCodeChange={setIncludeCode}
+              heading={
+                <div className="mb-2">
+                  <PanelTitle>Invite participants</PanelTitle>
+                </div>
+              }
+            />
             <section className="flex flex-col gap-4">
               <div>
                 <PanelTitle>Apps on this page</PanelTitle>

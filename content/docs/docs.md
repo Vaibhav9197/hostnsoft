@@ -644,27 +644,28 @@ everything above:
 
 ```bash
 curl -X PUT "https://ship.embarko.ai/api/apps/my-app/showcase" \
-  -H "Authorization: Bearer $DEPLOY_TOKEN" \
-  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN" -H "Content-Type: application/json" \
   -d '{
-    "collectionSlug": "iit-indore-2026",
-    "code": "K7P2QW4M",
+    "collectionSlug": "walkover",
+    "code": "Z3H63FRD",
     "name": "My App",
-    "tagline": "One line on what it does",
-    "creatorName": "Jane Doe",
+    "tagline": "One line about it",
+    "description": "What it does",
+    "story": "Why it was built",
+    "creatorName": "Jane",
+    "creatorProfile": "https://x.com/jane",
     "contactEmail": "jane@example.com",
-    "whatItDoes": "A short paragraph on what it does.",
-    "whyBuilt": "A short paragraph on why it was built.",
     "builtWith": "Claude",
-    "category": "Productivity",
-    "tags": ["ai", "productivity"],
-    "screenshotUrl": "https://...",
-    "videoUrl": "https://..."
+    "category": "AI Tool",
+    "tags": ["chat", "notes"],
+    "screenshotUrls": ["https://example.com/1.png"],
+    "videoUrl": "https://youtube.com/watch?v=abc",
+    "customHtml": "<section>...</section>"
   }'
 ```
 
 `name`, `tagline`, and `creatorName` are required the first time an app
-is listed; everything else is optional. `contactEmail` adds a "Contact Dev"
+is listed; everything else is optional — [every field](api.md#showcase). `contactEmail` adds a "Contact Dev"
 button to the app's page; visitors' messages are mailed there and the
 address is never shown. `collectionSlug` is an event page's slug from its URL
 (`/showcase/<slug>`); leave it empty for the public gallery.
@@ -679,12 +680,11 @@ that and call again. The public gallery has no approval step.
 
 Calling this again for the same app **merges** into its details — only
 the fields you send change, and `""` clears one — so adding a screenshot is
-a call with just `screenshotUrl`. There's no separate edit endpoint. `201` on first listing, `200` on update, both with the listing,
+a call with just `screenshotUrls`. There's no separate edit endpoint. `201` on first listing, `200` on update, both with the listing,
 its `status`, and a one-line `next` saying whether it's live.
 
-In the dashboard, the same thing: open the app's **Showcase** tab (or
-**Showcase** from the account menu), click **List an app**, and say what it
-does. It goes on your company page by default;
+In the dashboard, the same thing: open **Showcase** from the account menu,
+click **List an app**, and say what it does. It goes on your company page by default;
 choose **An event page** to add it to a hackathon or demo-day page instead.
 
 ## [Custom domain mapping](#custom-domains)
