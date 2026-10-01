@@ -21,9 +21,9 @@ export function ListPage({
   shareWhenEmpty = false,
 }: {
   title: string;
-  lede: string;
+  lede?: string;
   intro?: string | null;
-  actions: React.ReactNode;
+  actions?: React.ReactNode;
   apps: ShowcaseApp[];
   empty: { title: string; body: string; action?: React.ReactNode };
   listPrompt?: string | null;
@@ -46,10 +46,10 @@ export function ListPage({
             <h1>{title}</h1>
             {shareTitle && (apps.length > 0 || shareWhenEmpty) && <ShareRow title={shareTitle} />}
           </div>
-          <p className="sc-lede">{lede}</p>
+          {lede && <p className="sc-lede">{lede}</p>}
           {intro && <p className="sc-intro">{intro}</p>}
           {note && <p className="sc-note">{note}</p>}
-          <div className="sc-row">{actions}</div>
+          {actions && <div className="sc-row">{actions}</div>}
         </section>
 
         <div className="mt-10">

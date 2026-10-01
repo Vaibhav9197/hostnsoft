@@ -1,9 +1,7 @@
 import { showcaseListPrompt } from "../../lib/showcasePrompt";
 import { PrimaryCta } from "../../components/ds";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight } from "lucide-react";
 
 import { getCollectionWithApps } from "../../lib/showcase";
 import { ListPage } from "../ListPage";
@@ -59,9 +57,10 @@ export default async function CollectionPage({ params }: Props) {
       <ShowcaseBreadcrumbs trail={[{ name: meta.title, path: `/showcase/${encodeURIComponent(meta.slug)}` }]} />
       <ListPage
         title={meta.title}
-        /* Says which kind of page this is, so a visitor who landed here from
-           a share link knows what they are looking at. */
-        lede={meta.type === "event" ? `Apps built by ${meta.title}` : `A showcase page — ${count} built and shared here`}
+        /* None on an event page: anyone can ask to list an app there, so
+           "Apps built by <page>" would claim authorship it doesn't have. Its
+           intro and the note below say what the page is. */
+        lede={meta.type === "event" ? undefined : `A showcase page — ${count} built and shared here`}
         intro={meta.intro}
         /* An event page exists to collect apps, so it says how right away:
            the button copies a prompt that lists the visitor's app here. */
@@ -76,29 +75,19 @@ export default async function CollectionPage({ params }: Props) {
         listPrompt={meta.type === "event" ? showcaseListPrompt(meta) : null}
         shareTitle={meta.type === "event" ? `${meta.title} — list your AI-built app on Embarko` : `${meta.title} — ${count} built with AI`}
         shareWhenEmpty={meta.type === "event"}
-        actions={
-          <>
-            {meta.type === "public" ? (
-              <PrimaryCta size="md" glow={false} label="Copy prompt to showcase your app" text={showcaseListPrompt(meta)} />
-            ) : (
-              <Link href="/showcase" className="sc-btn">
-                Browse the Showcase <ArrowRight aria-hidden="true" />
-              </Link>
-            )}
-          </>
-        }
+        /* Beside the note that asks for it. The prompt names this page and its
+           URL, so the visitor's AI lists the app here, not on the gallery. */
+        actions={<PrimaryCta size="md" glow={false} label="Copy prompt to showcase your app" text={showcaseListPrompt(meta)} />}
         /* A collection can exist before anything is in it — it is created
            with the event, and the projects arrive over the following days. */
         empty={{
           title: "No apps here yet.",
           body:
             meta.type === "event"
-              ? "Apps appear here as soon as participants add them."
+              ? "Be the first one to showcase your app here."
               : `Apps appear here as soon as ${meta.title} lists them.`,
-          action:
-            meta.type === "public" ? (
-              <PrimaryCta size="md" glow={false} label="Copy prompt to showcase your app" text={showcaseListPrompt(meta)} />
-            ) : undefined,
+          /* The same button already sits in the hero just above. */
+          action: null,
         }}
       />
     </>

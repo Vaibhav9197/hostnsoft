@@ -318,7 +318,6 @@ export default function ShowcaseManagePage() {
       revealed.has(l.id) || (prevSeen !== null && Date.parse(l.createdAt) > Date.parse(prevSeen.at)),
     [revealed, prevSeen],
   );
-  const projectSlugs = useMemo(() => new Map((projects ?? []).map((p) => [p.id, p.slug])), [projects]);
   const unlisted = useMemo(() => {
     const listed = new Set(everything.map((l) => l.projectId));
     return (projects ?? []).filter((p) => !listed.has(p.id));
@@ -592,7 +591,6 @@ export default function ShowcaseManagePage() {
   );
 
   const rowsProps = {
-    page: { slug: meta.slug, title: meta.title, type: meta.type },
     listings: rows.filter((r) => r.status === "approved"),
     activeCompanyId: activeCompanyId ?? "",
     isNew,
@@ -712,26 +710,8 @@ export default function ShowcaseManagePage() {
 
       {/* Focus lands here when a removed row takes the focused control with it. */}
       <div ref={bodyRef} tabIndex={-1} className="flex flex-col gap-6 outline-none">
-        {/* ------------------------------------------- event, requests */}
-        {isEvent && requestRows.length > 0 && (
-          <section className="flex flex-col gap-4">
-            <div>
-              <PanelTitle>Requests</PanelTitle>
-              <p className="mt-1 text-[0.9rem] text-muted-foreground">
-                Apps submitted without the code wait here. Approve to put them on the page.
-              </p>
-            </div>
-            <RequestRows
-              listings={requestRows}
-              busy={busy}
-              onApprove={(l) => void review(l, true)}
-              onReject={askReject}
-              onRemove={askRemove}
-            />
-          </section>
-        )}
         {isEvent ? (
-          liveRows.length === 0 ? (
+          liveRows.length === 0 && requestRows.length === 0 ? (
             /* ------------------------------------- event, nothing yet */
             <>
               {pendingLine}
@@ -784,12 +764,33 @@ export default function ShowcaseManagePage() {
                 </div>
               }
             />
+            {/* One grid: requests first, badged on their cards, then live apps. */}
             <section className="flex flex-col gap-4">
               <div>
                 <PanelTitle>Apps on this page</PanelTitle>
+                {requestRows.some((r) => r.status === "pending") && (
+                  <p className="mt-1 text-[0.9rem] text-muted-foreground">
+                    Apps sent without the code wait for your review. Approve to put them on the page.
+                  </p>
+                )}
               </div>
               {pendingLine}
-              <ListingRows variant="event" {...rowsProps} />
+              <ListingRows
+                variant="event"
+                {...rowsProps}
+                leading={
+                  requestRows.length > 0 && (
+                    <RequestRows
+                      bare
+                      listings={requestRows}
+                      busy={busy}
+                      onApprove={(l) => void review(l, true)}
+                      onReject={askReject}
+                      onRemove={askRemove}
+                    />
+                  )
+                }
+              />
             </section>
             </>
           )
@@ -840,7 +841,7 @@ export default function ShowcaseManagePage() {
               <PanelTitle>Your apps on Embarko Showcase</PanelTitle>
             </div>
             {pendingLine}
-            <ListingRows variant="company" projectSlugs={projectSlugs} {...rowsProps} />
+            <ListingRows variant="company" {...rowsProps} />
           </section>
         )}
 

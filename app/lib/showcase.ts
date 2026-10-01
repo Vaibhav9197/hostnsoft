@@ -86,16 +86,9 @@ export function uniqueByApp(apps: ShowcaseApp[]): ShowcaseApp[] {
   return apps.filter((app) => keep.has(app));
 }
 
-/* Only apps with their own screenshot are shown publicly: a gallery of
-   stand-in drawings reads as empty. The listing still exists and reappears
-   once its creator adds an image. */
-export function withScreenshot(apps: ShowcaseApp[]): ShowcaseApp[] {
-  return apps.filter((app) => Boolean(app.screenshotUrl?.trim()));
-}
-
 export async function listApps(limit = 60): Promise<ShowcaseApp[]> {
   const raw = (await read<RawApp[]>(`/public/showcase?limit=${limit}`)) ?? [];
-  return withScreenshot(uniqueByApp(raw.map(withoutOwnerEmail)));
+  return uniqueByApp(raw.map(withoutOwnerEmail));
 }
 
 /* The API is adding the owner's `userEmail` to app details so "Contact Dev"
@@ -128,7 +121,7 @@ export async function getCollectionWithApps(
     `/public/showcase/collections/${encodeURIComponent(slug)}`,
   );
   if (!found) return null;
-  return { collection: found.collection, apps: withScreenshot((found.projects as RawApp[]).map(withoutOwnerEmail)) };
+  return { collection: found.collection, apps: (found.projects as RawApp[]).map(withoutOwnerEmail) };
 }
 
 /* The API has no category filter yet, so this reads the whole public list

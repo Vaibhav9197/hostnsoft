@@ -184,11 +184,15 @@ export function Mark({ app }: { app: ShowcaseApp }) {
  * The whole tile opens the app's Showcase page (a stretched cover link), so
  * the creator gets the visit.
  */
-export function Tile({ app, index = 0 }: { app: ShowcaseApp; index?: number }) {
+/* `badge`: a label floated on the card's top-right corner — the panel uses it
+   for a listing's review state. Public pages pass none. */
+export function Tile({ app, index = 0, badge }: { app: ShowcaseApp; index?: number; badge?: React.ReactNode }) {
   const meta = [app.category, `by ${firstName(app.creatorName)}`].filter(Boolean).join(" · ");
   return (
     <article className="sc-tile">
       <Link href={`/showcase/app/${app.slug}`} className="sc-cover" aria-label={`${app.name} — view app`} />
+      {/* Sits on the card's top-right corner, half outside it, above the cover link. */}
+      {badge && <span className="pointer-events-none absolute -right-2.5 -top-3 z-[2]">{badge}</span>}
       <div className="th">
         <Shot app={app} />
         <span className="open" aria-hidden="true">
@@ -267,6 +271,8 @@ export function DeployCta({ listPrompt = showcaseGeneralPrompt() }: { listPrompt
 export { BackLink as BackToShowcase } from "./BackLink";
 
 /** Empty list on a category / tag / collection page. */
+/* `action`: the page's own button, or null for none. Left out, the generic
+   "Build one" shows. */
 export function EmptyList({ title, body, action }: { title: string; body: string; action?: React.ReactNode }) {
   return (
     <div className="sc-gal">
@@ -274,10 +280,15 @@ export function EmptyList({ title, body, action }: { title: string; body: string
         <h3>{title}</h3>
         <p>{body}</p>
         <div className="acts">
-          {action}
-          <a href="#deploy" className="sc-btn pri">
-            Build one <ArrowRight aria-hidden="true" />
-          </a>
+          {/* A page's own action replaces the generic one: two dark buttons
+              side by side leave the visitor to guess which one matters. */}
+          {action === undefined ? (
+            <a href="#deploy" className="sc-btn pri">
+              Build one <ArrowRight aria-hidden="true" />
+            </a>
+          ) : (
+            action
+          )}
         </div>
       </div>
     </div>
