@@ -613,9 +613,9 @@ curl "https://ship.embarko.ai/api/apps/my-app/deployments" \
   -H "Authorization: Bearer $DEPLOY_TOKEN"
 
 # 2. Roll back to it, by its id.
-curl -X POST \
-  "https://ship.embarko.ai/api/apps/my-app/deployments/<deploymentId>/rollback" \
-  -H "Authorization: Bearer $DEPLOY_TOKEN"
+curl -X POST "https://ship.embarko.ai/api/apps/my-app/rollback" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN" -H "Content-Type: application/json" \
+  -d '{"deploymentId": "<deploymentId>"}'   # or '{}' for the previous good one
 ```
 
 `GET /deployments/<id>` returns one entry, which is also how you poll the
@@ -699,7 +699,7 @@ can create with their own DNS provider; nothing here gets around that step.
 **By API**, same deploy token and app-name addressing as env vars/rollback:
 
 ```bash
-curl -X POST "https://ship.embarko.ai/apps/my-app/domains" \
+curl -X POST "https://ship.embarko.ai/api/apps/my-app/domains" \
   -H "Authorization: Bearer $DEPLOY_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"domain": "app.yourdomain.com"}'
@@ -718,14 +718,14 @@ create it on their behalf.
 Once the record exists (and has propagated), verify it:
 
 ```bash
-curl -X POST "https://ship.embarko.ai/apps/my-app/domains/app.yourdomain.com/verify" \
+curl -X POST "https://ship.embarko.ai/api/apps/my-app/domains/app.yourdomain.com/verify" \
   -H "Authorization: Bearer $DEPLOY_TOKEN"
 ```
 
 Safe to call repeatedly while DNS propagates — routing only activates once
 this confirms DNS actually resolves correctly, not at the register step.
-`GET /apps/my-app/domains` lists what's registered; `DELETE
-/apps/my-app/domains/app.yourdomain.com` removes just that domain's
+`GET /api/apps/my-app/domains` lists what's registered; `DELETE
+/api/apps/my-app/domains/app.yourdomain.com` removes just that domain's
 routing/certificate, never touching the app's default `*.embarko.app`
 URL.
 
@@ -802,7 +802,7 @@ since it requires no authentication at all.
 and app-name addressing as everything else above:
 
 ```bash
-curl "https://ship.embarko.ai/apps/my-app/analytics?range=7d" \
+curl "https://ship.embarko.ai/api/apps/my-app/analytics?range=7d" \
   -H "Authorization: Bearer $DEPLOY_TOKEN"
 ```
 
@@ -828,7 +828,7 @@ Display name only — the app's slug, and so its live URL, never changes.
 Available to an agent as well as a person:
 
 ```bash
-curl -X PATCH "https://ship.embarko.ai/apps/my-app" \
+curl -X PATCH "https://ship.embarko.ai/api/apps/my-app" \
   -H "Authorization: Bearer $DEPLOY_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name": "My App"}'
@@ -846,7 +846,7 @@ Available to an agent as well as a person, but the deploy token alone
 isn't enough — you also have to resend the app's own name to confirm:
 
 ```bash
-curl -X DELETE "https://ship.embarko.ai/apps/my-app" \
+curl -X DELETE "https://ship.embarko.ai/api/apps/my-app" \
   -H "Authorization: Bearer $DEPLOY_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"confirmAppName": "my-app"}'

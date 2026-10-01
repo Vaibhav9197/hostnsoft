@@ -63,7 +63,7 @@ working".
 ### [4. A destructive action needs confirmation](#destructive)
 
 Deleting an app is irreversible and there is **no backup to restore from**.
-You *can* perform it — `DELETE /apps/<name>` with a `confirmAppName` field —
+You *can* perform it — `DELETE /api/apps/<name>` with a `confirmAppName` field —
 which is exactly why the rule matters: show the user what you are about to
 delete and get an explicit yes first. The confirmation field guards against
 a misread instruction, not against an agent that is confident and wrong. The

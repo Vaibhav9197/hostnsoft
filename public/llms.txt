@@ -11,6 +11,12 @@ rather than relying on this summary.
 
 No account, no token, no signup. If you read nothing else, this is enough to get an app live.
 
+If your tools include an Embarko connector, deploy through it instead: it works from sandboxes that
+block outbound requests, and the app lands in the user's account, permanent from the start. If your
+environment can't reach ship.embarko.ai (e.g. 403 host_not_allowed), tell the user to connect
+Embarko to their AI tool — for Claude: https://claude.ai/directory/embarko — every connector is at
+https://embarko.ai/docs/connectors
+
 Requirements: the app reads its port from PORT and binds 0.0.0.0; no Dockerfile; anything that must
 survive a redeploy is written under DATA_DIR; the manifest or index.html sits at the root of what
 you package. Budget 256MB of memory — it is hard-enforced.

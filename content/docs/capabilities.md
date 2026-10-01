@@ -92,7 +92,10 @@ error reference: [API contract](api.md#deploy).
 until `status` is `live` before reporting anything, and follow the `next`
 field each reply carries. One deploy is one
 app. The manifest or `index.html` must be at the archive root. No Dockerfile
-and no custom build pipeline. Never package secrets.
+and no custom build pipeline. Never package secrets. A JSON upload is capped
+at 25MB and 2000 files — use a `.tar.gz` for anything bigger. A static site
+usually answers `200` and `live` straight away instead of `202` — see
+[Static sites](#static-sites).
 
 ---
 
@@ -138,8 +141,8 @@ and run as a server app.
 
 **How:** Deploy it like any other app. The reply is normally `200` with
 `status: "live"` and the next step (claim it, or the showcase). A very large
-site that takes more than a few seconds gets `status: "publishing"` instead;
-check `GET .../status` until it reads `live`.
+site that takes more than a few seconds gets `202` with `status: "publishing"`
+instead; check `GET .../status` every 2 seconds until it reads `live`.
 
 **Limitations:** Because nothing runs on the server:
 
@@ -177,7 +180,7 @@ already exists"; redeploying your own app is an ordinary success. Some names
 are reserved (`ship`, `api`, `www`, `login`, `docs`, `admin`, `mail`, and
 others) — treat a rejection as authoritative. The **slug cannot change**: a
 different slug is a different app, on a different URL. The app's *display
-name* can be changed with `PATCH /apps/<name>` — see
+name* can be changed with `PATCH /api/apps/<name>` — see
 [Renaming an app](#rename) — but that never moves the URL.
 
 ---
@@ -264,7 +267,7 @@ deployed: `{"available": false, "reason": "..."}` with a `next` step. A
 [static site](#static-sites) has no logs at all, and the reply says so.
 
 **Limitations:** **A snapshot at call time, not a live stream** — poll to
-follow along. No retention guarantee, and always the most recent allocation
+follow along. About the last 8KB of output, with no retention guarantee, and always the most recent allocation
 whether or not it is healthy. Two signatures mislead: `OOM Killed` /
 `Exit Code: 137` is the 256MB limit, and `Not Restarting` /
 `Exceeded allowed attempts` is a crash loop whose real cause is logged
@@ -297,7 +300,9 @@ const db = new Database(path.join(dir, "app.db"));
 **Limitations:** **There is no managed database service** — nothing to
 provision, no Postgres or MySQL to connect to, and no connection string to
 ask the user for. One process means one writer; SQLite is the right shape
-here and a client/server database is not. **Not backed up** — see
+here and a client/server database is not. `DATA_DIR` survives redeploys,
+restarts and the app being stopped, but it lives on one machine and does
+**not** survive losing that machine. **Not backed up** — see
 [Backups and restore](#backups). Never call `window.storage`; it is a Claude
 Artifacts sandbox API and is rejected at deploy time with
 `422 unsupported_storage_pattern`.
@@ -484,18 +489,18 @@ domain, hand the returned record to the domain's owner, then verify:
 
 ```bash
 # 1. Register it — returns the exact DNS record to create.
-curl -X POST "https://ship.embarko.ai/apps/my-app/domains" \
+curl -X POST "https://ship.embarko.ai/api/apps/my-app/domains" \
   -H "Authorization: Bearer $DEPLOY_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"domain": "app.yourdomain.com"}'
 
 # 2. After the owner creates that record and it propagates:
-curl -X POST "https://ship.embarko.ai/apps/my-app/domains/app.yourdomain.com/verify" \
+curl -X POST "https://ship.embarko.ai/api/apps/my-app/domains/app.yourdomain.com/verify" \
   -H "Authorization: Bearer $DEPLOY_TOKEN"
 ```
 
-`GET /apps/my-app/domains` lists what's registered;
-`DELETE /apps/my-app/domains/<domain>` removes one.
+`GET /api/apps/my-app/domains` lists what's registered;
+`DELETE /api/apps/my-app/domains/<domain>` removes one.
 
 **Limitations:** **You cannot create the DNS record** — only whoever
 controls the domain can, at their DNS provider. That is the one step that
@@ -506,7 +511,10 @@ in front of it, so prefer a subdomain. On Cloudflare the record must be
 to call repeatedly while DNS propagates; routing activates only when it
 confirms. Certificate issuance uses an HTTP-01 challenge and needs **port 80
 reachable and unredirected**. Removing a domain never affects the default
-`*.embarko.app` URL.
+`*.embarko.app` URL. Embarko's own addresses can't be registered
+(`400 domain_reserved`), and a domain belongs to one app at a time
+(`409 domain_taken`). Works for server apps and static sites. The app must be
+claimed first — these calls need its deploy token.
 
 ---
 
@@ -611,16 +619,16 @@ is seconds, not another build.
 **When:** A deploy broke something and the previous version was fine.
 Restore first, debug afterwards.
 
-**How:** Two steps — the deployment id in the URL is what chooses the
-version:
+**How:** `POST /rollback` with `{}` goes back to the previous good build.
+To choose one, list the history first and send its `deploymentId`:
 
 ```bash
 curl "https://ship.embarko.ai/api/apps/my-app/deployments" \
   -H "Authorization: Bearer $DEPLOY_TOKEN"
 
-curl -X POST \
-  "https://ship.embarko.ai/api/apps/my-app/deployments/<deploymentId>/rollback" \
-  -H "Authorization: Bearer $DEPLOY_TOKEN"
+curl -X POST "https://ship.embarko.ai/api/apps/my-app/rollback" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN" -H "Content-Type: application/json" \
+  -d '{"deploymentId": "<deploymentId>"}'   # or '{}' for the previous good one
 ```
 
 Answers `202`; poll the returned deployment until it leaves `in_progress`.
@@ -629,7 +637,7 @@ Answers `202`; poll the returned deployment until it leaves `in_progress`.
 with a recorded image are valid targets — pick the newest good one *before*
 the bad deploy, not simply the previous entry. Runs the old image under
 **current** configuration: today's env vars and domains, not the originals.
-Only the last few images are kept; a pruned target returns
+Only the last 5 builds are kept; a pruned target returns
 `422 rollback_image_unavailable`, whose `retainCount` says how far back you
 can reach. History is not rewritten — a rollback lands as a new entry. It
 does **not** restore data: `DATA_DIR` is untouched.
@@ -720,7 +728,7 @@ encrypt anything sensitive. Filesystem and storage isolation are real.
 ## [Resource and runtime defaults](#resources)
 
 **What:** What every app gets without asking: 256MB of memory, a shared CPU
-allocation, one process, and a runtime auto-detected from the source by
+allocation, one process that stays on (unless it [scales to zero](#scale-to-zero)), and a runtime auto-detected from the source by
 [Railpack](https://railpack.com).
 
 **Why:** There is nothing to size, select or provision. The defaults are the
@@ -733,13 +741,45 @@ ship no Dockerfile, use a **production** start command, and keep a
 conventional project layout so detection works.
 
 **Limitations:** **Memory is 256MB and hard-enforced** — over it is an OOM
-kill (exit code 137), not throttling, and there is **no self-serve way to
-raise it**: no agent call, and the dashboard control has been removed. CPU
+kill (exit code 137), not throttling. 256MB is the ceiling, not a
+reservation: an app is guaranteed 32MB and bursts up to 256MB when the host
+has room, so steady memory well under the ceiling is safer than running near
+it. There is **no self-serve way to raise it**: no agent call, and the dashboard control has been removed. CPU
 is a relative share, not a reservation, so a busy neighbour can slow you
 down — add timeouts around CPU-bound work. No GPUs. No Dockerfile or custom
 build step; Railpack supports some runtime-serving overrides (a `Caddyfile`
 for static sites) but not replacing the build. Disk is not quota-enforced,
 which is an obligation, not headroom.
+
+---
+
+## [Scale to zero](#scale-to-zero)
+
+**What:** An opt-in for a server app to sleep after a stretch with no
+traffic, and wake on the next request.
+
+**Why:** An app that is used now and then doesn't need to run all day.
+
+**When:** Decide before you build: only when a few seconds' delay on the
+first request after a quiet spell is fine — an internal tool or a rarely
+used form, say, not a live dashboard.
+
+**How:** Send `X-Scale-To-Zero: true` on `POST /apps` to opt in, or `false`
+to turn it back off. Without the header nothing changes: apps stay on.
+
+**Limitations:**
+
+- **It sleeps after 6 hours with no traffic.** The first request after that
+  wakes it and is held, not refused — typically 4–9 seconds to a full
+  response.
+- **The app must cope with restarting.** Anything in memory is lost; keep
+  state under `DATA_DIR`, which survives the stop.
+- **Automated traffic doesn't wake it.** Credential scanners and crawlers get
+  a `404` while it sleeps; only real requests wake it.
+- Not for static sites, which have no process to stop. WebSockets don't work
+  with or without it — see [Public HTTP endpoints](#http-endpoints).
+
+Topic: [`GET /capabilities/scale-to-zero`](https://ship.embarko.ai/capabilities/scale-to-zero).
 
 ---
 
@@ -756,7 +796,7 @@ be deliberate.
 resend the app's own name to confirm:
 
 ```bash
-curl -X DELETE "https://ship.embarko.ai/apps/my-app" \
+curl -X DELETE "https://ship.embarko.ai/api/apps/my-app" \
   -H "Authorization: Bearer $DEPLOY_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"confirmAppName": "my-app"}'
@@ -787,7 +827,7 @@ slug, and therefore the live URL, never changes.
 **How:**
 
 ```bash
-curl -X PATCH "https://ship.embarko.ai/apps/my-app" \
+curl -X PATCH "https://ship.embarko.ai/api/apps/my-app" \
   -H "Authorization: Bearer $DEPLOY_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name": "My App"}'
@@ -899,8 +939,8 @@ Save a new token to `~/.embarko/credentials` (`chmod 600`) and send it as
   workspaces and all are emailed; existing tokens keep working.
 - **A token is a workspace's, not a person's.** It deploys only and does not
   sign in to the dashboard — for that, the person signs in on embarko.ai.
-- Tokens are shown once and hashed at rest — a lost one can only be
-  rotated, not recovered (the old one works for one hour).
+- Tokens don't expire. They are shown once and hashed at rest — a lost one
+  can only be rotated, not recovered (the old one works for one hour).
 - A present-but-invalid token is always a hard `401`, never treated as
   anonymous.
 
@@ -948,14 +988,20 @@ into).
 
 ### [Showcase listing](#showcase)
 
-**What:** List a deployed app on a Showcase page — the company's own page,
-which exists from signup, or an event page (a hackathon or demo day) that
-anyone can add to. **When:** The user wants it shown publicly. **How:**
-`PUT /api/apps/<name>/showcase` with `collectionSlug`, `name`, `tagline`,
-`creatorName`. `collectionSlug` is the page's slug from its URL
-(`/showcase/<slug>`). **Limitations:** Deploy token required; calling again
-updates rather than errors; `404 SHOWCASE_COLLECTION_UNKNOWN` for an unknown
-slug, `403 SHOWCASE_COLLECTION_PRIVATE` for another company's page.
+**What:** Show a deployed app on the public Showcase gallery or on an event
+Showcase page (a hackathon or demo day). An app has one listing, reused
+across every page it is on. **When:** Only when the user wants it shown
+publicly. **How:** Check the current listing at
+`GET /api/public/showcase/apps/<name>` (no token), draft the details from the
+project, confirm them with the user, then
+`PUT /api/apps/<name>/showcase` — no `collectionSlug` for the public gallery,
+an event page's slug otherwise. `tagline` and `creatorName` are required the
+first time; `name` defaults to the app's name, and changing it renames the
+app in the dashboard too. Every field and limit: [List on Showcase](api.md#showcase).
+**Limitations:** Deploy token required, so the app must be claimed. The
+public gallery publishes at once; an event page waits for its organiser
+unless the page's `code` is sent. Calling again merges rather than errors.
+`404 SHOWCASE_COLLECTION_UNKNOWN` for an unknown slug.
 
 ### [Sending feedback as an agent](#feedback)
 
@@ -963,14 +1009,16 @@ slug, `403 SHOWCASE_COLLECTION_PRIVATE` for another company's page.
 deploy. **When:** Something blocked you — that is more useful reported than
 worked around. **How:** `POST /apps/<name>/customer-query` with an
 `X-Agent-Name` header and `{type, message}`. **Limitations:** `X-Agent-Name`
-required; `type` exactly `feature`/`feedback`/`other`; `message` 1–5000
-characters.
+required; `type` is the kind of problem — `platform_bug`,
+`missing_capability`, `docs_issue`, `unexpected_behavior` or `other`;
+`message` 1–5000 characters. Without an app, `POST /api/public/customer-query`
+with `{type, message, email}`. Full detail: [API](api.md#feedback).
 
 ### [Analytics](#analytics)
 
 **What:** Request traffic (total and by status code) and CPU/memory usage.
 **When:** The user asks how the app is doing, or you are diagnosing load.
-**How:** `GET /apps/<name>/analytics?range=7d` with a deploy token — `range`
+**How:** `GET /api/apps/<name>/analytics?range=7d` with a deploy token — `range`
 is `24h`, `7d`, `30d`, `90d` or `all` (default `24h`). The same data is on
 the dashboard's **Analytics** tab. **Limitations:** Returns `503` if the
 analytics subsystem is unreachable — that is not zero traffic, so do not
@@ -996,8 +1044,9 @@ report it as such. No alerting and no metrics export.
 | Deployment history | Available | Agent |
 | Rollback | Available | Agent |
 | Application health (field only) | Available | Agent |
-| Isolation, EU hosting | Available | — |
+| Isolation | Available | — |
 | Resource defaults (256MB, 1 process) | Fixed | — |
+| Scale to zero (opt-in) | Available | Agent |
 | Agent / API authentication | Available | Agent |
 | MCP connector (deploy, feedback) | Available | Agent (user connects it) |
 | Showcase listing | Available | Agent |

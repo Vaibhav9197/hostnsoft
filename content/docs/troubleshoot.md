@@ -272,7 +272,7 @@ now `.../customer-query`. Same data, same behavior, `type` now also accepts `"ot
 
 ### 202 Accepted misread as "done" (rollback)
 - match: `{"accepted":true,"deploymentId":"...","statusUrl":"..."}`, HTTP 202, from
-  `POST .../deployments/:deploymentId/rollback`
+  `POST .../rollback`
 - cause: not a failure — the target image was confirmed to exist (that's the one check worth failing
   fast on) and rollback is applying in the background; the app isn't necessarily running the rolled-back
   version yet at the moment this response arrives
@@ -289,7 +289,7 @@ now `.../customer-query`. Same data, same behavior, `type` now also accepts `"ot
 
 ### Rollback target image unavailable
 - match: HTTP 422, `"code":"rollback_image_unavailable"`, from
-  `POST /api/apps/<app-name>/deployments/<deploymentId>/rollback` (the agent path, deploy token) or
+  `POST /api/apps/<app-name>/rollback` with `{"deploymentId": "..."}` (the agent path, deploy token) or
   the dashboard's Rollback button; message starts with `"Cannot roll back: the image is no longer
   available"`. Older responses phrased this as `"is no longer available on this host"` — branch on
   `code`, which is stable, rather than on either wording
@@ -303,7 +303,7 @@ now `.../customer-query`. Same data, same behavior, `type` now also accepts `"ot
   response itself, not something you need to look up separately
 
 ### Rollback returns 422 for a different reason
-- match: HTTP 422 from `POST .../deployments/:deploymentId/rollback`, `error` does NOT start with
+- match: HTTP 422 from `POST .../rollback`, `error` does NOT start with
   `"Cannot roll back: the image is no longer available"`
 - cause: the target deployment either didn't succeed (`status !== "success"`) or has no recorded image tag
 - fix: pick a different deployment from `GET .../deployments` — only successful ones with an image are

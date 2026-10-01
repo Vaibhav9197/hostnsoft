@@ -266,12 +266,13 @@ targets.
 one — not simply the previous entry, which may itself be a failure or
 another bad deploy. Note its **id**.
 
-**3. Roll back to that id.** The id in the URL is what chooses the version:
+**3. Roll back to that id.** The `deploymentId` in the body is what chooses
+the version — send `{}` instead to go back to the previous good build:
 
 ```bash
-curl -X POST \
-  "https://ship.embarko.ai/api/apps/my-app/deployments/<deploymentId>/rollback" \
-  -H "Authorization: Bearer $DEPLOY_TOKEN"
+curl -X POST "https://ship.embarko.ai/api/apps/my-app/rollback" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN" -H "Content-Type: application/json" \
+  -d '{"deploymentId": "<deploymentId>"}'
 ```
 
 **4. Poll the returned deployment** until its status leaves `in_progress`.
@@ -340,7 +341,7 @@ this before they pick.
 **2. Register the domain** and read back the record it returns:
 
 ```bash
-curl -X POST "https://ship.embarko.ai/apps/my-app/domains" \
+curl -X POST "https://ship.embarko.ai/api/apps/my-app/domains" \
   -H "Authorization: Bearer $DEPLOY_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"domain": "app.yourdomain.com"}'
@@ -356,7 +357,7 @@ record never verifies.
 **4. Verify, and keep verifying.** Safe to repeat while DNS propagates:
 
 ```bash
-curl -X POST "https://ship.embarko.ai/apps/my-app/domains/app.yourdomain.com/verify" \
+curl -X POST "https://ship.embarko.ai/api/apps/my-app/domains/app.yourdomain.com/verify" \
   -H "Authorization: Bearer $DEPLOY_TOKEN"
 ```
 
@@ -372,8 +373,8 @@ and needs it open). See
 **6. Confirm it works**, then tell them. The default
 `<app-name>.embarko.app` URL keeps working throughout and afterwards.
 
-`GET /apps/<name>/domains` lists what's registered;
-`DELETE /apps/<name>/domains/<domain>` removes one without touching the
+`GET /api/apps/<name>/domains` lists what's registered;
+`DELETE /api/apps/<name>/domains/<domain>` removes one without touching the
 default URL.
 
 ---
@@ -390,7 +391,7 @@ from a vague instruction.
 **2. Delete, resending the name as confirmation:**
 
 ```bash
-curl -X DELETE "https://ship.embarko.ai/apps/my-app" \
+curl -X DELETE "https://ship.embarko.ai/api/apps/my-app" \
   -H "Authorization: Bearer $DEPLOY_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"confirmAppName": "my-app"}'
@@ -415,7 +416,7 @@ that is a different and much heavier call —
 **2. Rename:**
 
 ```bash
-curl -X PATCH "https://ship.embarko.ai/apps/my-app" \
+curl -X PATCH "https://ship.embarko.ai/api/apps/my-app" \
   -H "Authorization: Bearer $DEPLOY_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name": "My App"}'
@@ -473,7 +474,7 @@ Showcase listing keeps its own separate URL.
 **1. Fetch the traffic and resource usage:**
 
 ```bash
-curl "https://ship.embarko.ai/apps/my-app/analytics?range=7d" \
+curl "https://ship.embarko.ai/api/apps/my-app/analytics?range=7d" \
   -H "Authorization: Bearer $DEPLOY_TOKEN"
 ```
 

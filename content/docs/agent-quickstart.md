@@ -10,6 +10,28 @@ happy path, use the [agent playbook](agent-playbook.md).
 Prefer to install this as a skill? It is open source at
 [embarko.ai/skill](https://embarko.ai/skill).
 
+## [First: is an Embarko connector connected?](#connector)
+
+Look at your tools. **If one is named Embarko, deploy through it and skip
+the `curl` steps below.** It is the better path, not a fallback:
+
+- It works from a sandbox that blocks outbound requests, because its calls
+  are made outside your environment.
+- The app goes straight into the user's account — permanent from the
+  start, with no 24-hour deletion and nothing to claim afterwards.
+- There is no token to find, request or paste.
+
+Using it is not a change of plan you need the user's permission for: it is
+the same deploy, and the app is theirs either way. Tell them in one line
+that you deployed through their Embarko connector. What it can and can't do:
+[MCP connector](capabilities.md#mcp-connector).
+
+**No connector?** Carry on below — the steps work without one. If the user's
+AI tool has an Embarko connector they haven't added yet (for Claude:
+[claude.ai/directory/embarko](https://claude.ai/directory/embarko)), mention
+it once, alongside the live URL: connecting it means every future deploy
+just works. Every connector is listed on [Connectors](connectors.md).
+
 ## [Before you package](#before)
 
 Four things, each a common cause of a failed deploy:
@@ -80,6 +102,17 @@ It has no logs and takes no env vars, because nothing runs on the server.
 If you get `409 app_name_taken`, another company owns that name. Pick a
 different one and send it again — don't retry the same name.
 
+**If the request never reaches Embarko** — a `403` from your own sandbox
+such as `host_not_allowed`, or a DNS or connection error — your environment
+is blocking `ship.embarko.ai`. Retrying won't help, and nothing was
+deployed. Tell the user it's your environment, not their app, and give them
+the fix that lasts: **connect Embarko to their AI tool**
+([claude.ai/directory/embarko](https://claude.ai/directory/embarko) for
+Claude; others on [Connectors](connectors.md)), then ask you again. Also
+offer the other options, so they can choose: allowing `ship.embarko.ai` in
+their tool's network settings, or a script to run on their own machine.
+Full procedure: [If you can't reach the API at all](agent-playbook.md#no-connectivity).
+
 ## [3. Wait for it](#wait)
 
 ```bash
@@ -107,6 +140,11 @@ reminder email.
 
 ## [Keeping it](#keeping-it)
 
+Deployed through an [Embarko connector](#connector)? It is already in the
+user's account — there is nothing to claim. Otherwise the order is
+connector, then a token you already have, then a new token
+([Choose how to authenticate](agent-playbook.md#choose-auth)).
+
 To make it permanent, the app needs a deploy token. Check `$DEPLOY_TOKEN`
 and `~/.embarko/credentials` first — if one exists, just redeploy the same
 name with `-H "Authorization: Bearer $DEPLOY_TOKEN"` and it's claimed.
@@ -130,3 +168,4 @@ Full procedure: [Make an anonymous app permanent](agent-playbook.md#claim).
 | What Embarko can and can't do | [Capabilities](capabilities.md) |
 | An error code you hit | [Troubleshooting](troubleshoot.md) |
 | Whether to ask the user something | [When to involve the human](escalation.md) |
+| The link to add Embarko to an AI tool | [Connectors](connectors.md) |

@@ -41,15 +41,17 @@ auth rule** — group by what the call needs, not by where it lives:
 
 | Auth | Calls |
 | --- | --- |
-| **None, ever** | `GET /capabilities`; `POST /api/public/deploy-tokens/request`; `POST /api/public/customer-query` (rate limited) |
+| **None, ever** | `GET /capabilities` (and `/capabilities/<topic>`, `/capabilities/all`); `POST /api/public/deploy-tokens/request`; `POST /api/public/customer-query` (rate limited); `GET /api/public/showcase/apps/<name>` (an app's current listing) |
 | **None while the app is an unclaimed anonymous deploy; the owning company's token once claimed** | `POST /apps` (deploy); `GET /apps/<name>/status`; `GET /apps/<name>/logs`; `POST /apps/<name>/customer-query` |
-| **Deploy token, always** | `/apps/<name>/domains…`; `GET /apps/<name>/analytics`; `PATCH /apps/<name>` (rename); `DELETE /apps/<name>`; and everything under `/api/apps/<name>/…` — env vars, deployments, rollback, showcase, slug-change |
+| **Deploy token, always** | `/api/apps/<name>/domains…`; `GET /api/apps/<name>/analytics`; `PATCH /api/apps/<name>` (rename); `DELETE /api/apps/<name>`; and everything under `/api/apps/<name>/…` — env vars, deployments, rollback, showcase, slug-change |
 
-Note the two path shapes on the same host: deploy, status, logs, domains,
-analytics, rename and delete sit directly under `/apps/<name>`, while env
-vars, deployment history, rollback, showcase and slug-change sit under
-`/api/apps/<name>`. There is no rule to infer — copy the path from the
-action's own section below.
+Note the two path shapes on the same host. Only four calls sit directly
+under `/apps`: deploy (`POST /apps`), status, logs and app feedback
+(`/apps/<name>/status`, `/logs`, `/customer-query`). **Everything else that
+names an app is under `/api/apps/<name>`** — the app itself (`GET`, rename
+with `PATCH`, `DELETE`), domains, analytics, env vars, deployment history,
+rollback, showcase and slug-change. `/apps/<name>/domains` without `/api` is
+a `404`.
 
 The token is `Authorization: Bearer <token>`, is company-wide rather than
 per-app, and deploys only — it does not sign in to the dashboard. How to get
@@ -193,6 +195,7 @@ Or send the source as JSON instead of a file — see [JSON source](#deploy) belo
 | header | `Authorization` | none (anonymous) | `Bearer <token>` |
 | header | `X-App-Version` | a timestamp | `^[a-zA-Z0-9._-]+$`. Pass a git SHA or tag. Never reuse a tag for different code. |
 | header | `X-App-Type` | none | What the app is for, as a short plain-text label: e.g. `personal website`, `portfolio`, `landing page`, `blog`, `task management`, `feedback system`, `dashboard`, `e-commerce store`. Printable ASCII, at most 60 characters. See **App type** below. |
+| header | `X-Scale-To-Zero` | always on | `true` lets an idle server app sleep; `false` turns it back off. See [scale to zero](capabilities.md#scale-to-zero). |
 | header | `X-Agent-Name` | none | Which agent is deploying, in lowercase: `claude-code`, `claude`, `chatgpt`, `codex`, `cursor`, `copilot`, `gemini`, and so on. Printable ASCII, at most 60 characters. See **Agent name** below. |
 
 **Example request:**
@@ -484,6 +487,9 @@ in memory, not durable history — use [deployment history](#history) for that.
 }
 ```
 
+`logs` is about the last 8KB of output — a snapshot, with no long-term
+retention. Call again to follow along.
+
 When the latest build failed, the response carries the **build** output
 instead, with `source: "build"` and a `next` saying the cause is in there.
 That is where the failing command is named. This includes a failed redeploy
@@ -556,13 +562,15 @@ yours.
 
 ## [Roll back to an earlier deployment](#rollback)
 
-**`POST https://ship.embarko.ai/api/apps/<app-name>/deployments/<deploymentId>/rollback`**
+**`POST https://ship.embarko.ai/api/apps/<app-name>/rollback`**
 · async · not idempotent
 
 **Auth:** deploy token, always.
 
-**Required:** `deploymentId` in the path — **this is what chooses the
-version.** Read the history first; do not assume rollback steps back one.
+**Optional body:** `{"deploymentId": "..."}` picks the version. Send `{}` (or
+no body) to go back to the most recent successful deployment that isn't the
+current one — usually what you want. To pick a specific one, read the
+history first: `rollbackTarget: true` marks the valid targets.
 
 **Example:**
 
@@ -570,13 +578,13 @@ version.** Read the history first; do not assume rollback steps back one.
 curl "https://ship.embarko.ai/api/apps/my-app/deployments" \
   -H "Authorization: Bearer $DEPLOY_TOKEN"
 
-curl -X POST \
-  "https://ship.embarko.ai/api/apps/my-app/deployments/<deploymentId>/rollback" \
-  -H "Authorization: Bearer $DEPLOY_TOKEN" \
-  -H "X-Agent-Name: claude"
+curl -X POST "https://ship.embarko.ai/api/apps/my-app/rollback" \
+  -H "Authorization: Bearer $DEPLOY_TOKEN" -H "Content-Type: application/json" \
+  -H "X-Agent-Name: claude" \
+  -d '{"deploymentId": "<deploymentId>"}'   # or '{}' for the previous good one
 ```
 
-**Success — `202 Accepted`**, carrying the new deployment and a `statusUrl`.
+**Success — `202 Accepted`**: `{ accepted, deploymentId, rolledBackTo: { id, version }, statusUrl, terminal: false }`.
 Rollback creates a **new** history entry pointing at the old image; history
 is never rewritten. Poll until its status leaves `in_progress`.
 
@@ -590,6 +598,7 @@ is never rewritten. Poll until its status leaves `in_progress`.
 
 | Code / shape | Status | Retry | Action |
 | --- | --- | --- | --- |
+| `no_rollback_target` | 422 | No | No earlier successful deployment exists. Fix forward and redeploy. |
 | `rollback_image_unavailable` | 422 | No | Image pruned. `retainCount` says how far back you can reach — pick a newer target, or redeploy the old source. |
 | other `422` | 422 | No | Target never succeeded, or has no image. Pick a different deployment. |
 | `unauthorized` | 401 | No | Bad token. |
@@ -610,7 +619,7 @@ deploy).
 
 **Required:** `newName` in the body.
 
-Distinct from `PATCH /apps/<name>`, which changes the display name and
+Distinct from `PATCH /api/apps/<name>`, which changes the display name and
 leaves the URL alone. This changes the URL itself.
 
 **Ask the user first.** The old address stops working the moment the new
@@ -673,8 +682,8 @@ always.**
 | Operation | Method & path | Idempotent | Notes |
 | --- | --- | --- | --- |
 | List keys | `GET /env-vars` | yes | **Keys only — values are never returned.** |
-| Replace all | `PUT /env-vars` | yes | Anything omitted is removed. |
-| Set one | `PUT /env-vars/<key>` | yes | Body `{"value": "..."}`. |
+| Set several | `PUT /env-vars` | yes | Body `{"vars": [{"key", "value"}], "apply": true}`. **A merge**: the keys you send are added or updated, every other key is left as it is. Remove one with `DELETE`. |
+| Set one | `PUT /env-vars/<key>` | yes | Body `{"value": "...", "apply": true}`. |
 | Delete one | `DELETE /env-vars/<key>` | yes | |
 | Apply to running app | `POST /env-vars/apply` | yes | Required — see below. |
 
@@ -698,8 +707,10 @@ call and on any write with `"apply": true`. On these calls a malformed name is
 ignored rather than rejected.
 
 **The behaviour that catches agents:** a write only *stores* the value. The
-running app does not see it until you call `POST /env-vars/apply` or deploy
-again. Writing a key and reporting success without applying leaves the app
+running app does not see it until you call `POST /env-vars/apply`, deploy
+again, or send `"apply": true` on the write itself — which applies at once
+with no rebuild (`202`, with a `statusUrl` to poll). Leave it off to batch
+several writes into one restart. Writing a key and reporting success without applying leaves the app
 running on the old value.
 
 **Values are write-only.** You cannot read a secret back — not with the
@@ -720,31 +731,44 @@ idempotent
 
 **Auth:** deploy token.
 
-**Fill the details from the project.** Infer what you can from the code,
-README and live app — name, tagline, what it does, the AI that built it, a
-category and tags. Ask the user for the rest: who they are, a profile link,
-a contact email, and anything you can't tell. Never send placeholder text —
-listing publishes at once.
+**Only when the user wants it listed.** Then:
+
+1. **Check for an existing listing first** —
+   `GET https://ship.embarko.ai/api/public/showcase/apps/<app-name>` (no
+   token). An app has one listing, reused on the public gallery and every
+   event page; if it exists, reuse its details and send only what changes.
+2. **Draft the rest from the project.** Infer what you can from the code,
+   README and live app — tagline, what it does, the AI that built it, a
+   category and tags. Write it for people searching: what the app does, who
+   it is for, the problem it solves, in plain words.
+3. **Ask only for what you can't know** — who built it, a profile link, and
+   whether they want a contact email shown. Never invent creator details,
+   links, screenshots, an event slug or a code.
+4. **Show the user the listing and get their go-ahead** before the `PUT`. A
+   public listing is live the moment it is sent.
+
+The app must be [claimed](agent-playbook.md#claim) — a temporary app has no
+token to call this with.
 
 **Body:**
 
 | Field | Required | What to send |
 | --- | --- | --- |
-| `collectionSlug` | | The Showcase page to list on, e.g. `"walkover"`. Empty is the public gallery. |
-| `code` | | The event's code, if the user has one. Skips the organiser's review. |
-| `name` | first listing | The app's name. Up to 80 characters. |
-| `tagline` | first listing | One line about it. Up to 160 characters. |
-| `description` | | What it does — a short paragraph. |
-| `story` | | Why it was built — a short paragraph. |
-| `creatorName` | first listing | Who built it. Up to 80 characters. |
-| `creatorProfile` | | A link to the creator's profile, if they have one. |
-| `contactEmail` | | Adds a "Contact Dev" button to the page. Visitors never see the address. |
-| `builtWith` | | The AI that built it: `Claude`, `Codex`, `Cursor`, `Lovable`, `Replit` or `Other`. |
-| `category` | | One of `AI Tool`, `Personal`, `Business`, `Productivity`, `Education`, `Game`, `Developer Tool`, `Other`. |
-| `tags` | | A few short tags, as an array. Up to 20. |
-| `screenshotUrls` | | Public image URLs of the app's main screens, as an array. Without one the app doesn't show on the page. |
-| `videoUrl` | | A video of the app, if there is one. |
-| `customHtml` | | Your own HTML section for the listing page. |
+| `collectionSlug` | | The event Showcase page's slug, e.g. `"walkover"`. **Leave it out for the public gallery.** |
+| `code` | | The event page's submit code, if the organiser gave one. Skips their review. |
+| `name` | | Defaults to the app's current name. Becomes the page title, **and renames the app in the dashboard**. |
+| `tagline` | first listing | One line: what it does and who it's for, about 60–160 characters. Used as the page's search description. |
+| `creatorName` | first listing | The person or organisation that built it. Shown as the author. |
+| `description` | | What it does: features and use cases, in plain searchable words. Up to 4000 characters. |
+| `story` | | Why it was built, in the creator's words. Up to 600 characters. |
+| `creatorProfile` | | An `https` link to the creator — GitHub, X, LinkedIn or a personal site. |
+| `contactEmail` | | Adds a "Contact Dev" button; visitors never see the address. **Ask before sending it.** |
+| `builtWith` | | The tool that built it: `Claude`, `Codex`, `Cursor`, `Lovable`, `Replit`, or another. |
+| `category` | | The closest of `AI Tool`, `Personal`, `Business`, `Productivity`, `Education`, `Game`, `Developer Tool`, `Other`. |
+| `tags` | | Terms people would search for — not the category again. At most 8. |
+| `screenshotUrls` | | `https` image URLs, at most 10. **The first is the card and social-share image**, so make it a real screenshot, not a logo. |
+| `videoUrl` | | A demo video, e.g. YouTube or Loom. |
+| `customHtml` | | Extra content for the listing page, up to 50,000 characters. Its headings and text are indexed. |
 | `prd` | | The app's product spec, for "Build similar app". |
 
 **Example:**
@@ -773,15 +797,22 @@ curl -X PUT "https://ship.embarko.ai/api/apps/my-app/showcase" \
 
 **Success:** `201` on first listing, `200` on update — both return the
 listing with `status` and a one-line `next`. Calling it again **merges**: only the
-fields you send change (`""` clears one), so a single-field update is fine.
-There is no separate edit endpoint.
+fields you send change — `""` clears a field and `[]` clears a list — so a
+single-field update is fine and a retry is safe. There is no separate edit
+endpoint.
 
 **Approval:** an empty `collectionSlug` is the public gallery, live at once.
 An event page needs the organiser's approval: the listing comes back
 `status: "pending"` and appears on the page once approved. Send the event's
-`code` (the organiser hands it out) and it is `"approved"` at once. A wrong
-code is not an error — it just waits. `"rejected"` carries the organiser's
-reason in `next`; fix that and call again.
+`code` (the organiser hands it out) with the first submission and it is
+`"approved"` at once. A wrong code is not an error — it just waits.
+`"rejected"` carries the organiser's reason in `next`; fix that and call
+again, with the code if you now have it.
+
+**After it's live, follow `next`.** It asks you to help the user promote the
+app — short posts for each platform about what they built, who it helps and
+why to try it — and, if there is no video yet, to suggest a short demo:
+qualifying approved videos get a year of Embarko Pro for that app.
 
 **Errors:** `404 SHOWCASE_COLLECTION_UNKNOWN` (bad slug),
 `403 SHOWCASE_COLLECTION_PRIVATE` (another company's page). Neither is
@@ -879,18 +910,18 @@ including this one.
 
 ## [Manage a live app](#manage)
 
-All on the deploy host, all with a deploy token.
+All on the deploy host under `/api/apps/<name>`, all with a deploy token.
 
 | Action | Call | Notes |
 | --- | --- | --- |
-| Register a custom domain | `POST /apps/<name>/domains` `{"domain": "..."}` | Returns the DNS record to create |
-| List domains | `GET /apps/<name>/domains` | |
-| Verify a domain | `POST /apps/<name>/domains/<domain>/verify` | Safe to repeat while DNS propagates |
-| Remove a domain | `DELETE /apps/<name>/domains/<domain>` | Never affects the default URL |
-| Analytics | `GET /apps/<name>/analytics?range=7d` | `24h`/`7d`/`30d`/`90d`/`all`, default `24h` |
-| Rename (display name) | `PATCH /apps/<name>` `{"name": "My App"}` | Slug and URL never change |
+| Register a custom domain | `POST /api/apps/<name>/domains` `{"domain": "..."}` | Returns the DNS record to create. `400 domain_reserved` for Embarko's own addresses (`*.embarko.app`); `409 domain_taken` if another app has it |
+| List domains | `GET /api/apps/<name>/domains` | |
+| Verify a domain | `POST /api/apps/<name>/domains/<domain>/verify` | Safe to repeat while DNS propagates |
+| Remove a domain | `DELETE /api/apps/<name>/domains/<domain>` | Never affects the default URL |
+| Analytics | `GET /api/apps/<name>/analytics?range=7d` | `24h`/`7d`/`30d`/`90d`/`all`, default `24h` |
+| Rename (display name) | `PATCH /api/apps/<name>` `{"name": "My App"}` | Slug and URL never change |
 | Change the web address | `POST /api/apps/<name>/slug-change` `{"newName": "..."}` | Changes the URL. Ask the user first — see [above](#change-address) |
-| Delete the app | `DELETE /apps/<name>` `{"confirmAppName": "<name>"}` | Irreversible, no backup |
+| Delete the app | `DELETE /api/apps/<name>` `{"confirmAppName": "<name>"}` | Irreversible, no backup |
 
 Four behaviours worth stating outright:
 
