@@ -6,14 +6,29 @@ import { Check, Loader2 } from "lucide-react";
 /** How long before the wait reads as stuck and the text says what to do. */
 const SLOW_MS = 10_000;
 
-/** "https://claude.ai/api/mcp/callback" → "claude.ai". Null if it won't parse. */
-export function destinationHost(redirectUri: string | null): string | null {
-  if (!redirectUri) return null;
-  try {
-    return new URL(redirectUri).host.replace(/^www\./, "") || null;
-  } catch {
-    return null;
+/* Hosts of the AI tools people connect from, and what to call them. Only
+   these are ever named: the OAuth redirect_uri points at the connector
+   service in between (mcp.viasocket.com), never at the tool itself, so a
+   host read from it would show the person an address that means nothing to
+   them. Anything unknown reads "your AI tool". */
+const AI_TOOLS: Record<string, string> = {
+  "claude.ai": "Claude",
+  "chatgpt.com": "ChatGPT",
+  "chat.openai.com": "ChatGPT",
+};
+
+/** The AI tool's name from a URL it sent us from, e.g. document.referrer → "Claude". */
+export function aiToolName(...urls: (string | null | undefined)[]): string | null {
+  for (const u of urls) {
+    if (!u) continue;
+    try {
+      const host = new URL(u).host.replace(/^www\./, "");
+      if (AI_TOOLS[host]) return AI_TOOLS[host];
+    } catch {
+      // not a URL — try the next one
+    }
   }
+  return null;
 }
 
 /**

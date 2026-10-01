@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CONNECTOR_PENDING_REDIRECT_KEY, CONNECTOR_PENDING_STATE_KEY } from "../../lib/connectorPendingRedirect";
-import { ConnectorRedirecting, destinationHost } from "./ConnectorRedirecting";
+import { CONNECTOR_PENDING_REDIRECT_KEY, CONNECTOR_PENDING_STATE_KEY, CONNECTOR_PENDING_TOOL_KEY } from "../../lib/connectorPendingRedirect";
+import { ConnectorRedirecting } from "./ConnectorRedirecting";
 
 // MSG91's "redirect" mode for the connector's referenceId is configured on
 // MSG91's own dashboard to always land the browser on this site's root,
@@ -41,9 +41,11 @@ export function ConnectorTokenPickup() {
 
     let redirectUri: string | null;
     let state: string | null;
+    let tool: string | null = null;
     try {
       redirectUri = localStorage.getItem(CONNECTOR_PENDING_REDIRECT_KEY);
       state = localStorage.getItem(CONNECTOR_PENDING_STATE_KEY);
+      tool = localStorage.getItem(CONNECTOR_PENDING_TOOL_KEY);
       debugLog("read pending redirect:", redirectUri, "state:", state);
     } catch (err) {
       debugLog("localStorage read failed:", err);
@@ -57,6 +59,7 @@ export function ConnectorTokenPickup() {
     try {
       localStorage.removeItem(CONNECTOR_PENDING_REDIRECT_KEY);
       localStorage.removeItem(CONNECTOR_PENDING_STATE_KEY);
+      localStorage.removeItem(CONNECTOR_PENDING_TOOL_KEY);
     } catch {
       // ignore
     }
@@ -66,7 +69,7 @@ export function ConnectorTokenPickup() {
     bridge.searchParams.set("redirect_uri", redirectUri);
     if (state) bridge.searchParams.set("state", state);
     debugLog("forwarding to bridge:", bridge.toString());
-    setForwardingTo(destinationHost(redirectUri));
+    setForwardingTo(tool);
     window.location.replace(bridge.toString());
   }, []);
 

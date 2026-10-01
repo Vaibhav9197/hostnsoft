@@ -6,3 +6,6 @@
 // router only allows a fixed set of named exports from a page file.
 export const CONNECTOR_PENDING_REDIRECT_KEY = "embarko_connector_pending_redirect_uri";
 export const CONNECTOR_PENDING_STATE_KEY = "embarko_connector_pending_state";
+// The AI tool's display name ("Claude"), for the "connecting…" screen on
+// whichever page the hand-off finishes.
+export const CONNECTOR_PENDING_TOOL_KEY = "embarko_connector_pending_tool";

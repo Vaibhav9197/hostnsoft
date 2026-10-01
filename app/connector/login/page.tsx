@@ -3,8 +3,8 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Alert } from "../../components/console/kit";
-import { ConnectorRedirecting, destinationHost } from "../../components/connector/ConnectorRedirecting";
-import { CONNECTOR_PENDING_REDIRECT_KEY, CONNECTOR_PENDING_STATE_KEY } from "../../lib/connectorPendingRedirect";
+import { ConnectorRedirecting, aiToolName } from "../../components/connector/ConnectorRedirecting";
+import { CONNECTOR_PENDING_REDIRECT_KEY, CONNECTOR_PENDING_STATE_KEY, CONNECTOR_PENDING_TOOL_KEY } from "../../lib/connectorPendingRedirect";
 
 // Login entry point for AI-connector OAuth flows (e.g. a generic MCP OAuth
 // proxy redirecting a user here with its own redirect_uri/state, the way it
@@ -53,7 +53,10 @@ function ConnectorLoginInner() {
      back to the AI tool, which takes a few seconds, and the sign-in form
      sitting there unchanged read as "nothing happened". */
   const [redirecting, setRedirecting] = useState(false);
-  const host = destinationHost(redirectUri);
+  /* The tool the person came from — read from the referrer, since the
+     redirect_uri is the connector service's, not the tool's. Read once, on
+     first load: the referrer changes as the widget does its work. */
+  const [host, setHost] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const started = useRef(false);
 
@@ -61,11 +64,15 @@ function ConnectorLoginInner() {
     if (!redirectUri || !REFERENCE_ID || started.current) return;
     started.current = true;
     const targetRedirectUri = redirectUri;
+    const tool = aiToolName(document.referrer, redirectUri);
+    setHost(tool);
 
     try {
       localStorage.setItem(CONNECTOR_PENDING_REDIRECT_KEY, targetRedirectUri);
       if (state) localStorage.setItem(CONNECTOR_PENDING_STATE_KEY, state);
       else localStorage.removeItem(CONNECTOR_PENDING_STATE_KEY);
+      if (tool) localStorage.setItem(CONNECTOR_PENDING_TOOL_KEY, tool);
+      else localStorage.removeItem(CONNECTOR_PENDING_TOOL_KEY);
       debugLog("stashed pending redirect:", targetRedirectUri, "state:", state);
     } catch (err) {
       // Private browsing / storage disabled - the in-page success callback
@@ -100,6 +107,7 @@ function ConnectorLoginInner() {
           try {
             localStorage.removeItem(CONNECTOR_PENDING_REDIRECT_KEY);
             localStorage.removeItem(CONNECTOR_PENDING_STATE_KEY);
+            localStorage.removeItem(CONNECTOR_PENDING_TOOL_KEY);
           } catch {
             // ignore
           }
