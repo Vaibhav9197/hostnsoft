@@ -343,3 +343,8 @@
 
 .sc .sc-mega .ds-steps{margin-top:24px}
 @media (max-width:600px){.sc .sc-br-wide{display:none}}
+
+.sc .sc-contributors{display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:0}
+.sc .sc-contributors a{max-width:100%;overflow-wrap:anywhere}
+.sc .sc-custom-wrap{margin-top:var(--sc-chapter)}
+.sc .sc-custom{display:block;width:100%;border:0;background:transparent}

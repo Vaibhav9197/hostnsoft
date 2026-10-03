@@ -39,6 +39,8 @@ export interface ShowcaseApp {
   prd: string | null;
   /** Creator-supplied HTML, rendered on the app details page. */
   customHtml: string | null;
+  /** Emails of the people who worked on the app, shown under Details. */
+  contributorEmails?: string[] | null;
   category: string | null;
   tags: string[];
   featured: boolean;

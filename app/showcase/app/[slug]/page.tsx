@@ -12,6 +12,7 @@ import { ShareApp } from "../../share";
 import { CtaSection } from "../../../components/ds";
 import { Media } from "./Media";
 import { ContactDev } from "./ContactDev";
+import { CustomHtml } from "./CustomHtml";
 import { COPIED_LABEL, CopyPromptButton } from "../../../components/CopyPromptButton";
 import { buildSimilarPrompt } from "../../../lib/showcasePrompt";
 import { ShowcaseBreadcrumbs } from "../../breadcrumbs";
@@ -123,6 +124,8 @@ export default async function ShowcaseAppPage({ params }: Props) {
 
   const listed = Number.isNaN(Date.parse(app.createdAt)) ? null : LISTED.format(new Date(app.createdAt));
   const host = hostOf(app.appUrl);
+  const contributors = (app.contributorEmails ?? []).map((e) => e.trim()).filter(Boolean);
+  const customHtml = app.customHtml?.trim();
 
   return (
     <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased">
@@ -282,6 +285,18 @@ export default async function ShowcaseAppPage({ params }: Props) {
                       <dd>{listed}</dd>
                     </div>
                   )}
+                  {contributors.length > 0 && (
+                    <div>
+                      <dt>Contributors</dt>
+                      <dd className="sc-contributors">
+                        {contributors.map((email) => (
+                          <a key={email} href={`mailto:${email}`}>
+                            {email}
+                          </a>
+                        ))}
+                      </dd>
+                    </div>
+                  )}
                   <div>
                     <dt>Address</dt>
                     <dd>
@@ -295,6 +310,12 @@ export default async function ShowcaseAppPage({ params }: Props) {
             </aside>
           </div>
         </div>
+
+        {customHtml && (
+          <section className="sc-custom-wrap" aria-label={`More from ${app.name}`}>
+            <CustomHtml html={customHtml} title={`More from ${app.name}`} />
+          </section>
+        )}
 
         <CtaSection />
 
