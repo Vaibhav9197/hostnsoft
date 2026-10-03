@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, ArrowUpRight, Copy } from "lucide-react";
+import { ArrowRight, Copy } from "lucide-react";
 
 import { SiteHeader } from "../../../components/SiteHeader";
 import { SiteFooter } from "../../../components/SiteFooter";
@@ -189,13 +189,7 @@ export default async function ShowcaseAppPage({ params }: Props) {
                 </>
               )}
             </div>
-            {/* Opening the app is what a visitor came for, so it leads; the
-                address in the browser frame alone was easy to miss. */}
             <div className="sc-actions">
-                <a href={app.appUrl} target="_blank" rel="noreferrer nofollow ugc" className="sc-btn pri lg">
-                  Open app
-                  <ArrowUpRight aria-hidden="true" />
-                </a>
                 {canContact && <ContactDev slug={app.slug} appName={app.name} creatorName={app.creatorName} />}
                 {app.prd?.trim() && (
                   <CopyPromptButton
