@@ -1,44 +1,36 @@
 import { SITE, SITE_HOST } from "./site";
 import type { ShowcaseListing } from "./types";
 
+/* The shared body of every "list my app" prompt. It names where, then hands
+   the agent to the docs: deploying is the quickstart's job, listing is the
+   showcase capability's (which owns the fields, the flow and the approval
+   rules), so nothing here can go stale in a chat history. */
+const SHOWCASE_STEPS = `If it isn't deployed to Embarko yet, deploy it first.
+Read ${SITE}/docs/agent-quickstart.md and follow it.
+Then list it: read https://ship.embarko.ai/capabilities/showcase
+Faster, if your tools let you install one: npx skills add embarko-ai/skill --skill embarko-deploy -g`;
+
 /**
- * The "list my app on Showcase" prompt, built the same way as deployPrompt.ts:
- * it states the intent, names the page, and points at the docs. It does not
- * restate endpoints — those live with the platform and would go stale in a
- * chat history.
- *
- * The listing fields are not listed here either: the docs name them, say
- * which the agent can infer from the project, and which to ask the person for.
+ * The "list my app on Showcase" prompt for one page: the public gallery, or
+ * an event page by name and address.
  */
 export function showcaseListPrompt(
   page: { slug: string; title: string; type: "public" | "event" },
   /** Names the app so the agent lists this one, not whatever it guesses. */
   appSlug?: string | null,
-  /** The event's submit code, when the organiser is the one sharing the prompt. */
+  /** The event's submit code — only when the organiser chose to share it. */
   code?: string | null,
 ): string {
+  const which = appSlug ? `my Embarko app "${appSlug}"` : "this app";
   const where =
     page.type === "event"
       ? `the Embarko Showcase page "${page.title}" (${SITE_HOST}/showcase/${page.slug})`
-      : `my workspace's Embarko Showcase page "${page.title}" (${SITE_HOST}/showcase/${page.slug})`;
+      : `the Embarko Showcase (${SITE_HOST}/showcase)`;
+  // The opt-in on the event's manage page: with it the listing skips review.
+  const withCode = page.type === "event" && code ? `\nUse code "${code}" so it goes on the page at once.` : "";
 
-  const which = appSlug ? `my Embarko app "${appSlug}"` : "this app";
-  const approval =
-    page.type !== "event"
-      ? ""
-      : code
-        ? `\nSend code "${code}" with it so it goes on the page at once.`
-        : `\nIf I have the event's code, send it with the listing so it goes on the page at once; otherwise it waits for the organiser's approval.`;
-
-  return `List ${which} on ${where}.${approval}
-
-If it isn't deployed to Embarko yet, deploy it first: read ${SITE}/docs/agent-quickstart.md and follow it.
-Use my deploy token — DEPLOY_TOKEN or ~/.embarko/credentials if either is set; if neither is, ask me for one from ${SITE}/app/tokens.
-
-Then list it: read ${SITE}/docs/api.md#showcase for how to call the Showcase API with
-page slug "${page.slug}".
-
-When it's live, give me the link to its Showcase page. If the reply says it's awaiting approval, tell me that instead.`;
+  return `List ${which} on ${where}.${withCode}
+${SHOWCASE_STEPS}`;
 }
 
 /**
@@ -95,22 +87,10 @@ ${details.join("\n")}
 When it's done, give me the link to its Showcase page.`;
 }
 
-/**
- * The same prompt for the public Showcase itself, with no page chosen. The
- * API still needs a page slug, so the listing goes on the company's own page,
- * which every company has from signup and which feeds the public gallery.
- */
-/** `pageSlug`: the workspace's own page, when the caller knows it, so the agent needn't ask. */
-export function showcaseGeneralPrompt(pageSlug?: string): string {
+/** The same prompt for the public gallery, from pages that aren't one Showcase page. */
+export function showcaseGeneralPrompt(): string {
   return `List this app on the Embarko Showcase (${SITE_HOST}/showcase).
-
-If it isn't deployed to Embarko yet, deploy it first: read ${SITE}/docs/agent-quickstart.md and follow it.
-Use my deploy token — DEPLOY_TOKEN or ~/.embarko/credentials if either is set; if neither is, ask me for one from ${SITE}/app/tokens.
-
-Then list it: read ${SITE}/docs/api.md#showcase for how to call the Showcase API.
-${pageSlug ? `Use page slug "${pageSlug}" (my workspace's own Showcase page).` : "Use my workspace's own Showcase page as the page slug (ask me for it if you can't tell)."}
-
-When it's live, give me the link to its Showcase page.`;
+${SHOWCASE_STEPS}`;
 }
 
 /**

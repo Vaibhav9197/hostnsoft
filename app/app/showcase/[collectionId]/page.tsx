@@ -803,7 +803,7 @@ export default function ShowcaseManagePage() {
               Show off your apps on Embarko Showcase.
               <div className="mt-5">
                 <CopyPromptButton
-                  text={showcaseGeneralPrompt(meta.slug)}
+                  text={showcaseGeneralPrompt()}
                   announce="Prompt copied."
                   copiedChildren={COPIED_LABEL}
                   className={cn(buttonVariants(), "h-11 sm:h-9")}
