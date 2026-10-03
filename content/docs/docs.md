@@ -656,7 +656,7 @@ curl -X PUT "https://ship.embarko.ai/api/apps/my-app/showcase" \
     "story": "Why it was built",
     "creatorName": "Jane",
     "creatorProfile": "https://x.com/jane",
-    "contactEmail": "jane@example.com",
+    "contributorEmails": ["jane@example.com", "sam@example.com"],
     "builtWith": "Claude",
     "category": "AI Tool",
     "tags": ["chat", "notes"],
@@ -667,9 +667,10 @@ curl -X PUT "https://ship.embarko.ai/api/apps/my-app/showcase" \
 ```
 
 `name`, `tagline`, and `creatorName` are required the first time an app
-is listed; everything else is optional — [every field](api.md#showcase). `contactEmail` adds a "Contact Dev"
-button to the app's page; visitors' messages are mailed there and the
-address is never shown. `collectionSlug` is an event page's slug from its URL
+is listed; everything else is optional — [every field](api.md#showcase). `contributorEmails` lists everyone who
+built the app, the person showcasing it first; it adds a "Contact Dev"
+button to the app's page, visitors' messages are mailed to all of them and
+the addresses are never shown. `collectionSlug` is an event page's slug from its URL
 (`/showcase/<slug>`); leave it empty for the public gallery.
 `404 SHOWCASE_COLLECTION_UNKNOWN` for an unknown slug.
 
