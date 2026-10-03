@@ -90,7 +90,7 @@ function TrafficChart({ series, range }: { series: Analytics["traffic"]["series"
         config={TRAFFIC_CONFIG}
         /* aspect-video is ChartContainer's default and would fix the height to
            the card's width; this chart instead fills whatever the row gives it. */
-        className="mt-3 aspect-auto min-h-[8rem] w-full flex-1"
+        className="mt-3 aspect-auto min-h-[16rem] w-full flex-1"
       >
         {/* A line rather than stacked bars: a quiet app is a flat run at zero
             with a spike where the traffic actually was, and that shape is what
@@ -160,10 +160,10 @@ function TopPaths({ paths }: { paths: Analytics["traffic"]["topPaths"] }) {
   return (
     <div className="rounded-xl border border-border bg-card p-4">
       <div className="font-mono text-[0.66rem] uppercase tracking-[0.1em] text-faint">Top paths</div>
-      <ul className="mt-3 flex flex-col gap-2">
+      <ul className="mt-3 flex flex-col gap-1.5">
         {paths.map((row) => (
-          <li key={row.path} className="flex items-baseline justify-between gap-4 text-[0.9rem]">
-            <span className="truncate font-mono text-muted-foreground">{row.path}</span>
+          <li key={row.path} className="flex items-baseline justify-between gap-4 text-[0.78rem]">
+            <span className="min-w-0 truncate font-mono text-muted-foreground" title={row.path}>{row.path}</span>
             <span className="shrink-0 font-medium text-foreground">{formatCount(row.requests)}</span>
           </li>
         ))}
@@ -283,7 +283,7 @@ export function ProjectAnalytics({
               No requests in this range yet.
             </p>
           ) : (
-            <div className="grid gap-3.5 lg:grid-cols-[1.6fr_1fr]">
+            <div className="grid gap-3.5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
               <TrafficChart series={traffic.series} range={range} />
               {traffic.topPaths.length > 0 && <TopPaths paths={traffic.topPaths} />}
             </div>
