@@ -35,9 +35,7 @@ export function ProjectShowcasePages({
     let cancelled = false;
     showcaseApi
       .listMySubmissions(companyId, projectId)
-      // Workspace (public) pages are switched off for now, so only event
-      // pages are shown.
-      .then((mine) => !cancelled && setListings(mine.filter((l) => l.collection.type !== "public")))
+      .then((mine) => !cancelled && setListings(mine))
       // Secondary to the page: if Showcase can't load, leave the section out.
       .catch(() => !cancelled && setListings([]));
     return () => {
@@ -71,11 +69,15 @@ export function ProjectShowcasePages({
       </div>
       <Panel>
         <ul className="divide-y divide-border">
-          {listings.map((l) => (
+          {listings.map((l) => {
+            const pagePath = l.collection.type === "public" ? "/showcase" : `/showcase/${l.collection.slug}`;
+            const pageUrl = `${SITE_HOST}${pagePath}`;
+            const pageName = l.collection.type === "public" ? "Embarko Showcase" : l.collection.title;
+            return (
             <li key={l.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-x-2">
-                  <span className="text-[0.95rem] font-semibold text-foreground">{l.collection.title}</span>
+                  <span className="text-[0.95rem] font-semibold text-foreground">{pageName}</span>
                   {l.status === "pending" && <Tag tone="scheduled">Awaiting approval</Tag>}
                   {l.status === "rejected" && <Tag>Turned down</Tag>}
                   {l.isPrivate && <Tag>Hidden by organiser</Tag>}
@@ -84,12 +86,12 @@ export function ProjectShowcasePages({
                   {/* The address is the link, as with the app's own URL in the
                       header: it is what the reader recognises and goes to. */}
                   <a
-                    href={`/showcase/${l.collection.slug}`}
+                    href={pagePath}
                     target="_blank"
                     rel="noreferrer"
                     className="transition-colors hover:text-foreground hover:underline"
                   >
-                    {SITE_HOST}/showcase/{l.collection.slug}
+                    {pageUrl}
                   </a>{" "}
                   · added {formatDate(l.createdAt)}
                 </p>
@@ -108,7 +110,8 @@ export function ProjectShowcasePages({
                 </Button>
               )}
             </li>
-          ))}
+            );
+          })}
         </ul>
       </Panel>
 
