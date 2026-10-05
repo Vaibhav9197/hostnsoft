@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
-  CalendarClock, Database, Globe, History, KeyRound, Lock, Mail, Sparkles, Upload, UserRound, Workflow,
+  CalendarClock, Check, Database, Globe, History, KeyRound, Lock, Mail, Sparkles, Upload, UserRound, Workflow,
   type LucideIcon,
 } from 'lucide-react';
 import { trackPageView, trackCTA } from '../lib/tracking';
@@ -138,17 +138,35 @@ function HeroTimeline() {
   }, [copied]);
 
   return (
-    <ol className="mx-auto w-full max-w-2xl">
+    <ol className="mx-auto w-full max-w-3xl">
       <TimelineStep n="1" title="Copy the prompt" side="right" active={!copied}>
         <div className="mt-3">
-          <PrimaryCta size="md" label="Host your app" onClicked={() => trackCTA('copy')} onCopied={() => setCopied(true)} />
+          <PrimaryCta size="lg" label="Host your app" onClicked={() => trackCTA('copy')} onCopied={() => setCopied(true)} />
         </div>
       </TimelineStep>
       <TimelineStep n="2" title={copied ? 'Now paste it into your AI' : 'Paste it into your AI'} side="left" active={copied}>
         The same chat where you built your app.
+        {/* Answers "does it work with my AI?" right where the question comes up. */}
+        <span className="mt-2.5 flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-[13px]">
+          {AGENT_MARKS.map((a) => (
+            <span key={a.slug} className="inline-flex items-center gap-1.5 text-[var(--ds-ink)]">
+              <img src={`/agenticons/agenticon-${a.slug}.svg`} alt="" aria-hidden="true" className="size-3.5" />
+              {a.name}
+            </span>
+          ))}
+          <span>or any agent</span>
+        </span>
       </TimelineStep>
       <TimelineStep n="3" title="Get a live link" side="right" last>
         Your AI puts the app online and sends you the link.
+        {/* What the result looks like, so it isn't abstract. */}
+        <span className="mt-2.5 flex w-fit items-center gap-2 rounded-full border border-[var(--ds-line)] bg-[var(--ds-card)] px-3 py-1.5 shadow-[var(--ds-sh)]">
+          <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--ok)]">
+            <Check className="size-3.5" aria-hidden="true" />
+            Live
+          </span>
+          <span className="font-mono text-[13px] text-[var(--ds-ink)]">yourapp.embarko.app</span>
+        </span>
       </TimelineStep>
     </ol>
   );
@@ -158,46 +176,209 @@ function HeroTimeline() {
 
 /* Every line here is checked against content/docs/capabilities.md. "Not yet"
    marks what Embarko can't do today: don't promise it. */
-const NEEDS: { name: string; icon: LucideIcon; what: string; notYet?: boolean }[] = [
-  { name: 'Database', icon: Database, what: 'Your AI adds a database that lives with the app and keeps its data across updates.' },
-  { name: 'Login', icon: UserRound, what: 'Your AI builds sign-up and login into the app itself. Accounts are stored with the app.' },
-  { name: 'File uploads', icon: Upload, what: 'Uploaded files are saved with the app and kept across updates.' },
-  { name: 'Custom domain', icon: Globe, what: 'Use your own address, like app.yourcompany.com. Your AI sets it up; you add one DNS record.' },
-  { name: 'Secrets', icon: KeyRound, what: 'API keys stay out of the code. Your AI stores them safely for the app.' },
-  { name: 'Email', icon: Mail, what: 'Your AI connects an email service you choose. You paste its key once.' },
-  { name: 'Private sharing', icon: Lock, what: 'Apps are public by default. Your AI can add a password gate so only your people get in.' },
-  { name: 'Logs & recovery', icon: History, what: 'Your AI reads the logs to fix problems, and can roll back to the last good version in seconds.' },
+const NEEDS: { name: string; icon: LucideIcon; what: string; say?: string; notYet?: boolean }[] = [
+  { name: 'Database', icon: Database, what: 'Your AI adds a database that lives with the app and keeps its data across updates.', say: 'Add a database to my app.' },
+  { name: 'Login', icon: UserRound, what: 'Your AI builds sign-up and login into the app itself. Accounts are stored with the app.', say: 'Add sign-up and login.' },
+  { name: 'File uploads', icon: Upload, what: 'Uploaded files are saved with the app and kept across updates.', say: 'Let people upload photos.' },
+  { name: 'Custom domain', icon: Globe, what: 'Use your own address, like app.yourcompany.com. Your AI sets it up; you add one DNS record.', say: 'Put my app on app.mycompany.com.' },
+  { name: 'Secrets', icon: KeyRound, what: 'API keys stay out of the code. Your AI stores them safely for the app.', say: 'Store my Stripe key as a secret.' },
+  { name: 'Email', icon: Mail, what: 'Your AI connects an email service you choose. You paste its key once.', say: 'Send a welcome email when someone signs up.' },
+  { name: 'Private sharing', icon: Lock, what: 'Apps are public by default. Your AI can add a password gate so only your people get in.', say: 'Add a password so only my team can open it.' },
+  { name: 'Logs & recovery', icon: History, what: 'Your AI reads the logs to fix problems, and can roll back to the last good version in seconds.', say: 'My app broke. Find out why and fix it.' },
   { name: 'Schedules', icon: CalendarClock, what: 'Not built in yet. For now, your AI can trigger the app from an outside scheduler.', notYet: true },
   { name: 'Background jobs', icon: Workflow, what: 'Not available yet. Short tasks run inside the app; long jobs need to run elsewhere for now.', notYet: true },
 ];
 
+/* Hover opens after a short pause, so sweeping the mouse across the grid
+   doesn't flash a bubble on every tile. */
+const HOVER_OPEN_MS = 150;
+const HOVER_CLOSE_MS = 120;
+const BUBBLE_W = 288;
+
+type Anchor = { name: string; rect: DOMRect };
+
+/* The bubble over (or under) a tile: what it does, and the sentence you'd say
+   to your AI to get it. Fixed-positioned from the tile's rect and kept inside
+   the viewport, with a tail pointing back at the tile. */
+function NeedBubble({
+  anchor,
+  closing,
+  onEnter,
+  onLeave,
+}: {
+  anchor: Anchor;
+  closing: boolean;
+  onEnter: () => void;
+  onLeave: () => void;
+}) {
+  const n = NEEDS.find((x) => x.name === anchor.name)!;
+  const [copied, setCopied] = useState(false);
+  const { rect } = anchor;
+  const vw = window.innerWidth;
+  const center = rect.left + rect.width / 2;
+  const left = Math.max(12, Math.min(center - BUBBLE_W / 2, vw - BUBBLE_W - 12));
+  const below = rect.top < 240;
+  const tailX = Math.max(18, Math.min(center - left, BUBBLE_W - 18));
+  const pos: React.CSSProperties = below
+    ? { left, top: rect.bottom + 12, width: BUBBLE_W, transformOrigin: `${tailX}px top` }
+    : { left, bottom: window.innerHeight - rect.top + 12, width: BUBBLE_W, transformOrigin: `${tailX}px bottom` };
+
+  async function copy() {
+    if (!n.say) return;
+    try {
+      await navigator.clipboard.writeText(n.say);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      // clipboard blocked: the sentence is on screen to type instead
+    }
+  }
+
+  return (
+    <div
+      id="need-bubble"
+      role="dialog"
+      aria-label={n.name}
+      onPointerEnter={onEnter}
+      onPointerLeave={onLeave}
+      data-closing={closing || undefined}
+      className="ds-pop fixed z-50 rounded-[18px] border border-[var(--ds-line)] bg-[var(--ds-card)] p-4 text-left shadow-[var(--ds-sh2)]"
+      style={pos}
+    >
+      <span
+        aria-hidden="true"
+        className={`ds-pop-tail absolute size-3 rotate-45 border-[var(--ds-line)] bg-[var(--ds-card)] ${below ? '-top-1.5 border-l border-t' : '-bottom-1.5 border-b border-r'}`}
+        style={{ left: tailX - 6 }}
+      />
+      {/* Keyed by tile, so moving to another tile cross-fades the words while
+          the bubble itself glides over. */}
+      <div key={n.name} className="ds-pop-body">
+      <p className="flex items-center gap-2 text-[15px] font-semibold">
+        <n.icon className="size-4" strokeWidth={1.75} aria-hidden="true" />
+        {n.name}
+        {n.notYet && <span className="rounded-full bg-[var(--ds-soft)] px-2 py-0.5 text-[11px] font-medium text-[var(--ds-dim)]">Not yet</span>}
+      </p>
+      <p className="mt-1.5 text-sm leading-relaxed text-[var(--ds-mute)]">{n.what}</p>
+      {n.say && (
+        <div className="mt-3 rounded-[12px] bg-[var(--ds-soft)] p-2.5">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-[var(--ds-dim)]">Say to your AI</p>
+          <div className="mt-1 flex items-start justify-between gap-2">
+            <p className="text-sm font-medium">&ldquo;{n.say}&rdquo;</p>
+            <button
+              type="button"
+              onClick={copy}
+              aria-label={copied ? 'Copied' : `Copy: ${n.say}`}
+              className="flex-none rounded-md px-1.5 py-0.5 text-xs font-medium text-[var(--ds-mute)] hover:bg-[var(--ds-card)] hover:text-[var(--ds-ink)]"
+            >
+              {copied ? 'Copied' : 'Copy'}
+            </button>
+          </div>
+        </div>
+      )}
+      </div>
+    </div>
+  );
+}
+
+/* How long the bubble takes to sink away before it unmounts. */
+const CLOSE_ANIM_MS = 160;
+
+/* Tiles stay calm until asked: hover (mouse), tap (touch) or focus
+   (keyboard) opens the bubble at the tile. Escape, a tap outside, or a
+   scroll closes it. */
 function NeedsGrid() {
-  const [open, setOpen] = useState<string | null>(null);
-  const active = NEEDS.find((n) => n.name === open);
+  const [anchor, setAnchor] = useState<Anchor | null>(null);
+  const [closing, setClosing] = useState(false);
+  const openTimer = useRef(0);
+  const closeTimer = useRef(0);
+  const unmountTimer = useRef(0);
+
+  const openFor = (name: string, el: HTMLElement) => {
+    window.clearTimeout(closeTimer.current);
+    window.clearTimeout(unmountTimer.current);
+    setClosing(false);
+    setAnchor({ name, rect: el.getBoundingClientRect() });
+  };
+  /* Plays the sink-away, then unmounts. Opening again mid-way cancels it. */
+  const close = () => {
+    window.clearTimeout(openTimer.current);
+    setClosing(true);
+    window.clearTimeout(unmountTimer.current);
+    unmountTimer.current = window.setTimeout(() => {
+      setAnchor(null);
+      setClosing(false);
+    }, CLOSE_ANIM_MS);
+  };
+  const cancelClose = () => {
+    window.clearTimeout(closeTimer.current);
+    window.clearTimeout(unmountTimer.current);
+    setClosing(false);
+  };
+  const scheduleClose = () => {
+    window.clearTimeout(openTimer.current);
+    closeTimer.current = window.setTimeout(close, HOVER_CLOSE_MS);
+  };
+
+  useEffect(() => {
+    if (!anchor) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close();
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as Element;
+      if (!t.closest('#need-bubble') && !t.closest('[data-need]')) close();
+    };
+    window.addEventListener('scroll', close, { passive: true });
+    window.addEventListener('resize', close);
+    window.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onDown);
+    return () => {
+      window.removeEventListener('scroll', close);
+      window.removeEventListener('resize', close);
+      window.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointerdown', onDown);
+    };
+  }, [anchor]);
+
+  useEffect(() => () => {
+    window.clearTimeout(openTimer.current);
+    window.clearTimeout(closeTimer.current);
+    window.clearTimeout(unmountTimer.current);
+  }, []);
+
   return (
     <div className="w-full">
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {NEEDS.map((n) => {
-          const on = open === n.name;
+          const on = anchor?.name === n.name && !closing;
           return (
             <li key={n.name} className="min-w-0">
               <button
                 type="button"
+                data-need
                 aria-expanded={on}
-                aria-controls="needs-detail"
-                onClick={() => setOpen(on ? null : n.name)}
-                className={`flex h-24 w-full flex-col justify-between rounded-[var(--ds-r)] border p-4 text-left transition-colors sm:h-28 ${
-                  on
-                    ? 'border-[var(--ds-ink)] bg-[var(--ds-ink)] text-[var(--ds-card)]'
-                    : 'border-[var(--ds-line)] bg-[var(--ds-card)] hover:border-[var(--ds-line2)]'
+                aria-controls={on ? 'need-bubble' : undefined}
+                onPointerEnter={(e) => {
+                  if (e.pointerType !== 'mouse') return;
+                  const el = e.currentTarget;
+                  window.clearTimeout(openTimer.current);
+                  openTimer.current = window.setTimeout(() => openFor(n.name, el), anchor ? 0 : HOVER_OPEN_MS);
+                }}
+                onPointerLeave={(e) => e.pointerType === 'mouse' && scheduleClose()}
+                onClick={(e) => {
+                  /* A second tap on touch closes it; a mouse click keeps the
+                     hover bubble open; Enter or Space opens it. */
+                  const type = (e.nativeEvent as PointerEvent).pointerType;
+                  if (on && (type === 'touch' || type === 'pen')) close();
+                  else openFor(n.name, e.currentTarget);
+                }}
+                onFocus={(e) => e.currentTarget.matches(':focus-visible') && openFor(n.name, e.currentTarget)}
+                className={`flex h-24 w-full flex-col justify-between rounded-[var(--ds-r)] border bg-[var(--ds-card)] p-4 text-left transition-[border-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-[var(--ds-sh)] sm:h-28 ${
+                  on ? 'border-[var(--ds-ink)] shadow-[var(--ds-sh)]' : 'border-[var(--ds-line)] hover:border-[var(--ds-line2)]'
                 }`}
               >
                 <span className="flex items-start justify-between gap-2">
-                  <n.icon className={`size-6 ${n.notYet && !on ? 'text-[var(--ds-dim)]' : ''}`} strokeWidth={1.75} aria-hidden="true" />
+                  <n.icon className={`size-6 ${n.notYet ? 'text-[var(--ds-dim)]' : ''}`} strokeWidth={1.75} aria-hidden="true" />
                   {n.notYet && (
-                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${on ? 'bg-white/15' : 'bg-[var(--ds-soft)] text-[var(--ds-dim)]'}`}>
-                      Not yet
-                    </span>
+                    <span className="rounded-full bg-[var(--ds-soft)] px-2 py-0.5 text-[11px] font-medium text-[var(--ds-dim)]">Not yet</span>
                   )}
                 </span>
                 <span className="text-[17px] font-semibold leading-tight tracking-tight sm:text-lg">{n.name}</span>
@@ -206,13 +387,8 @@ function NeedsGrid() {
           );
         })}
       </ul>
-      <p
-        id="needs-detail"
-        aria-live="polite"
-        className="mx-auto mt-6 min-h-[3.5rem] max-w-xl text-center text-lg text-[var(--ds-mute)]"
-      >
-        {active ? active.what : 'Tap one to see how it works.'}
-      </p>
+      <p className="mt-5 text-sm text-[var(--ds-dim)]">Hover or tap a tile to see what to ask for.</p>
+      {anchor && <NeedBubble anchor={anchor} closing={closing} onEnter={cancelClose} onLeave={scheduleClose} />}
     </div>
   );
 }
@@ -270,14 +446,14 @@ export default function EmbarkoV1() {
         <section className={SCENE}>
           <div className="w-full max-w-5xl space-y-10 text-center">
             <div className="space-y-4">
-              <p className="ds-kicker">And when your app needs more</p>
+              <p className="ds-kicker">When your app needs more</p>
               <h2 className={`${H_DISPLAY} text-4xl sm:text-5xl md:text-6xl`}>
-                Your AI can add what the app <Serif grad>needs</Serif> too.
+                Need more? You <Serif grad>already</Serif> have it.
               </h2>
             </div>
             <NeedsGrid />
-            <p className="text-lg font-semibold tracking-tight md:text-xl">
-              No Firebase setup. No S3 setup. No OAuth console. Ask your AI.
+            <p className="text-[15px] text-[var(--ds-mute)]">
+              No Firebase setup. No S3 setup. No OAuth console. <span className="font-semibold text-[var(--ds-ink)]">Life&apos;s too short for that.</span>
             </p>
           </div>
         </section>
