@@ -53,7 +53,7 @@ export function AppTile({ project: p }: { project: Project }) {
   );
 }
 
-/** The last tile on "Your apps": an empty slot that starts a new app. */
+/** The last tile on "Your apps": an empty slot to host a new app. */
 export function CreateAppTile({ onClick }: { onClick: () => void }) {
   return (
     <button
@@ -64,7 +64,7 @@ export function CreateAppTile({ onClick }: { onClick: () => void }) {
       <span className="grid size-12 place-items-center rounded-full bg-[var(--sc-ink)] text-[var(--sc-card)]">
         <Plus className="size-5" aria-hidden="true" />
       </span>
-      <span className="text-[15px] font-semibold">Create new app</span>
+      <span className="text-[15px] font-semibold">Host new app</span>
     </button>
   );
 }
