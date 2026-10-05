@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  ArrowUp, CalendarClock, Check, Database, Globe, History, KeyRound, Loader2, Lock, Mail, Sparkles, Upload, UserRound, Workflow,
+  CalendarClock, Database, Globe, History, KeyRound, Lock, Mail, Sparkles, Upload, UserRound, Workflow,
   type LucideIcon,
 } from 'lucide-react';
 import { trackPageView, trackCTA } from '../lib/tracking';
@@ -69,20 +69,6 @@ function PageViewTracker() {
   return null;
 }
 
-/** True once the element has scrolled into view; stays true. */
-function useSeen<T extends Element>() {
-  const ref = useRef<T>(null);
-  const [seen, setSeen] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || seen) return;
-    const io = new IntersectionObserver(([e]) => e.isIntersecting && setSeen(true), { threshold: 0.4 });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [seen]);
-  return { ref, seen };
-}
-
 /* ------------------------------------------------------------------ hero */
 
 const AGENT_MARKS = [
@@ -123,7 +109,7 @@ function Dot({ n, active }: { n: string; active?: boolean }) {
 
 /* One stop on the hero's centre timeline. Steps alternate sides of the line,
    so the dotted path down the middle stays the thing the eye follows. */
-function TimelineStep({ n, title, side, active, children }: { n: string; title: string; side: 'left' | 'right'; active?: boolean; children?: React.ReactNode }) {
+function TimelineStep({ n, title, side, active, last, children }: { n: string; title: string; side: 'left' | 'right'; active?: boolean; last?: boolean; children?: React.ReactNode }) {
   const words = (
     <div className={`min-w-0 pt-1.5 ${side === 'left' ? 'text-right' : 'text-left'}`}>
       <p className="text-lg font-semibold leading-tight tracking-tight">{title}</p>
@@ -131,7 +117,9 @@ function TimelineStep({ n, title, side, active, children }: { n: string; title: 
     </div>
   );
   return (
-    <li className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-x-4 pb-9 last:pb-0 sm:gap-x-6">
+    <li className="relative grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-x-4 pb-9 last:pb-0 sm:gap-x-6">
+      {/* From this dot down to the next one, so the line stops at the last dot. */}
+      {!last && <DottedLine className="absolute bottom-0 left-1/2 top-5 -translate-x-1/2" />}
       {side === 'left' ? words : <span />}
       <Dot n={n} active={active} />
       {side === 'right' ? words : <span />}
@@ -139,35 +127,18 @@ function TimelineStep({ n, title, side, active, children }: { n: string; title: 
   );
 }
 
-/* Takes the visitor to a timeline scene (step 2 after a copy, step 3 after
-   "send"). Lands where SectionSnap would, just under the beta bar. */
-function scrollToScene(id: string) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const beta = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--beta-bar-h')) || 0;
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - beta, behavior: reduced ? 'auto' : 'smooth' });
-}
-
-/* The hero's three steps on a dotted centre line that runs on into the next
-   sections. Copying lights up step 2 and scrolls to it. */
+/* The hero's three steps on a dotted centre line, dot 1 to dot 3. Copying
+   lights up step 2. */
 function HeroTimeline() {
   const [copied, setCopied] = useState(false);
   useEffect(() => {
     if (!copied) return;
-    const scroll = window.setTimeout(() => scrollToScene('paste'), 700);
     const reset = window.setTimeout(() => setCopied(false), NUDGE_MS);
-    return () => {
-      window.clearTimeout(scroll);
-      window.clearTimeout(reset);
-    };
+    return () => window.clearTimeout(reset);
   }, [copied]);
 
   return (
-    <ol className="relative mx-auto w-full max-w-2xl">
-      {/* From the first dot down to the bottom of the list, where the
-          section's own dotted line takes over. */}
-      <DottedLine className="absolute bottom-0 left-1/2 top-5 -translate-x-1/2" />
+    <ol className="mx-auto w-full max-w-2xl">
       <TimelineStep n="1" title="Copy the prompt" side="right" active={!copied}>
         <div className="mt-3">
           <PrimaryCta size="md" label="Host your app" onClicked={() => trackCTA('copy')} onCopied={() => setCopied(true)} />
@@ -176,155 +147,10 @@ function HeroTimeline() {
       <TimelineStep n="2" title={copied ? 'Now paste it into your AI' : 'Paste it into your AI'} side="left" active={copied}>
         The same chat where you built your app.
       </TimelineStep>
-      <TimelineStep n="3" title="Get a live link" side="right">
+      <TimelineStep n="3" title="Get a live link" side="right" last>
         Your AI puts the app online and sends you the link.
       </TimelineStep>
     </ol>
-  );
-}
-
-/* A full-height scene on the timeline: the dotted line comes in from the top
-   edge and leaves from the bottom edge, so the scenes join into one path. */
-function TimelineScene({
-  id,
-  lineIn,
-  lineOut,
-  className = '',
-  children,
-}: {
-  id?: string;
-  lineIn?: boolean;
-  lineOut?: boolean;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section id={id} className={`relative isolate flex min-h-[100dvh] flex-col items-center px-4 sm:px-6 ${className}`}>
-      {lineIn ? <DottedLine className="min-h-12 flex-1" /> : <span className="min-h-20 flex-1" />}
-      {children}
-      {lineOut ? <DottedLine className="min-h-12 flex-1" /> : <span className="min-h-16 flex-1" />}
-    </section>
-  );
-}
-
-/* A section's stop on the line: its number and a one-word label. */
-function TimelineNode({ n, label }: { n: string; label: string }) {
-  return (
-    <div className="flex flex-col items-center gap-3" aria-hidden="true">
-      <Dot n={n} active />
-      <span className="ds-kicker !mb-0">{label}</span>
-    </div>
-  );
-}
-
-/* Step 2, shown: the agents it works with, and the prompt sitting in a chat
-   box ready to send. */
-function PasteScene() {
-  return (
-    <div className="mx-auto w-full max-w-[560px] space-y-5">
-      <div className="flex flex-wrap items-center justify-center gap-2">
-        {AGENT_MARKS.map((a) => (
-          <span key={a.slug} className="ds-pill">
-            <img src={`/agenticons/agenticon-${a.slug}.svg`} alt="" aria-hidden="true" className="size-3.5" />
-            {a.name}
-          </span>
-        ))}
-        <span className="ds-pill text-[var(--ds-mute)]">or any agent</span>
-      </div>
-      <div className="rounded-[var(--ds-r)] border border-[var(--ds-line)] bg-[var(--ds-card)] p-4 text-left shadow-[var(--ds-sh2)]">
-        <p className="text-[15px] leading-relaxed"><PromptText /></p>
-        <div className="mt-4 flex items-center justify-between">
-          <span className="text-xs text-[var(--ds-dim)]">In your app&apos;s chat</span>
-          {/* "Send" moves the story on: down to step 3, where the chat plays out. */}
-          <button
-            type="button"
-            onClick={() => scrollToScene('live')}
-            aria-label="Send it and see what happens"
-            title="Send it and see what happens"
-            className="grid size-9 place-items-center rounded-full bg-[var(--ds-ink)] text-[var(--ds-card)] transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ds-ink)]"
-          >
-            <ArrowUp className="size-4" aria-hidden="true" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ----------------------------------------------------------- the magic */
-
-/* One chat, four beats, revealed in order once on screen: the app, the line
-   the person typed, the build, the result. Proof there is no step 4. */
-function MagicChat() {
-  const { ref, seen } = useSeen<HTMLDivElement>();
-  const beat = `transition-all duration-500 motion-reduce:transition-none ${seen ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'}`;
-  const delay = (i: number) => ({ transitionDelay: `${i * 700}ms` });
-  /* The build finishes a beat after "Building…" appears, and only then does
-     the link show, so the chat never claims building and live at once. */
-  const [built, setBuilt] = useState(false);
-  useEffect(() => {
-    if (!seen) return;
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const id = window.setTimeout(() => setBuilt(true), reduced ? 0 : 3200);
-    return () => window.clearTimeout(id);
-  }, [seen]);
-  return (
-    <div
-      ref={ref}
-      className="mx-auto w-full max-w-[520px] overflow-hidden rounded-[var(--ds-r)] border border-[var(--ds-line)] bg-[var(--ds-card)] text-left shadow-[var(--ds-sh2)]"
-      aria-label="A chat with an AI agent: the app, the prompt, building, then live"
-      role="img"
-    >
-      <div className="flex items-center gap-2 border-b border-[var(--ds-line)] bg-[var(--ds-soft)] px-4 py-2.5">
-        <img src="/agenticons/agenticon-claudecode.svg" alt="" className="size-4" aria-hidden="true" />
-        <span className="text-sm font-semibold">Claude</span>
-      </div>
-      <div className="space-y-4 p-5" aria-hidden="true">
-        {/* 1. The app it already built */}
-        <div className={beat} style={delay(0)}>
-          <p className="mb-2 text-xs text-[var(--ds-dim)]">Your app</p>
-          <div className="rounded-[14px] border border-[var(--ds-line)] bg-[var(--ds-soft)] p-3">
-            <div className="h-3 w-24 rounded bg-[var(--ds-line2)]" />
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              <div className="h-7 rounded-md bg-[var(--ds-card)]" />
-              <div className="h-7 rounded-md bg-[var(--ds-card)]" />
-              <div className="h-7 rounded-md bg-[var(--ds-card)]" />
-            </div>
-          </div>
-        </div>
-        {/* 2. What the person typed */}
-        <div className={`flex justify-end ${beat}`} style={delay(1)}>
-          <span className="max-w-[85%] rounded-2xl rounded-br-md bg-[var(--ds-dark)] px-4 py-2.5 text-[14px] leading-snug text-white"><PromptText /></span>
-        </div>
-        {/* 3. Building, then done */}
-        <div className={`flex items-center gap-2 text-[15px] text-[var(--ds-mute)] ${beat}`} style={delay(2)}>
-          {built ? (
-            <>
-              <Check className="size-4 text-[var(--ok)]" />
-              Build complete
-            </>
-          ) : (
-            <>
-              <Loader2 className="size-4 animate-spin motion-reduce:animate-none" />
-              Building…
-            </>
-          )}
-        </div>
-        {/* 4. Live, once the build is done */}
-        <div
-          className={`flex items-center justify-between gap-3 rounded-[14px] border border-[var(--ds-line)] p-3 transition-all duration-500 motion-reduce:transition-none ${
-            built ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
-          }`}
-          style={{ transitionDelay: built ? '400ms' : '0ms' }}
-        >
-          <span className="inline-flex items-center gap-2 font-semibold text-[var(--ok)]">
-            <Check className="size-4" />
-            Live
-          </span>
-          <span className="truncate font-mono text-sm">yourapp.embarko.app</span>
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -420,7 +246,7 @@ export default function EmbarkoV1() {
         <SectionSnap containerSelector="#v1-scenes" offsetSelector="nav" />
 
         {/* SCREEN 1: PROMISE + INSTRUCTION. The whole first screen is the job. */}
-        <TimelineScene lineOut>
+        <section className={`relative isolate ${SCENE}`}>
           <GlowBackdrop position="top" />
           <div className="relative z-10 w-full max-w-5xl text-center">
             <Pill grad className="ds-pill-magic mb-6">
@@ -438,32 +264,7 @@ export default function EmbarkoV1() {
               <HeroTimeline />
             </div>
           </div>
-        </TimelineScene>
-
-        {/* SCREEN 2: PASTE IT INTO YOUR AI. Step 2 of the hero, up close. */}
-        <TimelineScene id="paste" lineIn lineOut>
-          <div className="w-full max-w-4xl space-y-7 py-6 text-center">
-            <TimelineNode n="2" label="Paste" />
-            <h2 className={`${H_DISPLAY} text-4xl sm:text-5xl md:text-6xl`}>
-              Paste it into <Serif grad>your</Serif> AI.
-            </h2>
-            <p className="mx-auto max-w-xl text-lg text-[var(--ds-mute)]">
-              Use the chat where you built the app, so it can see your code. Then send.
-            </p>
-            <PasteScene />
-          </div>
-        </TimelineScene>
-
-        {/* SCREEN 3: THAT'S THE DEPLOYMENT. Step 3: the AI does it, and it's live. */}
-        <TimelineScene id="live" lineIn>
-          <div className="w-full max-w-4xl space-y-6 py-6 text-center">
-            <TimelineNode n="3" label="Live" />
-            <MagicChat />
-            <h2 className={`${H_DISPLAY} text-5xl sm:text-6xl`}>
-              That&apos;s the <Serif grad>deployment.</Serif>
-            </h2>
-          </div>
-        </TimelineScene>
+        </section>
 
         {/* SCREEN 3: WHEN THE APP NEEDS MORE. Tiles first, detail on tap. */}
         <section className={SCENE}>
