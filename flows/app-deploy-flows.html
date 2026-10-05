@@ -1,0 +1,150 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Embarko Deploy Flows</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+:root{--bg:#f6f7f4;--surface:#fff;--ink:#1b1f1c;--muted:#5d665f;--line:#dde2dc;--accent:#2f6b4f;--node:#e7efe9;--dec:#fbf3e2;--decb:#a8782a;--note:#6b7a70}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141715;--surface:#1c201d;--ink:#e8ece8;--muted:#9aa49c;--line:#2d332f;--accent:#7cc39f;--node:#233029;--dec:#332a1a;--decb:#d9a650;--note:#8f9b93;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141715;--surface:#1c201d;--ink:#e8ece8;--muted:#9aa49c;--line:#2d332f;--accent:#7cc39f;--node:#233029;--dec:#332a1a;--decb:#d9a650;--note:#8f9b93;color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding-inline:16px;padding-block:36px 64px;display:grid;gap:24px}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:"Bricolage Grotesque",sans-serif;font-size:clamp(28px,5vw,38px);margin:4px 0}
+header p{margin:0;color:var(--muted)}
+nav{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+nav a{font-size:13px;padding:6px 12px;border:1px solid var(--line);border-radius:999px;color:var(--ink);text-decoration:none;background:var(--surface)}
+section{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:grid;gap:10px}
+h2{font-family:"Bricolage Grotesque",sans-serif;font-size:20px;margin:0}
+h2 small{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:400;color:var(--muted);margin-left:8px}
+.scroll{overflow-x:auto}
+svg{display:block;margin:0 auto}
+.n rect,.n polygon{fill:var(--node);stroke:var(--accent);stroke-width:1.4}
+.n.d polygon{fill:var(--dec);stroke:var(--decb)}
+.n.sys polygon{fill:var(--surface);stroke:var(--muted);stroke-dasharray:5 3}
+.n text.tag{text-anchor:end;font-size:9px;font-family:'IBM Plex Mono',monospace;fill:var(--muted);letter-spacing:.08em}
+.n.end rect{fill:var(--surface);stroke-dasharray:4 3}
+.n text{fill:var(--ink);font-size:13px;text-anchor:middle;dominant-baseline:middle}
+.n{cursor:help;outline:none}
+.n:hover rect,.n:hover polygon,.n:focus rect,.n:focus polygon{stroke-width:2.6}
+.n .dot{fill:var(--accent);stroke:none}
+.e{fill:none;stroke:var(--accent);stroke-width:1.4}
+.e.back{stroke-dasharray:5 4}
+.el{fill:var(--muted);font-size:11px;font-family:"IBM Plex Mono",monospace}
+.note text{fill:var(--note);font-size:12px;font-style:italic}
+.note line{stroke:var(--line);stroke-dasharray:2 3}
+#tip{position:fixed;z-index:9;max-width:260px;background:var(--ink);color:var(--bg);font-size:13px;line-height:1.45;padding:8px 10px;border-radius:6px;pointer-events:none}
+#tip b{display:block;margin-bottom:2px}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:var(--muted)}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">embarko.ai · Panel · /app</div>
+    <h1>Deploy user flows</h1>
+    <p>Adds the two missing ways to deploy from /app: <b>Upload folder</b> and <b>Connect GitHub</b>. Hover or tab to a step for details.</p>
+    <p style="margin-top:6px">Today: an empty workspace asks “Did you deploy an app without signing in?” and offers only Copy prompt. Upload exists only inside the Deploy an app dialog. GitHub doesn’t exist.</p>
+    <nav><a href="#f1">1 · /app entry</a><a href="#f2">2 · Upload folder</a><a href="#f3">3 · Connect GitHub</a><a href="#f4">4 · GitHub push updates</a></nav>
+  </header>
+  <div class="legend"><span>▭ Step</span><span>◇ User decision</span><span>⬦ dashed = System check (API, hidden from user)</span><span>⋯ Loop back</span><span>● Has details</span></div>
+  <section id="f1"><h2>Flow 1 · /app<small>empty workspace · has apps</small></h2><div class="scroll"><svg id="s1"></svg></div></section>
+  <section id="f2"><h2>Flow 2 · Upload folder<small>builder · no AI needed</small></h2><div class="scroll"><svg id="s2"></svg></div></section>
+  <section id="f3"><h2>Flow 3 · Connect GitHub<small>builder · first deploy</small></h2><div class="scroll"><svg id="s3"></svg></div></section>
+  <section id="f4"><h2>Flow 4 · GitHub push updates<small>after connect · automatic</small></h2><div class="scroll"><svg id="s4"></svg></div></section>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+// Edit here: nodes {id,c(col),r(row),t(label),k:'d' decision|'end',desc(tooltip),note(side note)}; edges [from,to,label,back?]
+const FLOWS={
+s1:{nodes:[
+ {id:'a',c:1,r:0,t:'Open /app'},
+ {id:'b',c:1,r:1,t:'Has apps?',k:'d sys',desc:'Panel reads the workspace app list.'},
+ {id:'c',c:0,r:2,t:'Empty state',desc:'"Your apps will appear here." Shows the three ways at once.',note:'Fix: no sign-in question first'},
+ {id:'k',c:0,r:3,t:'Keep an app',desc:'Small link under the choices, for an app deployed before sign-in. Copies the keep prompt.'},
+ {id:'x',c:2,r:2,t:'Your apps'},
+ {id:'y',c:2,r:3,t:'Deploy an app',desc:'Button on the apps list. Opens the same three choices in a dialog.'},
+ {id:'d',c:1,r:4,t:'How?',k:'d',desc:'Same three choices in the empty state and the dialog.',note:'Copy prompt stays first and recommended'},
+ {id:'e1',c:0,r:5,t:'Copy prompt',k:'end',desc:'Exists today. Paste into the AI agent, the app appears.'},
+ {id:'e2',c:1,r:5,t:'Upload · Flow 2',k:'end'},
+ {id:'e3',c:2,r:5,t:'GitHub · Flow 3',k:'end'}],
+ edges:[['a','b'],['b','c','No'],['b','x','Yes'],['c','k'],['x','y'],['c','d'],['y','d'],['d','e1','AI agent'],['d','e2','Folder'],['d','e3','GitHub']]},
+s2:{nodes:[
+ {id:'a',c:0,r:0,t:'Upload folder',desc:'Card in the empty state, tab in the Deploy an app dialog.',note:'Today only in the dialog'},
+ {id:'b',c:0,r:1,t:'Drop folder or .zip',desc:'Drag and drop, or browse.'},
+ {id:'c',c:0,r:2,t:'Checks pass?',k:'d sys',desc:'Browser packs it first. Under 100 MB packed, an app at the top level, builds on its own.',note:'Checked on drop, before anything is sent'},
+ {id:'x',c:1,r:3,t:'Say what is wrong',desc:'e.g. "That comes to 140 MB packed. 100 MB is the limit." or "nothing to build at its top level."'},
+ {id:'d',c:0,r:3,t:'Name (filled in)',desc:'Taken from the folder name. Change only if you want.',note:'One field, already filled'},
+ {id:'e',c:0,r:4,t:'Deploy'},
+ {id:'f',c:0,r:5,t:'Accepted?',k:'d sys',desc:'Upload endpoint answers.',note:'Other errors: Try again'},
+ {id:'y',c:1,r:6,t:'Name taken',desc:'"The name \u201cmy-app\u201d is taken. Try another one." Change the name, Deploy again.'},
+ {id:'g',c:0,r:6,t:'App card appears',desc:'Status: Building. No refresh needed.'},
+ {id:'h',c:0,r:7,t:'Build OK?',k:'d sys'},
+ {id:'i',c:0,r:8,t:'Live',desc:'Open app.',note:'Update: drop a new version on the app page'},
+ {id:'j',c:1,r:8,t:'Needs attention',desc:'Latest deployment failed. See what happened · Fix with your AI.'}],
+ edges:[['a','b'],['b','c'],['c','d','Yes'],['c','x','No'],['x','b','',1],['d','e'],['e','f'],['f','g','Yes'],['f','y','409'],['y','e','',1],['g','h'],['h','i','Yes'],['h','j','No']]},
+s3:{nodes:[
+ {id:'a',c:0,r:0,t:'Connect GitHub',desc:'Card in the empty state, tab in the Deploy an app dialog.'},
+ {id:'b',c:0,r:1,t:'Connected?',k:'d sys',desc:'Has this workspace already installed the Embarko GitHub App?',note:'Connect once per workspace'},
+ {id:'c',c:1,r:2,t:'Allow on GitHub',desc:'GitHub\u2019s own page. All repos, or only some. Private repos work.'},
+ {id:'d',c:0,r:3,t:'Pick a repo',desc:'Recent first, with search.',note:'Repo missing? Link to fix GitHub access'},
+ {id:'e',c:0,r:4,t:'One app found?',k:'d sys',desc:'Looks for package.json, requirements.txt, index.html and so on.'},
+ {id:'f',c:1,r:5,t:'Pick the folder',desc:'Asked only when the repo has more than one app, or none at the top.'},
+ {id:'g',c:0,r:6,t:'Confirm',desc:'Name from the repo, branch = default (main). Both can be changed.',note:'Filled in for them. No form to fill'},
+ {id:'h',c:0,r:7,t:'Deploy'},
+ {id:'i',c:0,r:8,t:'App card appears',desc:'Building. Shows \u201cFrom GitHub \u00b7 main\u201d and the last commit.'},
+ {id:'j',c:0,r:9,t:'Build OK?',k:'d sys'},
+ {id:'k',c:0,r:10,t:'Live',desc:'Open app.',note:'Every push redeploys (Flow 4)'},
+ {id:'l',c:1,r:10,t:'Needs attention',desc:'Latest deployment failed. See what happened · Fix with your AI.'}],
+ edges:[['a','b'],['b','c','No'],['b','d','Yes'],['c','d'],['d','e'],['e','g','Yes'],['e','f','No'],['f','g'],['g','h'],['h','i'],['i','j'],['j','k','Yes'],['j','l','No']]},
+s4:{nodes:[
+ {id:'a',c:0,r:0,t:'Push to GitHub',desc:'By the user or their AI agent.',note:'Access removed: updates pause, app stays live'},
+ {id:'b',c:0,r:1,t:'Watched branch?',k:'d sys',desc:'GitHub tells Embarko about every push.'},
+ {id:'b2',c:1,r:2,t:'Nothing happens',k:'end'},
+ {id:'c',c:0,r:2,t:'Updating',desc:'Card shows Updating. The old version stays live meanwhile.'},
+ {id:'d',c:0,r:3,t:'Build OK?',k:'d sys'},
+ {id:'e',c:0,r:4,t:'Live',desc:'New version is up. Latest activity: Updated from GitHub.'},
+ {id:'f',c:1,r:4,t:'Needs attention',desc:'"Latest update failed. Your app is still up." See what happened · Fix with your AI.',note:'Old version keeps running'},
+ {id:'g',c:1,r:5,t:'AI fixes, pushes',desc:'Fix with your AI copies a prompt with the error.'}],
+ edges:[['a','b'],['b','c','Yes'],['b','b2','No'],['c','d'],['d','e','Yes'],['d','f','No'],['f','g'],['g','a','',1]]}
+};
+const CW=200,RH=74,W=164,H=40,PAD=24,NOTEW=240,ns='http://www.w3.org/2000/svg';
+const el=(t,a,p)=>{const e=document.createElementNS(ns,t);for(const k in a)e.setAttribute(k,a[k]);p&&p.appendChild(e);return e};
+const tip=document.getElementById('tip');
+function show(n,ev){if(!n.desc)return;tip.innerHTML='<b>'+n.t+'</b>'+n.desc;tip.hidden=false;move(ev)}
+function move(ev){const r=ev.clientX!=null?{x:ev.clientX,y:ev.clientY}:(()=>{const b=ev.target.getBoundingClientRect();return{x:b.right,y:b.top}})();
+ tip.style.left=Math.min(r.x+14,innerWidth-tip.offsetWidth-8)+'px';tip.style.top=(r.y+14)+'px'}
+for(const id in FLOWS){
+ const f=FLOWS[id],svg=document.getElementById(id),by={};
+ const maxC=Math.max(...f.nodes.map(n=>n.c)),maxR=Math.max(...f.nodes.map(n=>n.r)),hasNote=f.nodes.some(n=>n.note);
+ const w=PAD*2+(maxC+1)*CW+(hasNote?NOTEW:0)+30,h=PAD*2+(maxR+1)*RH;
+ svg.setAttribute('viewBox',`0 0 ${w} ${h}`);svg.setAttribute('width',w);svg.setAttribute('height',h);
+ const defs=el('defs',{},svg),m=el('marker',{id:'ar'+id,viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:7,markerHeight:7,orient:'auto'},defs);
+ el('path',{d:'M0,0L10,5L0,10z',fill:'var(--accent)'},m);
+ f.nodes.forEach(n=>{n.x=PAD+n.c*CW+CW/2;n.y=PAD+n.r*RH+H/2;by[n.id]=n});
+ const gE=el('g',{},svg),gN=el('g',{},svg);
+ const noteX=PAD+(maxC+1)*CW+20;
+ f.edges.forEach(([a,b,lab,back])=>{
+  const s=by[a],t=by[b];let d,lx,ly;
+  if(back===2){const lx2=t.x-W/2-22;d=`M${s.x-W/2},${s.y}H${lx2}V${t.y}H${t.x-W/2-2}`;lx=lx2+4;ly=(s.y+t.y)/2}
+  else if(back){const rx=s.x+W/2+26;d=`M${s.x+W/2},${s.y}H${rx}V${t.y}H${t.x+W/2+2}`;lx=rx+4;ly=(s.y+t.y)/2}
+  else{const y1=s.y+H/2,y2=t.y-H/2-2;
+   if(Math.abs(s.x-t.x)<1)d=`M${s.x},${y1}V${y2}`;
+   else if(t.r===s.r+1){const my=y1+(y2-y1)/2;d=`M${s.x},${y1}V${my}H${t.x}V${y2}`}
+   else{const sx=s.x+(t.x>s.x?W/2:-W/2);d=`M${sx},${s.y}H${t.x}V${y2}`}
+   lx=(t.x!==s.x?t.x:s.x)+6;ly=y2-8}
+  el('path',{d,class:'e'+(back?' back':''),'marker-end':`url(#ar${id})`},gE);
+  if(lab){const tx=el('text',{x:lx,y:ly,class:'el'},gE);tx.textContent=lab}
+ });
+ f.nodes.forEach(n=>{
+  const g=el('g',{class:'n'+(n.k?' '+n.k:''),tabindex:0,role:'img','aria-label':n.t+(n.desc?': '+n.desc:'')},gN);
+  if(n.k&&n.k.startsWith('d')){const dw=W/2+10,dh=H/2+6;el('polygon',{points:`${n.x},${n.y-dh} ${n.x+dw},${n.y} ${n.x},${n.y+dh} ${n.x-dw},${n.y}`},g)}
+  else el('rect',{x:n.x-W/2,y:n.y-H/2,width:W,height:H,rx:6},g);
+  const tx=el('text',{x:n.x,y:n.y},g);tx.textContent=n.t;if(n.k&&n.k.includes('sys')){const tg=el('text',{x:n.x-W/2-16,y:n.y,class:'tag','text-anchor':'end'},g);tg.textContent='API'}
+  if(n.desc)el('circle',{cx:n.x+W/2-8,cy:n.y-H/2+8,r:3,class:'dot'},g);
+  g.addEventListener('mouseenter',e=>show(n,e));g.addEventListener('mousemove',move);g.addEventListener('mouseleave',()=>tip.hidden=true);
+  g.addEventListener('focus',e=>show(n,e));g.addEventListener('blur',()=>tip.hidden=true);
+  if(n.note){const ng=el('g',{class:'note'},gN);const rx=Math.max(...f.nodes.filter(o=>o.r===n.r).map(o=>o.x))+W/2+4;el('line',{x1:rx,y1:n.y,x2:noteX-6,y2:n.y},ng);const t=el('text',{x:noteX,y:n.y+4},ng);t.textContent=n.note}
+ });
+}
+</script>
+
+</body></html>
