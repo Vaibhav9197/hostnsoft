@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Plus } from "lucide-react";
 import { CloudBackdrop } from "../components/console/CloudBackdrop";
 import { Alert, Page, PageHeader, Skeleton } from "../components/console/kit";
 import { Button } from "../components/ui/button";
@@ -9,7 +8,7 @@ import { Input } from "../components/ui/input";
 import { DeployPromptDialog } from "../components/console/DeployPromptDialog";
 import { FirstAppEmpty } from "../components/console/FirstAppEmpty";
 import { HnsError } from "../lib/client"; // used by the parked createProject below
-import { AppTile } from "../components/console/AppTile";
+import { AppTile, CreateAppTile } from "../components/console/AppTile";
 import { earlyProjects, markMainDataSettled } from "../lib/earlyReads";
 import { readLastSeen, writeLastSeen } from "../lib/lastSeen";
 import { companiesApi, projectsApi } from "../lib/hnsApi";
@@ -149,15 +148,7 @@ export default function ProjectsPage() {
           repeats it. It also stays hidden while the list is loading, so it
           doesn't flash in before an empty result. */}
       {projects && projects.length > 0 && (
-        <PageHeader
-          title="Your apps"
-          actions={
-            <Button onClick={() => setCreating((v) => !v)}>
-              <Plus />
-              Deploy an app
-            </Button>
-          }
-        />
+        <PageHeader title="Your apps" />
       )}
 
       {/* Parked with createProject: naming an app up front is gone for now,
@@ -196,6 +187,7 @@ export default function ProjectsPage() {
             {projects.map((p) => (
               <AppTile key={p.id} project={p} />
             ))}
+            <CreateAppTile onClick={() => setCreating(true)} />
           </div>
         </div>
       )}

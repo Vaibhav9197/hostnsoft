@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Plus, Settings2 } from "lucide-react";
 
 import "@/app/showcase/showcase.css";
 import { HealthPill } from "./HealthPill";
@@ -11,7 +12,8 @@ import type { Project } from "../../lib/types";
  * the name), address, state. Render inside `.sc > .sc-gal` so the Showcase
  * styles apply.
  *
- * The tile opens the app's page in the panel. The address opens the app itself.
+ * Clicking the tile opens the live app in a new tab. "Manage" opens the app's
+ * page in the panel.
  */
 export function AppTile({ project: p }: { project: Project }) {
   const host = appHost(p.slug);
@@ -19,9 +21,17 @@ export function AppTile({ project: p }: { project: Project }) {
 
   return (
     <article className="sc-tile">
-      <Link href={`/app/projects/${p.id}`} className="sc-cover" aria-label={`${p.name}, app details`} />
+      <a href={`https://${host}`} target="_blank" rel="noreferrer" className="sc-cover" aria-label={`Open ${p.name}`} />
       <div className="th">
         <NamePlaceholder name={p.name} />
+        {/* Above the tile's cover link, so it goes to the panel, not the app. */}
+        <Link
+          href={`/app/projects/${p.id}`}
+          className="absolute right-2.5 top-2.5 z-[2] inline-flex h-7 items-center gap-1.5 rounded-full border border-[var(--sc-line)] bg-[var(--sc-card)] px-3 text-xs font-medium text-[var(--sc-ink)] shadow-sm transition-colors hover:bg-[var(--sc-soft)]"
+        >
+          <Settings2 className="size-3.5" aria-hidden="true" />
+          Manage
+        </Link>
         {/* A bar sweeping across the preview while a build runs: the one
             signal somebody notices from across the grid. */}
         {deploying && (
@@ -31,16 +41,7 @@ export function AppTile({ project: p }: { project: Project }) {
         )}
       </div>
       <div className="bd">
-        <p>
-          <a
-            href={`https://${host}`}
-            target="_blank"
-            rel="noreferrer"
-            className="relative z-[2] text-[var(--sc-ink)] underline-offset-2 hover:underline"
-          >
-            {host}
-          </a>
-        </p>
+        <p className="truncate !text-[var(--sc-ink)]">{host}</p>
         {/* `updatedAt` is when the project record last changed, not when the
             app last deployed (a rollback doesn't touch it), hence "updated". */}
         <div className="ft">
@@ -49,6 +50,22 @@ export function AppTile({ project: p }: { project: Project }) {
         </div>
       </div>
     </article>
+  );
+}
+
+/** The last tile on "Your apps": an empty slot that starts a new app. */
+export function CreateAppTile({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-[var(--sc-r)] border-2 border-dashed border-[var(--sc-ink)] bg-[var(--sc-card)]/50 p-6 text-[var(--sc-ink)] transition-[transform,background-color] duration-300 hover:-translate-y-1 hover:bg-[var(--sc-card)]"
+    >
+      <span className="grid size-12 place-items-center rounded-full bg-[var(--sc-ink)] text-[var(--sc-card)]">
+        <Plus className="size-5" aria-hidden="true" />
+      </span>
+      <span className="text-[15px] font-semibold">Create new app</span>
+    </button>
   );
 }
 
