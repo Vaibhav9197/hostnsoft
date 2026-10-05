@@ -1,0 +1,65 @@
+/* Example-app cards: the drawn previews of apps people put on Embarko.
+   Used by /v4 and /v1. Scoped under .ex-apps; the pastel hexes are the
+   drawings of example apps, not UI colour. */
+.ex-apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
+/* Five across on wide screens, for a scene that must fit one viewport. */
+@media (min-width:1024px){.ex-apps.ex-apps-5{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.ex-apps .v4-gcard{padding:12px 12px 16px;text-align:left}
+.ex-apps .v4-gcard h3{margin:14px 6px 2px;font-size:15px}
+.ex-apps .v4-gcard p{margin:0 6px 10px;font-size:13.5px}
+.ex-apps .v4-gcard .v4-live{margin-left:6px}
+.ex-apps .v4-live{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ds-mute)}
+.ex-apps .v4-live i{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px color-mix(in srgb,#22c55e 20%,transparent)}
+.ex-apps .v4-gpreview{border-radius:14px}
+.ex-apps .v4-gpreview{position:relative;height:112px;overflow:hidden}
+.ex-apps .portfolio-card .v4-gpreview{background:#f1e9dc}
+.ex-apps .portfolio-sun{position:absolute;top:18px;right:22px;width:29px;height:29px;border-radius:50%;background:#e5aa51}
+.ex-apps .portfolio-line{position:absolute;left:17px;height:5px;border-radius:8px;background:#433c34}
+.ex-apps .portfolio-line.one{top:45px;width:77px}
+.ex-apps .portfolio-line.two{top:57px;width:56px;background:#957a62}
+.ex-apps .portfolio-image{position:absolute;right:18px;bottom:0;width:77px;height:62px;border-radius:40px 40px 0 0;background:#b9c2a6}
+.ex-apps .tool-card .v4-gpreview{padding:15px;background:#f1f5fb}
+.ex-apps .tool-title{display:block;color:#40567e;font-size:11px;font-weight:680}
+.ex-apps .tool-message{display:block;width:96px;height:13px;margin-top:12px;border-radius:6px;background:#dbe5f4}
+.ex-apps .tool-message.user{width:72px;margin-left:auto;background:#708dca}
+.ex-apps .tool-input{position:absolute;right:11px;bottom:10px;left:11px;display:flex;justify-content:space-between;padding:6px;border:1px solid #dbe5f4;border-radius:6px;background:#fff;color:#9aa9c2;font-size:9px}
+.ex-apps .tool-input svg{width:9px}
+.ex-apps .tracker-card .v4-gpreview{padding:13px;background:#ebf6f2}
+.ex-apps .tracker-title{color:#46695a;font-size:10px;font-weight:700}
+.ex-apps .tracker-ring{position:absolute;top:29px;left:62px;width:57px;height:57px;border:7px solid #aad7bd;border-right-color:#4c9d70;border-radius:50%;transform:rotate(-35deg)}
+.ex-apps .tracker-ring i{position:absolute;inset:8px;border-radius:50%;background:#fff}
+.ex-apps .tracker-number{position:absolute;top:52px;left:77px;color:#407b5b;font-size:11px;font-weight:700}
+.ex-apps .booking-mini-card .v4-gpreview{padding:14px;background:#f8ebdf}
+.ex-apps .booking-mini-title{display:block;color:#754837;font-family:Georgia,serif;font-size:15px}
+.ex-apps .booking-mini-date{display:block;margin-top:15px;color:#a47964;font-size:10px}
+.ex-apps .booking-mini-button{position:absolute;right:14px;bottom:13px;padding:6px 8px;border-radius:5px;background:#5a3c30;color:#fff;font-size:9px}
+.ex-apps .campus-card .v4-gpreview{background:#e9eefb}
+.ex-apps .campus-top{position:absolute;top:13px;left:14px;color:#506393;font-size:10px;font-weight:700}
+.ex-apps .campus-event{position:absolute;bottom:17px;left:14px;color:#3c4e80;font-size:14px;font-weight:700;letter-spacing:-.04em}
+.ex-apps .campus-event small{color:#8192b9;font-size:9px;font-weight:500}
+.ex-apps .campus-people{position:absolute;right:13px;bottom:18px;display:flex}
+.ex-apps .campus-people i{width:15px;height:15px;margin-left:-4px;border:2px solid #e9eefb;border-radius:50%;background:#d7a37c}
+.ex-apps .campus-people i:nth-child(2){background:#91a9d1}
+.ex-apps .campus-people i:nth-child(3){background:#b6c6a6}
+.ex-apps .recipe-card .v4-gpreview{padding:14px;background:#f6ece4}
+.ex-apps .recipe-title{display:block;color:#7a4b34;font-size:12px;font-weight:700}
+.ex-apps .recipe-photo{position:absolute;right:14px;bottom:32px;width:64px;height:52px;border-radius:10px;background:#d8a97f}
+.ex-apps .recipe-meta{position:absolute;bottom:13px;left:14px;color:#a87f66;font-size:10px}
+.ex-apps .invoice-card .v4-gpreview{padding:14px;background:#eef3ee}
+.ex-apps .invoice-top{display:block;color:#4c6553;font-size:10px;font-weight:700}
+.ex-apps .invoice-amount{position:absolute;top:38px;left:14px;color:#2f5540;font-size:22px;font-weight:640;letter-spacing:-.04em}
+.ex-apps .invoice-status{position:absolute;right:14px;bottom:13px;padding:4px 8px;border-radius:20px;background:#cfe6d6;color:#2f6b47;font-size:10px;font-weight:650}
+.ex-apps .album-card .v4-gpreview{padding:12px;background:#efeaf5;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:6px}
+.ex-apps .album-tile{border-radius:8px}
+.ex-apps .album-tile.one{background:#c3b3dd}
+.ex-apps .album-tile.two{background:#dcd2ec}
+.ex-apps .album-tile.three{background:#e4dcf0}
+.ex-apps .album-tile.four{background:#b6a4d4}
+.ex-apps .notes-card .v4-gpreview{padding:14px;background:#f2f2ee}
+.ex-apps .notes-title{display:block;color:#55564d;font-size:11px;font-weight:700}
+.ex-apps .notes-line{position:absolute;left:14px;height:6px;border-radius:6px;background:#dcdcd4}
+.ex-apps .notes-line.one{top:40px;width:104px}
+.ex-apps .notes-line.two{top:54px;width:78px}
+.ex-apps .notes-line.three{top:68px;width:92px}
+.ex-apps .notes-people{position:absolute;right:13px;bottom:13px;display:flex}
+.ex-apps .notes-people i{width:16px;height:16px;margin-left:-5px;border:2px solid #f2f2ee;border-radius:50%;background:#b9b9ad}
