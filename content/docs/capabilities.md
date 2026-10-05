@@ -992,6 +992,14 @@ changing a limit) is the user's decision and needs their approval.
 - There is no agent endpoint for a company's plan or remaining quota.
   [Analytics](#analytics) reports one app's traffic, not the account's
   limits.
+- **Free-plan apps show a "hosted on Embarko" footer** at the bottom of
+  their HTML pages. The platform adds it as pages are served; it is not in
+  the app's code, and a JSON-only API has no page to add it to. A paid plan
+  removes it from every app of the company shortly after upgrading (usually
+  within a minute, no redeploy needed), and it comes back if the company
+  returns to Free.
+  Removing it is a plan change, so it is the user's decision. Don't hide it
+  from the app's own code.
 - Public endpoints without a token have their own limits:
   - token requests: 5/hour per email and 10/hour per IP
   - anonymous feedback: 10/email, 20/IP and 500/hour globally

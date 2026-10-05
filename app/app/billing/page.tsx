@@ -143,9 +143,21 @@ export default function BillingPage() {
       `plan:${plan.code}`,
       async (id) => {
         const sub = await billingApi.changePlan(id, plan.code);
-        return sub.status === "pending"
-          ? `Your plan will switch to ${plan.name} at the end of the current billing period.`
-          : `You’re now on ${plan.name}.`;
+        /* Only when the footer actually changes: free apps show "hosted on
+           Embarko", paid ones don't, so moving between two paid plans says
+           nothing about it. Upgrades are live at once; the API takes the
+           footer off in the background, usually within a minute, hence
+           "being". */
+        const toFree = planFamily(plan) === "free";
+        const later = sub.status === "pending";
+        const footer = isFree && !toFree
+          ? later ? " The Embarko footer comes off your apps then." : " The Embarko footer is being removed from your apps."
+          : !isFree && toFree
+            ? later ? " The Embarko footer comes back on your apps then." : " The Embarko footer will show on your apps again."
+            : "";
+        return later
+          ? `Your plan will switch to ${plan.name} at the end of the current billing period.${footer}`
+          : `You’re now on ${plan.name}.${footer}`;
       },
       "status",
     );
@@ -570,12 +582,21 @@ function describe(action: NonNullable<PendingAction>, currentPlan: BillingPlan |
   switch (action.kind) {
     case "change": {
       const up = isUpgrade(action.plan, currentPlan);
+      // Said only when the footer changes: it is on free plans, off on paid.
+      const fromFree = !currentPlan || planFamily(currentPlan) === "free";
+      const toFree = planFamily(action.plan) === "free";
       return {
         title: `${up ? "Upgrade" : "Downgrade"} to ${action.plan.name}?`,
         body: up ? (
-          <>You’ll be moved to <b>{action.plan.name}</b> ({price(action.plan)}) immediately and your default card will be charged.</>
+          <>
+            You’ll be moved to <b>{action.plan.name}</b> ({price(action.plan)}) immediately and your default card will be charged.
+            {fromFree && !toFree && <> The Embarko footer comes off your apps.</>}
+          </>
         ) : (
-          <>You’ll stay on {currentPlan?.name ?? "your current plan"} until the end of this billing period, then switch to <b>{action.plan.name}</b> ({price(action.plan)}).</>
+          <>
+            You’ll stay on {currentPlan?.name ?? "your current plan"} until the end of this billing period, then switch to <b>{action.plan.name}</b> ({price(action.plan)}).
+            {toFree && !fromFree && <> Your apps show the Embarko footer again from then.</>}
+          </>
         ),
         cta: up ? "Upgrade" : "Schedule downgrade",
         destructive: false,
@@ -595,7 +616,7 @@ function describe(action: NonNullable<PendingAction>, currentPlan: BillingPlan |
     case "cancel":
       return {
         title: "Cancel your paid plan?",
-        body: <>You’ll move back to the Free plan. Anything above the Free limits may stop working.</>,
+        body: <>You’ll move back to the Free plan. Anything above the Free limits may stop working, and your apps show the Embarko footer again.</>,
         cta: "Cancel plan",
         destructive: true,
       };

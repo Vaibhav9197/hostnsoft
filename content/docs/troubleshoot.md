@@ -230,6 +230,20 @@ The path is `.../customer-query` on all three routes (dashboard, public, agent).
 - **Cause:** a sidecar proxy in front of the app injects the banner by rewriting `text/html` responses. It works with any language or framework. A JSON-only API has no HTML page to inject into. The status reply's `app.expiresAt` and `next` are still the official notice. They just never reach a browser.
 - **Fix:** nothing to fix for non-HTML apps. Rely on the status reply instead of the banner.
 
+## [Why does my app show a "hosted on Embarko" footer?](#embarko-footer)
+
+### [A "hosted on Embarko" footer appears at the bottom of the app](#a-hosted-on-embarko-footer-appears-at-the-bottom-of-the-app)
+
+- **Match:** none. This is by design.
+- **Cause:** the company is on the Free plan. The platform adds the footer to the app's HTML pages as they are served. It is not in the app's code.
+- **Fix:** none needed. To remove it, the user upgrades to a paid plan at [embarko.ai/app/billing](/app/billing). That is their decision, like any plan change. Don't hide the footer from the app's own code.
+
+### [The footer is still there after upgrading](#the-footer-is-still-there-after-upgrading)
+
+- **Match:** none.
+- **Cause:** the footer comes off every app of the company shortly after an upgrade, usually within a minute and without a redeploy. A page that still shows it after that is usually a copy the browser cached from before.
+- **Fix:** reload the page without the cache. If it is still there after a few minutes, [contact support](/support) with the app name.
+
 ## [Which responses look like failures but aren't?](#async-operations-not-actual-failures)
 
 ### [202 Accepted misread as "live" (deploy)](#202-accepted-misread-as-live-deploy)

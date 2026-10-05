@@ -1,6 +1,7 @@
 "use client";
 
 import { Pencil } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -8,6 +9,7 @@ import { ConfirmDialog, type ConfirmRequest } from "../../../../components/conso
 import { Alert, Page, Panel, PanelTitle, Skeleton } from "../../../../components/console/kit";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
+import { useBilling } from "../../../../lib/billing";
 import { HnsError } from "../../../../lib/client";
 import { projectsApi } from "../../../../lib/hnsApi";
 import { useSession } from "../../../../lib/session";
@@ -18,6 +20,7 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
   const { projectId } = use(params);
   const { activeCompanyId } = useSession();
   const { project, error, reload } = useProject(activeCompanyId, projectId);
+  const { isFree, setup: billingSetup, error: billingError } = useBilling();
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -275,6 +278,33 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
           </form>
           {slugError && <Alert className="mt-2.5">{slugError}</Alert>}
         </Field>
+
+        {/* Follows the plan, not this app: free apps show the "hosted on
+            Embarko" footer, paid ones don't, and a plan change flips every app
+            shortly after. So it is a fact here, with the way to change it on
+            the Billing page. Hidden while billing is loading or unreachable,
+            same as the header's plan chip — no row beats a wrong one. */}
+        {!billingError && billingSetup !== "unknown" && (
+          <Field
+            label="Embarko footer"
+            value={isFree ? "Shown on your app" : "Off on your plan"}
+            hint={
+              isFree ? (
+                <>
+                  Free plans show a “hosted on Embarko” footer at the bottom of your app’s pages.{" "}
+                  <Link className="underline underline-offset-2" href="/app/billing">Upgrade to remove it</Link>
+                </>
+              ) : (
+                "Paid plans don’t show the “hosted on Embarko” footer."
+              )
+            }
+            editing={false}
+            onEdit={() => { }}
+            locked
+          >
+            {null}
+          </Field>
+        )}
 
       </Panel>
 
