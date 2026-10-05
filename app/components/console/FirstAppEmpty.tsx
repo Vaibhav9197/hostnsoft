@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeft, Check, Copy, Loader2, RefreshCw } from "lucide-react";
+import { ArrowLeft, Check, Loader2, RefreshCw } from "lucide-react";
 
-import { CopyPromptButton } from "../CopyPromptButton";
+import { CopyPromptButton, PromptIcon } from "../CopyPromptButton";
 import { Button } from "../ui/button";
 import { tokensApi } from "../../lib/hnsApi";
 import { useSession } from "../../lib/session";
@@ -107,7 +107,7 @@ export function FirstAppEmpty({
               </>
             }
           >
-            <Copy className="size-3.5" aria-hidden="true" />
+            <PromptIcon className="size-3.5" aria-hidden="true" />
             Copy again
           </CopyPromptButton>
           <Button
@@ -177,7 +177,7 @@ export function FirstAppEmpty({
             disabled={preparing}
             className={primary}
           >
-            {preparing ? <Loader2 className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}
+            {preparing ? <Loader2 className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <PromptIcon className="size-4" aria-hidden="true" />}
             Copy Embarko prompt
           </CopyPromptButton>
         </div>
@@ -206,7 +206,7 @@ export function FirstAppEmpty({
           disabled={!keepPrompt}
           className={primary}
         >
-          {keepPrompt ? <Copy className="size-4" aria-hidden="true" /> : <Loader2 className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />}
+          {keepPrompt ? <PromptIcon className="size-4" aria-hidden="true" /> : <Loader2 className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />}
           Copy prompt
         </CopyPromptButton>
       </div>

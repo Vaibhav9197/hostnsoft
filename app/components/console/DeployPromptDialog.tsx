@@ -7,7 +7,7 @@ import { Button, buttonVariants } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { UploadDeployPanel } from "./UploadDeployPanel";
-import { COPIED_LABEL, CopyPromptButton } from "../CopyPromptButton";
+import { COPIED_LABEL, CopyPromptButton, PromptIcon } from "../CopyPromptButton";
 import { CONSOLE_DEPLOY_PROMPT, consoleDeployPromptFor } from "@/app/lib/deployPrompt";
 import { useSession } from "@/app/lib/session";
 
@@ -84,6 +84,7 @@ export function DeployPromptDialog({
                 copiedChildren={COPIED_LABEL}
                 onCopied={onClose}
               >
+                <PromptIcon aria-hidden="true" />
                 Copy
               </CopyPromptButton>
             </div>

@@ -2,7 +2,7 @@
 
 import { useId } from "react";
 
-import { COPIED_LABEL, CopyPromptButton } from "@/app/components/CopyPromptButton";
+import { COPIED_LABEL, CopyPromptButton, PromptIcon } from "@/app/components/CopyPromptButton";
 import { Panel } from "@/app/components/console/kit";
 import { CopyButton } from "@/app/components/console/showcase/CopyButton";
 import { buttonVariants } from "@/app/components/ui/button";
@@ -91,6 +91,7 @@ export function InviteCard({
           copiedChildren={COPIED_LABEL}
           className={cn(buttonVariants({ variant: "outline" }), "h-11 w-full sm:h-9 sm:w-auto")}
         >
+          <PromptIcon aria-hidden="true" />
           Share prompt to add app
         </CopyPromptButton>
       </div>

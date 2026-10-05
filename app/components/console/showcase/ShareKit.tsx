@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, Copy, Download, Loader2, Share2 } from "lucide-react";
+import { Check, Download, Loader2, Share2 } from "lucide-react";
 
-import { CopyPromptButton } from "@/app/components/CopyPromptButton";
+import { CopyPromptButton, PromptIcon } from "@/app/components/CopyPromptButton";
 import { LinkButton, Skeleton } from "@/app/components/console/kit";
 import { Button, buttonVariants } from "@/app/components/ui/button";
 import { WaIcon } from "@/app/showcase/share";
@@ -67,7 +67,7 @@ export function ShareKit({ page, celebrate }: { page: SharePage; celebrate?: boo
               failedChildren="Couldn’t copy. Try again"
               failedAnnounce="Couldn’t copy the prompt. Try again."
             >
-              <Copy aria-hidden="true" />
+              <PromptIcon aria-hidden="true" />
               Copy prompt for AI agents
             </CopyPromptButton>
           </div>

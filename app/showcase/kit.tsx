@@ -3,7 +3,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 
 import { ShotImage } from "./ShotImage";
 import { Pill, PrimaryCta, Steps as DsSteps } from "../components/ds";
-import { COPIED_LABEL, CopyPromptButton } from "../components/CopyPromptButton";
+import { COPIED_LABEL, CopyPromptButton, PromptIcon } from "../components/CopyPromptButton";
 import { showcaseGeneralPrompt } from "../lib/showcasePrompt";
 
 import type { ShowcaseApp } from "../lib/showcase";
@@ -259,6 +259,7 @@ export function DeployCta({ listPrompt = showcaseGeneralPrompt() }: { listPrompt
         <p className="sc-list">
           Already live on Embarko?{" "}
           <CopyPromptButton className="sc-list-copy" text={listPrompt} copiedChildren={COPIED_LABEL}>
+            <PromptIcon aria-hidden="true" className="mr-1 inline size-[0.9em] -translate-y-px align-middle" />
             Copy prompt to showcase your app
           </CopyPromptButton>
         </p>

@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { Copy, Plus } from "lucide-react";
 import { ConfirmDialog, type ConfirmRequest } from "../../components/console/ConfirmDialog";
 import { Alert, LinkButton, Page, PageHeader, Panel, Skeleton, Tag } from "../../components/console/kit";
-import { COPIED_LABEL, CopyPromptButton } from "../../components/CopyPromptButton";
+import { COPIED_LABEL, CopyPromptButton, PromptIcon } from "../../components/CopyPromptButton";
 import { Button, buttonVariants } from "../../components/ui/button";
 import {
   Dialog,
@@ -210,6 +210,7 @@ export default function TokensPage() {
               copiedChildren={COPIED_LABEL}
               onCopied={() => setSecretCopied(true)}
             >
+              <PromptIcon aria-hidden="true" />
               Copy prompt with token
             </CopyPromptButton>
             <CopyPromptButton
@@ -218,6 +219,7 @@ export default function TokensPage() {
               copiedChildren="Copied"
               onCopied={() => setSecretCopied(true)}
             >
+              <Copy aria-hidden="true" />
               Copy token only
             </CopyPromptButton>
             {/* Appears only once something has been copied — closing the banner

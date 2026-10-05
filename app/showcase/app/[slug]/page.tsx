@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, Copy } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { SiteHeader } from "../../../components/SiteHeader";
 import { SiteFooter } from "../../../components/SiteFooter";
@@ -13,7 +13,7 @@ import { CtaSection } from "../../../components/ds";
 import { Media } from "./Media";
 import { ContactDev } from "./ContactDev";
 import { CustomHtml } from "./CustomHtml";
-import { COPIED_LABEL, CopyPromptButton } from "../../../components/CopyPromptButton";
+import { COPIED_LABEL, CopyPromptButton, PromptIcon } from "../../../components/CopyPromptButton";
 import { buildSimilarPrompt } from "../../../lib/showcasePrompt";
 import { ShowcaseBreadcrumbs } from "../../breadcrumbs";
 
@@ -197,7 +197,7 @@ export default async function ShowcaseAppPage({ params }: Props) {
                     text={buildSimilarPrompt({ name: app.name, appUrl: app.appUrl, prd: app.prd })}
                     copiedChildren={COPIED_LABEL}
                   >
-                    <Copy aria-hidden="true" />
+                    <PromptIcon aria-hidden="true" />
                     Build similar app
                   </CopyPromptButton>
                 )}

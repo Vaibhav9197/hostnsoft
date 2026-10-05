@@ -12,7 +12,7 @@ import {
 } from "@/app/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
-import { COPIED_LABEL, CopyPromptButton } from "@/app/components/CopyPromptButton";
+import { COPIED_LABEL, CopyPromptButton, PromptIcon } from "@/app/components/CopyPromptButton";
 import { ConfirmDialog, type ConfirmRequest } from "@/app/components/console/ConfirmDialog";
 import { Alert, EmptyState, LinkButton, Page, Panel, PanelTitle, Skeleton, Tag } from "@/app/components/console/kit";
 import { CopyButton } from "@/app/components/console/showcase/CopyButton";
@@ -808,7 +808,7 @@ export default function ShowcaseManagePage() {
                   copiedChildren={COPIED_LABEL}
                   className={cn(buttonVariants(), "h-11 sm:h-9")}
                 >
-                  <Copy aria-hidden="true" />
+                  <PromptIcon aria-hidden="true" />
                   Copy deploy prompt
                 </CopyPromptButton>
               </div>
@@ -825,10 +825,11 @@ export default function ShowcaseManagePage() {
                   copiedChildren={COPIED_LABEL}
                   announce="Prompt copied. Paste it in your AI."
                   className={cn(
-                    "inline-flex min-h-11 cursor-pointer items-center text-[0.84rem] font-semibold text-muted-foreground transition-colors hover:text-foreground hover:underline motion-reduce:transition-none sm:min-h-8",
+                    "inline-flex min-h-11 cursor-pointer items-center gap-1.5 text-[0.84rem] font-semibold text-muted-foreground transition-colors hover:text-foreground hover:underline motion-reduce:transition-none sm:min-h-8",
                     FOCUS,
                   )}
                 >
+                  <PromptIcon className="size-3.5" aria-hidden="true" />
                   Or copy a prompt for your AI
                 </CopyPromptButton>
               </div>

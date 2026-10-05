@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowUpRight, Check, Copy, Loader2 } from "lucide-react";
+import { ArrowUpRight, Check, Loader2 } from "lucide-react";
 
-import { CopyPromptButton } from "@/app/components/CopyPromptButton";
+import { CopyPromptButton, PromptIcon } from "@/app/components/CopyPromptButton";
 import { Button } from "@/app/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { showcaseApi } from "@/app/lib/hnsApi";
@@ -222,7 +222,7 @@ export function ListOnShowcaseDialog({
                   </>
                 }
               >
-                <Copy className="size-4" aria-hidden="true" />
+                <PromptIcon className="size-4" aria-hidden="true" />
                 Copy prompt for your AI
               </CopyPromptButton>
             </div>

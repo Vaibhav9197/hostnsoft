@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Copy } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { SiteHeader } from "../components/SiteHeader";
 import { SiteFooter } from "../components/SiteFooter";
-import { COPIED_LABEL, CopyPromptButton } from "../components/CopyPromptButton";
+import { COPIED_LABEL, CopyPromptButton, PromptIcon } from "../components/CopyPromptButton";
 import { listApps } from "../lib/showcase";
 import { DeployCta, Steps } from "./kit";
 import { SearchGallery } from "./SearchGallery";
@@ -88,10 +88,11 @@ function EmptyState() {
         <p>Deploy something with your AI, then list it here. It gets its own page.</p>
         <div className="acts">
           <CopyPromptButton className="sc-btn pri" copiedChildren={COPIED_LABEL}>
-            <Copy aria-hidden="true" />
+            <PromptIcon aria-hidden="true" />
             Copy deployment prompt
           </CopyPromptButton>
           <CopyPromptButton className="sc-btn" text={showcaseGeneralPrompt()} copiedChildren={COPIED_LABEL}>
+            <PromptIcon aria-hidden="true" />
             Copy prompt to showcase your app
           </CopyPromptButton>
         </div>
