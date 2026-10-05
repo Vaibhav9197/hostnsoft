@@ -1,6 +1,14 @@
 # Agent quickstart
 
-Deploy an app and get a live URL. Do the steps in order.
+**Faster, if your tools let you install one:**
+
+```bash
+npx skills add embarko-ai/skill --skill embarko-deploy -g
+```
+
+The skill packages and deploys for you. Source: [embarko.ai/skill](https://embarko.ai/skill).
+
+No skill? Deploy an app and get a live URL by doing the steps in order.
 
 ## [1. Get access](#connector)
 
@@ -145,5 +153,3 @@ Get a token (step 1) and deploy the same name again with it. Full steps:
 | Help with an error | [Troubleshooting](troubleshoot.md) |
 | Whether to ask the user | [When to involve the human](escalation.md) |
 | Adding Embarko to an AI tool | [Connectors](connectors.md) |
-
-Also available as a skill: [embarko.ai/skill](https://embarko.ai/skill).
