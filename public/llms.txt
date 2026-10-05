@@ -120,7 +120,7 @@ app, debug a live app, and what to do when the API is unreachable from your envi
 ## Escalation: when to involve the human
 
 What you must decide yourself (ports, memory, runtime, containers, topology, errors) and the only
-six cases where asking the user is correct. Nearly everything is agent-callable — custom domains,
+seven cases where asking the user is correct. Nearly everything is agent-callable — custom domains,
 analytics, rename and delete included. Two that need the user's word first, though you can perform
 both: deleting an app, and changing its web address, which kills the old address with no redirect.
 The one step that is not yours at all: creating the DNS record for a custom domain, which only the
