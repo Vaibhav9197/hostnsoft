@@ -1,4 +1,4 @@
-import { SiteHeader } from "../components/SiteHeader";
+import { ShowcaseHeader } from "./ShowcaseHeader";
 import { SiteFooter } from "../components/SiteFooter";
 import type { ShowcaseApp } from "../lib/showcase";
 import { BackToShowcase, DeployCta, EmptyList, TileGrid } from "./kit";
@@ -38,7 +38,9 @@ export function ListPage({
 }) {
   return (
     <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased">
-      <SiteHeader />
+      {/* An event page's header copies its own prompt, which names this page,
+          so the visitor's AI lists the app here and not on the gallery. */}
+      <ShowcaseHeader prompt={listPrompt ?? undefined} />
       <div className="sc-wrap sc-layer">
         <section className="sc-subhero">
           <BackToShowcase />

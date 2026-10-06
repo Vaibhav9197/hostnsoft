@@ -141,7 +141,8 @@ export default async function ShowcaseAppPage({ params }: Props) {
           { name: app.name, path: `/showcase/app/${app.slug}` },
         ]}
       />
-      <SiteHeader />
+      {/* Wordmark only: an app page is about the app and its own actions. */}
+      <SiteHeader bare />
 
       <article className="sc-wrap sc-layer">
         <div className="sc-topback">

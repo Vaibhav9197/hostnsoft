@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-import { SiteHeader } from "../components/SiteHeader";
+import { ShowcaseHeader } from "./ShowcaseHeader";
 import { SiteFooter } from "../components/SiteFooter";
 import { COPIED_LABEL, CopyPromptButton, PromptIcon } from "../components/CopyPromptButton";
 import { listApps } from "../lib/showcase";
 import { DeployCta, Steps } from "./kit";
 import { SearchGallery } from "./SearchGallery";
-import { Hero, PrimaryCta, Serif } from "../components/ds";
+import { Hero, Serif } from "../components/ds";
 import { showcaseGeneralPrompt } from "../lib/showcasePrompt";
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export default async function ShowcasePage() {
 
   return (
     <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased">
-      <SiteHeader />
+      <ShowcaseHeader />
 
       <div className="sc-wrap sc-layer">
         <Hero
@@ -58,11 +58,6 @@ export default async function ShowcasePage() {
               Every app here was built by someone&rsquo;s own AI agent and put online with Embarko. Open
               one, then make your own.
             </>
-          }
-          actions={
-            apps.length > 0 ? (
-              <PrimaryCta label="Copy prompt to showcase your app" text={showcaseGeneralPrompt()} />
-            ) : undefined
           }
         />
 

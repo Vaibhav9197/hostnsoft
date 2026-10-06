@@ -1,5 +1,4 @@
 import { showcaseListPrompt } from "../../lib/showcasePrompt";
-import { PrimaryCta } from "../../components/ds";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -66,7 +65,7 @@ export default async function CollectionPage({ params }: Props) {
            the button copies a prompt that lists the visitor's app here. */
         note={
           meta.type === "event"
-            ? "Built something for this showcase? Copy the prompt, paste it into your AI agent, and your app appears on this page."
+            ? "Built something for this showcase? Click “List your app here” at the top, paste the prompt into your AI, and your app appears on this page."
             : null
         }
         apps={apps}
@@ -75,9 +74,6 @@ export default async function CollectionPage({ params }: Props) {
         listPrompt={meta.type === "event" ? showcaseListPrompt(meta) : null}
         shareTitle={meta.type === "event" ? `${meta.title} — list your AI-built app on Embarko` : `${meta.title} — ${count} built with AI`}
         shareWhenEmpty={meta.type === "event"}
-        /* Beside the note that asks for it. The prompt names this page and its
-           URL, so the visitor's AI lists the app here, not on the gallery. */
-        actions={<PrimaryCta label="Copy prompt to showcase your app" text={showcaseListPrompt(meta)} />}
         /* A collection can exist before anything is in it — it is created
            with the event, and the projects arrive over the following days. */
         empty={{

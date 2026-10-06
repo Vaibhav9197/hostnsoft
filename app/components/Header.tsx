@@ -20,6 +20,11 @@ interface HeaderProps {
    *  long scrolling content (v3) use these; the shorter variants omit them and
    *  the slot collapses, leaving the wordmark/actions layout untouched. */
   links?: readonly HeaderLink[];
+  /** Replaces the whole right side — links, Log in, Sign up — with one action.
+   *  For pages with a single job, like the Showcase ("List your app here"). */
+  cta?: React.ReactNode;
+  /** Wordmark only: no links, no auth, no action. */
+  bare?: boolean;
 }
 
 /** How far the page must scroll before the bar frosts over. Small enough that
@@ -32,7 +37,7 @@ const LG_PX = 1024;
 
 const NAV_LINK = "text-sm font-medium text-neutral-600 transition-colors hover:text-neutral-950";
 
-export function Header({ onAuthClick, links }: HeaderProps) {
+export function Header({ onAuthClick, links, cta, bare }: HeaderProps) {
   /* The bar is fixed and transparent, so scrolled content runs straight under
      the wordmark and links and turns them to mush. Frosting it on scroll keeps
      the header legible over anything without putting a permanent slab at the
@@ -105,6 +110,9 @@ export function Header({ onAuthClick, links }: HeaderProps) {
           </div>
         )}
 
+        {bare ? null : cta ? (
+          <div className="flex items-center">{cta}</div>
+        ) : (
         <div className="flex items-center gap-6">
           {/* With anchors in play everything folds into the menu below lg, so
               these three stay hidden until then; without anchors the bar is
@@ -150,6 +158,7 @@ export function Header({ onAuthClick, links }: HeaderProps) {
             </button>
           )}
         </div>
+        )}
       </div>
 
       {hasLinks && (
