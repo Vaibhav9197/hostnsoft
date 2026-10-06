@@ -5,8 +5,8 @@ import { ArrowRight } from "lucide-react";
 import { ShowcaseHeader } from "./ShowcaseHeader";
 import { SiteFooter } from "../components/SiteFooter";
 import { COPIED_LABEL, CopyPromptButton, PromptIcon } from "../components/CopyPromptButton";
-import { listApps } from "../lib/showcase";
-import { DeployCta, Steps } from "./kit";
+import { listApps, listCollections } from "../lib/showcase";
+import { DeployCta, OtherPages, Steps } from "./kit";
 import { SearchGallery } from "./SearchGallery";
 import { Hero, Serif } from "../components/ds";
 import { showcaseGeneralPrompt } from "../lib/showcasePrompt";
@@ -26,7 +26,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ShowcasePage() {
   /* The API's maximum, so the category counts cover every public app. */
-  const apps = await listApps(200);
+  const [apps, pages] = await Promise.all([listApps(200), listCollections()]);
 
   return (
     <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased">
@@ -67,6 +67,7 @@ export default async function ShowcasePage() {
           <EmptyState />
         )}
 
+        <OtherPages pages={pages} />
         <DeployCta />
       </div>
       <SiteFooter />

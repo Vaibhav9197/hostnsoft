@@ -115,6 +115,16 @@ export async function getAppForContact(slug: string): Promise<{ app: ShowcaseApp
   return { app: withoutOwnerEmail(app), ownerEmail: app.userEmail?.trim() || null };
 }
 
+/** Every event page, newest first. Empty on failure: a missing row of links
+    should never take the gallery down with it. */
+export async function listCollections(): Promise<Collection[]> {
+  try {
+    return (await read<Collection[]>("/public/showcase/collections")) ?? [];
+  } catch {
+    return [];
+  }
+}
+
 /** A collection and its public apps in one round trip. */
 export async function getCollectionWithApps(
   slug: string,

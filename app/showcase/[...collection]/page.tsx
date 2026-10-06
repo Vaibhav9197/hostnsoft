@@ -56,6 +56,7 @@ export default async function CollectionPage({ params }: Props) {
       <ShowcaseBreadcrumbs trail={[{ name: meta.title, path: `/showcase/${encodeURIComponent(meta.slug)}` }]} />
       <ListPage
         title={meta.title}
+        currentSlug={meta.slug}
         /* None on an event page: anyone can ask to list an app there, so
            "Apps built by <page>" would claim authorship it doesn't have. Its
            intro and the note below say what the page is. */

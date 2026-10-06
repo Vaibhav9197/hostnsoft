@@ -1,14 +1,14 @@
 import { ShowcaseHeader } from "./ShowcaseHeader";
 import { SiteFooter } from "../components/SiteFooter";
-import type { ShowcaseApp } from "../lib/showcase";
-import { BackToShowcase, DeployCta, EmptyList, TileGrid } from "./kit";
+import { listCollections, type ShowcaseApp } from "../lib/showcase";
+import { BackToShowcase, DeployCta, EmptyList, OtherPages, TileGrid } from "./kit";
 import { ShareRow } from "./share";
 
 /**
  * The shared frame for category, tag and collection pages: a compact hero,
  * the same tiles as the gallery, and the same closing CTA.
  */
-export function ListPage({
+export async function ListPage({
   title,
   lede,
   intro,
@@ -19,6 +19,7 @@ export function ListPage({
   note,
   shareTitle,
   shareWhenEmpty = false,
+  currentSlug,
 }: {
   title: string;
   lede?: string;
@@ -35,7 +36,10 @@ export function ListPage({
   /** Show share even while empty — an event page is shared to invite
       participants before anything is listed. */
   shareWhenEmpty?: boolean;
+  /** Slug of the page being viewed, left out of the "more pages" row. */
+  currentSlug?: string;
 }) {
+  const pages = await listCollections();
   return (
     <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased">
       {/* An event page's header copies its own prompt, which names this page,
@@ -58,6 +62,7 @@ export function ListPage({
           {apps.length > 0 ? <TileGrid apps={apps} /> : <EmptyList {...empty} />}
         </div>
 
+        <OtherPages pages={pages} current={currentSlug} />
         <DeployCta listPrompt={listPrompt} />
       </div>
       <SiteFooter />

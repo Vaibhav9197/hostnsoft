@@ -6,7 +6,7 @@ import { Pill, PrimaryCta, Steps as DsSteps } from "../components/ds";
 import { COPIED_LABEL, CopyPromptButton, PromptIcon } from "../components/CopyPromptButton";
 import { showcaseGeneralPrompt } from "../lib/showcasePrompt";
 
-import type { ShowcaseApp } from "../lib/showcase";
+import type { Collection, ShowcaseApp } from "../lib/showcase";
 
 /**
  * The stand-in shown when a submission has no screenshot.
@@ -264,6 +264,39 @@ export function DeployCta({ listPrompt = showcaseGeneralPrompt() }: { listPrompt
           </CopyPromptButton>
         </p>
       )}
+    </section>
+  );
+}
+
+/**
+ * Other showcase pages — hackathons, classes, events — so a visitor can go
+ * and list their app there too. `current` hides the page being viewed. The
+ * API sends them fullest first; only the top few show, so the row stays a
+ * row however many pages exist.
+ */
+const MAX_PAGES = 6;
+export function OtherPages({ pages, current }: { pages: Collection[]; current?: string }) {
+  const list = pages.filter((p) => p.slug !== current).slice(0, MAX_PAGES);
+  if (list.length === 0) return null;
+  return (
+    <section className="sc-pagesec" aria-labelledby="pages-h">
+      <div className="sc-sech">
+        <div>
+          <h2 id="pages-h">Explore more showcase pages</h2>
+          <p>See what people built for hackathons, classes, and events.</p>
+        </div>
+      </div>
+      <ul className="sc-pagegrid">
+        {list.map((p) => (
+          <li key={p.slug}>
+            <Link href={`/showcase/${encodeURIComponent(p.slug)}`}>
+              <strong>{p.title}</strong>
+              <span>{p.projectCount === 0 ? "Be the first to list an app" : `${p.projectCount} ${p.projectCount === 1 ? "app" : "apps"}`}</span>
+              <ArrowRight aria-hidden="true" />
+            </Link>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
