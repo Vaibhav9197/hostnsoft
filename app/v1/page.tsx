@@ -77,9 +77,6 @@ const AGENT_MARKS = [
   { slug: 'cursor', name: 'Cursor' },
 ];
 
-/* How long step 2 stays highlighted after a copy. */
-const NUDGE_MS = 12_000;
-
 /* The timeline's dotted line: round dots on a vertical track, drawn with a
    background so it stretches to any height without extra markup. */
 const DOTS: React.CSSProperties = {
@@ -128,14 +125,10 @@ function TimelineStep({ n, title, side, active, last, children }: { n: string; t
 }
 
 /* The hero's three steps on a dotted centre line, dot 1 to dot 3. Copying
-   lights up step 2. */
+   lights up step 2, and it stays lit: the visitor has moved on, so the
+   timeline never jumps back to step 1. */
 function HeroTimeline() {
   const [copied, setCopied] = useState(false);
-  useEffect(() => {
-    if (!copied) return;
-    const reset = window.setTimeout(() => setCopied(false), NUDGE_MS);
-    return () => window.clearTimeout(reset);
-  }, [copied]);
 
   return (
     <ol className="mx-auto w-full max-w-3xl">
@@ -195,7 +188,7 @@ const HOVER_OPEN_MS = 150;
 const HOVER_CLOSE_MS = 120;
 const BUBBLE_W = 288;
 
-type Anchor = { name: string; rect: DOMRect };
+type Anchor = { name: string; el: HTMLElement; rect: DOMRect };
 
 /* The bubble over (or under) a tile: what it does, and the sentence you'd say
    to your AI to get it. Fixed-positioned from the tile's rect and kept inside
@@ -284,8 +277,10 @@ function NeedBubble({
 const CLOSE_ANIM_MS = 160;
 
 /* Tiles stay calm until asked: hover (mouse), tap (touch) or focus
-   (keyboard) opens the bubble at the tile. Escape, a tap outside, or a
-   scroll closes it. */
+   (keyboard) opens the bubble at the tile. Escape or a tap outside closes
+   it. A scroll moves it with its tile (section snap keeps scrolling after
+   the wheel stops, so closing on scroll killed hovers) and closes it only
+   once the tile leaves the screen. */
 function NeedsGrid() {
   const [anchor, setAnchor] = useState<Anchor | null>(null);
   const [closing, setClosing] = useState(false);
@@ -297,7 +292,7 @@ function NeedsGrid() {
     window.clearTimeout(closeTimer.current);
     window.clearTimeout(unmountTimer.current);
     setClosing(false);
-    setAnchor({ name, rect: el.getBoundingClientRect() });
+    setAnchor({ name, el, rect: el.getBoundingClientRect() });
   };
   /* Plays the sink-away, then unmounts. Opening again mid-way cancels it. */
   const close = () => {
@@ -321,22 +316,27 @@ function NeedsGrid() {
 
   useEffect(() => {
     if (!anchor) return;
+    const follow = () => {
+      const rect = anchor.el.getBoundingClientRect();
+      if (rect.bottom < 0 || rect.top > window.innerHeight) close();
+      else setAnchor((a) => (a ? { ...a, rect } : a));
+    };
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close();
     const onDown = (e: PointerEvent) => {
       const t = e.target as Element;
       if (!t.closest('#need-bubble') && !t.closest('[data-need]')) close();
     };
-    window.addEventListener('scroll', close, { passive: true });
-    window.addEventListener('resize', close);
+    window.addEventListener('scroll', follow, { passive: true });
+    window.addEventListener('resize', follow);
     window.addEventListener('keydown', onKey);
     document.addEventListener('pointerdown', onDown);
     return () => {
-      window.removeEventListener('scroll', close);
-      window.removeEventListener('resize', close);
+      window.removeEventListener('scroll', follow);
+      window.removeEventListener('resize', follow);
       window.removeEventListener('keydown', onKey);
       document.removeEventListener('pointerdown', onDown);
     };
-  }, [anchor]);
+  }, [anchor?.name, anchor?.el]);
 
   useEffect(() => () => {
     window.clearTimeout(openTimer.current);
@@ -350,19 +350,25 @@ function NeedsGrid() {
         {NEEDS.map((n) => {
           const on = anchor?.name === n.name && !closing;
           return (
-            <li key={n.name} className="min-w-0">
+            /* Hover is tracked on the <li>, which never moves: the button lifts
+               on hover, and at its bottom edge that slid it out from under the
+               mouse, so it flickered open and shut. */
+            <li
+              key={n.name}
+              className="group min-w-0"
+              onPointerEnter={(e) => {
+                if (e.pointerType !== 'mouse') return;
+                const el = e.currentTarget.firstElementChild as HTMLElement;
+                window.clearTimeout(openTimer.current);
+                openTimer.current = window.setTimeout(() => openFor(n.name, el), anchor ? 0 : HOVER_OPEN_MS);
+              }}
+              onPointerLeave={(e) => e.pointerType === 'mouse' && scheduleClose()}
+            >
               <button
                 type="button"
                 data-need
                 aria-expanded={on}
                 aria-controls={on ? 'need-bubble' : undefined}
-                onPointerEnter={(e) => {
-                  if (e.pointerType !== 'mouse') return;
-                  const el = e.currentTarget;
-                  window.clearTimeout(openTimer.current);
-                  openTimer.current = window.setTimeout(() => openFor(n.name, el), anchor ? 0 : HOVER_OPEN_MS);
-                }}
-                onPointerLeave={(e) => e.pointerType === 'mouse' && scheduleClose()}
                 onClick={(e) => {
                   /* A second tap on touch closes it; a mouse click keeps the
                      hover bubble open; Enter or Space opens it. */
@@ -371,8 +377,8 @@ function NeedsGrid() {
                   else openFor(n.name, e.currentTarget);
                 }}
                 onFocus={(e) => e.currentTarget.matches(':focus-visible') && openFor(n.name, e.currentTarget)}
-                className={`flex h-24 w-full flex-col justify-between rounded-[var(--ds-r)] border bg-[var(--ds-card)] p-4 text-left transition-[border-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-[var(--ds-sh)] sm:h-28 ${
-                  on ? 'border-[var(--ds-ink)] shadow-[var(--ds-sh)]' : 'border-[var(--ds-line)] hover:border-[var(--ds-line2)]'
+                className={`flex h-24 w-full flex-col justify-between rounded-[var(--ds-r)] border bg-[var(--ds-card)] p-4 text-left transition-[border-color,transform,box-shadow] duration-200 group-hover:-translate-y-0.5 group-hover:shadow-[var(--ds-sh)] sm:h-28 ${
+                  on ? 'border-[var(--ds-ink)] shadow-[var(--ds-sh)]' : 'border-[var(--ds-line)] group-hover:border-[var(--ds-line2)]'
                 }`}
               >
                 <span className="flex items-start justify-between gap-2">
