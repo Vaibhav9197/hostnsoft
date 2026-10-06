@@ -12,7 +12,7 @@ import { ShareApp } from "../../share";
 import { CtaSection } from "../../../components/ds";
 import { Media } from "./Media";
 import { ContactDev } from "./ContactDev";
-import { CustomHtml } from "./CustomHtml";
+import { CustomHtml } from "../../../components/CustomHtml";
 import { COPIED_LABEL, CopyPromptButton, PromptIcon } from "../../../components/CopyPromptButton";
 import { buildSimilarPrompt } from "../../../lib/showcasePrompt";
 import { ShowcaseBreadcrumbs } from "../../breadcrumbs";

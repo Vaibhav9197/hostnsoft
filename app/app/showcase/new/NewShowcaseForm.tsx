@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { Check, Loader2 } from "lucide-react";
+import { Check, ChevronDown, Loader2 } from "lucide-react";
 
 import { Alert, LinkButton, Panel } from "@/app/components/console/kit";
+import { CustomHtmlField } from "@/app/components/console/showcase/CustomHtmlField";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { HnsError } from "@/app/lib/client";
@@ -65,12 +66,17 @@ export function NewShowcaseForm({ onDraftChange }: { onDraftChange?: (draft: Sho
   const nameId = `${ids}-name`;
   const addressId = `${ids}-address`;
   const introId = `${ids}-intro`;
+  const htmlId = `${ids}-html`;
 
   const nameRef = useRef<HTMLInputElement>(null);
   const addressRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState("");
   const [intro, setIntro] = useState("");
+  /* Optional and long, so it starts folded. Folding it again keeps what was
+     typed: it is still sent, and the toggle says so. */
+  const [html, setHtml] = useState("");
+  const [htmlOpen, setHtmlOpen] = useState(false);
   /* The address follows the name until the person types in it. `typed` only
      means something while `follow` is off. */
   const [follow, setFollow] = useState(true);
@@ -309,6 +315,7 @@ export function NewShowcaseForm({ onDraftChange }: { onDraftChange?: (draft: Sho
         slug,
         title,
         intro: intro.trim() || null,
+        customHtml: html.trim() || null,
       });
       /* Stays on "Creating…" until the manage page takes over, so there is
          no moment where Create can be pressed twice. */
@@ -461,10 +468,36 @@ export function NewShowcaseForm({ onDraftChange }: { onDraftChange?: (draft: Sho
           </p>
         </div>
 
+        {/* --------------------------------------------- custom html */}
+        <div className="flex flex-col gap-4">
+          <button
+            type="button"
+            onClick={() => setHtmlOpen((v) => !v)}
+            aria-expanded={htmlOpen}
+            aria-controls={`${htmlId}-panel`}
+            className="inline-flex min-h-11 w-fit items-center gap-1 text-left text-[0.84rem] font-semibold text-muted-foreground hover:text-foreground sm:min-h-0"
+          >
+            <ChevronDown
+              aria-hidden="true"
+              className={cn("size-4 shrink-0 transition-transform motion-reduce:transition-none", htmlOpen && "rotate-180")}
+            />
+            Custom HTML
+            <span className="font-normal">
+              {!htmlOpen && html.trim() ? "— added" : "— optional: rules, schedule, sponsors"}
+            </span>
+          </button>
+          {htmlOpen && (
+            <div id={`${htmlId}-panel`} className="border-t border-border pt-4">
+              <CustomHtmlField id={htmlId} value={html} onChange={setHtml} readOnly={creating} autoFocus />
+            </div>
+          )}
+        </div>
+
         {/* ----------------------------------------------- submit */}
         <div className="flex flex-col gap-3 border-t border-border pt-5">
           <p className="text-[0.82rem] leading-relaxed text-faint">
-            It goes live as soon as you create it. The name, address and description can’t be changed later.
+            It goes live as soon as you create it. The name, address, description and custom HTML can’t be changed
+            later.
           </p>
           {formError && (
             /* Announced: it lands after "Creating…", with focus elsewhere. */
