@@ -10,6 +10,7 @@ import { InfrastructureTrust, TrustStrip, WhyEmbarko } from '../components/WhyEm
 import { SiteFooter } from '../components/SiteFooter';
 import { Dialog, DialogContent, DialogTitle } from '../components/ui/dialog';
 import { HowItWorks } from './HowItWorks';
+import { HostLink } from './HostLink';
 
 /* Looping "watch it deploy" timeline shown on step 1. A single elapsed-ms
    counter drives every derived phase, rather than nested timers, so the whole
@@ -92,7 +93,7 @@ export default function EmbarkoV2() {
   }, []);
 
   return (
-    <main className="relative flex h-[calc(100dvh-var(--beta-bar-h))] flex-col overflow-hidden isolate bg-background text-foreground antialiased">
+    <main className="relative flex min-h-[calc(100dvh-var(--beta-bar-h))] flex-col isolate sm:h-[calc(100dvh-var(--beta-bar-h))] sm:overflow-hidden bg-background text-foreground antialiased">
       <SiteHeader />
       <GlowBackdrop position="full" />
 
@@ -113,7 +114,10 @@ export default function EmbarkoV2() {
         }
       `}</style>
 
-      <div className="relative flex min-h-0 flex-1 flex-col">
+      {/* On phones the deck fills the screen and the footer sits below it,
+          reached by scrolling — pinned under the deck, it ate a third of a
+          phone screen. From sm up the whole page is one screen again. */}
+      <div className="relative flex min-h-[calc(100dvh-var(--beta-bar-h))] flex-1 flex-col sm:min-h-0">
       {step > 0 && (
         <button
           onClick={() => setStep((s) => s - 1)}
@@ -130,6 +134,15 @@ export default function EmbarkoV2() {
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
         </button>
+      )}
+
+      {/* The trust chip sits at the foot of the first screen, not under the
+          buttons: the first glance stays plain words, and the proof is still
+          there for anyone who looks for it. */}
+      {step === 0 && (
+        <div className="absolute inset-x-0 bottom-6 z-20 flex justify-center px-4">
+          <TrustStrip onClick={() => setTrustOpen(true)} />
+        </div>
       )}
 
       {/* the one section.
@@ -151,7 +164,7 @@ export default function EmbarkoV2() {
           /* Hero's headline needs a wider column than the demo steps to hold two lines. */
           className={`eb-in m-auto w-full ${step === 0 ? 'max-w-[1180px]' : 'max-w-[1000px]'}`}
         >
-          {step === 0 && <Hero onStory={() => setStoryOpen(true)} onTrust={() => setTrustOpen(true)} />}
+          {step === 0 && <Hero onStory={() => setStoryOpen(true)} />}
           {step === 1 && <CopyStep onNext={() => setStep(2)} />}
           {step === 2 && <ChatStep />}
         </div>
@@ -220,7 +233,7 @@ function TrustDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: 
 
 /* ── step 0 · hero ─────────────────────────────────────── */
 
-function Hero({ onStory, onTrust }: { onStory: () => void; onTrust: () => void }) {
+function Hero({ onStory }: { onStory: () => void }) {
   return (
     <div className="text-center">
       <h1 className="mx-auto max-w-[16ch] text-[44px] font-extrabold leading-[0.96] tracking-[-0.055em] sm:text-[68px] md:text-[100px] [&_.ds-serif]:pr-[0.06em] [&_.ds-serif]:text-[1.06em]">
@@ -228,25 +241,20 @@ function Hero({ onStory, onTrust }: { onStory: () => void; onTrust: () => void }
       </h1>
 
       <Sub>
-        No Dockerfile, no config, no deploy pipeline — just a live URL.
+        Your AI built it. Let it put it online too.
       </Sub>
 
-      {/* Copy is the job, so it leads. The story is for anyone who wants
-          the "how" first; it ends on the same copy button. */}
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-        <PrimaryCta onClicked={() => trackCTA('copy')} />
-        <button onClick={onStory} className={buttonClass('secondary', 'lg')}>
+      {/* The story leads: a first-time visitor needs the "how" before the
+          prompt means anything, and the story ends on the copy button anyway.
+          Anyone who already knows can copy straight from the link below. */}
+      <div className="mt-8 flex flex-col items-center gap-4">
+        <button onClick={onStory} className={buttonClass('primary', 'lg')}>
           <Play className="size-4 fill-current" aria-hidden="true" />
-          How it works!
+          How it works?
         </button>
+        <HostLink />
       </div>
 
-      {/* The EU/ISO claim in its one-line form. /v2 is a three-beat deck with
-          no room for the full section, and this is the fact worth carrying
-          into the first screen anyway. */}
-      <div className="mt-7">
-        <TrustStrip onClick={onTrust} />
-      </div>
     </div>
   );
 }

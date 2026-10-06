@@ -3,8 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowLeft, ArrowRight, Check, CloudOff, Lock, RotateCcw, X } from 'lucide-react';
-import { PrimaryCta, Serif, buttonClass } from '@/app/components/ds';
+import { Serif, buttonClass } from '@/app/components/ds';
+import { CopyPromptButton, PromptIcon } from '../components/CopyPromptButton';
 import { agentIconSrc } from '../lib/agents';
+import { NeedsGrid } from '../components/NeedsGrid';
+import { HostLink } from './HostLink';
 import { trackCTA, trackEvent } from '../lib/tracking';
 
 /* ── "How it works" — a short story, told in scenes ─────────
@@ -297,37 +300,27 @@ function LiveStage({ t }: { t: number }) {
   );
 }
 
-/* 6 · The end: the place apps live, and the one thing to do next. */
-const WORLD = [
-  { name: 'Studio Bookings', x: 4, y: 8, d: 0 },
-  { name: 'Portfolio', x: 78, y: 4, d: 1.2 },
-  { name: 'Team CRM', x: 84, y: 62, d: 2.1 },
-  { name: 'Wedding RSVP', x: 2, y: 70, d: 0.6 },
-  { name: 'Class project', x: 44, y: 90, d: 1.7 },
-];
+/* 6 · The end: what's already there when the app needs more, then the one
+   thing to do next. The tiles answer the visitor's last doubt ("but what
+   about a database?") right before the button. */
 function EndStage({ t, onReplay }: { t: number; onReplay: () => void }) {
   return (
-    <div className="relative flex w-full max-w-[760px] flex-col items-center justify-center py-10 sm:min-h-[340px]">
-      {/* Apps as objects living in the sky — the world fills as you deploy. */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 hidden sm:block">
-        {WORLD.map((w, i) => (
-          <span
-            key={w.name}
-            className="absolute"
-            style={{ left: `${w.x}%`, top: `${w.y}%`, ...rise(t, 200 + i * 160, 700, 20) }}
-          >
-            <span
-              className="hiw-float flex items-center gap-2 whitespace-nowrap rounded-full border border-[var(--ds-line)] bg-[var(--ds-card)] px-3 py-1.5 text-[12px] font-semibold shadow-[var(--ds-sh)]"
-              style={{ animationDelay: `-${w.d}s` }}
-            >
-              <span className="size-1.5 rounded-full bg-[var(--ok)]" />
-              {w.name}
-            </span>
-          </span>
-        ))}
+    <div className="mx-auto flex w-full max-w-5xl flex-col items-center">
+      <div className="w-full text-center" style={rise(t, 700, 600, 16)}>
+        <p className="ds-kicker">When your app needs more, you already have it</p>
+        <div className="mt-4">
+          <NeedsGrid />
+        </div>
       </div>
-      <div className="relative flex flex-col items-center gap-3" style={rise(t, 900)}>
-        <PrimaryCta onClicked={() => trackCTA('copy')} />
+      <div className="mt-7 flex flex-col items-center gap-3" style={rise(t, 1100)}>
+        <CopyPromptButton
+          className={buttonClass('glow', 'lg')}
+          copiedChildren={<><Check className="size-4" aria-hidden="true" />Prompt copied. Paste in your AI</>}
+          onClicked={() => trackCTA('copy')}
+        >
+          <PromptIcon aria-hidden="true" />
+          Host your app
+        </CopyPromptButton>
         <button type="button" onClick={onReplay} className={buttonClass('ghost', 'sm')}>
           <RotateCcw className="size-3.5" aria-hidden="true" />
           Watch again
@@ -347,7 +340,7 @@ const SCENES: Scene[] = [
   },
   {
     id: 'friend',
-    next: 'So how do I put it online?',
+    next: 'So how do you put it online?',
     dur: 2900,
     lines: [{ at: 0, text: <>But your friends <Serif grad>can&rsquo;t</Serif> see it.</> }],
     Stage: FriendStage,
@@ -545,19 +538,17 @@ export function HowItWorks({ open, onClose }: { open: boolean; onClose: () => vo
       <style>{`
         @keyframes hiw-spin { to { transform: rotate(360deg) } }
         @keyframes hiw-blink { 0%,49% { opacity: 1 } 50%,100% { opacity: 0 } }
-        @keyframes hiw-float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-8px) } }
         @keyframes hiw-ping { 0% { box-shadow: 0 0 0 0 var(--ok-soft) } 100% { box-shadow: 0 0 0 7px transparent } }
         @keyframes hiw-in { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
         @keyframes hiw-nudge { 0%,70%,100% { transform: translateX(0) } 85% { transform: translateX(4px) } }
         .hiw-spin { animation: hiw-spin .8s linear infinite }
         .hiw-caret { animation: hiw-blink 1s step-end infinite }
-        .hiw-float { animation: hiw-float 6s ease-in-out infinite }
         .hiw-ping { animation: hiw-ping 1.6s ease-out infinite }
         .hiw-scene { animation: hiw-in .5s var(--ds-ease) both }
         .hiw-ask { animation: hiw-in .45s var(--ds-ease) both }
         .hiw-nudge { animation: hiw-nudge 2.4s ease-in-out 1s infinite }
         @media (prefers-reduced-motion: reduce) {
-          .hiw-spin, .hiw-caret, .hiw-float, .hiw-ping, .hiw-scene, .hiw-ask, .hiw-nudge { animation: none }
+          .hiw-spin, .hiw-caret, .hiw-ping, .hiw-scene, .hiw-ask, .hiw-nudge { animation: none }
         }
       `}</style>
       <Sky />
@@ -606,7 +597,7 @@ export function HowItWorks({ open, onClose }: { open: boolean; onClose: () => vo
         <h2
           aria-live="polite"
           className={`mx-auto max-w-[20ch] text-balance text-center font-extrabold leading-[1.02] tracking-[-0.045em] [&_.ds-serif]:pr-[0.06em] ${
-            isEnd ? 'text-[40px] sm:text-[64px] md:text-[80px]' : 'text-[30px] sm:text-[44px] md:text-[54px]'
+            'text-[30px] sm:text-[44px] md:text-[54px]'
           }`}
         >
           {scene.lines.map((l, n) => (
@@ -621,9 +612,17 @@ export function HowItWorks({ open, onClose }: { open: boolean; onClose: () => vo
         </h2>
         {/* A steady min-height, so the button below doesn't creep down while
             a scene's picture grows. */}
-        <div className="flex min-h-[300px] w-full items-center justify-center py-6 sm:min-h-[320px] sm:py-8 lg:[zoom:1.2] min-[1440px]:[zoom:1.35]">
-          {isEnd ? <EndStage t={t} onReplay={() => go(0)} /> : <scene.Stage t={t} />}
-        </div>
+        {isEnd ? (
+          /* Not zoomed: the tiles are already full-size UI, and their bubbles
+             position from real screen coordinates. */
+          <div className="w-full pt-8">
+            <EndStage t={t} onReplay={() => go(0)} />
+          </div>
+        ) : (
+          <div className="flex min-h-[300px] w-full items-center justify-center py-6 sm:min-h-[320px] sm:py-8 lg:[zoom:1.2] min-[1440px]:[zoom:1.35]">
+            <scene.Stage t={t} />
+          </div>
+        )}
 
       {/* The way on: the visitor's own next question, as the one big button.
           It's there from the start, so nobody waits on an animation. */}
@@ -642,9 +641,13 @@ export function HowItWorks({ open, onClose }: { open: boolean; onClose: () => vo
         </div>
       </div>
 
-      {/* Back: small, bottom centre, always in the same spot — an escape
-          route, kept apart from the path forward. */}
-      <div className="relative z-10 flex justify-center pb-5 sm:pb-7">
+      {/* The foot, same spot on every scene: "Host your app" for anyone ready
+          to start now (the last scene has the full button instead), and Back,
+          small — an escape route, kept apart from the path forward. */}
+      <div className="relative z-10 flex flex-col items-center gap-3 pb-5 sm:pb-7">
+        <div className={isEnd ? 'invisible' : ''}>
+          <HostLink />
+        </div>
         <button
           type="button"
           onClick={() => go(i - 1)}
