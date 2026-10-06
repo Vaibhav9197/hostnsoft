@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowRight, Copy, Bot, Globe } from 'lucide-react';
+import { ArrowRight, Copy, Bot, Globe, Play } from 'lucide-react';
 import { AGENTS, agentIconSrc } from '../lib/agents';
-import { GlowBackdrop, PrimaryCta, Serif, Steps, buttonClass } from '@/app/components/ds';
+import { GlowBackdrop, PrimaryCta, Serif, buttonClass } from '@/app/components/ds';
 import { trackPageView, trackCTA, trackDeployment } from '../lib/tracking';
 import { SiteHeader } from '../components/SiteHeader';
 import { InfrastructureTrust, TrustStrip, WhyEmbarko } from '../components/WhyEmbarko';
 import { SiteFooter } from '../components/SiteFooter';
 import { Dialog, DialogContent, DialogTitle } from '../components/ui/dialog';
+import { HowItWorks } from './HowItWorks';
 
 /* Looping "watch it deploy" timeline shown on step 1. A single elapsed-ms
    counter drives every derived phase, rather than nested timers, so the whole
@@ -66,6 +67,7 @@ function TrafficLights() {
 export default function EmbarkoV2() {
   const [step, setStep] = useState(0);
   const [trustOpen, setTrustOpen] = useState(false);
+  const [storyOpen, setStoryOpen] = useState(false);
 
   useEffect(() => {
     // Track page view
@@ -149,7 +151,7 @@ export default function EmbarkoV2() {
           /* Hero's headline needs a wider column than the demo steps to hold two lines. */
           className={`eb-in m-auto w-full ${step === 0 ? 'max-w-[1180px]' : 'max-w-[1000px]'}`}
         >
-          {step === 0 && <Hero onNext={() => setStep(1)} onTrust={() => setTrustOpen(true)} />}
+          {step === 0 && <Hero onStory={() => setStoryOpen(true)} onTrust={() => setTrustOpen(true)} />}
           {step === 1 && <CopyStep onNext={() => setStep(2)} />}
           {step === 2 && <ChatStep />}
         </div>
@@ -157,6 +159,7 @@ export default function EmbarkoV2() {
       </div>
 
       <TrustDialog open={trustOpen} onOpenChange={setTrustOpen} />
+      <HowItWorks open={storyOpen} onClose={() => setStoryOpen(false)} />
       {/* The footer sits under the deck, always visible, in place of the old
           "More" dialog. */}
       <div className="flex-none">
@@ -217,29 +220,26 @@ function TrustDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: 
 
 /* ── step 0 · hero ─────────────────────────────────────── */
 
-function Hero({ onNext, onTrust }: { onNext: () => void; onTrust: () => void }) {
+function Hero({ onStory, onTrust }: { onStory: () => void; onTrust: () => void }) {
   return (
     <div className="text-center">
       <h1 className="mx-auto max-w-[16ch] text-[44px] font-extrabold leading-[0.96] tracking-[-0.055em] sm:text-[68px] md:text-[100px] [&_.ds-serif]:pr-[0.06em] [&_.ds-serif]:text-[1.06em]">
-        Instant <Serif grad>hosting</Serif> for every app you build with AI
+        Instant <Serif grad>hosting</Serif> for apps you build with AI
       </h1>
 
       <Sub>
         No Dockerfile, no config, no deploy pipeline — just a live URL.
       </Sub>
 
-      <button
-        onClick={onNext}
-        className={buttonClass('glow', 'lg', 'group mt-8')}
-      >
-        Host now
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
-          <path d="M5 12h14M12 5l7 7-7 7" />
-        </svg>
-      </button>
-
-      {/* Two-step handoff in the quiet ds steps row; it wraps on phones. */}
-      <Steps steps={['Copy deployment prompt', 'Hand it to your agent']} />
+      {/* Copy is the job, so it leads. The story is for anyone who wants
+          the "how" first; it ends on the same copy button. */}
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <PrimaryCta onClicked={() => trackCTA('copy')} />
+        <button onClick={onStory} className={buttonClass('secondary', 'lg')}>
+          <Play className="size-4 fill-current" aria-hidden="true" />
+          How it works!
+        </button>
+      </div>
 
       {/* The EU/ISO claim in its one-line form. /v2 is a three-beat deck with
           no room for the full section, and this is the fact worth carrying
