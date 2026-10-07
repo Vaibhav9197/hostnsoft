@@ -27,7 +27,15 @@ leave the header out. The JSON body field for it is "appType".
 Also send X-Agent-Name with your own name as an agent, in lowercase ("claude-code", "claude",
 "chatgpt", "cursor"...). It shows the app's owner which agent deployed it. JSON field: "agentName".
 
-    tar -czf /tmp/app.tar.gz --exclude=node_modules --exclude=.git --exclude='.env*' -C ./app .
+Package the app so that the build manifest (package.json, requirements.txt, go.mod, Cargo.toml...)
+is at the archive root. Leave out whatever the build makes or downloads for this project: installed
+packages (node_modules, vendor, a Python virtual environment under any name), build output, caches,
+plus .git and any .env file. Check what a folder holds before excluding it; a folder named build or
+vendor can be source. Keep source, config, lock files, tool wrappers and the manifest. Write names
+without a trailing slash. The excludes below are examples; replace them with what the project has.
+Full guidance: https://embarko.ai/docs/agent-quickstart#package
+
+    tar -czf /tmp/app.tar.gz --exclude=.git --exclude='.env*' --exclude=node_modules --exclude=dist -C ./app .
 
     curl -X POST "https://ship.embarko.ai/apps" \
       -H "X-App-Name: my-app" \

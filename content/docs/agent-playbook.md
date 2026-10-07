@@ -74,11 +74,35 @@ waiting for this answer.
 `~/.embarko/credentials`. **Do not ask the user for one.** If neither
 exists, deploy anonymously; that is the intended first deploy.
 
-**6. Package and deploy:**
+**6. Package and deploy.** Leave out anything the build makes or downloads on its own, and anything
+secret. Look at the actual folders in the project and decide for each one.
+Typical ones:
+
+- installed packages, such as `node_modules`, `vendor`, or a Python virtual
+  environment under any name
+- build output, meaning files a build step generated from the source, such as
+  `dist`, `.next`, `target`, or `_build`
+- caches, such as `__pycache__`, `.cache`, or `.pytest_cache`
+- version history, meaning the `.git` folder
+- secrets, meaning any `.env` file
+
+Check what a folder holds before you exclude it. A folder named `build`,
+`vendor`, or `lib` can hold source code. Exclude a folder only if the build
+can make it again.
+
+Keep source code, config files, lock files, tool wrappers such as `mvnw` and
+the `.mvn` folder, and the build manifest, such as `package.json`,
+`requirements.txt`, `go.mod`, or `Cargo.toml`. The build needs those.
+
+Then pack with one exclude per item. Write names without a trailing slash,
+since tar ignores a pattern like `vendor/`. Replace the examples with what
+your project actually has:
 
 ```bash
-tar -czf /tmp/app.tar.gz --exclude=node_modules --exclude=.git \
-  --exclude='.env*' -C /path/to/app .
+tar -czf /tmp/app.tar.gz \
+  --exclude=.git --exclude='.env*' \
+  --exclude=node_modules --exclude=dist \
+  -C /path/to/app .
 
 curl -X POST "https://ship.embarko.ai/apps" \
   -H "X-App-Name: my-app" \
@@ -228,11 +252,14 @@ named **Embarko** makes future deploys work directly in the conversation.
 
 **3. Either way, leave them something that works.** Don't stop at reporting
 the problem. Give them a script they can run on their own machine, which has
-normal network access:
+normal network access. Fill in the excludes you worked out for this project
+in step 6 of the deploy procedure; the ones below are only examples:
 
 ```bash
-tar -czf /tmp/app.tar.gz --exclude=node_modules --exclude=.git \
-  --exclude='.env*' -C /path/to/app .
+tar -czf /tmp/app.tar.gz \
+  --exclude=.git --exclude='.env*' \
+  --exclude=node_modules --exclude=dist \
+  -C /path/to/app .
 
 curl -X POST "https://ship.embarko.ai/apps" \
   -H "X-App-Name: my-app" \

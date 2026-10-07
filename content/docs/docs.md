@@ -179,10 +179,20 @@ and [Privacy Policy](/privacy) are the documents to read — not this page.
 Nothing to sign up for and no credential to fetch. Deploy first, get a live
 URL, and decide about a token afterwards.
 
-**1. Package and deploy:**
+**1. Package and deploy.** Leave out whatever the build makes or downloads
+for this project (installed packages such as `node_modules`, `vendor` or a
+Python virtual environment under any name; build output; caches), plus `.git`
+and any `.env` file. Check what a folder holds before excluding it: a folder
+named `build` or `vendor` can be source. Keep source, config, lock files, tool
+wrappers and the manifest. Write names without a trailing slash. The excludes
+below are examples; replace them with what your project has. Full guidance:
+[Package the app](agent-quickstart.md#package).
 
 ```bash
-tar -czf /tmp/my-app.tar.gz --exclude=node_modules --exclude=.git --exclude='.env*' -C /path/to/app .
+tar -czf /tmp/my-app.tar.gz \
+  --exclude=.git --exclude='.env*' \
+  --exclude=node_modules --exclude=dist \
+  -C /path/to/app .
 
 curl -X POST "https://ship.embarko.ai/apps" \
   -H "X-App-Name: my-app" \
