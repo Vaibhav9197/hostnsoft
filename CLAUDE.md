@@ -214,6 +214,13 @@ generated Open Graph image routes (production has no filesystem or
 incremental cache to render them — use a committed static image instead).
 Read it before adding or changing a public page.
 
+## Docs writing
+
+Every page in `content/docs/` must follow [docs/WRITING.md](docs/WRITING.md):
+answer first, question headings, numbered steps, one home per topic, and keep
+the limits and retry rules agents need. Read it before writing or editing a
+doc.
+
 ## Design
 
 Every public page must follow [docs/DESIGN.md](docs/DESIGN.md) — the visual

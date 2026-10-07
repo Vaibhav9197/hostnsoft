@@ -1,0 +1,162 @@
+/* /use-cases — six small apps float around the headline as real app windows.
+   They go Deploying → Live on load, drift with the cursor, and do their job
+   on hover. Page-only styles; tokens from app/design.css. The list section
+   below reuses the /pages styles (pg-uses). */
+
+.uc-stage{position:relative;isolation:isolate;overflow:hidden;min-height:min(920px,calc(100dvh - var(--ds-top)));display:flex;align-items:center;--px:0;--py:0}
+.uc-stage>.ds-wrap{width:100%;position:relative;z-index:1}
+.uc-hero{padding:96px 0 88px}
+.uc-hero h1{max-width:900px}
+
+/* Quiet graph-paper ground, clear behind the copy. */
+.uc-stage::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background-image:linear-gradient(var(--ds-line) 1px,transparent 1px),linear-gradient(90deg,var(--ds-line) 1px,transparent 1px);
+  background-size:56px 56px;background-position:center;opacity:.6;
+  -webkit-mask-image:radial-gradient(ellipse 62% 58% at 50% 50%,transparent 35%,#000 90%);
+          mask-image:radial-gradient(ellipse 62% 58% at 50% 50%,transparent 35%,#000 90%)}
+
+/* ── The cards ─────────────────────────────────────────────── */
+/* Capped and centred, so on very wide screens the cards stay near the headline
+   instead of drifting to the corners. */
+.uc-apps{position:absolute;top:0;bottom:0;left:50%;width:min(100%,1480px);translate:-50% 0;margin:0;padding:0;list-style:none;z-index:2;pointer-events:none}
+.uc-app{position:absolute;width:256px;pointer-events:auto;
+  --t-ink:color-mix(in srgb,var(--t) 36%,#1a1916);
+  --t-soft:color-mix(in srgb,var(--t) 34%,var(--ds-card));
+  translate:calc(var(--px) * var(--z) * -18px) calc(var(--py) * var(--z) * -14px);
+  transition:translate .9s var(--ds-ease)}
+:root[data-theme="dark"] .uc-app{--t-ink:var(--t);--t-soft:color-mix(in srgb,var(--t) 22%,var(--ds-card))}
+.uc-app:hover{z-index:3}
+
+.uc-card{background:var(--ds-card);border:1px solid var(--ds-line);border-radius:16px;box-shadow:var(--ds-sh);overflow:hidden;
+  rotate:var(--r);
+  transition:rotate .5s var(--ds-ease),transform .5s var(--ds-ease),box-shadow .5s var(--ds-ease);
+  animation:uc-in 1s var(--ds-ease) both;animation-delay:var(--d)}
+.uc-app:hover .uc-card{rotate:0deg;transform:translateY(-8px) scale(1.045);box-shadow:var(--ds-sh2)}
+
+/* Window bar: dots, the app's own link, its state. */
+.uc-bar{display:flex;align-items:center;gap:8px;padding:8px 11px;background:var(--ds-soft);border-bottom:1px solid var(--ds-line)}
+.uc-dots{display:flex;gap:4px;flex:none}
+.uc-dots i{width:7px;height:7px;border-radius:50%;background:var(--ds-line2)}
+.uc-url{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 10.5px/1 var(--mono);color:var(--ds-mute)}
+.uc-state{display:grid;flex:none;font-size:10.5px;font-weight:650;line-height:1}
+.uc-state>span{grid-area:1/1;justify-self:end;display:inline-flex;align-items:center;gap:5px}
+.uc-deploying{color:var(--ds-dim);animation:uc-out .35s var(--ds-ease) both;animation-delay:calc(var(--d) + 1.6s)}
+.uc-live{color:var(--ok-ink);animation:uc-show .45s var(--ds-ease) both;animation-delay:calc(var(--d) + 1.6s)}
+.uc-live i{width:6px;height:6px;border-radius:50%;background:var(--ok);animation:uc-pulse 2.6s ease-out infinite;animation-delay:calc(var(--d) + 2.2s)}
+.uc-spin{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--ds-line2);border-top-color:var(--ds-ink);animation:uc-spin .8s linear infinite}
+
+/* App header */
+.uc-head{display:flex;align-items:center;gap:10px;padding:12px 13px 8px}
+.uc-icon{width:30px;height:30px;flex:none;border-radius:9px;display:grid;place-items:center;background:var(--t);color:var(--t-ink)}
+:root[data-theme="dark"] .uc-icon{background:var(--t-soft)}
+.uc-icon svg{width:16px;height:16px}
+.uc-photo{width:58px;height:58px;border-radius:12px;overflow:hidden;box-shadow:0 0 0 1px var(--ds-line2)}
+.uc-photo svg{width:100%;height:100%}
+.uc-title{display:flex;flex-direction:column;gap:2px;line-height:1.15;min-width:0}
+.uc-title b{font-size:13.5px;font-weight:700;letter-spacing:-.01em;color:var(--ds-ink)}
+.uc-title small{font-size:11px;color:var(--ds-mute)}
+.uc-body{padding:2px 13px 13px;font-size:11.5px;line-height:1.3;color:var(--ds-ink)}
+
+/* Text that changes when the app does its job. */
+.uc-swap{display:inline-grid}
+.uc-swap>span{grid-area:1/1;transition:opacity .3s var(--ds-ease),translate .3s var(--ds-ease)}
+.uc-after{opacity:0;translate:0 5px}
+.uc-app:hover .uc-before{opacity:0;translate:0 -5px}
+.uc-app:hover .uc-after{opacity:1;translate:0 0;transition-delay:.25s}
+
+/* A row that grows in. */
+.uc-reveal{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .5s var(--ds-ease),opacity .4s var(--ds-ease)}
+.uc-reveal>div{overflow:hidden;min-height:0}
+.uc-app:hover .uc-reveal{grid-template-rows:1fr;opacity:1;transition-delay:.15s}
+
+/* Lists */
+.uc-list{margin:0;padding:0;list-style:none}
+.uc-list>li{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--ds-line)}
+.uc-list>li:first-child{border-top:0}
+.uc-txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color .3s var(--ds-ease)}
+
+/* Todo */
+.uc-check{width:14px;height:14px;flex:none;border-radius:4px;border:1.5px solid var(--ds-line2);display:grid;place-items:center;color:#fff;transition:background .3s var(--ds-ease),border-color .3s var(--ds-ease)}
+.uc-check svg{width:10px;height:10px;opacity:0;scale:.5;transition:opacity .25s var(--ds-ease),scale .35s var(--ds-ease)}
+.uc-todo.is-done .uc-check,.uc-app:hover .uc-todo.is-next .uc-check{background:var(--ok);border-color:var(--ok)}
+.uc-todo.is-done .uc-check svg,.uc-app:hover .uc-todo.is-next .uc-check svg{opacity:1;scale:1}
+.uc-todo.is-done .uc-txt,.uc-app:hover .uc-todo.is-next .uc-txt{color:var(--ds-dim);text-decoration:line-through}
+
+/* Homework */
+.uc-progress{display:flex;align-items:center;gap:10px;margin:0 0 4px}
+.uc-meter{flex:1;height:6px;border-radius:999px;background:var(--ds-soft);overflow:hidden}
+.uc-meter i{display:block;height:100%;width:75%;border-radius:inherit;background:var(--t);transition:width .6s var(--ds-ease)}
+.uc-app:hover .uc-meter i{width:79.2%;transition-delay:.15s}
+.uc-note{font-size:10.5px;color:var(--ds-dim);flex:none}
+.uc-app .uc-todo .uc-plain{text-decoration:none!important;color:var(--ds-ink)!important}
+
+/* Resume */
+.uc-label{display:block;margin:2px 0 4px;font:600 9.5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ds-dim)}
+.uc-job{display:flex;align-items:center;gap:8px;padding:4px 0;color:var(--ds-mute)}
+.uc-job b{color:var(--ds-ink);font-weight:650}
+.uc-reveal .uc-job{background:var(--t-soft);margin:0 -6px;padding:4px 6px;border-radius:6px}
+.uc-job+.uc-label{margin-top:9px}
+.uc-skills{display:flex;gap:4px;flex-wrap:wrap}
+.uc-skills span{padding:3px 8px;border-radius:999px;border:1px solid var(--ds-line2);font-size:10px;color:var(--ds-mute)}
+
+/* Portfolio */
+.uc-shots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.uc-shot{position:relative;aspect-ratio:4/3;border-radius:6px;overflow:hidden;display:grid;place-items:center}
+.uc-shot>i,.uc-shot-fill>i{position:absolute;left:6px;right:14px;bottom:6px;height:5px;border-radius:3px;background:var(--ds-card);opacity:.85}
+.uc-shot>i::before,.uc-shot-fill>i::before{content:"";position:absolute;left:0;bottom:9px;width:12px;height:12px;border-radius:50%;background:var(--ds-card);opacity:.9}
+.uc-shot-new{border:1.5px dashed var(--ds-line2);color:var(--ds-dim);font-size:14px}
+.uc-shot-fill{position:absolute;inset:0;background:var(--t);opacity:0;scale:.6;transition:opacity .3s var(--ds-ease),scale .45s var(--ds-ease)}
+.uc-app:hover .uc-shot-fill{opacity:1;scale:1;transition-delay:.15s}
+
+/* Clinic */
+.uc-num{font:500 10px/1 var(--mono);color:var(--ds-dim);flex:none}
+.uc-chip{font-size:9.5px;font-weight:700;padding:3px 7px;border-radius:999px;white-space:nowrap;justify-self:end}
+.uc-chip.is-open{background:var(--t-soft);color:var(--t-ink)}
+.uc-chip.is-doing{background:var(--ds-soft);color:var(--ds-mute)}
+.uc-chip.is-done{background:var(--ok-soft);color:var(--ok-ink)}
+
+/* Expenses */
+.uc-expense{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--ds-line)}
+.uc-reveal .uc-expense{border-top:0;background:var(--t-soft);margin:0 -6px;padding:6px;border-radius:6px}
+.uc-amt{font:500 11px/1 var(--mono);color:var(--ds-ink);font-variant-numeric:tabular-nums}
+.uc-total{font-weight:700;border-top:1px solid var(--ds-line2)}
+
+/* ── Where each card sits ──────────────────────────────────── */
+/* Tone, tilt, depth, entrance delay. Same bright tones as /pages, no purple/pink. */
+.uc-app-1{--t:#ffd166;--r:-4deg;--z:1.2;--d:.15s;top:7%;left:3.5%}
+.uc-app-2{--t:#ff9966;--r:-2deg;--z:1;--d:.75s;bottom:6%;left:11%}
+.uc-app-3{--t:#8ecbff;--r:3deg;--z:1.3;--d:.35s;top:5%;right:4%}
+.uc-app-4{--t:#e8c79a;--r:3deg;--z:.7;--d:.55s;top:39%;left:1%}
+.uc-app-5{--t:#8fe3d2;--r:-3deg;--z:.8;--d:.65s;top:41%;right:1%}
+.uc-app-6{--t:#fff27a;--r:4deg;--z:1.1;--d:.95s;bottom:5%;right:11%}
+
+/* The two edge cards crowd the headline on narrower desktops. */
+@media (max-width:1380px){.uc-app-4,.uc-app-5{display:none}}
+@media (max-width:1100px){
+  .uc-app{zoom:.86}
+  .uc-app-1{left:2%}.uc-app-3{right:2%}
+  .uc-app-2{left:2%}.uc-app-6{right:2%}
+}
+
+/* Phone and small tablet: two cards in a quiet row above the headline. */
+@media (max-width:900px){
+  .uc-stage{flex-direction:column;align-items:stretch;min-height:0}
+  .uc-stage::before{-webkit-mask-image:linear-gradient(#000,transparent 55%);mask-image:linear-gradient(#000,transparent 55%)}
+  .uc-apps{position:relative;inset:auto;width:auto;translate:none;display:flex;justify-content:center;align-items:flex-start;gap:14px;padding:28px 0 0;overflow:hidden}
+  .uc-app{position:relative;inset:auto;zoom:.62;translate:none;flex:none}
+  .uc-app:nth-child(n+3){display:none}
+  .uc-app-2{margin-top:28px}
+  .uc-hero{padding:28px 0 48px}
+}
+
+@keyframes uc-in{from{opacity:0;translate:0 28px;scale:.94}to{opacity:1;translate:0 0;scale:1}}
+@keyframes uc-out{to{opacity:0;translate:0 -6px}}
+@keyframes uc-show{from{opacity:0;translate:0 6px}to{opacity:1;translate:0 0}}
+@keyframes uc-spin{to{rotate:360deg}}
+@keyframes uc-pulse{0%{box-shadow:0 0 0 0 var(--ok-soft)}70%{box-shadow:0 0 0 6px transparent}100%{box-shadow:0 0 0 0 transparent}}
+
+@media (prefers-reduced-motion:reduce){
+  .uc-card,.uc-live,.uc-live i{animation:none}
+  .uc-deploying{display:none}
+  .uc-app{transition:none}
+}

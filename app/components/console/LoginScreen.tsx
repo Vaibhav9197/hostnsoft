@@ -52,10 +52,11 @@ export function LoginScreen() {
         // SessionProvider consumes it. Works alongside the success callback.
         // Back to the page they signed in from (e.g. /app/showcase/new from
         // "Create a showcase page"), not always the apps list.
+        // Path only: the widget refuses one with a query string (422
+        // "redirect path format is invalid"), which left the login form
+        // blank on any /app URL carrying ?…
         addInfo: {
-          redirect_path: window.location.pathname.startsWith("/app")
-            ? window.location.pathname + window.location.search
-            : "/app",
+          redirect_path: window.location.pathname.startsWith("/app") ? window.location.pathname : "/app",
         },
         // Required by the widget: it delivers the verified token here.
         success: async (data: unknown) => {

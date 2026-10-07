@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
-import { CONNECTOR_PENDING_REDIRECT_KEY, CONNECTOR_PENDING_STATE_KEY } from "../../lib/connectorPendingRedirect";
+import { useEffect, useState } from "react";
+import { CONNECTOR_PENDING_REDIRECT_KEY, CONNECTOR_PENDING_STATE_KEY, CONNECTOR_PENDING_TOOL_KEY } from "../../lib/connectorPendingRedirect";
+import { ConnectorRedirecting } from "./ConnectorRedirecting";
 
 // MSG91's "redirect" mode for the connector's referenceId is configured on
 // MSG91's own dashboard to always land the browser on this site's root,
@@ -21,12 +22,17 @@ import { CONNECTOR_PENDING_REDIRECT_KEY, CONNECTOR_PENDING_STATE_KEY } from "../
 // browsing context than the tab that set this - sessionStorage is scoped
 // per-tab and wouldn't be visible there, localStorage is shared across
 // every tab/window of the same origin.
-const DEBUG = true; // TEMPORARY - remove once this flow is confirmed working live.
+const DEBUG = false; // Flip on locally to trace the hand-off; it logs the redirect target.
 function debugLog(...args: unknown[]) {
   if (DEBUG) console.log("[ConnectorTokenPickup]", ...args);
 }
 
 export function ConnectorTokenPickup() {
+  /* Where the hand-off is heading, once one is under way. MSG91 drops the
+     browser on whatever page it likes (usually the home page), so without
+     this the person watches the marketing site for a few seconds. */
+  const [forwardingTo, setForwardingTo] = useState<string | null | undefined>(undefined);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("proxy_auth_token");
@@ -35,9 +41,11 @@ export function ConnectorTokenPickup() {
 
     let redirectUri: string | null;
     let state: string | null;
+    let tool: string | null = null;
     try {
       redirectUri = localStorage.getItem(CONNECTOR_PENDING_REDIRECT_KEY);
       state = localStorage.getItem(CONNECTOR_PENDING_STATE_KEY);
+      tool = localStorage.getItem(CONNECTOR_PENDING_TOOL_KEY);
       debugLog("read pending redirect:", redirectUri, "state:", state);
     } catch (err) {
       debugLog("localStorage read failed:", err);
@@ -51,6 +59,7 @@ export function ConnectorTokenPickup() {
     try {
       localStorage.removeItem(CONNECTOR_PENDING_REDIRECT_KEY);
       localStorage.removeItem(CONNECTOR_PENDING_STATE_KEY);
+      localStorage.removeItem(CONNECTOR_PENDING_TOOL_KEY);
     } catch {
       // ignore
     }
@@ -60,8 +69,21 @@ export function ConnectorTokenPickup() {
     bridge.searchParams.set("redirect_uri", redirectUri);
     if (state) bridge.searchParams.set("state", state);
     debugLog("forwarding to bridge:", bridge.toString());
+    setForwardingTo(tool);
     window.location.replace(bridge.toString());
   }, []);
 
-  return null;
+  if (forwardingTo === undefined) return null;
+  return (
+    <div className="fixed inset-0 z-[100] grid place-items-center bg-background p-6">
+      <div className="w-full max-w-[420px] border border-border bg-card p-7">
+        <div className="flex items-center gap-3">
+          {/* The same static mark the site header uses. */}
+          <img src="/assets/embarko-icon.svg" alt="" aria-hidden="true" className="size-8 shrink-0 rounded" />
+          <div className="text-[1.15rem] font-extrabold tracking-tight text-foreground">Almost there</div>
+        </div>
+        <ConnectorRedirecting host={forwardingTo} />
+      </div>
+    </div>
+  );
 }

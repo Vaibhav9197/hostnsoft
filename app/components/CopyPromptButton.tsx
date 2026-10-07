@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { WandSparkles } from "lucide-react";
 
 import { currentDeployPrompt } from "@/app/lib/deployPrompt";
 
@@ -22,6 +23,11 @@ import { currentDeployPrompt } from "@/app/lib/deployPrompt";
  */
 
 const RESET_MS = 1800;
+
+/** The icon on every "copy a prompt" button, and only on those. A magic wand,
+    not the plain copy icon, so the one action that hands work to an AI looks
+    the same everywhere. Copying anything else (a token, a link) keeps Copy. */
+export const PromptIcon = WandSparkles;
 
 /** What every copy button says once the prompt is on the clipboard. Exported
     so the label, like the prompt itself, has one place to change. */

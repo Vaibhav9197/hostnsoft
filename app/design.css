@@ -71,12 +71,32 @@
 .ds-pill svg{width:12px;height:12px;flex:none}
 .ds-pill-grad{color:var(--ink);background:transparent;border:1px solid var(--line-strong);font-weight:600}
 a.ds-pill:hover{border-color:var(--ds-line2)}
+/* The magic eyebrow: a card-white chip, a slow band of light across it and a
+   twinkling spark. Ink and white only; reduced motion stops both (below). */
+.ds-pill-magic{position:relative;overflow:hidden;isolation:isolate;background:var(--ds-card);box-shadow:var(--ds-sh)}
+.ds-pill-magic::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(105deg,transparent 35%,color-mix(in srgb,var(--ds-ink) 9%,transparent) 50%,transparent 65%);transform:translateX(-100%);animation:ds-magic-sweep 3.6s var(--ds-ease) infinite}
+.ds-pill-magic svg{animation:ds-magic-twinkle 2.4s ease-in-out infinite}
+@keyframes ds-magic-sweep{0%{transform:translateX(-100%)}55%,100%{transform:translateX(100%)}}
+/* A popover: springs up from its tail with a slight overshoot, glides when it
+   moves to another tile, cross-fades its content, and sinks away on close.
+   Reduced motion turns all of it off (the ds- rule below). */
+.ds-pop{animation:ds-pop-in .32s cubic-bezier(.34,1.56,.64,1) both;transition:left .26s cubic-bezier(.22,1,.36,1),top .26s cubic-bezier(.22,1,.36,1),bottom .26s cubic-bezier(.22,1,.36,1)}
+.ds-pop[data-closing]{animation:ds-pop-out .16s cubic-bezier(.4,0,1,1) both}
+.ds-pop-tail{transition:left .26s cubic-bezier(.22,1,.36,1)}
+.ds-pop-body{animation:ds-pop-body .22s ease-out both}
+@keyframes ds-pop-in{from{opacity:0;transform:translateY(8px) scale(.9)}to{opacity:1;transform:none}}
+@keyframes ds-pop-out{to{opacity:0;transform:translateY(4px) scale(.96)}}
+@keyframes ds-pop-body{from{opacity:0;transform:translateY(3px)}}
+@keyframes ds-magic-twinkle{0%,100%{transform:scale(1) rotate(0);opacity:1}50%{transform:scale(.75) rotate(20deg);opacity:.55}}
 
 /* hero */
 .ds-hero{position:relative;isolation:isolate;text-align:center;padding:72px 0 34px}
 .ds-hero .ds-pill{margin-bottom:22px}
 .ds-hero h1{font-size:clamp(44px,8.4vw,112px);line-height:.94;letter-spacing:-.055em;font-weight:800;margin:0 auto 20px;max-width:1000px}
 .ds-hero h1 .ds-serif{font-size:1.06em;letter-spacing:-.02em;padding-right:.06em}
+/* Inner pages (pricing…): a step down from the home page's headline, so the
+   content the visitor came for starts higher. */
+.ds-hero.ds-hero-sm h1{font-size:clamp(40px,5.6vw,72px);line-height:1;letter-spacing:-.045em}
 .ds-hero>p{font-size:clamp(16px,1.6vw,19px);color:var(--ds-mute);max-width:600px;margin:0 auto 30px}
 .ds-hero .ds-steps{margin-top:28px}
 

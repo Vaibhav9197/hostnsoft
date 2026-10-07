@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
-import { authMe } from "../lib/client";
+import { authExchange, authMe, markExchanged, wasExchanged } from "../lib/client";
 import "./LoginModal.css";
 
 /**
@@ -46,6 +46,7 @@ export function LoginModal({ open, onClose, redirectPath = "/app" }: LoginModalP
   // "redirecting": it does — we're on our way to the console, skip the widget.
   // "widget": no session — show the MSG91 login form.
   const [phase, setPhase] = useState<"checking" | "redirecting" | "widget">("checking");
+  const [error, setError] = useState<string | null>(null);
 
   // When the dialog opens, first check for an existing session. A visitor who
   // is already logged in (e.g. came back to the landing page) shouldn't be
@@ -83,12 +84,35 @@ export function LoginModal({ open, onClose, redirectPath = "/app" }: LoginModalP
       referenceId: REFERENCE_ID,
       type: "authorization",
       addInfo: { redirect_path: redirectPath },
-      success: (data: unknown) => {
-        console.log("success response", data);
-        onCloseRef.current();
+      /* The widget hands the verified token here when it doesn't redirect
+         (e.g. Google in a popup). Closing the dialog alone left the visitor
+         on the same page, still signed out — so turn the token into a
+         session, then go where the dialog was opened for. */
+      success: async (data: unknown) => {
+        const token =
+          (data as { token?: string; proxy_auth_token?: string })?.token ??
+          (data as { proxy_auth_token?: string })?.proxy_auth_token;
+        if (!token) {
+          setError("Sign-in didn’t finish. Please try again.");
+          return;
+        }
+        setError(null);
+        setPhase("redirecting");
+        try {
+          // Single-use: the redirect variant may already have spent it.
+          if (!wasExchanged(token)) {
+            markExchanged(token);
+            await authExchange(token);
+          }
+          window.location.assign(redirectPath);
+        } catch (e) {
+          setPhase("widget");
+          setError(e instanceof Error ? e.message : "Sign-in failed. Please try again.");
+        }
       },
-      failure: (error: unknown) => {
-        console.log("failure reason", error);
+      failure: (err: unknown) => {
+        console.warn("MSG91 verification failed", err);
+        setError("Sign-in was cancelled or failed. Please try again.");
       },
       theme: "light"
     });
@@ -136,13 +160,16 @@ export function LoginModal({ open, onClose, redirectPath = "/app" }: LoginModalP
               <>
                 <h3 className="lm-title">{phase === "redirecting" ? "Welcome back" : "One moment"}</h3>
                 <p className="lm-sub">
-                  {phase === "redirecting"
-                    ? "You’re already signed in — taking you to your console."
-                    : "Checking your session…"}
+                  {phase === "redirecting" ? "You’re signed in — taking you there now." : "Checking your session…"}
                 </p>
               </>
             )}
             <div id={REFERENCE_ID} ref={containerRef} className="lm-widget" hidden={phase !== "widget"} />
+            {error && phase === "widget" && (
+              <p className="lm-sub" role="alert" style={{ color: "var(--danger)" }}>
+                {error}
+              </p>
+            )}
           </div>
         </div>
       </div>

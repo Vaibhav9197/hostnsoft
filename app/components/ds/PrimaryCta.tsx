@@ -1,8 +1,7 @@
 "use client";
 
-import { Copy } from "lucide-react";
 
-import { COPIED_LABEL, CopyPromptButton } from "../CopyPromptButton";
+import { COPIED_LABEL, CopyPromptButton, PromptIcon } from "../CopyPromptButton";
 import { buttonClass, type ButtonSize } from "./Button";
 
 type Props = {
@@ -31,7 +30,7 @@ export function PrimaryCta({ size = "lg", glow = true, onClicked, onCopied, labe
       onCopied={onCopied}
       text={text}
     >
-      <Copy aria-hidden="true" />
+      <PromptIcon aria-hidden="true" />
       {label}
     </CopyPromptButton>
   );

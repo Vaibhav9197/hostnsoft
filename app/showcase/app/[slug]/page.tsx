@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, Copy } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { SiteHeader } from "../../../components/SiteHeader";
 import { SiteFooter } from "../../../components/SiteFooter";
@@ -12,7 +12,8 @@ import { ShareApp } from "../../share";
 import { CtaSection } from "../../../components/ds";
 import { Media } from "./Media";
 import { ContactDev } from "./ContactDev";
-import { COPIED_LABEL, CopyPromptButton } from "../../../components/CopyPromptButton";
+import { CustomHtml } from "./CustomHtml";
+import { COPIED_LABEL, CopyPromptButton, PromptIcon } from "../../../components/CopyPromptButton";
 import { buildSimilarPrompt } from "../../../lib/showcasePrompt";
 import { ShowcaseBreadcrumbs } from "../../breadcrumbs";
 
@@ -123,6 +124,8 @@ export default async function ShowcaseAppPage({ params }: Props) {
 
   const listed = Number.isNaN(Date.parse(app.createdAt)) ? null : LISTED.format(new Date(app.createdAt));
   const host = hostOf(app.appUrl);
+  const contributors = (app.contributorEmails ?? []).map((e) => e.trim()).filter(Boolean);
+  const customHtml = app.customHtml?.trim();
 
   return (
     <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased">
@@ -138,7 +141,8 @@ export default async function ShowcaseAppPage({ params }: Props) {
           { name: app.name, path: `/showcase/app/${app.slug}` },
         ]}
       />
-      <SiteHeader />
+      {/* Wordmark only: an app page is about the app and its own actions. */}
+      <SiteHeader bare />
 
       <article className="sc-wrap sc-layer">
         <div className="sc-topback">
@@ -186,7 +190,6 @@ export default async function ShowcaseAppPage({ params }: Props) {
                 </>
               )}
             </div>
-            {(canContact || Boolean(app.prd?.trim())) && (
             <div className="sc-actions">
                 {canContact && <ContactDev slug={app.slug} appName={app.name} creatorName={app.creatorName} />}
                 {app.prd?.trim() && (
@@ -195,12 +198,11 @@ export default async function ShowcaseAppPage({ params }: Props) {
                     text={buildSimilarPrompt({ name: app.name, appUrl: app.appUrl, prd: app.prd })}
                     copiedChildren={COPIED_LABEL}
                   >
-                    <Copy aria-hidden="true" />
+                    <PromptIcon aria-hidden="true" />
                     Build similar app
                   </CopyPromptButton>
                 )}
               </div>
-            )}
           </div>
 
           <Media app={app} />
@@ -278,6 +280,18 @@ export default async function ShowcaseAppPage({ params }: Props) {
                       <dd>{listed}</dd>
                     </div>
                   )}
+                  {contributors.length > 0 && (
+                    <div>
+                      <dt>Contributors</dt>
+                      <dd className="sc-contributors">
+                        {contributors.map((email) => (
+                          <a key={email} href={`mailto:${email}`}>
+                            {email}
+                          </a>
+                        ))}
+                      </dd>
+                    </div>
+                  )}
                   <div>
                     <dt>Address</dt>
                     <dd>
@@ -291,6 +305,12 @@ export default async function ShowcaseAppPage({ params }: Props) {
             </aside>
           </div>
         </div>
+
+        {customHtml && (
+          <section className="sc-custom-wrap" aria-label={`More from ${app.name}`}>
+            <CustomHtml html={customHtml} title={`More from ${app.name}`} />
+          </section>
+        )}
 
         <CtaSection />
 

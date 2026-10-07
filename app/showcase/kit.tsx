@@ -3,10 +3,10 @@ import { ArrowRight, Sparkles } from "lucide-react";
 
 import { ShotImage } from "./ShotImage";
 import { Pill, PrimaryCta, Steps as DsSteps } from "../components/ds";
-import { COPIED_LABEL, CopyPromptButton } from "../components/CopyPromptButton";
+import { COPIED_LABEL, CopyPromptButton, PromptIcon } from "../components/CopyPromptButton";
 import { showcaseGeneralPrompt } from "../lib/showcasePrompt";
 
-import type { ShowcaseApp } from "../lib/showcase";
+import type { Collection, ShowcaseApp } from "../lib/showcase";
 
 /**
  * The stand-in shown when a submission has no screenshot.
@@ -184,11 +184,15 @@ export function Mark({ app }: { app: ShowcaseApp }) {
  * The whole tile opens the app's Showcase page (a stretched cover link), so
  * the creator gets the visit.
  */
-export function Tile({ app, index = 0 }: { app: ShowcaseApp; index?: number }) {
+/* `badge`: a label floated on the card's top-right corner — the panel uses it
+   for a listing's review state. Public pages pass none. */
+export function Tile({ app, index = 0, badge }: { app: ShowcaseApp; index?: number; badge?: React.ReactNode }) {
   const meta = [app.category, `by ${firstName(app.creatorName)}`].filter(Boolean).join(" · ");
   return (
     <article className="sc-tile">
       <Link href={`/showcase/app/${app.slug}`} className="sc-cover" aria-label={`${app.name} — view app`} />
+      {/* Sits on the card's top-right corner, half outside it, above the cover link. */}
+      {badge && <span className="pointer-events-none absolute -right-2.5 -top-3 z-[2]">{badge}</span>}
       <div className="th">
         <Shot app={app} />
         <span className="open" aria-hidden="true">
@@ -255,6 +259,7 @@ export function DeployCta({ listPrompt = showcaseGeneralPrompt() }: { listPrompt
         <p className="sc-list">
           Already live on Embarko?{" "}
           <CopyPromptButton className="sc-list-copy" text={listPrompt} copiedChildren={COPIED_LABEL}>
+            <PromptIcon aria-hidden="true" className="mr-1 inline size-[0.9em] -translate-y-px align-middle" />
             Copy prompt to showcase your app
           </CopyPromptButton>
         </p>
@@ -263,10 +268,45 @@ export function DeployCta({ listPrompt = showcaseGeneralPrompt() }: { listPrompt
   );
 }
 
+/**
+ * Other showcase pages — hackathons, classes, events — so a visitor can go
+ * and list their app there too. `current` hides the page being viewed. The
+ * API sends them fullest first; only the top few show, so the row stays a
+ * row however many pages exist.
+ */
+const MAX_PAGES = 6;
+export function OtherPages({ pages, current }: { pages: Collection[]; current?: string }) {
+  const list = pages.filter((p) => p.slug !== current).slice(0, MAX_PAGES);
+  if (list.length === 0) return null;
+  return (
+    <section className="sc-pagesec" aria-labelledby="pages-h">
+      <div className="sc-sech">
+        <div>
+          <h2 id="pages-h">Explore more showcase pages</h2>
+          <p>See what people built for hackathons, classes, and events.</p>
+        </div>
+      </div>
+      <ul className="sc-pagegrid">
+        {list.map((p) => (
+          <li key={p.slug}>
+            <Link href={`/showcase/${encodeURIComponent(p.slug)}`}>
+              <strong>{p.title}</strong>
+              <span>{p.projectCount === 0 ? "Be the first to list an app" : `${p.projectCount} ${p.projectCount === 1 ? "app" : "apps"}`}</span>
+              <ArrowRight aria-hidden="true" />
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 /** Back link to the gallery, used at the top of every sub-page. */
 export { BackLink as BackToShowcase } from "./BackLink";
 
 /** Empty list on a category / tag / collection page. */
+/* `action`: the page's own button, or null for none. Left out, the generic
+   "Build one" shows. */
 export function EmptyList({ title, body, action }: { title: string; body: string; action?: React.ReactNode }) {
   return (
     <div className="sc-gal">
@@ -274,10 +314,15 @@ export function EmptyList({ title, body, action }: { title: string; body: string
         <h3>{title}</h3>
         <p>{body}</p>
         <div className="acts">
-          {action}
-          <a href="#deploy" className="sc-btn pri">
-            Build one <ArrowRight aria-hidden="true" />
-          </a>
+          {/* A page's own action replaces the generic one: two dark buttons
+              side by side leave the visitor to guess which one matters. */}
+          {action === undefined ? (
+            <a href="#deploy" className="sc-btn pri">
+              Build one <ArrowRight aria-hidden="true" />
+            </a>
+          ) : (
+            action
+          )}
         </div>
       </div>
     </div>

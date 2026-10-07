@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Copy } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
-import { SiteHeader } from "../components/SiteHeader";
+import { ShowcaseHeader } from "./ShowcaseHeader";
 import { SiteFooter } from "../components/SiteFooter";
-import { COPIED_LABEL, CopyPromptButton } from "../components/CopyPromptButton";
-import { listApps } from "../lib/showcase";
-import { DeployCta, Steps } from "./kit";
+import { COPIED_LABEL, CopyPromptButton, PromptIcon } from "../components/CopyPromptButton";
+import { listApps, listCollections } from "../lib/showcase";
+import { DeployCta, OtherPages, Steps } from "./kit";
 import { SearchGallery } from "./SearchGallery";
-import { Hero, PrimaryCta, Serif } from "../components/ds";
+import { Hero, Serif } from "../components/ds";
 import { showcaseGeneralPrompt } from "../lib/showcasePrompt";
 
 export const metadata: Metadata = {
@@ -26,11 +26,11 @@ export const dynamic = "force-dynamic";
 
 export default async function ShowcasePage() {
   /* The API's maximum, so the category counts cover every public app. */
-  const apps = await listApps(200);
+  const [apps, pages] = await Promise.all([listApps(200), listCollections()]);
 
   return (
     <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased">
-      <SiteHeader />
+      <ShowcaseHeader />
 
       <div className="sc-wrap sc-layer">
         <Hero
@@ -59,11 +59,6 @@ export default async function ShowcasePage() {
               one, then make your own.
             </>
           }
-          actions={
-            apps.length > 0 ? (
-              <PrimaryCta label="Copy prompt to showcase your app" text={showcaseGeneralPrompt()} />
-            ) : undefined
-          }
         />
 
         {apps.length > 0 ? (
@@ -72,6 +67,7 @@ export default async function ShowcasePage() {
           <EmptyState />
         )}
 
+        <OtherPages pages={pages} />
         <DeployCta />
       </div>
       <SiteFooter />
@@ -88,10 +84,11 @@ function EmptyState() {
         <p>Deploy something with your AI, then list it here. It gets its own page.</p>
         <div className="acts">
           <CopyPromptButton className="sc-btn pri" copiedChildren={COPIED_LABEL}>
-            <Copy aria-hidden="true" />
+            <PromptIcon aria-hidden="true" />
             Copy deployment prompt
           </CopyPromptButton>
           <CopyPromptButton className="sc-btn" text={showcaseGeneralPrompt()} copiedChildren={COPIED_LABEL}>
+            <PromptIcon aria-hidden="true" />
             Copy prompt to showcase your app
           </CopyPromptButton>
         </div>

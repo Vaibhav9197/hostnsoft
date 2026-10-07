@@ -115,7 +115,7 @@ export function Fill({ children }: { children: React.ReactNode }) {
   return (
     <span
       title="Placeholder — confirm and replace before publishing"
-      className="whitespace-nowrap border-b border-dashed border-[var(--line-strong)] font-mono text-[0.88em] text-faint"
+      className="border-b border-dashed border-[var(--line-strong)] font-mono text-[0.88em] text-faint [overflow-wrap:anywhere]"
     >
       [{children}]
     </span>

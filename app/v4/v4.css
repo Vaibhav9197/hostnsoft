@@ -57,12 +57,6 @@
 .v4-root .v4-shared>section{padding:0}
 
 /* 03 gallery */
-.v4-root .v4-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;margin-top:8px}
-.v4-root .v4-gcard{padding:12px 12px 16px}
-.v4-root .v4-gcard h3{margin:14px 6px 2px;font-size:15px}
-.v4-root .v4-gcard p{margin:0 6px 10px;font-size:13.5px}
-.v4-root .v4-gcard .v4-live{margin-left:6px}
-.v4-root .v4-gpreview{border-radius:14px}
 .v4-root .v4-mobile-cta{display:none}
 
 /* 04 agents: agent → embarko → live app */
@@ -96,36 +90,6 @@
 .v4-root .v4-benefit h2{margin:0;font-size:clamp(32px,5vw,64px);line-height:1;letter-spacing:-.05em;font-weight:800}
 
 /* example-app drawings */
-.v4-root .v4-gpreview{position:relative;height:112px;overflow:hidden}
-.v4-root .portfolio-card .v4-gpreview{background:#f1e9dc}
-.v4-root .portfolio-sun{position:absolute;top:18px;right:22px;width:29px;height:29px;border-radius:50%;background:#e5aa51}
-.v4-root .portfolio-line{position:absolute;left:17px;height:5px;border-radius:8px;background:#433c34}
-.v4-root .portfolio-line.one{top:45px;width:77px}
-.v4-root .portfolio-line.two{top:57px;width:56px;background:#957a62}
-.v4-root .portfolio-image{position:absolute;right:18px;bottom:0;width:77px;height:62px;border-radius:40px 40px 0 0;background:#b9c2a6}
-.v4-root .tool-card .v4-gpreview{padding:15px;background:#f1f5fb}
-.v4-root .tool-title{display:block;color:#40567e;font-size:11px;font-weight:680}
-.v4-root .tool-message{display:block;width:96px;height:13px;margin-top:12px;border-radius:6px;background:#dbe5f4}
-.v4-root .tool-message.user{width:72px;margin-left:auto;background:#708dca}
-.v4-root .tool-input{position:absolute;right:11px;bottom:10px;left:11px;display:flex;justify-content:space-between;padding:6px;border:1px solid #dbe5f4;border-radius:6px;background:#fff;color:#9aa9c2;font-size:9px}
-.v4-root .tool-input svg{width:9px}
-.v4-root .tracker-card .v4-gpreview{padding:13px;background:#ebf6f2}
-.v4-root .tracker-title{color:#46695a;font-size:10px;font-weight:700}
-.v4-root .tracker-ring{position:absolute;top:29px;left:62px;width:57px;height:57px;border:7px solid #aad7bd;border-right-color:#4c9d70;border-radius:50%;transform:rotate(-35deg)}
-.v4-root .tracker-ring i{position:absolute;inset:8px;border-radius:50%;background:#fff}
-.v4-root .tracker-number{position:absolute;top:52px;left:77px;color:#407b5b;font-size:11px;font-weight:700}
-.v4-root .booking-mini-card .v4-gpreview{padding:14px;background:#f8ebdf}
-.v4-root .booking-mini-title{display:block;color:#754837;font-family:Georgia,serif;font-size:15px}
-.v4-root .booking-mini-date{display:block;margin-top:15px;color:#a47964;font-size:10px}
-.v4-root .booking-mini-button{position:absolute;right:14px;bottom:13px;padding:6px 8px;border-radius:5px;background:#5a3c30;color:#fff;font-size:9px}
-.v4-root .campus-card .v4-gpreview{background:#e9eefb}
-.v4-root .campus-top{position:absolute;top:13px;left:14px;color:#506393;font-size:10px;font-weight:700}
-.v4-root .campus-event{position:absolute;bottom:17px;left:14px;color:#3c4e80;font-size:14px;font-weight:700;letter-spacing:-.04em}
-.v4-root .campus-event small{color:#8192b9;font-size:9px;font-weight:500}
-.v4-root .campus-people{position:absolute;right:13px;bottom:18px;display:flex}
-.v4-root .campus-people i{width:15px;height:15px;margin-left:-4px;border:2px solid #e9eefb;border-radius:50%;background:#d7a37c}
-.v4-root .campus-people i:nth-child(2){background:#91a9d1}
-.v4-root .campus-people i:nth-child(3){background:#b6c6a6}
 .v4-root .sunrise .v4-world-top{background:#f4e8d7}
 .v4-root .sunrise .v4-world-top i:first-child{right:15px;top:15px;width:26px;height:26px;border-radius:50%;background:#e2a14a}
 .v4-root .sunrise .v4-world-top i:nth-child(2){bottom:18px;left:12px;width:78px;height:5px;border-radius:4px;background:#5b5044}
@@ -149,29 +113,6 @@
 .v4-root .ink .v4-world-top{background:#283842}
 .v4-root .ink .v4-world-top i:first-child{top:18px;left:17px;width:79px;height:6px;border-radius:4px;background:#a7cad2}
 .v4-root .ink .v4-world-top i:nth-child(2){bottom:15px;left:17px;width:34px;height:20px;border-radius:4px;background:#e2a851}
-.v4-root .recipe-card .v4-gpreview{padding:14px;background:#f6ece4}
-.v4-root .recipe-title{display:block;color:#7a4b34;font-size:12px;font-weight:700}
-.v4-root .recipe-photo{position:absolute;right:14px;bottom:32px;width:64px;height:52px;border-radius:10px;background:#d8a97f}
-.v4-root .recipe-meta{position:absolute;bottom:13px;left:14px;color:#a87f66;font-size:10px}
-.v4-root .invoice-card .v4-gpreview{padding:14px;background:#eef3ee}
-.v4-root .invoice-top{display:block;color:#4c6553;font-size:10px;font-weight:700}
-.v4-root .invoice-amount{position:absolute;top:38px;left:14px;color:#2f5540;font-size:22px;font-weight:640;letter-spacing:-.04em}
-.v4-root .invoice-status{position:absolute;right:14px;bottom:13px;padding:4px 8px;border-radius:20px;background:#cfe6d6;color:#2f6b47;font-size:10px;font-weight:650}
-.v4-root .album-card .v4-gpreview{padding:12px;background:#efeaf5;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:6px}
-.v4-root .album-tile{border-radius:8px}
-.v4-root .album-tile.one{background:#c3b3dd}
-.v4-root .album-tile.two{background:#dcd2ec}
-.v4-root .album-tile.three{background:#e4dcf0}
-.v4-root .album-tile.four{background:#b6a4d4}
-.v4-root .notes-card .v4-gpreview{padding:14px;background:#f2f2ee}
-.v4-root .notes-title{display:block;color:#55564d;font-size:11px;font-weight:700}
-.v4-root .notes-line{position:absolute;left:14px;height:6px;border-radius:6px;background:#dcdcd4}
-.v4-root .notes-line.one{top:40px;width:104px}
-.v4-root .notes-line.two{top:54px;width:78px}
-.v4-root .notes-line.three{top:68px;width:92px}
-.v4-root .notes-people{position:absolute;right:13px;bottom:13px;display:flex}
-.v4-root .notes-people i{width:16px;height:16px;margin-left:-5px;border:2px solid #f2f2ee;border-radius:50%;background:#b9b9ad}
-
 @media (max-width:900px){
   .v4-root .v4-split{grid-template-columns:minmax(0,1fr);gap:32px}
   .v4-root .v4-browser-body{grid-template-columns:minmax(0,1fr)}

@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowUpRight, Check, ChevronDown, Copy } from "lucide-react";
+import { ArrowUpRight, Check, ChevronDown } from "lucide-react";
 
-import { COPIED_LABEL, CopyPromptButton } from "../../../components/CopyPromptButton";
+import { COPIED_LABEL, CopyPromptButton, PromptIcon } from "../../../components/CopyPromptButton";
 import { Alert, NativeSelect, Page, PageHeader, Panel, PanelTitle, Skeleton } from "../../../components/console/kit";
 import { Button, buttonVariants } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
@@ -80,7 +80,7 @@ export function ListAppForm({
   /* Where the person came from, and goes back to. */
   const back =
     fromApp && initialApp
-      ? { href: `/app/projects/${encodeURIComponent(initialApp)}/showcase`, label: "Your app" }
+      ? { href: `/app/projects/${encodeURIComponent(initialApp)}`, label: "Your app" }
       : { href: "/app/showcase", label: "Showcase" };
 
   const [pages, setPages] = useState<ShowcasePage[] | null>(null);
@@ -276,7 +276,7 @@ export function ListAppForm({
                 </>
               }
             >
-              <Copy aria-hidden="true" />
+              <PromptIcon aria-hidden="true" />
               Copy Showcase prompt
             </CopyPromptButton>
           </div>
@@ -322,7 +322,7 @@ export function ListAppForm({
               </>
             }
           >
-            <Copy aria-hidden="true" />
+            <PromptIcon aria-hidden="true" />
             Copy Showcase prompt
           </CopyPromptButton>
         </Panel>

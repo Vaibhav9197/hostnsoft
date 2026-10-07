@@ -16,12 +16,12 @@ import { LoginModal } from "./LoginModal";
  * `links` is forwarded straight through for pages that want in-page section
  * anchors in the header's centre slot.
  */
-export function SiteHeader({ links }: { links?: readonly HeaderLink[] }) {
+export function SiteHeader({ links, cta, bare }: { links?: readonly HeaderLink[]; cta?: React.ReactNode; bare?: boolean }) {
   const [loginOpen, setLoginOpen] = useState(false);
 
   return (
     <>
-      <Header onAuthClick={() => setLoginOpen(true)} links={links} />
+      <Header onAuthClick={() => setLoginOpen(true)} links={links} cta={cta} bare={bare} />
       <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
     </>
   );

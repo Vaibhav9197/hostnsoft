@@ -6,11 +6,9 @@ import { Search, X } from "lucide-react";
 import "@/app/showcase/showcase.css";
 import { Tile } from "@/app/showcase/kit";
 
-import { COPIED_LABEL, CopyPromptButton } from "@/app/components/CopyPromptButton";
 import { LinkButton, Tag } from "@/app/components/console/kit";
 import { formatDate } from "@/app/lib/format";
-import { showcaseScreenshotPrompt } from "@/app/lib/showcasePrompt";
-import type { ShowcaseListing, ShowcaseType } from "@/app/lib/types";
+import type { ShowcaseListing } from "@/app/lib/types";
 import { cn } from "@/app/lib/utils";
 
 /**
@@ -27,9 +25,9 @@ import { cn } from "@/app/lib/utils";
  * need them.
  */
 
-/** On the public page: not switched off, and has a screenshot to show. */
+/** On the public page: not switched off by the organiser. */
 export function visible(l: ShowcaseListing): boolean {
-  return !l.isPrivate && !!l.screenshotUrl?.trim();
+  return !l.isPrivate;
 }
 
 /** "No apps yet" · "3 apps showing" · "2 of 3 apps showing". */
@@ -53,24 +51,22 @@ const CHIP_LABEL: Record<Chip, string> = { all: "All", mine: "My apps", others: 
 
 export function ListingRows({
   variant,
-  page,
   listings,
   activeCompanyId,
   isNew,
-  projectSlugs,
   removing,
   busy,
   onToggle,
   onRemove,
+  leading,
 }: {
   variant: "event" | "company";
-  page: { slug: string; title: string; type: ShowcaseType };
+  /** Tiles drawn first in the same grid — an event page's requests. */
+  leading?: React.ReactNode;
   /** Everything on screen, including rows that are collapsing out. */
   listings: ShowcaseListing[];
   activeCompanyId: string;
   isNew: (l: ShowcaseListing) => boolean;
-  /** Company page: projectId → app slug, so a row's prompt names the app. */
-  projectSlugs?: Map<string, string>;
   /** Removed rows, still on screen while they collapse. */
   removing: ReadonlySet<string>;
   /** Rows with a removal in flight. */
@@ -223,6 +219,7 @@ export function ListingRows({
            the page it manages. */
         <div className="sc">
         <div className="sc-gal !pb-0">
+          {leading}
           {rows.map((l) => (
             <Row
               key={l.id}
@@ -230,15 +227,6 @@ export function ListingRows({
               own={mine(l)}
               yours={variant === "event" && activeChip === "all" && othersCount > 0 && mine(l)}
               fresh={variant === "event" && isNew(l)}
-              prompt={
-                mine(l) && !l.screenshotUrl?.trim()
-                  ? showcaseScreenshotPrompt(
-                      page,
-                      l,
-                      variant === "company" ? projectSlugs?.get(l.projectId) : undefined,
-                    )
-                  : null
-              }
               removing={removing.has(l.id)}
               busy={busy.has(l.id)}
               onToggle={onToggle}
@@ -265,7 +253,6 @@ function Row({
   own,
   yours,
   fresh,
-  prompt,
   removing,
   busy,
   onToggle,
@@ -275,16 +262,11 @@ function Row({
   own: boolean;
   yours: boolean;
   fresh: boolean;
-  /** Your own app without a screenshot: the prompt that has your AI add
-      one. Null otherwise. */
-  prompt: string | null;
   removing: boolean;
   busy: boolean;
   onToggle: (l: ShowcaseListing, on: boolean) => void;
   onRemove: (l: ShowcaseListing) => void;
 }) {
-  const noShot = !l.screenshotUrl?.trim();
-
   return (
     <div
       data-listing={l.id}
@@ -302,27 +284,7 @@ function Row({
               {fresh && <Tag tone="ok">New</Tag>}
             </span>
           )}
-          {!l.isPrivate && noShot ? (
-            own && prompt ? (
-              <>
-                Shows once it has a screenshot.{" "}
-                <CopyPromptButton
-                  text={prompt}
-                  copiedChildren={COPIED_LABEL}
-                  announce="Prompt copied. Paste it in your AI."
-                  failedChildren="Couldn’t copy. Try again"
-                  failedAnnounce="Couldn’t copy the prompt. Try again."
-                  className={cn("cursor-pointer font-semibold text-foreground underline-offset-2 hover:underline", FOCUS)}
-                >
-                  Copy prompt for your AI
-                </CopyPromptButton>
-              </>
-            ) : (
-              `Shows once ${l.creatorName} adds a screenshot.`
-            )
-          ) : (
-            <span className="text-faint">Added {formatDate(l.createdAt)}</span>
-          )}
+          <span className="text-faint">Added {formatDate(l.createdAt)}</span>
         </div>
         <LinkButton
           disabled={busy || removing}

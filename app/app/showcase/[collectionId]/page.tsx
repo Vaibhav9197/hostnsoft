@@ -12,10 +12,11 @@ import {
 } from "@/app/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
-import { COPIED_LABEL, CopyPromptButton } from "@/app/components/CopyPromptButton";
+import { COPIED_LABEL, CopyPromptButton, PromptIcon } from "@/app/components/CopyPromptButton";
 import { ConfirmDialog, type ConfirmRequest } from "@/app/components/console/ConfirmDialog";
 import { Alert, EmptyState, LinkButton, Page, Panel, PanelTitle, Skeleton, Tag } from "@/app/components/console/kit";
 import { CopyButton } from "@/app/components/console/showcase/CopyButton";
+import { InviteCard } from "@/app/components/console/showcase/InviteCard";
 import { ListingRows, showingText } from "@/app/components/console/showcase/ListingRows";
 import { RequestRows } from "@/app/components/console/showcase/RequestRows";
 import { ShareKit } from "@/app/components/console/showcase/ShareKit";
@@ -129,6 +130,10 @@ export default function ShowcaseManagePage() {
   const [busy, setBusy] = useState<ReadonlySet<string>>(() => new Set());
   const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  /* Whether shared prompts carry the page code (apps then skip review).
+     One choice for the card and the ⋮ menu, so both copy the same prompt.
+     Off by default: skipping review is something the owner opts into. */
+  const [includeCode, setIncludeCode] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
   const [showAllUnlisted, setShowAllUnlisted] = useState(false);
@@ -313,7 +318,6 @@ export default function ShowcaseManagePage() {
       revealed.has(l.id) || (prevSeen !== null && Date.parse(l.createdAt) > Date.parse(prevSeen.at)),
     [revealed, prevSeen],
   );
-  const projectSlugs = useMemo(() => new Map((projects ?? []).map((p) => [p.id, p.slug])), [projects]);
   const unlisted = useMemo(() => {
     const listed = new Set(everything.map((l) => l.projectId));
     return (projects ?? []).filter((p) => !listed.has(p.id));
@@ -491,7 +495,7 @@ export default function ShowcaseManagePage() {
   async function copyAddPrompt() {
     if (!meta) return;
     try {
-      await navigator.clipboard.writeText(showcaseListPrompt({ slug: meta.slug, title: meta.title, type: "event" }, null, meta.submitCode));
+      await navigator.clipboard.writeText(showcaseListPrompt({ slug: meta.slug, title: meta.title, type: "event" }, null, includeCode ? meta.submitCode : null));
       toast.success("Prompt copied. Share it with participants.");
     } catch {
       toast.error("Couldn’t copy. Try again.");
@@ -587,7 +591,6 @@ export default function ShowcaseManagePage() {
   );
 
   const rowsProps = {
-    page: { slug: meta.slug, title: meta.title, type: meta.type },
     listings: rows.filter((r) => r.status === "approved"),
     activeCompanyId: activeCompanyId ?? "",
     isNew,
@@ -655,24 +658,6 @@ export default function ShowcaseManagePage() {
               {pageLink(meta.slug)}
               {dot}
               <span>{countText}</span>
-              {meta.submitCode && (
-                <>
-                  {dot}
-                  {/* Hand this to participants: an app submitted with it skips the review below. */}
-                  <span className="inline-flex items-center gap-1">
-                    Code <span className="font-mono text-foreground">{meta.submitCode}</span>
-                    <CopyButton
-                      iconOnly
-                      text={meta.submitCode}
-                      aria-label="Copy submit code"
-                      announce="Code copied."
-                      fallbackLabel="Submit code to copy"
-                      variant="ghost"
-                      className="size-11 shrink-0 text-muted-foreground hover:text-foreground sm:size-8"
-                    />
-                  </span>
-                </>
-              )}
             </div>
           </div>
           <DropdownMenu>
@@ -725,32 +710,19 @@ export default function ShowcaseManagePage() {
 
       {/* Focus lands here when a removed row takes the focused control with it. */}
       <div ref={bodyRef} tabIndex={-1} className="flex flex-col gap-6 outline-none">
-        {/* ------------------------------------------- event, requests */}
-        {isEvent && requestRows.length > 0 && (
-          <section className="flex flex-col gap-4">
-            <div>
-              <PanelTitle>Requests</PanelTitle>
-              <p className="mt-1 text-[0.9rem] text-muted-foreground">
-                Apps submitted without the code wait here. Approve to put them on the page.
-              </p>
-            </div>
-            <RequestRows
-              listings={requestRows}
-              busy={busy}
-              onApprove={(l) => void review(l, true)}
-              onReject={askReject}
-              onRemove={askRemove}
-            />
-          </section>
-        )}
         {isEvent ? (
-          liveRows.length === 0 ? (
+          liveRows.length === 0 && requestRows.length === 0 ? (
             /* ------------------------------------- event, nothing yet */
             <>
               {pendingLine}
-              <Panel padded>
-                {showCelebration ? (
-                  <div className="mb-8 animate-fade-up motion-reduce:animate-none">
+              <InviteCard
+                page={meta}
+                origin={origin}
+                includeCode={includeCode}
+                onIncludeCodeChange={setIncludeCode}
+                heading={
+                  showCelebration ? (
+                  <div className="mb-5 animate-fade-up motion-reduce:animate-none">
                     <div className="flex items-center gap-3">
                       <span aria-hidden="true" className="relative flex size-2 shrink-0">
                         <span className="absolute inset-0 animate-[ping_0.9s_cubic-bezier(0,0,0.2,1)_1_forwards] rounded-full bg-[var(--ok)] motion-reduce:hidden" />
@@ -769,45 +741,56 @@ export default function ShowcaseManagePage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="mb-5">
+                  <div className="mb-2">
                     <PanelTitle>No apps yet</PanelTitle>
                   </div>
-                )}
-                {/* The public page carries the "add your app" prompt, so the
-                    link is all an organiser needs to hand out. */}
-                <p className="-mt-3 text-[0.9rem] text-muted-foreground">
-                  Invite participants to add their apps. Share the page link, or send the prompt and their AI adds the app for them.
-                </p>
-                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                  <CopyButton
-                    text={`${origin ?? ""}/showcase/${meta.slug}`}
-                    announce="Link copied."
-                    fallbackLabel="Page link to copy"
-                    variant="default"
-                    className="h-11 w-full sm:h-9 sm:w-auto"
-                  >
-                    Share link
-                  </CopyButton>
-                  <CopyPromptButton
-                    text={showcaseListPrompt({ slug: meta.slug, title: meta.title, type: "event" }, null, meta.submitCode)}
-                    announce="Prompt copied."
-                    copiedChildren={COPIED_LABEL}
-                    className={cn(buttonVariants({ variant: "outline" }), "h-11 w-full sm:h-9 sm:w-auto")}
-                  >
-                    Share prompt to add app
-                  </CopyPromptButton>
-                </div>
-              </Panel>
+                )
+                }
+              />
             </>
           ) : (
             /* ------------------------------------------ event, with apps */
             <>
+            {/* Stays after the first app arrives: inviting more people, and the
+                code that skips review, are still needed. */}
+            <InviteCard
+              page={meta}
+              origin={origin}
+              includeCode={includeCode}
+              onIncludeCodeChange={setIncludeCode}
+              heading={
+                <div className="mb-2">
+                  <PanelTitle>Invite participants</PanelTitle>
+                </div>
+              }
+            />
+            {/* One grid: requests first, badged on their cards, then live apps. */}
             <section className="flex flex-col gap-4">
               <div>
                 <PanelTitle>Apps on this page</PanelTitle>
+                {requestRows.some((r) => r.status === "pending") && (
+                  <p className="mt-1 text-[0.9rem] text-muted-foreground">
+                    Apps sent without the code wait for your review. Approve to put them on the page.
+                  </p>
+                )}
               </div>
               {pendingLine}
-              <ListingRows variant="event" {...rowsProps} />
+              <ListingRows
+                variant="event"
+                {...rowsProps}
+                leading={
+                  requestRows.length > 0 && (
+                    <RequestRows
+                      bare
+                      listings={requestRows}
+                      busy={busy}
+                      onApprove={(l) => void review(l, true)}
+                      onReject={askReject}
+                      onRemove={askRemove}
+                    />
+                  )
+                }
+              />
             </section>
             </>
           )
@@ -820,12 +803,12 @@ export default function ShowcaseManagePage() {
               Show off your apps on Embarko Showcase.
               <div className="mt-5">
                 <CopyPromptButton
-                  text={showcaseGeneralPrompt(meta.slug)}
+                  text={showcaseGeneralPrompt()}
                   announce="Prompt copied."
                   copiedChildren={COPIED_LABEL}
                   className={cn(buttonVariants(), "h-11 sm:h-9")}
                 >
-                  <Copy aria-hidden="true" />
+                  <PromptIcon aria-hidden="true" />
                   Copy deploy prompt
                 </CopyPromptButton>
               </div>
@@ -842,10 +825,11 @@ export default function ShowcaseManagePage() {
                   copiedChildren={COPIED_LABEL}
                   announce="Prompt copied. Paste it in your AI."
                   className={cn(
-                    "inline-flex min-h-11 cursor-pointer items-center text-[0.84rem] font-semibold text-muted-foreground transition-colors hover:text-foreground hover:underline motion-reduce:transition-none sm:min-h-8",
+                    "inline-flex min-h-11 cursor-pointer items-center gap-1.5 text-[0.84rem] font-semibold text-muted-foreground transition-colors hover:text-foreground hover:underline motion-reduce:transition-none sm:min-h-8",
                     FOCUS,
                   )}
                 >
+                  <PromptIcon className="size-3.5" aria-hidden="true" />
                   Or copy a prompt for your AI
                 </CopyPromptButton>
               </div>
@@ -858,7 +842,7 @@ export default function ShowcaseManagePage() {
               <PanelTitle>Your apps on Embarko Showcase</PanelTitle>
             </div>
             {pendingLine}
-            <ListingRows variant="company" projectSlugs={projectSlugs} {...rowsProps} />
+            <ListingRows variant="company" {...rowsProps} />
           </section>
         )}
 

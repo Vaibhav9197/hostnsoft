@@ -11,6 +11,12 @@ rather than relying on this summary.
 
 No account, no token, no signup. If you read nothing else, this is enough to get an app live.
 
+If your tools include an Embarko connector, deploy through it instead: it works from sandboxes that
+block outbound requests, and the app lands in the user's account, permanent from the start. If your
+environment can't reach ship.embarko.ai (e.g. 403 host_not_allowed), tell the user to connect
+Embarko to their AI tool — for Claude: https://claude.ai/directory/embarko — every connector is at
+https://embarko.ai/docs/connectors
+
 Requirements: the app reads its port from PORT and binds 0.0.0.0; no Dockerfile; anything that must
 survive a redeploy is written under DATA_DIR; the manifest or index.html sits at the root of what
 you package. Budget 256MB of memory — it is hard-enforced.
@@ -92,6 +98,17 @@ list of what is not built yet.
     https://ship.embarko.ai/capabilities        machine-readable contents page, no token, authoritative
     https://ship.embarko.ai/capabilities/<topic>  one question answered in full, e.g. /capabilities/custom-domain
 
+## Authentication and connectors
+
+Three ways in, all reaching the same account (matched by email): an Embarko connector in the
+person's AI tool (no token), a deploy token requested by email, or the person signing in on
+embarko.ai with Google. The first deploy needs none of them. Check for a connector first, then
+$DEPLOY_TOKEN / ~/.embarko/credentials, then request a token by email.
+
+    https://embarko.ai/docs/capabilities#agent-auth
+    https://embarko.ai/docs/connectors          every connector, with the link to add it (Claude)
+    https://embarko.ai/docs/agent-playbook#choose-auth
+
 ## API
 
 Per action: method, auth, required and optional parameters, response schema, states, error codes,
@@ -111,7 +128,7 @@ app, debug a live app, and what to do when the API is unreachable from your envi
 ## Escalation: when to involve the human
 
 What you must decide yourself (ports, memory, runtime, containers, topology, errors) and the only
-six cases where asking the user is correct. Nearly everything is agent-callable — custom domains,
+seven cases where asking the user is correct. Nearly everything is agent-callable — custom domains,
 analytics, rename and delete included. Two that need the user's word first, though you can perform
 both: deleting an app, and changing its web address, which kills the old address with no redirect.
 The one step that is not yours at all: creating the DNS record for a custom domain, which only the

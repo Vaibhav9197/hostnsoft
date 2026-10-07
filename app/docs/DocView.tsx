@@ -135,7 +135,7 @@ const components = {
     const fenced = Boolean(className);
     if (fenced) return <code className="bg-transparent p-0 text-inherit">{children}</code>;
     return (
-      <code className="rounded bg-neutral-100 px-1.5 py-0.5 font-mono text-[0.85em] text-neutral-800">
+      <code className="rounded bg-neutral-100 px-1.5 py-0.5 font-mono text-[0.85em] text-neutral-800 [overflow-wrap:anywhere]">
         {children}
       </code>
     );

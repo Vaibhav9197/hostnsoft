@@ -3,6 +3,7 @@
 import { use } from "react";
 import { ProjectAnalytics } from "../../../components/console/ProjectAnalytics";
 import { Alert, Page, Skeleton } from "../../../components/console/kit";
+import { ProjectShowcasePages } from "../../../components/console/showcase/ProjectShowcasePages";
 import { useSession } from "../../../lib/session";
 import { useProject } from "../../../lib/useProject";
 
@@ -26,6 +27,7 @@ export default function ProjectOverviewPage({ params }: { params: Promise<{ proj
   return (
     <Page>
       <ProjectAnalytics companyId={activeCompanyId} projectId={projectId} isStatic={project?.kind === "static"} />
+      <ProjectShowcasePages companyId={activeCompanyId} projectId={projectId} />
     </Page>
   );
 }

@@ -1,14 +1,14 @@
-import { SiteHeader } from "../components/SiteHeader";
+import { ShowcaseHeader } from "./ShowcaseHeader";
 import { SiteFooter } from "../components/SiteFooter";
-import type { ShowcaseApp } from "../lib/showcase";
-import { BackToShowcase, DeployCta, EmptyList, TileGrid } from "./kit";
+import { listCollections, type ShowcaseApp } from "../lib/showcase";
+import { BackToShowcase, DeployCta, EmptyList, OtherPages, TileGrid } from "./kit";
 import { ShareRow } from "./share";
 
 /**
  * The shared frame for category, tag and collection pages: a compact hero,
  * the same tiles as the gallery, and the same closing CTA.
  */
-export function ListPage({
+export async function ListPage({
   title,
   lede,
   intro,
@@ -19,11 +19,12 @@ export function ListPage({
   note,
   shareTitle,
   shareWhenEmpty = false,
+  currentSlug,
 }: {
   title: string;
-  lede: string;
+  lede?: string;
   intro?: string | null;
-  actions: React.ReactNode;
+  actions?: React.ReactNode;
   apps: ShowcaseApp[];
   empty: { title: string; body: string; action?: React.ReactNode };
   listPrompt?: string | null;
@@ -35,10 +36,15 @@ export function ListPage({
   /** Show share even while empty — an event page is shared to invite
       participants before anything is listed. */
   shareWhenEmpty?: boolean;
+  /** Slug of the page being viewed, left out of the "more pages" row. */
+  currentSlug?: string;
 }) {
+  const pages = await listCollections();
   return (
     <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased">
-      <SiteHeader />
+      {/* An event page's header copies its own prompt, which names this page,
+          so the visitor's AI lists the app here and not on the gallery. */}
+      <ShowcaseHeader prompt={listPrompt ?? undefined} />
       <div className="sc-wrap sc-layer">
         <section className="sc-subhero">
           <BackToShowcase />
@@ -46,16 +52,17 @@ export function ListPage({
             <h1>{title}</h1>
             {shareTitle && (apps.length > 0 || shareWhenEmpty) && <ShareRow title={shareTitle} />}
           </div>
-          <p className="sc-lede">{lede}</p>
+          {lede && <p className="sc-lede">{lede}</p>}
           {intro && <p className="sc-intro">{intro}</p>}
           {note && <p className="sc-note">{note}</p>}
-          <div className="sc-row">{actions}</div>
+          {actions && <div className="sc-row">{actions}</div>}
         </section>
 
         <div className="mt-10">
           {apps.length > 0 ? <TileGrid apps={apps} /> : <EmptyList {...empty} />}
         </div>
 
+        <OtherPages pages={pages} current={currentSlug} />
         <DeployCta listPrompt={listPrompt} />
       </div>
       <SiteFooter />
