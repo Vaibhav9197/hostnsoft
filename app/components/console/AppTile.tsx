@@ -20,14 +20,20 @@ export function AppTile({ project: p }: { project: Project }) {
   const deploying = p.status === "in_progress";
 
   return (
-    <article className="sc-tile">
+    // Borderless, so the shadow alone lifts it off the sky. A shadow can't
+    // show on the night ground, so dark mode gets a faint light hairline
+    // instead — an outline, which takes no space and leaves the hover
+    // shadow alone.
+    <article className="sc-tile group !border-0 [[data-theme=dark]_&]:outline [[data-theme=dark]_&]:outline-1 [[data-theme=dark]_&]:-outline-offset-1 [[data-theme=dark]_&]:outline-[rgba(242,240,234,0.12)]">
       <a href={`https://${host}`} target="_blank" rel="noreferrer" className="sc-cover" aria-label={`Open ${p.name}`} />
       <div className="th">
         <NamePlaceholder name={p.name} />
-        {/* Above the tile's cover link, so it goes to the panel, not the app. */}
+        {/* Above the tile's cover link, so it goes to the panel, not the app.
+            Shown on hover (or keyboard focus), so the grid at rest is just the
+            apps; on touch screens, which have no hover, it stays visible. */}
         <Link
           href={`/app/projects/${p.id}`}
-          className="absolute right-2.5 top-2.5 z-[2] inline-flex h-7 items-center gap-1.5 rounded-full border border-[var(--sc-line)] bg-[var(--sc-card)] px-3 text-xs font-medium text-[var(--sc-ink)] shadow-sm transition-colors hover:bg-[var(--sc-soft)]"
+          className="absolute right-2.5 top-2.5 z-[2] inline-flex h-7 items-center gap-1.5 rounded-full border border-[var(--sc-line)] bg-[var(--sc-card)] px-3 text-xs font-medium text-[var(--sc-ink)] shadow-sm transition-[opacity,background-color,color,border-color] hover:border-[var(--sc-ink)] hover:bg-[var(--sc-ink)] hover:text-[var(--sc-card)] focus-visible:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:hover)]:opacity-0"
         >
           <Settings2 className="size-3.5" aria-hidden="true" />
           Manage
@@ -46,7 +52,7 @@ export function AppTile({ project: p }: { project: Project }) {
             app last deployed (a rollback doesn't touch it), hence "updated". */}
         <div className="ft">
           <span title={formatDateTime(p.updatedAt)}>Updated {relativeTime(p.updatedAt)}</span>
-          <HealthPill health={p.health} deploying={deploying} className="flex-none" />
+          <HealthPill health={p.health} deploying={deploying} labelOnHover className="ml-auto flex-none" />
         </div>
       </div>
     </article>

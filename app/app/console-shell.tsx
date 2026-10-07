@@ -3,7 +3,6 @@
 import { LoginScreen } from "../components/console/LoginScreen";
 import { FeedbackWidget } from "../components/console/FeedbackWidget";
 import { ConsoleBreadcrumbs } from "../components/console/ConsoleBreadcrumbs";
-import { HeaderPlanBadge } from "../components/console/HeaderPlanBadge";
 import { HeaderUserMenu } from "../components/console/HeaderUserMenu";
 import { Alert } from "../components/console/kit";
 import { SessionSignals } from "../components/analytics/SessionSignals";
@@ -69,14 +68,8 @@ function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-[var(--beta-bar-h)] z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-2 sm:px-4">
-        {/* Navigation sits on the left, next to the account it belongs to; the
-            right edge is for the plan chip. */}
-        <HeaderUserMenu />
-        <div className="ml-auto flex items-center gap-2">
-          <HeaderPlanBadge />
-        </div>
-      </header>
+      {/* No header: the breadcrumb row carries the menu, the workspace and
+          the plan chip, so a bar above it would only repeat them. */}
       <main className="flex-1">
         {/* Extra bottom padding keeps the last row clear of the feedback launcher. */}
         <div className="mx-auto w-full max-w-5xl px-4 pb-24 pt-8 sm:px-8">

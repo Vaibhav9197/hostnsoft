@@ -23,8 +23,9 @@ declare global {
   }
 }
 
-// The widget renders its own <main> with horizontal padding, which lands on top
-// of the padding the console page already has. It lives two shadow roots deep,
+// The widget renders its own <main> with horizontal padding, plus two wrappers
+// around it (side padding on the outer, vertical on the inner), all of which
+// land on top of the padding the console page already has. It lives two shadow roots deep,
 // so no stylesheet of ours can reach it — the override has to be appended
 // inside that root.
 //
@@ -32,7 +33,11 @@ declare global {
 // widget update renames or restructures anything, the selector simply matches
 // nothing and the padding comes back. It never breaks the page.
 const SHADOW_STYLE_FLAG = "data-embarko-reset";
-const SHADOW_OVERRIDES = `main { padding: 0 !important; }`;
+const SHADOW_OVERRIDES = `
+  main,
+  div:has(> main),
+  div:has(> div > main) { padding: 0 !important; }
+`;
 
 function injectPaddingReset(root: Document | ShadowRoot): boolean {
   let injected = false;

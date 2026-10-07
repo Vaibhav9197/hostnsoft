@@ -174,7 +174,7 @@ export default function ProjectsPage() {
       {error && <Alert>{error}</Alert>}
 
       {!projects && !error && (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3.5">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3.5">
           {[0, 1, 2].map((i) => <Skeleton className="min-h-[150px]" key={i} aria-hidden="true" />)}
         </div>
       )}
@@ -183,7 +183,12 @@ export default function ProjectsPage() {
 
       {projects && projects.length > 0 && (
         <div className="sc">
-          <div className="sc-gal !pb-0">
+          {/* The Showcase grid drops to two columns below 1100px, which made
+              each card half the screen on small laptops. Here the column count
+              follows the room instead: three across on a normal screen, as
+              before, and four on short low-resolution screens (1366×768 and
+              the like), where three left room for barely one row. */}
+          <div className="sc-gal !grid-cols-[repeat(auto-fill,minmax(240px,1fr))] !pb-0 [@media(max-height:820px)]:!grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
             {projects.map((p) => (
               <AppTile key={p.id} project={p} />
             ))}
