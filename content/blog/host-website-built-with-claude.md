@@ -10,7 +10,6 @@ datePublished: "2026-10-07"
 dateModified: "2026-10-07"
 last_verified: "2026-10-07"
 author: "The Embarko team"
-ai_disclosure: "Drafted with AI assistance and reviewed by a human before publishing."
 status: "published"
 ---
 
@@ -30,7 +29,7 @@ Built with Claude   →  one ask  →   your-site-name.embarko.app
 - **The first deploy is anonymous** and deleted after 24 hours unless you [claim it](/docs/agent-playbook#claim). Claiming takes an email and a redeploy of the same name.
 - **Limits to know first:** [256MB of memory, one process](/docs/capabilities#resources), no WebSockets, no [scheduled jobs](/docs/capabilities#scheduled-jobs), no [automatic backups](/docs/capabilities#backups) yet. Every site is [public to anyone with the URL](/docs/capabilities#access-protection).
 
-## [Which Claude did you build it with?](#which-claude)
+## [Which Claude did you build it with?](#which)
 
 "Built with Claude" can mean three different setups, and each has a different route to a live link.
 
@@ -40,11 +39,11 @@ Built with Claude   →  one ask  →   your-site-name.embarko.app
 | **The Claude app**, where your site exists only as code in a chat | The [Embarko connector](/docs/connectors), only if your site is already available as a public `.tar.gz` link. Otherwise use Claude Code or the copied prompt | Sites it deploys land in your account from the start, so there is nothing to claim. It cannot upload a folder from your computer, and it has no status tool, so open the link to check the site is up |
 | **A Claude Artifact** | Put the files in a project folder, then deploy that folder with Claude Code | An artifact that calls `window.storage` is [rejected at deploy](/docs/troubleshoot#422-unsupported_storage_pattern). Replace it with SQLite, with the file under [`DATA_DIR`](/docs/capabilities#file-storage); that makes it a server app, so check the memory and one-process limits |
 
-> **Is your site only in a Claude chat?** Save the files into a project folder, open that folder in Claude Code and follow the steps below. Pasting the deployment prompt into the chat itself may work, but chat sandboxes often block the upload with a `403 host_not_allowed` error. If that happens, use Claude Code.
+> **Is your site only in a Claude chat?** Save the files into a project folder, open that folder in Claude Code and follow the steps below. Pasting the deployment prompt into the chat itself may work, but if the chat environment cannot reach Embarko you will see a `403 host_not_allowed` error. If that happens, use Claude Code.
 
 Claude builds your site, but something still has to host it. A Git repository is one common starting point, but it is a lot of setup for a small site an agent wrote in one session, and Embarko does not need one. All it needs is your project, an agent that can reach Embarko, and your claim within 24 hours if you want to keep the site.
 
-## [Is your site static or a server app?](#static-or-server)
+## [Is your site static or a server app?](#static)
 
 This decides how it is published and what it can do. Check what Claude built for you:
 
@@ -83,7 +82,7 @@ Start Claude Code in the folder that holds your site, and make sure the site run
 npx skills add embarko-ai/skill --skill embarko-deploy -g
 ```
 
-This needs Node.js, because the command uses `npx`. The skill packages and deploys for you, and its source is at [embarko.ai/skill](https://github.com/embarko-ai/skill). If `npx` is not found, install Node.js or use Option B, which needs nothing installed.
+This needs Node.js, because the command uses `npx`. The skill packages and deploys for you, and its source is at [embarko.ai/skill](https://github.com/embarko-ai/skill), which opens the public GitHub page for the skill. If `npx` is not found, install Node.js or use Option B, which needs nothing installed.
 
 **Option B, the prompt.** Open [embarko.ai](/), copy the deployment prompt and paste it into Claude Code. It tells the agent how to deploy, so you do not have to learn the API.
 
@@ -132,7 +131,7 @@ Ask Claude Code to [redeploy](/docs/capabilities#redeploy) with the same name. E
 
 The full list is in the [troubleshooting reference](/docs/troubleshoot).
 
-## [When this is not the right route](#fit)
+## [When this is not the right route](#limits)
 
 Embarko is built for small request-and-response sites and apps. The overview explains [when Embarko is the wrong choice](/docs/overview#not-right-when).
 
@@ -173,7 +172,7 @@ Not automatically. A site deployed without a token is deleted 24 hours after its
 
 ### [Can I host a Claude Artifact?](#faq-artifact)
 
-Only if it works as a normal web app. An artifact that uses `window.storage` is rejected at deploy with a [`422 unsupported_storage_pattern`](/docs/troubleshoot#422-unsupported_storage_pattern) error. Replace it with [SQLite](/docs/capabilities#database), with the database file under the [`DATA_DIR`](/docs/capabilities#file-storage) folder, because only that folder survives a redeploy.
+Only if it works as a normal web app. An artifact that uses `window.storage` is rejected at deploy with a [`422 unsupported_storage_pattern`](/docs/troubleshoot#422-unsupported_storage_pattern) error. Replace it with [SQLite](/docs/capabilities#database), with the database file under the [`DATA_DIR`](/docs/capabilities#file-storage) folder, because only that folder survives a redeploy. That makes it a server app, not a static site.
 
 ### [Can I use my own domain?](#faq-domain)
 

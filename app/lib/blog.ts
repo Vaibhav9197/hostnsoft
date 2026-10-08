@@ -9,6 +9,7 @@
 
 import deployWithoutGithubMd from "../../content/blog/deploy-app-without-github.md";
 import hostClaudeWebsiteMd from "../../content/blog/host-website-built-with-claude.md";
+import deployAiAppMd from "../../content/blog/how-to-deploy-ai-app.md";
 import { headingId } from "./docs";
 
 export interface BlogPost {
@@ -22,13 +23,12 @@ export interface BlogPost {
   datePublished: string;
   dateModified: string;
   author: string;
-  aiDisclosure?: string;
   /** The article body, without the frontmatter. */
   body: string;
 }
 
 /** Every post we have a file for. Order does not matter; the list is sorted by date. */
-const SOURCES: string[] = [deployWithoutGithubMd, hostClaudeWebsiteMd];
+const SOURCES: string[] = [deployWithoutGithubMd, hostClaudeWebsiteMd, deployAiAppMd];
 
 /**
  * Reads the `key: value` lines of a frontmatter block. Values are JSON
@@ -75,7 +75,6 @@ function toPost(source: string): BlogPost | null {
     datePublished: str(data.datePublished),
     dateModified: str(data.dateModified, str(data.datePublished)),
     author: str(data.author, "The Embarko team"),
-    aiDisclosure: str(data.ai_disclosure) || undefined,
     body,
   };
 }

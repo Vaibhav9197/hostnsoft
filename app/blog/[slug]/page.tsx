@@ -97,7 +97,6 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
           readMinutes={post.readMinutes}
           dateModified={post.dateModified}
           author={post.author}
-          aiDisclosure={post.aiDisclosure}
         />
       </div>
 

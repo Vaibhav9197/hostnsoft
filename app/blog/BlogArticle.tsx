@@ -16,7 +16,6 @@ interface BlogArticleProps {
   readMinutes: number;
   dateModified: string;
   author: string;
-  aiDisclosure?: string;
 }
 
 function Markdown({ children }: { children: string }) {
@@ -109,7 +108,6 @@ export function BlogArticle({
   readMinutes,
   dateModified,
   author,
-  aiDisclosure,
 }: BlogArticleProps) {
   const active = useActiveHeading(toc);
   const sections = useMemo(() => groupToc(toc), [toc]);
@@ -129,11 +127,12 @@ export function BlogArticle({
         {parts.faq.length > 0 && <FaqList items={parts.faq} />}
         {parts.outro && <Markdown>{parts.outro}</Markdown>}
 
+        {/* Byline only. No "Last verified ..." or "Drafted with AI assistance ..."
+            line on any post: the owner decided readers should not see them
+            (2026-10-08). The update date already sits at the top of the post. */}
         <footer className="mt-14 border-t border-neutral-200 pt-6 text-sm leading-relaxed text-neutral-600">
           <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">Written by</p>
           <p className="mt-1 font-semibold text-neutral-950">{author}</p>
-          <p className="mt-1">Last verified {formatDate(dateModified)} against embarko.ai docs and pricing.</p>
-          {aiDisclosure && <p className="mt-1">{aiDisclosure}</p>}
         </footer>
       </article>
 

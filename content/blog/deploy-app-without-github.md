@@ -10,7 +10,6 @@ datePublished: "2026-10-07"
 dateModified: "2026-10-07"
 last_verified: "2026-10-07"
 author: "Pushpendra Agrawal"
-ai_disclosure: "Drafted with AI assistance and reviewed by a human before publishing."
 status: "published"
 ---
 
@@ -21,6 +20,8 @@ status: "published"
 ```text
 localhost:3000   →  one prompt  →   your-app-name.embarko.app
 ```
+
+*Your app deserves better than localhost.*
 
 ## [Key takeaways](#takeaways)
 
@@ -107,7 +108,7 @@ Ask your agent to redeploy with the same app name. Embarko keeps [deployment his
 
 The full list is in the [troubleshooting reference](/docs/troubleshoot).
 
-## [When this is not the right route](#fit)
+## [When this is not the right route](#limits)
 
 Embarko is built for small request-and-response apps. The overview explains [when Embarko is the wrong choice](/docs/overview#not-right-when).
 
