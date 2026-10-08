@@ -1,4 +1,4 @@
-import { SITE } from "./site";
+import { SITE, appUrl } from "./site";
 
 /** The canonical "copy prompt for agent" text, shared by the landing page,
  *  the docs and the console so they never drift apart.
@@ -111,6 +111,22 @@ Set it as DEPLOY_TOKEN and save it to ~/.embarko/credentials so later deploys re
 If you haven't deployed an app to Embarko in this project, tell me instead of deploying a new one.
 
 Then confirm the deploy succeeded and tell me the app is now permanent.`;
+}
+
+/**
+ * After the claim link has done its job: the app is permanent, and the
+ * agent that deployed it needs the account's token for every later deploy
+ * of that name — an anonymous redeploy of a claimed name is refused. Made
+ * on the claim page's success screen with a token created on the spot, so
+ * the person has nothing to look up. Nothing is deployed by this prompt.
+ */
+export function consoleClaimedPromptWithToken(appName: string, token: string): string {
+  return `My Embarko app "${appName}" (${appUrl(appName)}) is claimed now: it's permanent and belongs to my account, so nothing needs redeploying for that.
+
+From now on every deploy of it needs my deploy token — an anonymous redeploy of that name is refused. Use this Embarko deploy token: ${token}
+Set it as DEPLOY_TOKEN and save it to ~/.embarko/credentials (chmod 600) so later deploys reuse it. Don't print the token back to me.
+
+When I ask for changes, redeploy it as the existing app "${appName}", that exact name, with that token. Read ${SITE}/docs/agent-quickstart.md if you need the deploy steps.`;
 }
 
 /** "my-app.embarko.app", "https://my-app.embarko.app/x" or "my-app" → "my-app". */

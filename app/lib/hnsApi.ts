@@ -26,6 +26,7 @@ import type {
   EnvVar,
   LogStream,
   Member,
+  OrphanClaimResult,
   PaymentMethod,
   Project,
   ProjectAnalytics,
@@ -187,6 +188,19 @@ export const tokensApi = {
   // old token valid 1h. Returns the new raw token once.
   rotate: (companyId: string, tokenId: string) =>
     hns<DeployTokenSecret>(`/companies/${companyId}/tokens/${tokenId}/rotate`, { method: "POST" }),
+};
+
+// ------------------------------------------------------------------ Orphans
+export const orphansApi = {
+  // POST /companies/:companyId/orphans/claim — keep a temporary (anonymous)
+  // app by its claim link: the app name and one-time code from the link the
+  // deploy handed back. 404 for a wrong code, an app already kept, or one
+  // whose 24 hours ran out — the API doesn't say which.
+  claim: (companyId: string, appName: string, code: string) =>
+    hns<OrphanClaimResult>(`/companies/${companyId}/orphans/claim`, {
+      method: "POST",
+      body: { appName, code },
+    }),
 };
 
 // -------------------------------------------------------------- Deployments
