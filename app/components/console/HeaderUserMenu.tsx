@@ -39,6 +39,7 @@ export function HeaderUserMenu() {
       // shows through the same tint as hover.
       triggerClassName="flex max-w-[16rem] items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:outline-none"
       label="Account menu"
+      align="start"
     >
       <span className="grid size-7 shrink-0 place-items-center rounded-md bg-foreground text-xs font-bold text-background">
         {initial}
@@ -59,8 +60,8 @@ export function HeaderUserMenu() {
 }
 
 /**
- * The console's one navigation menu, opened from whatever trigger the caller
- * renders — the header's account button, or the breadcrumb's menu icon.
+ * The console's one navigation menu, opened from the top bar's workspace
+ * button.
  */
 export function AccountMenu({
   children,
