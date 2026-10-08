@@ -53,7 +53,7 @@ function explicitId(node: ReactNode): string | null {
 
 /* Each element gets the same styling the hand-written page used, so swapping to
    a remote source didn't change how the docs look. */
-const components = {
+export const components = {
   h1: ({ children }: { children?: ReactNode }) => (
     <h1 className="text-3xl font-bold text-neutral-950 sm:text-4xl">{children}</h1>
   ),
@@ -145,7 +145,7 @@ const components = {
 /* Which section the reader is actually in. A 21-item contents list with no
    current position is a wall of links — this is what makes the nav show where
    you are rather than just what exists. */
-function useActiveHeading(toc: TocEntry[]): string | null {
+export function useActiveHeading(toc: TocEntry[]): string | null {
   const [active, setActive] = useState<string | null>(null);
 
   useEffect(() => {
@@ -195,7 +195,7 @@ interface TocSection {
   children: TocEntry[];
 }
 
-function groupToc(toc: TocEntry[]): TocSection[] {
+export function groupToc(toc: TocEntry[]): TocSection[] {
   const out: TocSection[] = [];
   for (const item of toc) {
     if (item.level === 2 || out.length === 0) {
@@ -236,7 +236,7 @@ function TocLink({ item, current }: { item: TocEntry; current: boolean }) {
 /* The contents list itself. Lifted out of the layout because it renders in
    two places: its own right rail on a wide screen, and back under Guides on a
    narrower one where there is no room for a third column. */
-function TocBlock({
+export function TocBlock({
   sections,
   active,
   className,
