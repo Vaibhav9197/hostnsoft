@@ -73,6 +73,17 @@ const nextConfig = {
         destination: "/docs/troubleshoot.md",
         permanent: true,
       },
+
+      // public/skills/ was a generated copy of the skill repo, kept in sync by
+      // git hooks, and linked from nothing live. The skill repo is now the only
+      // copy. The deploy script goes to its raw file so a `curl` still gets a
+      // script; everything else goes to the repo.
+      {
+        source: "/skills/embarko-deploy.sh",
+        destination: "https://raw.githubusercontent.com/embarko-ai/skill/main/scripts/deploy.sh",
+        permanent: true,
+      },
+      { source: "/skills/:path*", destination: "https://github.com/embarko-ai/skill", permanent: true },
     ];
   },
 

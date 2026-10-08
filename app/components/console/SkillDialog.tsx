@@ -1,5 +1,9 @@
 "use client";
 
+// TODO: Not imported anywhere, and every href below is dead. public/skills/ was
+// removed, so /skills/* now redirects to github.com/embarko-ai/skill. Point the
+// downloads at the skill repo and wire this in, or delete it.
+
 import Link from "next/link";
 import { Download } from "lucide-react";
 import { Button } from "../ui/button";

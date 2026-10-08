@@ -10,6 +10,8 @@ happy path, use the [agent playbook](agent-playbook.md).
 Prefer to install this as a skill? It is open source at
 [embarko.ai/skill](https://embarko.ai/skill).
 
+Can't install it? Download the skill's deploy script, read it, then run it on the project folder: `curl -fsSL https://raw.githubusercontent.com/embarko-ai/skill/main/scripts/deploy.sh -o /tmp/embarko-deploy.sh && bash /tmp/embarko-deploy.sh .`
+
 ## [First: is an Embarko connector connected?](#connector)
 
 Look at your tools. **If one is named Embarko, deploy through it and skip
