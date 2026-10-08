@@ -166,8 +166,8 @@ export default function ProjectsPage() {
       <DeployPromptDialog
         open={creating}
         onClose={() => setCreating(false)}
-        title="Deploy an app"
-        description="Hand the prompt to your AI agent, or upload the app yourself. Either way it lands here on its own subdomain."
+        title="Host new app"
+        description="Your AI built the app. Let it put the app online too."
         onDeployed={refreshAfterDeploy}
       />
 
