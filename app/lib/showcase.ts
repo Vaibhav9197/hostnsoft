@@ -54,6 +54,8 @@ export interface Collection {
   slug: string;
   title: string;
   intro: string | null;
+  /** The organiser's HTML block, shown above the apps. */
+  customHtml?: string | null;
   type: "public" | "event";
   projectCount: number;
   createdAt: string;

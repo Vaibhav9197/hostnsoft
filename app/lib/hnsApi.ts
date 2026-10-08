@@ -335,8 +335,10 @@ export const showcaseApi = {
     hns<ShowcaseCollection[]>(`/companies/${companyId}/showcase/collections`),
 
   // POST /companies/:companyId/showcase/collections — create a public board. 409 SHOWCASE_SLUG_TAKEN.
-  createCollection: (companyId: string, body: { slug: string; title: string; intro?: string | null }) =>
-    hns<ShowcaseCollection>(`/companies/${companyId}/showcase/collections`, { method: "POST", body }),
+  createCollection: (
+    companyId: string,
+    body: { slug: string; title: string; intro?: string | null; customHtml?: string | null },
+  ) => hns<ShowcaseCollection>(`/companies/${companyId}/showcase/collections`, { method: "POST", body }),
 
   // GET .../collections/:collectionId — plus everything listed under it.
   getCollection: (companyId: string, collectionId: string) =>

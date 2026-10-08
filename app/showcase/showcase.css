@@ -362,4 +362,6 @@
 .sc .sc-contributors{display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:0}
 .sc .sc-contributors a{max-width:100%;overflow-wrap:anywhere}
 .sc .sc-custom-wrap{margin-top:var(--sc-chapter)}
+/* An event page's block sits right under its header, as part of it. */
+.sc .sc-subhero + .sc-custom-wrap{margin-top:32px}
 .sc .sc-custom{display:block;width:100%;border:0;background:transparent}

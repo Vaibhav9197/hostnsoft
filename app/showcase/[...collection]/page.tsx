@@ -70,6 +70,7 @@ export default async function CollectionPage({ params }: Props) {
             : null
         }
         apps={apps}
+        customHtml={meta.customHtml}
         /* Only an event page takes anyone's app; a company page takes that
            company's own, which it lists from its console. */
         listPrompt={meta.type === "event" ? showcaseListPrompt(meta) : null}
