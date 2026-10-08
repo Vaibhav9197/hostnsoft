@@ -10,6 +10,7 @@ import { extractFaq, POSTS, postBySlug, splitPost } from "../../lib/blog";
 import { extractToc } from "../../lib/docs";
 import { SITE } from "../../lib/site";
 import { BlogArticle } from "../BlogArticle";
+import { ContinueReading } from "../ContinueReading";
 
 type Params = { slug: string };
 
@@ -99,6 +100,8 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
           author={post.author}
         />
       </div>
+
+      <ContinueReading current={post.slug} />
 
       <CtaSection />
       <SiteFooter />
