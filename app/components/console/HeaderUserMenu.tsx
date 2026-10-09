@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Building2, ChevronDown, CreditCard, KeyRound, LayoutGrid, LogOut, Shield, Sparkles, Settings, Users } from "lucide-react";
+import { Building2, ChevronDown, CreditCard, KeyRound, LayoutGrid, LogOut, Map as MapIcon, Shield, Sparkles, Settings, Users } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -90,7 +90,12 @@ export function AccountMenu({
       { href: "/app/members", label: "Members", icon: Users },
       { href: "/app/billing", label: "Billing", icon: CreditCard },
       { href: "/app/settings", label: "Settings", icon: Settings },
-      ...(isSuperAdmin ? [{ href: "/admin", label: "Admin", icon: Shield }] : []),
+      ...(isSuperAdmin
+        ? [
+            { href: "/admin", label: "Admin", icon: Shield },
+            { href: "/admin/system", label: "How it's made", icon: MapIcon },
+          ]
+        : []),
     ],
   ];
 
