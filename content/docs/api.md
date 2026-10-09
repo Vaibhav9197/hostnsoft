@@ -294,7 +294,7 @@ curl -X POST "https://ship.embarko.ai/apps" \
     "claimed": false,
     "expiresAt": "2026-09-30T10:04:00.000Z"
   },
-  "next": "Building: poll links.status every 10 seconds until it says \"live\" or \"failed\".",
+  "next": "Building: poll links.status every 10 seconds until it says \"live\", \"failed\" or \"crashed\".",
   "links": {
     "status": "https://ship.embarko.ai/apps/my-app/status",
     "feedback": "https://ship.embarko.ai/apps/my-app/customer-query"
