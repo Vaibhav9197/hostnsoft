@@ -124,7 +124,8 @@ export default async function ShowcaseAppPage({ params }: Props) {
 
   const listed = Number.isNaN(Date.parse(app.createdAt)) ? null : LISTED.format(new Date(app.createdAt));
   const host = hostOf(app.appUrl);
-  const contributors = (app.contributorEmails ?? []).map((e) => e.trim()).filter(Boolean);
+  /* Only people who have signed up; the API leaves the rest out. */
+  const contributors = app.contributors ?? [];
   const customHtml = app.customHtml?.trim();
 
   return (
@@ -284,10 +285,15 @@ export default async function ShowcaseAppPage({ params }: Props) {
                     <div>
                       <dt>Contributors</dt>
                       <dd className="sc-contributors">
-                        {contributors.map((email) => (
-                          <a key={email} href={`mailto:${email}`}>
-                            {email}
-                          </a>
+                        {contributors.map((c) => (
+                          /* Name shown; the address is the hover/focus card. tabIndex so
+                             keyboard users can reach it too. */
+                          <span key={c.email} className="sc-contributor" tabIndex={0} aria-label={`${c.name}, ${c.email}`}>
+                            {c.name}
+                            <span className="sc-contributor-card" role="tooltip" aria-hidden="true">
+                              {c.email}
+                            </span>
+                          </span>
                         ))}
                       </dd>
                     </div>

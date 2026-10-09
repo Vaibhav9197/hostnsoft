@@ -788,7 +788,7 @@ temporary app has no token to call this with.
 | `description` | | What it does: features and use cases, in plain searchable words. Up to 4000 characters. |
 | `story` | | Why it was built, in the creator's words. Up to 600 characters. |
 | `creatorProfile` | | An `https` link to the creator: GitHub, X, LinkedIn or a personal site. |
-| `contributorEmails` | | Everyone who built the app, max 10, the person showcasing it first (the main contact). Adds a "Contact Dev" button that mails all of them. Visitors never see the addresses. **Ask before sending it.** |
+| `contributorEmails` | | Everyone who built the app, max 10, the person showcasing it first (the main contact). Adds a "Contact Dev" button that mails all of them. Anyone listed who has no Embarko account gets an invite mail; contributors who have signed up with their listed address are credited by name on the app page (address on hover). **Ask before sending it.** |
 | `builtWith` | | The tool that built it: `Claude`, `Codex`, `Cursor`, `Lovable`, `Replit`, or another. |
 | `category` | | The closest of `AI Tool`, `Personal`, `Business`, `Productivity`, `Education`, `Game`, `Developer Tool`, `Other`. |
 | `tags` | | Terms people would search for, not the category again. At most 8. |
