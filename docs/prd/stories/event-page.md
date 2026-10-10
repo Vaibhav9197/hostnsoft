@@ -8,7 +8,7 @@
 - **Wants to:** collect the apps built at their event on one public page
 - **Ends with:** A live event page with a poster and QR code, filling with the apps people send.
 - **Steps:** 5 · 0 by AI · 5 can go wrong
-- **Last change to its code:** v47, 9 Oct 2026 — feat(showcase): invite contributors without an account, credit them by name
+- **Last change to its code:** v48, 9 Oct 2026 — feat(showcase): invite contributors without an account, credit them by name
 
 [← All stories](../README.md)
 
@@ -199,11 +199,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v47 (f70181f) | 9 Oct 2026 | feat(showcase): invite contributors without an account, credit them by name | create, review, public |
-| v46 (67cbcf0) | 8 Oct 2026 | feat(showcase): custom HTML on event pages- #15 (#15) | create, public |
-| v45 (67eadd2) | 8 Oct 2026 | feat(panel): top bar with workspace and plan; prompt-first showcase actions | share, watch |
+| v48 (f70181f) | 9 Oct 2026 | feat(showcase): invite contributors without an account, credit them by name | create, review, public |
+| v47 (67cbcf0) | 8 Oct 2026 | feat(showcase): custom HTML on event pages- #15 (#15) | create, public |
+| v46 (67eadd2) | 8 Oct 2026 | feat(panel): top bar with workspace and plan; prompt-first showcase actions | share, watch |
+| v45 (2ef4031) | 7 Oct 2026 | feat(showcase): credit contributors by name, address on hover | public |
 | v44 (23a0fb8) | 6 Oct 2026 | feat(showcase): organiser custom HTML on event pages | create, review, public |
-| v43 (8da531b) | 6 Oct 2026 | feat: listing all the showcase pages (#14) | public |
 
 ## Open questions
 

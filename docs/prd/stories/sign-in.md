@@ -8,7 +8,7 @@
 - **Wants to:** get into their workspace
 - **Ends with:** They are in Your apps with a workspace chosen, and stay signed in for 30 days.
 - **Steps:** 5 · 0 by AI · 4 can go wrong
-- **Last change to its code:** v37, 1 Oct 2026 — fix(pricing): plan buttons sign in and continue to the chosen plan
+- **Last change to its code:** v38, 9 Oct 2026 — feat(admin): Live PRD at /admin/system, generated from all three repos
 
 [← All stories](../README.md)
 
@@ -191,11 +191,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v38 (99f540a) | 9 Oct 2026 | feat(admin): Live PRD at /admin/system, generated from all three repos | start-session |
 | v37 (7aaa197) | 1 Oct 2026 | fix(pricing): plan buttons sign in and continue to the chosen plan | open, verify |
 | v36 (dcf2f2f) | 30 Sept 2026 | feat: one create-page flow signed in or out; centred sign-in; landing polish | open, verify |
 | v35 (5624dd4) | 30 Sept 2026 | perf: give up on stuck API reads after 5s instead of 10s | start-session |
 | v34 (cb25d21) | 30 Sept 2026 | perf(panel): load panel data sooner and open on last visit's copy | load-me |
-| v33 (dde5b33) | 29 Sept 2026 | feat(panel): showcase wording, claim token polish, clickable workspace cards | workspace |
 
 ## Open questions
 

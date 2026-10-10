@@ -8,7 +8,7 @@
 - **Wants to:** show their app to others on a public page
 - **Ends with:** The app is on a Showcase page, or waiting for the organiser to approve it.
 - **Steps:** 5 · 0 by AI · 5 can go wrong
-- **Last change to its code:** v56, 9 Oct 2026 — feat(showcase): invite contributors without an account, credit them by name
+- **Last change to its code:** v57, 9 Oct 2026 — feat(showcase): invite contributors without an account, credit them by name
 
 [← All stories](../README.md)
 
@@ -193,11 +193,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v56 (f70181f) | 9 Oct 2026 | feat(showcase): invite contributors without an account, credit them by name | check-address, send, approve, public |
-| v55 (67cbcf0) | 8 Oct 2026 | feat(showcase): custom HTML on event pages- #15 (#15) | public |
-| v54 (67eadd2) | 8 Oct 2026 | feat(panel): top bar with workspace and plan; prompt-first showcase actions | approve |
+| v57 (f70181f) | 9 Oct 2026 | feat(showcase): invite contributors without an account, credit them by name | check-address, send, approve, public |
+| v56 (67cbcf0) | 8 Oct 2026 | feat(showcase): custom HTML on event pages- #15 (#15) | public |
+| v55 (67eadd2) | 8 Oct 2026 | feat(panel): top bar with workspace and plan; prompt-first showcase actions | approve |
+| v54 (2ef4031) | 7 Oct 2026 | feat(showcase): credit contributors by name, address on hover | public |
 | v53 (23a0fb8) | 6 Oct 2026 | feat(showcase): organiser custom HTML on event pages | check-address, send, approve, public |
-| v52 (8da531b) | 6 Oct 2026 | feat: listing all the showcase pages (#14) | public |
 
 ## Open questions
 

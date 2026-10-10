@@ -8,7 +8,7 @@
 - **Wants to:** reach the person who built an app they liked
 - **Ends with:** The builders get the message by email, and their addresses stay private.
 - **Steps:** 4 · 0 by AI · 2 can go wrong
-- **Last change to its code:** v37, 8 Oct 2026 — feat(showcase): custom HTML on event pages- #15 (#15)
+- **Last change to its code:** v38, 8 Oct 2026 — feat(showcase): custom HTML on event pages- #15 (#15)
 
 [← All stories](../README.md)
 
@@ -130,11 +130,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v37 (67cbcf0) | 8 Oct 2026 | feat(showcase): custom HTML on event pages- #15 (#15) | browse, check |
+| v38 (67cbcf0) | 8 Oct 2026 | feat(showcase): custom HTML on event pages- #15 (#15) | browse, check |
+| v37 (2ef4031) | 7 Oct 2026 | feat(showcase): credit contributors by name, address on hover | browse, check |
 | v36 (8da531b) | 6 Oct 2026 | feat: listing all the showcase pages (#14) | browse, check |
 | v35 (2e9bdb3) | 6 Oct 2026 | feat(showcase): one-action header, wordmark-only app pages | browse |
 | v34 (f10b4e1) | 5 Oct 2026 | feat(ui): magic wand icon on every copy-prompt button | browse |
-| v33 (7613e83) | 3 Oct 2026 | feat(showcase): remove Open app button from the app detail page | browse |
 
 ## Open questions
 
