@@ -156,8 +156,8 @@ export const AREAS: Area[] = [
     name: "Guides",
     lane: "screens",
     plain: "Step-by-step articles that bring people from search to their first deploy.",
-    detail: "Markdown with frontmatter in content/blog/, served at /blog and /blog/<slug> with cover images from public/assets/blog/ (drawn by scripts/blog-covers.mjs). Only posts with status \"published\" are built.",
-    refs: ["page:/blog", "page:/blog/*", "lib:app/blog/*", "lib:app/lib/blog"],
+    detail: "Markdown with frontmatter in content/guides/, served at /guides and /guides/<slug> with cover images from public/assets/guides/ (drawn by scripts/guide-covers.mjs). Only posts with status \"published\" are built.",
+    refs: ["page:/guides", "page:/guides/*", "lib:app/guides/*", "lib:app/lib/guides"],
   },
   {
     id: "sign-in",

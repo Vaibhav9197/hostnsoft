@@ -1,4 +1,4 @@
-// The blog is authored as markdown in this repo, under content/blog/, one
+// The blog is authored as markdown in this repo, under content/guides/, one
 // file per post, the same way the docs are (see app/lib/docs.ts): imported as
 // raw strings because production is a Cloudflare Worker with no filesystem at
 // request time.
@@ -7,9 +7,13 @@
 // emits). To publish a post: add the file, import it below, add it to
 // SOURCES. Nothing else needs touching; the index, sitemap and routes follow.
 
-import deployWithoutGithubMd from "../../content/blog/deploy-app-without-github.md";
-import hostClaudeWebsiteMd from "../../content/blog/host-website-built-with-claude.md";
-import deployAiAppMd from "../../content/blog/how-to-deploy-ai-app.md";
+import deployWithoutGithubMd from "../../content/guides/deploy-app-without-github.md";
+import hostClaudeWebsiteMd from "../../content/guides/host-website-built-with-claude.md";
+import deployAiAppMd from "../../content/guides/how-to-deploy-ai-app.md";
+import deployFromCursorMd from "../../content/guides/deploy-from-cursor.md";
+import studentsMd from "../../content/guides/free-hosting-for-students.md";
+import replitMd from "../../content/guides/deploy-replit-app-free.md";
+import antigravityMd from "../../content/guides/deploy-antigravity-website.md";
 import { headingId } from "./docs";
 
 export interface BlogPost {
@@ -19,7 +23,7 @@ export interface BlogPost {
   description: string;
   keywords: string[];
   category: string;
-  /** Path under public/, drawn by scripts/blog-covers.mjs. Also the share image. */
+  /** Path under public/, drawn by scripts/guide-covers.mjs. Also the share image. */
   cover?: string;
   coverAlt: string;
   readMinutes: number;
@@ -31,7 +35,7 @@ export interface BlogPost {
 }
 
 /** Every post we have a file for. Order does not matter; the list is sorted by date. */
-const SOURCES: string[] = [deployWithoutGithubMd, hostClaudeWebsiteMd, deployAiAppMd];
+const SOURCES: string[] = [deployWithoutGithubMd, hostClaudeWebsiteMd, deployAiAppMd, deployFromCursorMd, studentsMd, replitMd, antigravityMd];
 
 /**
  * Reads the `key: value` lines of a frontmatter block. Values are JSON
@@ -235,3 +239,64 @@ export function extractFaq(body: string): { question: string; answer: string }[]
   flush();
   return out;
 }
+
+/* ---------- llms.txt: the guides in a form AI agents read directly ---------- */
+
+const ORIGIN = "https://embarko.ai";
+
+/**
+ * The guide's markdown for an agent reading it outside the site: site-relative
+ * links become absolute, in-page anchors point at the live page, and the
+ * headings lose their self-link brackets so they read as plain titles.
+ */
+function forAgents(body: string, pageUrl: string): string {
+  return body
+    .replace(/^(#{1,6})[ \t]+\[([^\]]+)\]\(#[\w-]+\)[ \t]*$/gm, "$1 $2")
+    .replace(/\]\(\/(?!\/)/g, `](${ORIGIN}/`)
+    .replace(/\]\(#([\w-]+)\)/g, `](${pageUrl}#$1)`)
+    .trim();
+}
+
+/** /guides/<slug>/llms.txt: one guide, whole, with where it lives and when it changed. */
+export function guideLlmsText(post: BlogPost): string {
+  const url = `${ORIGIN}/guides/${post.slug}`;
+  return [
+    `# ${post.title}`,
+    "",
+    `> ${post.description}`,
+    "",
+    `- Page: ${url}`,
+    `- Updated: ${post.dateModified}`,
+    `- Author: ${post.author}`,
+    `- All guides: ${ORIGIN}/guides/llms.txt`,
+    `- Embarko for agents: ${ORIGIN}/llms.txt`,
+    "",
+    "---",
+    "",
+    forAgents(post.body, url),
+    "",
+  ].join("\n");
+}
+
+/** /guides/llms.txt: every published guide, newest first, each with its own llms.txt. */
+export function guidesIndexLlmsText(): string {
+  return [
+    "# Embarko Guides",
+    "",
+    "> Step-by-step guides for putting an AI-built app online on Embarko, and for fixing it when a deploy breaks.",
+    "",
+    `Every guide is also a page at ${ORIGIN}/guides/<slug>. Each link below is the guide as plain markdown.`,
+    "For the deploy API itself, start at " + `${ORIGIN}/llms.txt.`,
+    "",
+    "## Guides",
+    "",
+    ...POSTS.map((p) => `- [${p.title}](${ORIGIN}/guides/${p.slug}/llms.txt): ${p.description}`),
+    "",
+  ].join("\n");
+}
+
+/** Headers for a plain-text agent file: UTF-8 (the guides use arrows and dashes), cacheable. */
+export const LLMS_HEADERS = {
+  "content-type": "text/plain; charset=utf-8",
+  "cache-control": "public, max-age=3600, stale-while-revalidate=86400",
+} as const;

@@ -5,7 +5,7 @@ slug: "how-to-deploy-ai-app"
 primary_keyword: "how to deploy ai app"
 secondary_keywords: ["deploy ai chat app", "host rag app", "deploy app that calls openai api", "where to put api key when deploying", "deploy app built with ai"]
 category: "Guide"
-cover: "/assets/blog/how-to-deploy-ai-app.png"
+cover: "/assets/guides/how-to-deploy-ai-app.png"
 cover_alt: "A live AI chat app at your-app-name.embarko.app keeps its MODEL_API_KEY as an encrypted environment variable and calls a model API hosted elsewhere over HTTPS."
 read_minutes: 11
 datePublished: "2026-10-07"

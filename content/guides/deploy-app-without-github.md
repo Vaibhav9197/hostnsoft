@@ -5,7 +5,7 @@ slug: "deploy-app-without-github"
 primary_keyword: "deploy app without github"
 secondary_keywords: ["host vibe coded app without github", "deploy without docker", "deploy app without a repo", "put my AI-built app online"]
 category: "Guide"
-cover: "/assets/blog/deploy-app-without-github.png"
+cover: "/assets/guides/deploy-app-without-github.png"
 cover_alt: "A project folder with package.json and server.js is packed as a .tar.gz and becomes a live app at your-app-name.embarko.app, with no git repo needed."
 read_minutes: 7
 datePublished: "2026-10-07"

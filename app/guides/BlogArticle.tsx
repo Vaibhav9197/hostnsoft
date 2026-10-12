@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ArrowUp, ChevronDown, List } from "lucide-react";
-import { components, useActiveHeading } from "../docs/DocView";
-import { formatDate, type PostParts } from "../lib/blog";
+import { components, useActiveHeading } from "./prose";
+import { formatDate, type PostParts } from "../lib/guides";
 import type { TocEntry } from "../lib/docs";
 import { BlogShare } from "./BlogShare";
 
@@ -248,14 +248,17 @@ export function BlogArticle({ parts, toc, title, author, datePublished, dateModi
         {parts.faq.length > 0 && <FaqList items={parts.faq} />}
         {parts.outro && <Markdown>{parts.outro}</Markdown>}
 
-        <section aria-labelledby="share-h" className="mt-10 rounded-2xl border border-neutral-200 bg-[var(--surface)] p-6 sm:p-7">
-          <h2 id="share-h" className="text-lg font-semibold text-neutral-950">
-            Found this useful? Share it.
-          </h2>
-          <p className="mt-1 text-sm text-neutral-600">Send it to someone whose AI just built an app.</p>
-          <div className="mt-5">
-            <BlogShare title={title} />
+        <section
+          aria-labelledby="share-h"
+          className="mt-10 flex flex-wrap items-center justify-between gap-5 rounded-2xl border border-neutral-200 bg-[var(--surface)] p-6 sm:p-7"
+        >
+          <div className="min-w-0">
+            <h2 id="share-h" className="text-lg font-semibold text-neutral-950">
+              Found this useful? Share it.
+            </h2>
+            <p className="mt-1 text-sm text-neutral-600">Send it to someone whose AI just built an app.</p>
           </div>
+          <BlogShare title={title} align="right" />
         </section>
       </article>
 

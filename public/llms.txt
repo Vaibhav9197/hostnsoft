@@ -159,6 +159,14 @@ Plan limits: how many apps run at once, and what usage is included.
 
     https://embarko.ai/pricing
 
+## Guides
+
+Step-by-step guides for people putting an AI-built app online: deploying from Claude, Cursor,
+Replit or Antigravity, free hosting for students, and fixing common deploy errors. Every guide is
+also plain markdown at its page URL plus /llms.txt.
+
+    https://embarko.ai/guides/llms.txt
+
 ## Full reference
 
 There is no single-page manual any more — each section above is authoritative for its own area.

@@ -53,7 +53,7 @@ function explicitId(node: ReactNode): string | null {
 
 /* Each element gets the same styling the hand-written page used, so swapping to
    a remote source didn't change how the docs look. */
-export const components = {
+const components = {
   h1: ({ children }: { children?: ReactNode }) => (
     <h1 className="text-3xl font-bold text-neutral-950 sm:text-4xl">{children}</h1>
   ),
@@ -145,13 +145,7 @@ export const components = {
 /* Which section the reader is actually in. A 21-item contents list with no
    current position is a wall of links — this is what makes the nav show where
    you are rather than just what exists. */
-/* Where a heading counts as "the one you're reading". It must sit below the
-   point a jump-link lands a heading (scroll-mt-24 under the beta bar puts it
-   at ~130px); at 120 a clicked section stayed unlit and the rail marked the
-   one before it. */
-const ACTIVE_LINE = 160;
-
-export function useActiveHeading(toc: TocEntry[]): string | null {
+function useActiveHeading(toc: TocEntry[]): string | null {
   const [active, setActive] = useState<string | null>(null);
 
   useEffect(() => {
@@ -166,7 +160,7 @@ export function useActiveHeading(toc: TocEntry[]): string | null {
       let current = toc[0].id;
       for (const { id } of toc) {
         const el = document.getElementById(id);
-        if (el && el.getBoundingClientRect().top <= ACTIVE_LINE) current = id;
+        if (el && el.getBoundingClientRect().top <= 120) current = id;
       }
       /* The page can't scroll far enough to push the last heading past the
          line, so without this the final entry would never light up. */
@@ -201,7 +195,7 @@ interface TocSection {
   children: TocEntry[];
 }
 
-export function groupToc(toc: TocEntry[]): TocSection[] {
+function groupToc(toc: TocEntry[]): TocSection[] {
   const out: TocSection[] = [];
   for (const item of toc) {
     if (item.level === 2 || out.length === 0) {
@@ -242,7 +236,7 @@ function TocLink({ item, current }: { item: TocEntry; current: boolean }) {
 /* The contents list itself. Lifted out of the layout because it renders in
    two places: its own right rail on a wide screen, and back under Guides on a
    narrower one where there is no room for a third column. */
-export function TocBlock({
+function TocBlock({
   sections,
   active,
   className,

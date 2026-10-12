@@ -5,7 +5,7 @@ slug: "host-website-built-with-claude"
 primary_keyword: "host a website built with claude"
 secondary_keywords: ["deploy website from claude code", "host claude artifact", "put my claude website online", "claude code deploy website"]
 category: "Guide"
-cover: "/assets/blog/host-website-built-with-claude.png"
+cover: "/assets/guides/host-website-built-with-claude.png"
 cover_alt: "Claude Code is asked to deploy a portfolio to Embarko, and the portfolio site goes live at your-site-name.embarko.app."
 read_minutes: 11
 datePublished: "2026-10-07"

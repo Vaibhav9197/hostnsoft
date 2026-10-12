@@ -2,11 +2,11 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { Card } from "../components/ds";
-import { formatDate, POSTS, type BlogPost } from "../lib/blog";
+import { formatDate, POSTS, type BlogPost } from "../lib/guides";
 
 /* "Pushpendra Agrawal" -> "PA", "The Embarko team" -> "E": a leading "The"
    and lowercase words are dropped, so a team byline reads as its name. */
-function initials(name: string): string {
+export function initials(name: string): string {
   const words = name.split(/\s+/).filter((w, i) => !(i === 0 && /^the$/i.test(w)) && /^\p{Lu}/u.test(w));
   return (words.length ? words : [name]).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
 }
@@ -32,7 +32,7 @@ export function ContinueReading({ current, limit = 2 }: { current: string; limit
             Continue reading…
           </h2>
           <Link
-            href="/blog"
+            href="/guides"
             className="inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-foreground underline-offset-4 hover:underline"
           >
             View all guides
@@ -43,7 +43,7 @@ export function ContinueReading({ current, limit = 2 }: { current: string; limit
         <ul className="mt-8 grid gap-5 md:grid-cols-2">
           {posts.map((post) => (
             <Card as="li" lift key={post.slug} className="!p-0">
-              <Link href={`/blog/${post.slug}`} className="flex h-full flex-col overflow-hidden rounded-[inherit]">
+              <Link href={`/guides/${post.slug}`} className="flex h-full flex-col overflow-hidden rounded-[inherit]">
                 {post.cover && (
                   <img
                     src={post.cover}

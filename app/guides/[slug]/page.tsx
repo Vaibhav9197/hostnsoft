@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileText } from "lucide-react";
 
 import { SiteFooter } from "../../components/SiteFooter";
 import { SiteHeader } from "../../components/SiteHeader";
 import { CtaSection } from "../../components/ds";
-import { extractFaq, formatDate, POSTS, postBySlug, splitPost } from "../../lib/blog";
+import { extractFaq, formatDate, POSTS, postBySlug, splitPost } from "../../lib/guides";
 import { extractToc } from "../../lib/docs";
 import { SITE } from "../../lib/site";
 import { BlogArticle } from "../BlogArticle";
+import { BlogShare } from "../BlogShare";
 import { ContinueReading } from "../ContinueReading";
 
 type Params = { slug: string };
@@ -42,7 +43,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
   const post = postBySlug((await params).slug);
   if (!post) notFound();
 
-  const url = `${SITE}/blog/${post.slug}`;
+  const url = `${SITE}/guides/${post.slug}`;
   const faq = extractFaq(post.body);
   const parts = splitPost(post.body);
 
@@ -51,7 +52,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Embarko", item: SITE },
-      { "@type": "ListItem", position: 2, name: "Guides", item: `${SITE}/blog` },
+      { "@type": "ListItem", position: 2, name: "Guides", item: `${SITE}/guides` },
       { "@type": "ListItem", position: 3, name: post.title, item: url },
     ],
   };
@@ -88,7 +89,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
 
       <div className="mx-auto max-w-7xl px-6 py-12">
         <Link
-          href="/blog"
+          href="/guides"
           className="inline-flex min-h-[44px] items-center gap-1.5 text-sm font-medium text-neutral-600 transition-colors hover:text-neutral-950"
         >
           <ArrowLeft className="size-4" aria-hidden="true" />
@@ -115,6 +116,18 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
                 Updated <time dateTime={post.dateModified}>{formatDate(post.dateModified)}</time>
               </span>
             </p>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <BlogShare title={post.title} />
+              {/* The same guide as plain markdown for AI agents. A plain <a>:
+                  it is a text file, not a page Link should route. */}
+              <a
+                href={`/guides/${post.slug}/llms.txt`}
+                className="inline-flex min-h-11 items-center gap-2 rounded-full px-4 font-mono text-[13px] text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-950"
+              >
+                <FileText className="size-4" aria-hidden="true" />
+                llms.txt
+              </a>
+            </div>
           </div>
           {post.cover && (
             <img

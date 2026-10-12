@@ -1,5 +1,5 @@
 // Draws the cover image for each blog post and writes it to
-// public/assets/blog/<slug>.png (1200x630, the Open Graph size).
+// public/assets/guides/<slug>.png (1200x630, the Open Graph size).
 //
 // Covers are committed static files on purpose: production is a Cloudflare
 // Worker with no filesystem or image cache, so a generated OG route fails
@@ -8,7 +8,7 @@
 // Style follows docs/DESIGN.md: the site's cream, warm ink and near-white
 // surfaces, mock screens only, green only for a "Live" status.
 //
-//   node scripts/blog-covers.mjs
+//   node scripts/guide-covers.mjs
 //
 // To add a post's cover, add a function to COVERS keyed by its slug.
 
@@ -18,7 +18,7 @@ import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const OUT = join(ROOT, "public", "assets", "blog");
+const OUT = join(ROOT, "public", "assets", "guides");
 
 const C = {
   bg: "#f5f4f0", surface: "#fdfdfb", s2: "#eceae3", s3: "#ddd7cc",
@@ -140,6 +140,106 @@ const COVERS = {
         return `<rect x="${tx}" y="${ty}" width="195" height="76" rx="12" fill="${C.s2}"/>${bar(tx + 14, ty + 50, 110, 9)}`;
       }).join("")}
     `)}
+  `),
+
+  /* Cursor's agent gets the prompt, sandbox.json lets it reach Embarko, the app goes live. */
+  "deploy-from-cursor": () => frame(`
+    ${card(50, 96, 500, 330, `
+      <rect width="500" height="50" rx="18" fill="${C.s2}"/><rect y="32" width="500" height="18" fill="${C.s2}"/>
+      <line x1="0" y1="50" x2="500" y2="50" stroke="${C.line}"/>
+      <circle cx="26" cy="25" r="6" fill="${C.strong}"/><circle cx="46" cy="25" r="6" fill="${C.strong}"/><circle cx="66" cy="25" r="6" fill="${C.strong}"/>
+      ${text(250, 31, "Cursor", { size: 16, weight: 600, fill: C.soft, anchor: "middle" })}
+      <line x1="200" y1="50" x2="200" y2="330" stroke="${C.line}"/>
+      ${[0, 1, 2, 3, 4, 5, 6].map((i) => bar(24, 76 + i * 30, [120, 90, 140, 70, 110, 130, 80][i], 10, i % 3 ? C.s3 : C.strong, 5)).join("")}
+      ${text(222, 80, "Agent", { size: 14, weight: 700, fill: C.soft })}
+      <rect x="222" y="94" width="254" height="74" rx="12" fill="${C.s2}"/>
+      ${text(238, 120, "Embarko deployment prompt", { size: 15, weight: 600 })}
+      ${text(238, 146, "help me get it live", { size: 15, fill: C.soft })}
+      ${[
+        ["›", "packing folder as .tar.gz", C.soft],
+        ["›", "uploading to ship.embarko.ai", C.soft],
+        ["✓", "status: live", C.ok],
+      ].map(([m, t, col], i) => `${text(226, 204 + i * 32, m, { size: 17, weight: 700, font: MONO, fill: col })}${text(246, 204 + i * 32, t, { size: 14.5, font: MONO, fill: i === 2 ? C.ink : C.soft })}`).join("")}
+    `)}
+    ${card(90, 448, 420, 132, `
+      ${text(24, 36, ".cursor/sandbox.json", { size: 16, weight: 700, font: MONO })}
+      ${text(24, 66, '"allow": [', { size: 15, font: MONO, fill: C.soft })}
+      ${text(44, 92, '"embarko.ai", "ship.embarko.ai",', { size: 15, font: MONO, fill: C.ink })}
+      ${text(44, 116, '"*.embarko.app" ]', { size: 15, font: MONO, fill: C.ink })}
+      <circle cx="390" cy="32" r="11" fill="${C.ok}"/><path d="M384 32l4 4 8-9" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    `)}
+    ${arrow(562, 300, 672, "one prompt")}
+    ${browser(682, 120, 470, 390, "your-app-name.embarko.app", siteMock(470))}
+  `),
+
+  /* A student's projects, the Free plan's real limits, and the live link. */
+  "free-hosting-for-students": () => frame(`
+    ${card(40, 110, 280, 150, `
+      <path d="M24 34h52l14 14h186a10 10 0 0 1 10 10v0H24z" fill="${C.s3}"/>
+      ${text(24, 96, "portfolio/", { size: 22, weight: 700, font: MONO })}
+      ${text(24, 126, "index.html · style.css", { size: 15, font: MONO, fill: C.soft })}
+    `)}
+    ${card(40, 290, 280, 170, `
+      <path d="M24 34h52l14 14h186a10 10 0 0 1 10 10v0H24z" fill="${C.s3}"/>
+      ${text(24, 96, "college-project/", { size: 22, weight: 700, font: MONO })}
+      ${text(24, 126, "app.py · requirements.txt", { size: 15, font: MONO, fill: C.soft })}
+      ${text(24, 150, "data.db in DATA_DIR", { size: 15, font: MONO, fill: C.soft })}
+    `)}
+    ${card(345, 170, 270, 230, `
+      ${text(28, 50, "Free plan", { size: 17, weight: 700, fill: C.soft })}
+      ${text(28, 104, "$0", { size: 54, weight: 800 })}
+      ${text(98, 104, "/ month", { size: 17, fill: C.soft })}
+      ${["Unlimited static websites", "1 dynamic app", "256MB · Embarko branding"].map((t, i) => `
+        <circle cx="38" cy="${140 + i * 30}" r="8" fill="${i < 2 ? C.ok : C.s3}"/>
+        ${i < 2 ? `<path d="M34 ${140 + i * 30}l3 3 6-6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>` : ""}
+        ${text(56, 146 + i * 30, t, { size: 15, fill: i < 2 ? C.ink : C.soft })}`).join("")}
+    `)}
+    ${arrow(625, 290, 702, null)}
+    ${browser(712, 110, 450, 400, "your-app-name.embarko.app", siteMock(450))}
+  `),
+
+  /* Replit's "Download as zip", the zip, and the app live on Embarko. */
+  "deploy-replit-app-free": () => frame(`
+    ${card(40, 100, 410, 250, `
+      ${text(24, 40, "Files", { size: 16, weight: 700, fill: C.soft })}
+      <circle cx="362" cy="34" r="3" fill="${C.ink}"/><circle cx="372" cy="34" r="3" fill="${C.ink}"/><circle cx="382" cy="34" r="3" fill="${C.ink}"/>
+      ${["main.py", "requirements.txt", "templates/"].map((f, i) => `${text(24, 84 + i * 30, f, { size: 16, font: MONO })}`).join("")}
+      <rect x="200" y="58" width="190" height="132" rx="12" fill="${C.surface}" stroke="${C.strong}"/>
+      ${text(218, 90, "Rename", { size: 15, fill: C.soft })}
+      ${text(218, 120, "Upload file", { size: 15, fill: C.soft })}
+      <rect x="208" y="138" width="174" height="38" rx="9" fill="${C.ink}"/>
+      ${text(222, 163, "Download as zip", { size: 15, weight: 700, fill: C.bg })}
+    `)}
+    ${card(70, 380, 260, 120, `
+      <rect x="24" y="26" width="52" height="66" rx="8" fill="${C.s2}" stroke="${C.strong}"/>
+      ${[0, 1, 2, 3].map((i) => `<rect x="${i % 2 ? 50 : 44}" y="${34 + i * 10}" width="8" height="6" fill="${C.strong}"/>`).join("")}
+      ${text(96, 56, "my-app.zip", { size: 19, weight: 700, font: MONO })}
+      ${text(96, 82, "unzip, open in agent", { size: 15, fill: C.soft })}
+    `)}
+    ${arrow(458, 300, 560, null)}
+    ${browser(570, 120, 590, 400, "your-app-name.embarko.app", siteMock(590))}
+  `),
+
+  /* Antigravity's agent asks to run the upload; Allow; the site is live. */
+  "deploy-antigravity-website": () => frame(`
+    ${card(50, 96, 520, 400, `
+      <rect width="520" height="50" rx="18" fill="${C.s2}"/><rect y="32" width="520" height="18" fill="${C.s2}"/>
+      <line x1="0" y1="50" x2="520" y2="50" stroke="${C.line}"/>
+      <circle cx="26" cy="25" r="6" fill="${C.strong}"/><circle cx="46" cy="25" r="6" fill="${C.strong}"/><circle cx="66" cy="25" r="6" fill="${C.strong}"/>
+      ${text(260, 31, "Antigravity · Agent", { size: 16, weight: 600, fill: C.soft, anchor: "middle" })}
+      <rect x="24" y="72" width="472" height="62" rx="12" fill="${C.s2}"/>
+      ${text(42, 99, "Embarko deployment prompt", { size: 16, weight: 600 })}
+      ${text(42, 122, "put my website live", { size: 15, fill: C.soft })}
+      <rect x="24" y="152" width="472" height="164" rx="14" fill="${C.surface}" stroke="${C.ink}" stroke-width="1.5"/>
+      ${text(44, 184, "Run command?", { size: 16, weight: 700 })}
+      <rect x="44" y="198" width="432" height="44" rx="8" fill="${C.s2}"/>
+      ${text(58, 226, "upload project to ship.embarko.ai", { size: 15, font: MONO })}
+      <rect x="44" y="258" width="104" height="40" rx="20" fill="${C.ink}"/>${text(96, 284, "Allow", { size: 16, weight: 700, fill: C.bg, anchor: "middle" })}
+      <rect x="160" y="258" width="96" height="40" rx="20" fill="${C.surface}" stroke="${C.strong}"/>${text(208, 284, "Deny", { size: 16, fill: C.soft, anchor: "middle" })}
+      ${text(42, 356, "✓", { size: 18, weight: 700, font: MONO, fill: C.ok })}${text(66, 356, "status: live", { size: 16, font: MONO })}
+    `)}
+    ${arrow(588, 300, 682, null)}
+    ${browser(692, 110, 460, 400, "your-site-name.embarko.app", siteMock(460))}
   `),
 
   /* A live chat app, its key kept as an env var, calling a model API elsewhere. */

@@ -217,8 +217,8 @@ The instructions an AI agent reads before it deploys.
 
 Step-by-step articles that bring people from search to their first deploy.
 
-- **How it works:** Markdown with frontmatter in content/blog/, served at /blog and /blog/<slug> with cover images from public/assets/blog/ (drawn by scripts/blog-covers.mjs). Only posts with status "published" are built.
-- **Code files:** `app/blog/BlogArticle.tsx`, `app/blog/BlogShare.tsx`, `app/blog/ContinueReading.tsx`, `app/blog/[slug]/page.tsx`, `app/blog/page.tsx`, `app/lib/blog.ts`
+- **How it works:** Markdown with frontmatter in content/guides/, served at /guides and /guides/<slug> with cover images from public/assets/guides/ (drawn by scripts/guide-covers.mjs). Only posts with status "published" are built.
+- **Code files:** `app/guides/BlogArticle.tsx`, `app/guides/BlogShare.tsx`, `app/guides/ContinueReading.tsx`, `app/guides/[slug]/page.tsx`, `app/guides/page.tsx`, `app/lib/guides.ts`
 
 ### Sign-in (`sign-in`)
 
