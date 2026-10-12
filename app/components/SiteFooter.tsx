@@ -18,9 +18,11 @@ import { SKILL_REPO } from "../lib/site";
    the far edges read as the page's frame instead of one more section. */
 const MARKETING_MEASURE = "w-full px-8 max-[640px]:px-5";
 
-/* One row of links rather than headed columns: four links did not need three
+/* One row of links rather than headed columns: a handful of links did not need three
    headings and three columns of chrome to be found. */
 const NAV_LINKS = [
+  /* Not in the header: the header keeps to Showcase and Pricing. */
+  { label: "Use cases", href: "/use-cases" },
   { label: "Docs", href: "/docs" },
   { label: "Pricing", href: "/pricing" },
   /* { label: "Status", href: "/status" }, */

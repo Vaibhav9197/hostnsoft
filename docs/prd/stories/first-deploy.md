@@ -7,8 +7,8 @@
 - **Who:** An app builder
 - **Wants to:** get the app their AI built online
 - **Ends with:** The app is live at its own embarko.app address and shows in Your apps.
-- **Steps:** 9 · 1 by AI · 6 can go wrong
-- **Last change to its code:** v180, 9 Oct 2026 — docs(showcase): tell the agent contributors get an invite and a name credit (#25)
+- **Steps:** 10 · 1 by AI · 7 can go wrong
+- **Last change to its code:** v189, 9 Oct 2026 — docs(showcase): tell the agent contributors get an invite and a name credit (#25)
 
 [← All stories](../README.md)
 
@@ -16,15 +16,16 @@
 
 | # | Step ID | Step | Who acts | What happens |
 |---|---|---|---|---|
-| 1 | `first-deploy/copy-prompt` | Copy the prompt | Person | In the panel the builder says whether they are new, then copies the Embarko prompt. |
-| 2 | `first-deploy/make-token` | Put a key in the prompt | System | The panel makes a deploy key and writes it into the prompt, so the AI can deploy as them. |
+| 1 | `first-deploy/copy-prompt` | Copy the prompt | Person | In the panel the builder says whether they are new, then follows the same four steps as Host new app and copies the Embarko prompt. |
+| 2 | `first-deploy/make-token` | Put a key in the prompt | System | On a click, the panel makes a deploy key and writes it into the prompt, so the AI can deploy as them. Optional for a new app; required to keep an app deployed before signing in. |
 | 3 | `first-deploy/paste` | Paste into the AI | Person | The builder pastes the prompt into their AI agent and asks it to deploy. |
-| 4 | `first-deploy/ai-deploys` | AI sends the app | AI | The AI reads the quickstart and the rules, then sends the app's files to Embarko. |
-| 5 | `first-deploy/check-key` | Check key and name | Rule | Embarko checks the key, then claims the app's name for this workspace. |
-| 6 | `first-deploy/check-files` | Check the files | Rule | Embarko finds the app's root and refuses patterns it can't run, saying what to do instead. |
-| 7 | `first-deploy/build-run` | Build and start | System | Embarko builds the app, starts it, and gives it its address with a certificate. |
-| 8 | `first-deploy/record` | Record the version | System | The result is saved as the app's next version, and becomes the live one if it worked. |
-| 9 | `first-deploy/app-appears` | App appears | System | The panel checks every 5 seconds until the new app shows up, then shows it as Live. |
+| 4 | `first-deploy/watch` | Watch it go live | System | After the copy, the steps fold into "Prompt copied" and the view shows the deploy's state instead, checking every few seconds. It follows whichever app the AI deploys — new or existing, since the AI picks the name — through Waiting, Deploying, Starting, then Live with Open app. |
+| 5 | `first-deploy/ai-deploys` | AI sends the app | AI | The AI reads the quickstart and the rules, then sends the app's files to Embarko. |
+| 6 | `first-deploy/check-key` | Check key and name | Rule | Embarko checks the key, then claims the app's name for this workspace. |
+| 7 | `first-deploy/check-files` | Check the files | Rule | Embarko finds the app's root and refuses patterns it can't run, saying what to do instead. |
+| 8 | `first-deploy/build-run` | Build and start | System | Embarko builds the app, starts it, and gives it its address with a certificate. |
+| 9 | `first-deploy/record` | Record the version | System | The result is saved as the app's next version, and becomes the live one if it worked. |
+| 10 | `first-deploy/app-appears` | App appears | System | The panel checks every 5 seconds until the new app shows up, then shows it as Live. |
 
 ## Flow
 
@@ -44,72 +45,84 @@ flowchart TD
   s1c2 --> s2
   s2f{Did it work?}
   s2 --> s2f
-  s2f1["If making the key fails<br/>→ Couldn’t prepare your prompt. Try again. with a retry link."]:::fail
+  s2f1["If making the key fails<br/>→ Couldn’t create your deploy key. with Try again."]:::fail
   s2f -.->|no| s2f1
   s2f2["If there is no key yet on the new-app path<br/>→ the plain prompt is used and the AI asks for a key."]:::fail
   s2f -.->|no| s2f2
   s3["3. Paste into the AI<br/>Person"]
   s2f -->|yes| s3
-  s4["4. AI sends the app<br/>AI"]
+  s4["4. Watch it go live<br/>System"]
   s3 --> s4
-  s5["5. Check key and name<br/>Rule"]
-  s4 --> s5
-  s5f{Did it work?}
-  s5 --> s5f
-  s5f1["If the key is missing, wrong or revoked<br/>→ refused 401, with how to get a key."]:::fail
-  s5f -.->|no| s5f1
-  s5f2["If the name uses anything but lowercase letters, numbers and dashes<br/>→ refused invalid_app_name."]:::fail
-  s5f -.->|no| s5f2
-  s5f3["If the name is too short, too long or reserved<br/>→ refused 409 with the reason."]:::fail
-  s5f -.->|no| s5f3
-  s5f4["If another workspace owns the name<br/>→ refused app_name_taken."]:::fail
-  s5f -.->|no| s5f4
-  s5f5["If the account service can’t be reached<br/>→ Could not verify app name availability 502."]:::fail
-  s5f -.->|no| s5f5
-  s6["6. Check the files<br/>Rule"]
-  s5f -->|yes| s6
+  s4f{Did it work?}
+  s4 --> s4f
+  s4f1["If nothing arrives for 10 minutes<br/>→ Nothing yet, with the likely cause: a key from another workspace, or none. Checking stops after 30 minutes."]:::fail
+  s4f -.->|no| s4f1
+  s4f2["If the build fails<br/>→ The deploy didn’t work, the error, and See what happened."]:::fail
+  s4f -.->|no| s4f2
+  s4f3["If A server app crashes after starting<br/>→ started, then stopped."]:::fail
+  s4f -.->|no| s4f3
+  s4f4["If A server app isn’t running 3 minutes after its build<br/>→ didn’t start."]:::fail
+  s4f -.->|no| s4f4
+  s5["5. AI sends the app<br/>AI"]
+  s4f -->|yes| s5
+  s6["6. Check key and name<br/>Rule"]
+  s5 --> s6
   s6f{Did it work?}
   s6 --> s6f
-  s6f1["If no app files at the top level<br/>→ refused no_manifest_at_root with where they were found."]:::fail
+  s6f1["If the key is missing, wrong or revoked<br/>→ refused 401, with how to get a key."]:::fail
   s6f -.->|no| s6f1
-  s6f2["If the real app sits in a subfolder<br/>→ refused app_nested_in_subdirectory naming the folder to deploy."]:::fail
+  s6f2["If the name uses anything but lowercase letters, numbers and dashes<br/>→ refused invalid_app_name."]:::fail
   s6f -.->|no| s6f2
-  s6f3["If the app saves data with window.storage and has no SQLite<br/>→ refused unsupported_storage_pattern with the files."]:::fail
+  s6f3["If the name is too short, too long or reserved<br/>→ refused 409 with the reason."]:::fail
   s6f -.->|no| s6f3
-  s6f4["If A static site would be replaced by a server app<br/>→ refused app_kind_changed."]:::fail
+  s6f4["If another workspace owns the name<br/>→ refused app_name_taken."]:::fail
   s6f -.->|no| s6f4
-  s7["7. Build and start<br/>System"]
+  s6f5["If the account service can’t be reached<br/>→ Could not verify app name availability 502."]:::fail
+  s6f -.->|no| s6f5
+  s7["7. Check the files<br/>Rule"]
   s6f -->|yes| s7
   s7f{Did it work?}
   s7 --> s7f
-  s7f1["If the build fails<br/>→ the deploy is marked failed with the error."]:::fail
+  s7f1["If no app files at the top level<br/>→ refused no_manifest_at_root with where they were found."]:::fail
   s7f -.->|no| s7f1
-  s7f2["If A command isn’t found exit 127<br/>→ the error adds a hint about subfolders and missing commands."]:::fail
+  s7f2["If the real app sits in a subfolder<br/>→ refused app_nested_in_subdirectory naming the folder to deploy."]:::fail
   s7f -.->|no| s7f2
-  s7f3["If the build runs out of memory exit 137<br/>→ the error says so."]:::fail
+  s7f3["If the app saves data with window.storage and has no SQLite<br/>→ refused unsupported_storage_pattern with the files."]:::fail
   s7f -.->|no| s7f3
-  s7f4["If A build hangs<br/>→ nothing stops it there is no time limit and no retry."]:::fail
+  s7f4["If A static site would be replaced by a server app<br/>→ refused app_kind_changed."]:::fail
   s7f -.->|no| s7f4
-  s8["8. Record the version<br/>System"]
+  s8["8. Build and start<br/>System"]
   s7f -->|yes| s8
   s8f{Did it work?}
   s8 --> s8f
-  s8f1["If two versions are numbered at once<br/>→ the number is retried up to 5 times."]:::fail
+  s8f1["If the build fails<br/>→ the deploy is marked failed with the error."]:::fail
   s8f -.->|no| s8f1
-  s8f2["If recording fails<br/>→ the history row is lost and the panel can stay at in progress."]:::fail
+  s8f2["If A command isn’t found exit 127<br/>→ the error adds a hint about subfolders and missing commands."]:::fail
   s8f -.->|no| s8f2
-  s9["9. App appears<br/>System"]
+  s8f3["If the build runs out of memory exit 137<br/>→ the error says so."]:::fail
+  s8f -.->|no| s8f3
+  s8f4["If A build hangs<br/>→ nothing stops it there is no time limit and no retry."]:::fail
+  s8f -.->|no| s8f4
+  s9["9. Record the version<br/>System"]
   s8f -->|yes| s9
   s9f{Did it work?}
   s9 --> s9f
-  s9f1["If A check fails<br/>→ the cards already shown stay as they are."]:::fail
+  s9f1["If two versions are numbered at once<br/>→ the number is retried up to 5 times."]:::fail
   s9f -.->|no| s9f1
-  s9f2["If nothing appears after 10 minutes<br/>→ Still waiting. Make sure the prompt was pasted into your AI agent and it’s running."]:::fail
+  s9f2["If recording fails<br/>→ the history row is lost and the panel can stay at in progress."]:::fail
   s9f -.->|no| s9f2
-  s9f3["If still nothing after 30 minutes<br/>→ the panel stops checking."]:::fail
-  s9f -.->|no| s9f3
+  s10["10. App appears<br/>System"]
+  s9f -->|yes| s10
+  s10f{Did it work?}
+  s10 --> s10f
+  s10f1["If A check fails<br/>→ the cards already shown stay as they are."]:::fail
+  s10f -.->|no| s10f1
+  s10f2["If nothing appears after 10 minutes<br/>→ Still waiting. Make sure the prompt was pasted into your AI agent and it’s running."]:::fail
+  s10f -.->|no| s10f2
+  s10f3["If still nothing after 30 minutes<br/>→ the panel stops checking."]:::fail
+  s10f -.->|no| s10f3
   done([The app is live at its own embarko.app address and shows in Your apps.])
-  s9f -->|yes| done
+  s10f -->|yes| done
   classDef fail fill:#fde8e8,stroke:#dc2626,color:#7f1d1d
 ```
 
@@ -119,22 +132,22 @@ flowchart TD
 
 - **ID:** `first-deploy/copy-prompt`
 - **Who acts:** Person
-- **What happens:** In the panel the builder says whether they are new, then copies the Embarko prompt.
+- **What happens:** In the panel the builder says whether they are new, then follows the same four steps as Host new app and copies the Embarko prompt.
 - **Choices:** I'm new · I already deployed without signing in
 - **Parts:** App builders (`builders`), Your apps panel (`console`), Embarko prompt (`prompt`)
-- **Code:** `page:/app` → `app/app/page.tsx`, `lib:app/components/console/FirstAppEmpty` → `app/components/console/FirstAppEmpty.tsx`, `lib:app/components/console/DeployPromptDialog` → `app/components/console/DeployPromptDialog.tsx`, `lib:app/lib/deployPrompt` → `app/lib/deployPrompt.ts`
+- **Code:** `page:/app` → `app/app/page.tsx`, `lib:app/components/console/FirstAppEmpty` → `app/components/console/FirstAppEmpty.tsx`, `lib:app/components/console/DeployPromptDialog` → `app/components/console/DeployPromptDialog.tsx`, `lib:app/components/console/DeploySteps` → `app/components/console/DeploySteps.tsx`, `lib:app/lib/deployPrompt` → `app/lib/deployPrompt.ts`
 
 ### 2. Put a key in the prompt
 
 - **ID:** `first-deploy/make-token`
 - **Who acts:** System
-- **What happens:** The panel makes a deploy key and writes it into the prompt, so the AI can deploy as them.
+- **What happens:** On a click, the panel makes a deploy key and writes it into the prompt, so the AI can deploy as them. Optional for a new app; required to keep an app deployed before signing in.
 - **If it goes wrong:**
-  - If making the key fails → "Couldn't prepare your prompt. Try again." with a retry link.
+  - If making the key fails → "Couldn't create your deploy key." with Try again.
   - If there is no key yet on the new-app path → the plain prompt is used and the AI asks for a key.
 - **Parts:** Panel bridge (`bridge`), Deploy keys (`tokens`), Keys and audit (`access-data`)
 - **Keeps:** `AuditLog`, `DeployToken`
-- **Code:** `lib:app/lib/hnsApi` → `app/lib/hnsApi.ts`, `api:@api/companies/:companyId/tokens` → `@api/src/routes/tokens.routes.ts`
+- **Code:** `lib:app/lib/hnsApi` → `app/lib/hnsApi.ts`, `lib:app/components/console/DeploySteps` → `app/components/console/DeploySteps.tsx`, `api:@api/companies/:companyId/tokens` → `@api/src/routes/tokens.routes.ts`
 - **Outside services:** Redis
 
 ### 3. Paste into the AI
@@ -144,7 +157,23 @@ flowchart TD
 - **What happens:** The builder pastes the prompt into their AI agent and asks it to deploy.
 - **Parts:** App builders (`builders`), Your AI agent (`ai-agent`)
 
-### 4. AI sends the app
+### 4. Watch it go live
+
+- **ID:** `first-deploy/watch`
+- **Who acts:** System
+- **What happens:** After the copy, the steps fold into "Prompt copied" and the view shows the deploy's state instead, checking every few seconds. It follows whichever app the AI deploys — new or existing, since the AI picks the name — through Waiting, Deploying, Starting, then Live with Open app.
+- **If it goes wrong:**
+  - If nothing arrives for 10 minutes → "Nothing yet", with the likely cause: a key from another workspace, or none. Checking stops after 30 minutes.
+  - If the build fails → "The deploy didn't work", the error, and See what happened.
+  - If A server app crashes after starting → "started, then stopped".
+  - If A server app isn't running 3 minutes after its build → "didn't start".
+- **Parts:** Your apps panel (`console`), Deploy history (`deploy-history`)
+- **Keeps:** `AuditLog`, `Project`
+- **Looks up:** `Deployment`
+- **Code:** `lib:app/components/console/DeploySteps` → `app/components/console/DeploySteps.tsx`, `lib:app/components/console/useDeployWatch` → `app/components/console/useDeployWatch.ts`, `api:@api/companies/:companyId/projects/:projectId/deployments` → `@api/src/routes/deployments.routes.ts`, `api:@api/companies/:companyId/projects` → `@api/src/routes/projects.routes.ts`
+- **Outside services:** Redis
+
+### 5. AI sends the app
 
 - **ID:** `first-deploy/ai-deploys`
 - **Who acts:** AI
@@ -154,7 +183,7 @@ flowchart TD
 - **Code:** `page:/docs/agent-quickstart` → `app/docs/agent-quickstart/page.tsx`, `lib:@deploy/capabilities` → `@deploy/capabilities.js`, `api:@deploy/apps` → `@deploy/server.js`
 - **Outside services:** Docker, Nomad, Railpack
 
-### 5. Check key and name
+### 6. Check key and name
 
 - **ID:** `first-deploy/check-key`
 - **Who acts:** Rule
@@ -171,7 +200,7 @@ flowchart TD
 - **Code:** `lib:@deploy/deploy-credential` → `@deploy/deploy-credential.js`, `lib:@deploy/validate-deploy-token` → `@deploy/validate-deploy-token.js`, `api:@api/internal/deploy-tokens/validate` → `@api/src/routes/internalTokens.routes.ts`, `lib:@deploy/claim-project` → `@deploy/claim-project.js`, `api:@api/internal/projects/claim` → `@api/src/routes/internalProjects.routes.ts`, `lib:@api/src/services/projectClaim` → `@api/src/services/projectClaim.ts`
 - **Outside services:** Lago, Redis, Stripe
 
-### 6. Check the files
+### 7. Check the files
 
 - **ID:** `first-deploy/check-files`
 - **Who acts:** Rule
@@ -185,7 +214,7 @@ flowchart TD
 - **Code:** `lib:@deploy/detect-manifest-root` → `@deploy/detect-manifest-root.js`, `lib:@deploy/detect-storage-usage` → `@deploy/detect-storage-usage.js`, `lib:@deploy/build-plan` → `@deploy/build-plan.js`, `lib:@deploy/app-kind` → `@deploy/app-kind.js`
 - **Outside services:** Nomad, Railpack
 
-### 7. Build and start
+### 8. Build and start
 
 - **ID:** `first-deploy/build-run`
 - **Who acts:** System
@@ -199,7 +228,7 @@ flowchart TD
 - **Code:** `lib:@deploy/build-diagnostics` → `@deploy/build-diagnostics.js`, `lib:@deploy/nomad-job-spec` → `@deploy/nomad-job-spec.js`, `lib:@deploy/nomad-job` → `@deploy/nomad-job.js`, `lib:@deploy/traefik-router-file` → `@deploy/traefik-router-file.js`, `lib:@deploy/static-site` → `@deploy/static-site.js`, `lib:@deploy/image-retention` → `@deploy/image-retention.js`
 - **Outside services:** Docker, Nomad, Railpack, Traefik
 
-### 8. Record the version
+### 9. Record the version
 
 - **ID:** `first-deploy/record`
 - **Who acts:** System
@@ -212,7 +241,7 @@ flowchart TD
 - **Code:** `lib:@deploy/record-deployment` → `@deploy/record-deployment.js`, `api:@api/internal/deployments/record` → `@api/src/routes/internalDeployments.routes.ts`, `lib:@api/src/services/deploymentVersioning` → `@api/src/services/deploymentVersioning.ts`
 - **Outside services:** Redis
 
-### 9. App appears
+### 10. App appears
 
 - **ID:** `first-deploy/app-appears`
 - **Who acts:** System
@@ -235,6 +264,7 @@ flowchart TD
 | Deploy keys (`tokens`) | Engine | Makes, checks, rotates and revokes the keys an AI uses to deploy as a workspace. |
 | Keys and audit (`access-data`) | Data | Deploy keys (hashed), who the admins are, and a log of important actions. |
 | Your AI agent (`ai-agent`) | Outside | The builder's own AI (Claude, ChatGPT, Cursor…) that builds and deploys the app. |
+| Deploy history (`deploy-history`) | Engine | Records every deploy as a numbered version, and puts an earlier one back on request. |
 | Agent docs (`docs`) | Screens | The instructions an AI agent reads before it deploys. |
 | Deploy intake (`intake`) | Engine | Takes an app from an AI, checks the key and the name, and starts the build. |
 | App records (`app-records`) | Engine | Keeps the list of apps: who owns each, its name and address, and whether it is live. |
@@ -243,7 +273,6 @@ flowchart TD
 | App runner (`runner`) | Engine | Runs each app, gives it its address and domains, and moves or removes it when asked. |
 | Container platform (`containers`) | Outside | The tools that build app images and run them as containers. |
 | Traffic router (`router`) | Outside | Traefik: sends each address to the right app and gets its certificate. |
-| Deploy history (`deploy-history`) | Engine | Records every deploy as a numbered version, and puts an earlier one back on request. |
 | Status refresh (`refresh`) | Background | Checks again every few seconds while something is changing, then stops. |
 
 See [system-map.md](../system-map.md) for how the parts connect.
@@ -263,11 +292,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v180 (b866cf3) | 9 Oct 2026 | docs(showcase): tell the agent contributors get an invite and a name credit (#25) | ai-deploys |
-| v179 (67cbcf0) | 8 Oct 2026 | feat(showcase): custom HTML on event pages- #15 (#15) | make-token |
-| v178 (fc85ee2) | 8 Oct 2026 | feat(panel): "Host new app" dialog tells the deploy as three steps | copy-prompt, app-appears |
-| v177 (67eadd2) | 8 Oct 2026 | feat(panel): top bar with workspace and plan; prompt-first showcase actions | copy-prompt, app-appears |
-| v176 (3f8de6c) | 7 Oct 2026 | reverting to old copy deployment prompt | copy-prompt |
+| v189 (b866cf3) | 9 Oct 2026 | docs(showcase): tell the agent contributors get an invite and a name credit (#25) | ai-deploys |
+| v188 (67cbcf0) | 8 Oct 2026 | feat(showcase): custom HTML on event pages- #15 (#15) | make-token |
+| v187 (fc85ee2) | 8 Oct 2026 | feat(panel): "Host new app" dialog tells the deploy as three steps | copy-prompt, app-appears |
+| v186 (67eadd2) | 8 Oct 2026 | feat(panel): top bar with workspace and plan; prompt-first showcase actions | copy-prompt, app-appears |
+| v185 (3f8de6c) | 7 Oct 2026 | reverting to old copy deployment prompt | copy-prompt |
 
 ## Open questions
 

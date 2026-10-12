@@ -121,6 +121,7 @@ export function ProjectNav({ projectId }: { projectId: string }) {
         /* Names this app in the prompt, so the agent redeploys it instead of
            standing up a second one under a different name. */
         appSlug={project?.slug}
+        projectId={project?.id}
       />
 
       {/* Underline tabs rather than a pill row: they read as sections of this

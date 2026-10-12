@@ -39,8 +39,13 @@ export interface ShowcaseApp {
   prd: string | null;
   /** Creator-supplied HTML, rendered on the app details page. */
   customHtml: string | null;
-  /** Emails of the people who worked on the app, shown under Details. */
+  /** Emails of everyone listed as having worked on the app. Read server-side
+      for "Contact Dev"; not shown on the page. */
   contributorEmails?: string[] | null;
+  /** The listed contributors who have an Embarko account, by name. Only on
+      the single-app read; the API resolves them live, so someone appears
+      here as soon as they sign up with their listed address. */
+  contributors?: { name: string; email: string }[] | null;
   category: string | null;
   tags: string[];
   featured: boolean;

@@ -70,10 +70,11 @@ export const CONSOLE_DEPLOY_PROMPT = build({ signedIn: true });
 /**
  * The console prompt with the app already named, for redeploying that app.
  * Pass the slug, not the display name: `X-App-Name` is the live subdomain.
- * Falls back to the generic prompt when the slug hasn't loaded.
+ * Falls back to the generic prompt when the slug hasn't loaded. With a token,
+ * the agent uses it instead of asking for one.
  */
-export function consoleDeployPromptFor(appSlug: string | null | undefined): string {
-  return build({ appName: appSlug, signedIn: true });
+export function consoleDeployPromptFor(appSlug: string | null | undefined, token?: string | null): string {
+  return build({ appName: appSlug, token, signedIn: true });
 }
 
 /** The console prompt with a freshly issued deploy token inside it. */
