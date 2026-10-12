@@ -145,6 +145,12 @@ export const components = {
 /* Which section the reader is actually in. A 21-item contents list with no
    current position is a wall of links — this is what makes the nav show where
    you are rather than just what exists. */
+/* Where a heading counts as "the one you're reading". It must sit below the
+   point a jump-link lands a heading (scroll-mt-24 under the beta bar puts it
+   at ~130px); at 120 a clicked section stayed unlit and the rail marked the
+   one before it. */
+const ACTIVE_LINE = 160;
+
 export function useActiveHeading(toc: TocEntry[]): string | null {
   const [active, setActive] = useState<string | null>(null);
 
@@ -160,7 +166,7 @@ export function useActiveHeading(toc: TocEntry[]): string | null {
       let current = toc[0].id;
       for (const { id } of toc) {
         const el = document.getElementById(id);
-        if (el && el.getBoundingClientRect().top <= 120) current = id;
+        if (el && el.getBoundingClientRect().top <= ACTIVE_LINE) current = id;
       }
       /* The page can't scroll far enough to push the last heading past the
          line, so without this the final entry would never light up. */

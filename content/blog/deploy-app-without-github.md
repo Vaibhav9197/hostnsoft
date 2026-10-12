@@ -5,6 +5,8 @@ slug: "deploy-app-without-github"
 primary_keyword: "deploy app without github"
 secondary_keywords: ["host vibe coded app without github", "deploy without docker", "deploy app without a repo", "put my AI-built app online"]
 category: "Guide"
+cover: "/assets/blog/deploy-app-without-github.png"
+cover_alt: "A project folder with package.json and server.js is packed as a .tar.gz and becomes a live app at your-app-name.embarko.app, with no git repo needed."
 read_minutes: 7
 datePublished: "2026-10-07"
 dateModified: "2026-10-07"
@@ -16,10 +18,6 @@ status: "published"
 # How to deploy an app without GitHub
 
 **You do not need GitHub to put your app online on Embarko.** Copy the deployment prompt from [embarko.ai](/), paste it into your AI agent (Claude Code, Cursor, Codex and others), and the agent packages your project folder, uploads it, and gives you a live HTTPS link. No repo to create, no Docker to write, and the first deploy needs no account.
-
-```text
-localhost:3000   →  one prompt  →   your-app-name.embarko.app
-```
 
 *Your app deserves better than localhost.*
 

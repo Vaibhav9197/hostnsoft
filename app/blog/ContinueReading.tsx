@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-import { Card, Pill } from "../components/ds";
+import { Card } from "../components/ds";
 import { formatDate, POSTS, type BlogPost } from "../lib/blog";
 
 /* "Pushpendra Agrawal" -> "PA", "The Embarko team" -> "E": a leading "The"
@@ -35,28 +35,39 @@ export function ContinueReading({ current, limit = 2 }: { current: string; limit
             href="/blog"
             className="inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-foreground underline-offset-4 hover:underline"
           >
-            View all posts
+            View all guides
             <ArrowRight className="size-4" aria-hidden="true" />
           </Link>
         </div>
 
         <ul className="mt-8 grid gap-5 md:grid-cols-2">
           {posts.map((post) => (
-            <Card as="li" lift key={post.slug} className="p-0">
-              <Link href={`/blog/${post.slug}`} className="flex h-full flex-col rounded-[inherit] p-6 sm:p-7">
-                <Pill className="self-start">{post.category}</Pill>
-                <h3 className="mt-4 text-lg font-semibold leading-snug text-foreground sm:text-xl">{post.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{post.description}</p>
-                <div className="mt-auto flex items-center gap-3 pt-6 text-sm text-muted-foreground">
-                  <span
-                    aria-hidden="true"
-                    className="grid size-7 shrink-0 place-items-center rounded-full border border-border bg-background text-[11px] font-semibold text-foreground"
-                  >
-                    {initials(post.author)}
-                  </span>
-                  <span className="text-foreground">{post.author}</span>
-                  <span aria-hidden="true" className="h-4 w-px rotate-12 bg-border" />
-                  <time dateTime={post.datePublished}>{formatDate(post.datePublished)}</time>
+            <Card as="li" lift key={post.slug} className="!p-0">
+              <Link href={`/blog/${post.slug}`} className="flex h-full flex-col overflow-hidden rounded-[inherit]">
+                {post.cover && (
+                  <img
+                    src={post.cover}
+                    alt=""
+                    width={1200}
+                    height={630}
+                    loading="lazy"
+                    className="aspect-[1200/630] w-full border-b border-border object-cover"
+                  />
+                )}
+                <div className="flex flex-1 flex-col p-6 sm:p-7">
+                  <h3 className="text-lg font-semibold leading-snug text-foreground sm:text-xl">{post.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{post.description}</p>
+                  <div className="mt-auto flex items-center gap-3 pt-6 text-sm text-muted-foreground">
+                    <span
+                      aria-hidden="true"
+                      className="grid size-7 shrink-0 place-items-center rounded-full border border-border bg-background text-[11px] font-semibold text-foreground"
+                    >
+                      {initials(post.author)}
+                    </span>
+                    <span className="text-foreground">{post.author}</span>
+                    <span aria-hidden="true" className="h-4 w-px rotate-12 bg-border" />
+                    <time dateTime={post.datePublished}>{formatDate(post.datePublished)}</time>
+                  </div>
                 </div>
               </Link>
             </Card>

@@ -30,7 +30,7 @@ function openShare(kind: Net, title: string) {
   window.open(href, "_blank", "noopener,noreferrer");
 }
 
-function useCopyLink() {
+export function useCopyLink() {
   const [copied, setCopied] = useState(false);
   async function copy() {
     try {
@@ -51,7 +51,7 @@ const XIcon = () => (
     <path d="M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.2-8.3L2 3h6.4l4.4 5.8zm-1.1 16.2h1.7L7.4 4.7H5.6z" />
   </svg>
 );
-const InIcon = () => (
+export const InIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
     <path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.5h4V21H3zM9.5 9.5h3.8v1.6h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.6 4.8 6V21h-4v-5.2c0-1.2 0-2.8-1.7-2.8s-2 1.3-2 2.7V21h-4z" />
   </svg>

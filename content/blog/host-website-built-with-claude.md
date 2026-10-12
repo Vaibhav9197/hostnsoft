@@ -5,6 +5,8 @@ slug: "host-website-built-with-claude"
 primary_keyword: "host a website built with claude"
 secondary_keywords: ["deploy website from claude code", "host claude artifact", "put my claude website online", "claude code deploy website"]
 category: "Guide"
+cover: "/assets/blog/host-website-built-with-claude.png"
+cover_alt: "Claude Code is asked to deploy a portfolio to Embarko, and the portfolio site goes live at your-site-name.embarko.app."
 read_minutes: 11
 datePublished: "2026-10-07"
 dateModified: "2026-10-07"
@@ -16,10 +18,6 @@ status: "published"
 # How to host a website built with Claude
 
 **To host a website built with Claude, ask Claude Code to deploy it.** Install Embarko's [deploy skill](https://github.com/embarko-ai/skill) (or paste the deployment prompt from [embarko.ai](/)) and the agent packs your project folder, uploads it and hands you a live HTTPS link. A [static site](/docs/capabilities#static-sites) is usually live within seconds; a server app builds first, so it takes longer. No GitHub or Vercel is needed, and a site nobody claims is [deleted after 24 hours](/docs/troubleshoot#your-app-disappears-24-hours-after-an-anonymous-deploy).
-
-```text
-Built with Claude   →  one ask  →   your-site-name.embarko.app
-```
 
 ## [Key takeaways](#takeaways)
 

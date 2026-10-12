@@ -5,6 +5,8 @@ slug: "how-to-deploy-ai-app"
 primary_keyword: "how to deploy ai app"
 secondary_keywords: ["deploy ai chat app", "host rag app", "deploy app that calls openai api", "where to put api key when deploying", "deploy app built with ai"]
 category: "Guide"
+cover: "/assets/blog/how-to-deploy-ai-app.png"
+cover_alt: "A live AI chat app at your-app-name.embarko.app keeps its MODEL_API_KEY as an encrypted environment variable and calls a model API hosted elsewhere over HTTPS."
 read_minutes: 11
 datePublished: "2026-10-07"
 dateModified: "2026-10-07"
@@ -16,10 +18,6 @@ status: "published"
 # How to deploy an AI app
 
 **To deploy an AI app, give your AI agent the project folder and let it upload it.** On Embarko, install the [deploy skill](https://github.com/embarko-ai/skill) or paste the deployment prompt from [embarko.ai](/) into your AI tool, and the agent packs the folder, uploads it and returns a live HTTPS link. It suits small apps, such as a chat UI over a model API. It does not host models: there are no GPUs.
-
-```text
-Your AI app   →  one ask  →   your-app-name.embarko.app
-```
 
 ## [Key takeaways](#takeaways)
 

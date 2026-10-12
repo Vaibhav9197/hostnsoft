@@ -19,6 +19,9 @@ export interface BlogPost {
   description: string;
   keywords: string[];
   category: string;
+  /** Path under public/, drawn by scripts/blog-covers.mjs. Also the share image. */
+  cover?: string;
+  coverAlt: string;
   readMinutes: number;
   datePublished: string;
   dateModified: string;
@@ -71,6 +74,8 @@ function toPost(source: string): BlogPost | null {
       ? [str(data.primary_keyword), ...(data.secondary_keywords as string[])].filter(Boolean)
       : [str(data.primary_keyword)].filter(Boolean),
     category: str(data.category, "Guide"),
+    cover: str(data.cover) || undefined,
+    coverAlt: str(data.cover_alt),
     readMinutes: typeof data.read_minutes === "number" ? data.read_minutes : 5,
     datePublished: str(data.datePublished),
     dateModified: str(data.dateModified, str(data.datePublished)),
@@ -108,9 +113,13 @@ export interface FaqItem {
 }
 
 export interface PostParts {
-  /** Everything before the first `##`: the h1 and the answer-first block. */
+  /** The post's `#` heading, shown in the page header rather than the body. */
+  heading: string | null;
+  /** Everything before the first `##`, minus the heading: the answer-first block. */
   intro: string;
-  /** From the first `##` up to the FAQ heading (or the end). */
+  /** The `## Key takeaways` section, heading included, shown first in its own box. */
+  takeaways: string | null;
+  /** From the first `##` up to the FAQ heading (or the end), minus the takeaways. */
   main: string;
   /** The FAQ heading line itself, kept so its anchor stays in the TOC. */
   faqHeading: string | null;
@@ -125,6 +134,13 @@ export interface PostParts {
  * prose. Headings inside fenced code are ignored.
  */
 export function splitPost(body: string): PostParts {
+  const parts = splitBody(body);
+  const m = /^## \[?Key takeaways\b[^\n]*\n[\s\S]*?(?=^## |(?![\s\S]))/m.exec(parts.main);
+  if (!m) return { ...parts, takeaways: null };
+  return { ...parts, takeaways: m[0].trim(), main: (parts.main.slice(0, m.index) + parts.main.slice(m.index + m[0].length)).trim() };
+}
+
+function splitBody(body: string): Omit<PostParts, "takeaways"> {
   const lines = body.split("\n");
   let inFence = false;
   let firstH2 = -1;
@@ -140,9 +156,18 @@ export function splitPost(body: string): PostParts {
   });
 
   const join = (from: number, to: number) => lines.slice(from, to).join("\n").trim();
-  if (firstH2 === -1) return { intro: body, main: "", faqHeading: null, faq: [], outro: "" };
+  /* The h1 moves into the page header; the intro keeps the rest. */
+  const h1 = lines.findIndex((l, i) => (firstH2 === -1 || i < firstH2) && /^#\s+/.test(l));
+  const heading = h1 === -1 ? null : lines[h1].replace(/^#\s+/, "").trim();
+  const introOf = (end: number) =>
+    lines
+      .slice(0, end)
+      .filter((_, i) => i !== h1)
+      .join("\n")
+      .trim();
+  if (firstH2 === -1) return { heading, intro: introOf(lines.length), main: "", faqHeading: null, faq: [], outro: "" };
   if (faqStart === -1) {
-    return { intro: join(0, firstH2), main: join(firstH2, lines.length), faqHeading: null, faq: [], outro: "" };
+    return { heading, intro: introOf(firstH2), main: join(firstH2, lines.length), faqHeading: null, faq: [], outro: "" };
   }
 
   const faq: FaqItem[] = [];
@@ -168,7 +193,8 @@ export function splitPost(body: string): PostParts {
   flush();
 
   return {
-    intro: join(0, firstH2),
+    heading,
+    intro: introOf(firstH2),
     main: join(firstH2, faqStart),
     faqHeading: lines[faqStart],
     faq,
