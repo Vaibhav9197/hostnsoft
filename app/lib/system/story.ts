@@ -99,6 +99,8 @@ export const AREAS: Area[] = [
       "lib:app/components/AppsMarquee",
       "lib:app/components/ExampleAppCards",
       "lib:app/components/FeatureShowcase",
+      "lib:app/components/FeatureTiles",
+      "lib:app/lib/features",
       "lib:app/components/NeedsGrid",
       "lib:app/components/WhyEmbarko",
       "lib:app/components/Header",
