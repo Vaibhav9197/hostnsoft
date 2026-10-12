@@ -14,6 +14,7 @@ the community browse what was built.
 - **2 months of Embarko Pro for every participant**
 - **A unique hackathon code**
 - **A dedicated Showcase page for your event**
+- Your own content on that page: rules, schedule, sponsors, winners
 - One place for judges to browse live projects
 - A permanent gallery after the event
 - Simple deploys from participants' AI agents
@@ -52,6 +53,10 @@ event.
   Showcase.
 - **What happens on a deploy:** see the [agent quickstart](agent-quickstart.md).
 - **If a build fails:** see [`troubleshoot.md`](troubleshoot.md).
+- **Your page can carry your own content.** HTML added when the page is
+  created shows above the apps. It can't be changed afterwards. Headings, text, lists, links, images
+  and styles work. Scripts don't run, so forms and embedded players won't
+  either. Up to 50,000 characters.
 
 ## [How do participants keep Pro free for 1 year?](#keep-embarko-pro-free-for-1-year)
 

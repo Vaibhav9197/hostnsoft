@@ -3,14 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ChevronRight, Menu } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 import { showcaseApi } from "@/app/lib/hnsApi";
 import { useSession } from "@/app/lib/session";
 import { useProject } from "@/app/lib/useProject";
-
-import { HeaderPlanBadge } from "./HeaderPlanBadge";
-import { AccountMenu } from "./HeaderUserMenu";
 
 type Crumb = { label: React.ReactNode; href?: string };
 
@@ -42,23 +39,20 @@ const SECTIONS: Record<string, string> = {
 };
 
 /**
- * "☰ Acme / my-app / Deployments" above every panel page, so the way home
- * is always in the same place. The trail starts at the workspace — the
- * company everything below is scoped to — and links back to its apps; the
- * menu icon before it opens the same navigation as the header. The apps list
- * shows just the company, so the trail sits in the same spot on every page.
- * The plan chip sits at the right end of the same row.
+ * "Home / my-app / Deployments" above every panel page, so the way home is
+ * always in the same place. Home is the apps list; the workspace and the menu
+ * live in the top bar's left corner instead. The apps list has no trail.
  */
 export function ConsoleBreadcrumbs() {
-  const { activeCompany } = useSession();
   const pathname = usePathname() ?? "/app";
   const parts = pathname.replace(/^\/app\/?/, "").split("/").filter(Boolean);
   const projectId = parts[0] === "projects" ? parts[1] : null;
 
-  const crumbs: Crumb[] = [{ label: activeCompany?.companyName ?? "Your apps", href: "/app" }];
-  if (parts.length === 0) {
-    /* The apps list itself: the company is the current page. */
-  } else if (projectId) {
+  /* The apps list is Home itself, and its title already says so. */
+  if (parts.length === 0) return null;
+
+  const crumbs: Crumb[] = [{ label: "Home", href: "/app" }];
+  if (projectId) {
     crumbs.push({ label: "", href: parts[2] ? `/app/projects/${projectId}` : undefined });
     if (parts[2]) crumbs.push({ label: SECTIONS[parts[2]] ?? parts[2] });
   } else {
@@ -74,40 +68,28 @@ export function ConsoleBreadcrumbs() {
   return (
     /* Its own layer: the apps list's sky backdrop is fixed behind that page
        and would otherwise paint over this row. */
-    <div className="relative z-[1] mb-5 flex items-center gap-3">
-      <nav aria-label="Breadcrumb" className="min-w-0 flex-1">
-        <ol className="flex flex-wrap items-center gap-1 text-[0.82rem] text-muted-foreground">
-          <li className="inline-flex items-center">
-            <AccountMenu
-              label="Open menu"
-              align="start"
-              triggerClassName="-ml-1.5 mr-0.5 grid size-7 place-items-center rounded-md transition-colors hover:bg-accent hover:text-foreground focus-visible:bg-accent focus-visible:outline-none"
-            >
-              <Menu className="size-4" aria-hidden="true" />
-            </AccountMenu>
-          </li>
-          {crumbs.map((c, i) => {
-            const last = i === crumbs.length - 1;
-            const label = projectId && i === 1 ? <ProjectName projectId={projectId} /> : c.label;
-            return (
-              <li key={i} className="inline-flex min-w-0 items-center gap-1">
-                {i > 0 && <ChevronRight className="size-3.5 shrink-0 opacity-60" aria-hidden="true" />}
-                {c.href && !last ? (
-                  <Link href={c.href} className="truncate transition-colors hover:text-foreground">
-                    {label}
-                  </Link>
-                ) : (
-                  <span aria-current={last ? "page" : undefined} className="truncate font-medium text-foreground">
-                    {label}
-                  </span>
-                )}
-              </li>
-            );
-          })}
-        </ol>
-      </nav>
-      <HeaderPlanBadge />
-    </div>
+    <nav aria-label="Breadcrumb" className="relative z-[1] mb-5">
+      <ol className="flex flex-wrap items-center gap-1 text-[0.82rem] text-muted-foreground">
+        {crumbs.map((c, i) => {
+          const last = i === crumbs.length - 1;
+          const label = projectId && i === 1 ? <ProjectName projectId={projectId} /> : c.label;
+          return (
+            <li key={i} className="inline-flex min-w-0 items-center gap-1">
+              {i > 0 && <ChevronRight className="size-3.5 shrink-0 opacity-60" aria-hidden="true" />}
+              {c.href && !last ? (
+                <Link href={c.href} className="truncate transition-colors hover:text-foreground">
+                  {label}
+                </Link>
+              ) : (
+                <span aria-current={last ? "page" : undefined} className="truncate font-medium text-foreground">
+                  {label}
+                </span>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
   );
 }
 

@@ -357,6 +357,9 @@ export interface ShowcaseCollection {
   createdBy: string;
   // Handed to participants; submitting with it skips review. Absent on the public page.
   submitCode?: string;
+  // Organiser-supplied HTML shown on an event page above its apps. Only the
+  // single-page reads (create, detail, edit) carry it; lists leave it out.
+  customHtml?: string | null;
   createdAt: string;
   updatedAt: string;
   counts: ShowcaseCollectionCounts;

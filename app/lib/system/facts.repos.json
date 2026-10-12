@@ -1,0 +1,5355 @@
+{
+ "api": {
+  "repo": {
+   "id": "api",
+   "alias": "@api",
+   "name": "hostnsoft-api",
+   "plain": "Accounts, apps, tokens, domains, billing and Showcase",
+   "available": true,
+   "commit": null
+  },
+  "store": {
+   "id": "api",
+   "name": "API database",
+   "engine": "SQLite via Prisma",
+   "binding": "DATABASE_URL",
+   "rows": false,
+   "repo": "api",
+   "tables": [
+    "table:api:DeployToken",
+    "table:api:Project",
+    "table:api:Domain",
+    "table:api:Deployment",
+    "table:api:EnvVar",
+    "table:api:SuperAdmin",
+    "table:api:FeatureRequest",
+    "table:api:AuditLog",
+    "table:api:AppDetails",
+    "table:api:ShowcaseEvent",
+    "table:api:ShowcaseEventListing"
+   ]
+  },
+  "screens": [],
+  "endpoints": [
+   {
+    "id": "api:@api/admin/apps",
+    "repo": "api",
+    "route": "/admin/apps",
+    "file": "@api/src/routes/admin.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/featureRequests"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:FeatureRequest"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/admin/customer-query",
+    "repo": "api",
+    "route": "/admin/customer-query",
+    "file": "@api/src/routes/admin.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:FeatureRequest"
+    ],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "api:@api/admin/super-admins",
+    "repo": "api",
+    "route": "/admin/super-admins",
+    "file": "@api/src/routes/admin.routes.ts",
+    "methods": [
+     "GET",
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/prisma"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:SuperAdmin"
+    ],
+    "tablesWritten": [
+     "table:api:SuperAdmin"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/admin/super-admins/:userId",
+    "repo": "api",
+    "route": "/admin/super-admins/:userId",
+    "file": "@api/src/routes/admin.routes.ts",
+    "methods": [
+     "DELETE"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/prisma"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:SuperAdmin"
+    ],
+    "tablesWritten": [
+     "table:api:SuperAdmin"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/admin/showcase/collections",
+    "repo": "api",
+    "route": "/admin/showcase/collections",
+    "file": "@api/src/routes/adminShowcase.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/showcase"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/admin/showcase/projects",
+    "repo": "api",
+    "route": "/admin/showcase/projects",
+    "file": "@api/src/routes/adminShowcase.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/showcase"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/admin/showcase/projects/:id",
+    "repo": "api",
+    "route": "/admin/showcase/projects/:id",
+    "file": "@api/src/routes/adminShowcase.routes.ts",
+    "methods": [
+     "PATCH"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/showcase"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/slug-changes/:projectId",
+    "repo": "api",
+    "route": "/slug-changes/:projectId",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/deployAttribution",
+     "lib:@api/src/middleware/deployTokenContext",
+     "lib:@api/src/services/slugChangeFlow"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName",
+     "api:@deploy/internal/apps/:appName/rename",
+     "api:@deploy/internal/apps/:appName/status"
+    ],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:Deployment",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/apps/:appName",
+    "repo": "api",
+    "route": "/apps/:appName",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "methods": [
+     "DELETE",
+     "GET",
+     "PATCH"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/appTeardown",
+     "lib:@api/src/services/audit"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName"
+    ],
+    "tablesRead": [
+     "table:api:Deployment"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:Project"
+    ],
+    "services": []
+   },
+   {
+    "id": "api:@api/apps/:appName/env-vars",
+    "repo": "api",
+    "route": "/apps/:appName/env-vars",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "methods": [
+     "GET",
+     "PUT"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/redeploy"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName/config"
+    ],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project"
+    ],
+    "services": []
+   },
+   {
+    "id": "api:@api/apps/:appName/env-vars/apply",
+    "repo": "api",
+    "route": "/apps/:appName/env-vars/apply",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/redeploy"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName/config"
+    ],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:Project"
+    ],
+    "services": []
+   },
+   {
+    "id": "api:@api/apps/:appName/env-vars/:key",
+    "repo": "api",
+    "route": "/apps/:appName/env-vars/:key",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "methods": [
+     "DELETE",
+     "PUT"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/redeploy"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName/config"
+    ],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project"
+    ],
+    "services": []
+   },
+   {
+    "id": "api:@api/apps/:appName/slug-change",
+    "repo": "api",
+    "route": "/apps/:appName/slug-change",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/projectSlugChange",
+     "lib:@api/src/services/showcase",
+     "lib:@api/src/services/slugChangeFlow"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName",
+     "api:@deploy/internal/apps/:appName/rename",
+     "api:@deploy/internal/apps/:appName/status"
+    ],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:AuditLog",
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:AuditLog",
+     "table:api:Deployment",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/apps/:appName/deployments",
+    "repo": "api",
+    "route": "/apps/:appName/deployments",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:Deployment"
+    ],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "api:@api/apps/:appName/deployments/:deploymentId",
+    "repo": "api",
+    "route": "/apps/:appName/deployments/:deploymentId",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:Deployment"
+    ],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "api:@api/apps/:appName/rollback",
+    "repo": "api",
+    "route": "/apps/:appName/rollback",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/customDomain",
+     "lib:@api/src/lib/customDomainConfig",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/redeploy"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName/config"
+    ],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:Project"
+    ],
+    "services": []
+   },
+   {
+    "id": "api:@api/apps/:appName/domains",
+    "repo": "api",
+    "route": "/apps/:appName/domains",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "methods": [
+     "GET",
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/customDomain",
+     "lib:@api/src/lib/customDomainConfig",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/prismaErrors",
+     "lib:@api/src/services/audit"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:Domain"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:Domain"
+    ],
+    "services": []
+   },
+   {
+    "id": "api:@api/apps/:appName/domains/:domain/verify",
+    "repo": "api",
+    "route": "/apps/:appName/domains/:domain/verify",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/customDomain",
+     "lib:@api/src/lib/dnsVerify",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/customDomainActivation"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName/config"
+    ],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:Domain"
+    ],
+    "services": []
+   },
+   {
+    "id": "api:@api/apps/:appName/domains/:domain",
+    "repo": "api",
+    "route": "/apps/:appName/domains/:domain",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "methods": [
+     "DELETE"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/customDomainActivation"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName/config"
+    ],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:Domain"
+    ],
+    "services": []
+   },
+   {
+    "id": "api:@api/apps/:appName/analytics",
+    "repo": "api",
+    "route": "/apps/:appName/analytics",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/services/appAnalytics"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName/analytics"
+    ],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "api:@api/apps/:appName/showcase",
+    "repo": "api",
+    "route": "/apps/:appName/showcase",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "methods": [
+     "PUT"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/frontendOrigin",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/showcase"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:AuditLog",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/projects/:projectId/analytics",
+    "repo": "api",
+    "route": "/companies/:companyId/projects/:projectId/analytics",
+    "file": "@api/src/routes/analytics.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/services/appAnalytics"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName/analytics"
+    ],
+    "tablesRead": [
+     "table:api:Project"
+    ],
+    "tablesWritten": [],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/analytics",
+    "repo": "api",
+    "route": "/companies/:companyId/analytics",
+    "file": "@api/src/routes/analytics.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/services/appAnalytics"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName/analytics"
+    ],
+    "tablesRead": [
+     "table:api:Project"
+    ],
+    "tablesWritten": [],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/auth/msg91/exchange",
+    "repo": "api",
+    "route": "/auth/msg91/exchange",
+    "file": "@api/src/routes/auth.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/superAdmin"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:SuperAdmin"
+    ],
+    "tablesWritten": [],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/auth/msg91/callback",
+    "repo": "api",
+    "route": "/auth/msg91/callback",
+    "file": "@api/src/routes/auth.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": true,
+    "imports": [
+     "lib:@api/src/lib/connectorPendingLogin",
+     "lib:@api/src/lib/connectorRedirect",
+     "lib:@api/src/lib/frontendOrigin",
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/msg91"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/auth/logout",
+    "repo": "api",
+    "route": "/auth/logout",
+    "file": "@api/src/routes/auth.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/middleware/proxyToken"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/auth/me",
+    "repo": "api",
+    "route": "/auth/me",
+    "file": "@api/src/routes/auth.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/superAdmin",
+     "lib:@api/src/middleware/proxyToken"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:SuperAdmin"
+    ],
+    "tablesWritten": [],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/auth/switch-company",
+    "repo": "api",
+    "route": "/auth/switch-company",
+    "file": "@api/src/routes/auth.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/services/audit"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [
+     "table:api:AuditLog"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/billing/customer",
+    "repo": "api",
+    "route": "/companies/:companyId/billing/customer",
+    "file": "@api/src/routes/billing.routes.ts",
+    "methods": [
+     "GET",
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/billingUtility",
+     "lib:@api/src/lib/lago",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/billingCustomer",
+     "lib:@api/src/validation/billing.validation"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [
+     "table:api:AuditLog"
+    ],
+    "services": [
+     "ext:lago",
+     "ext:redis",
+     "ext:stripe"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/billing/payment-methods",
+    "repo": "api",
+    "route": "/companies/:companyId/billing/payment-methods",
+    "file": "@api/src/routes/billing.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/billingUtility",
+     "lib:@api/src/lib/lago",
+     "lib:@api/src/lib/stripe",
+     "lib:@api/src/middleware/companyContext"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:lago",
+     "ext:redis",
+     "ext:stripe"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/billing/payment-methods/:paymentMethodId",
+    "repo": "api",
+    "route": "/companies/:companyId/billing/payment-methods/:paymentMethodId",
+    "file": "@api/src/routes/billing.routes.ts",
+    "methods": [
+     "DELETE"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/billingUtility",
+     "lib:@api/src/lib/lago",
+     "lib:@api/src/lib/stripe",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/services/audit"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [
+     "table:api:AuditLog"
+    ],
+    "services": [
+     "ext:lago",
+     "ext:redis",
+     "ext:stripe"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/billing/checkout-url",
+    "repo": "api",
+    "route": "/companies/:companyId/billing/checkout-url",
+    "file": "@api/src/routes/billing.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/lago",
+     "lib:@api/src/middleware/companyContext"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:lago",
+     "ext:redis",
+     "ext:stripe"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/billing",
+    "repo": "api",
+    "route": "/companies/:companyId/billing",
+    "file": "@api/src/routes/billing.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/billingUtility",
+     "lib:@api/src/lib/lago",
+     "lib:@api/src/lib/stripe",
+     "lib:@api/src/middleware/companyContext"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:lago",
+     "ext:redis",
+     "ext:stripe"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/billing/subscription",
+    "repo": "api",
+    "route": "/companies/:companyId/billing/subscription",
+    "file": "@api/src/routes/billing.routes.ts",
+    "methods": [
+     "DELETE",
+     "PUT"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/billingUtility",
+     "lib:@api/src/lib/lago",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/validation/billing.validation"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [
+     "table:api:AuditLog"
+    ],
+    "services": [
+     "ext:lago",
+     "ext:redis",
+     "ext:stripe"
+    ]
+   },
+   {
+    "id": "api:@api/companies",
+    "repo": "api",
+    "route": "/companies",
+    "file": "@api/src/routes/companies.routes.ts",
+    "methods": [
+     "GET",
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/services/billingCustomer"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:Project"
+    ],
+    "tablesWritten": [],
+    "services": [
+     "ext:lago",
+     "ext:redis",
+     "ext:stripe"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId",
+    "repo": "api",
+    "route": "/companies/:companyId",
+    "file": "@api/src/routes/companies.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/proxyToken"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:Project"
+    ],
+    "tablesWritten": [],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/connector/token",
+    "repo": "api",
+    "route": "/connector/token",
+    "file": "@api/src/routes/connectorAuth.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/connectorPendingLogin",
+     "lib:@api/src/lib/connectorTokenConfig",
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/services/connectorToken"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:DeployToken"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/connector/token/validate",
+    "repo": "api",
+    "route": "/connector/token/validate",
+    "file": "@api/src/routes/connectorAuth.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/connectorTokenConfig",
+     "lib:@api/src/services/deployTokenAuth"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:DeployToken"
+    ],
+    "tablesWritten": [
+     "table:api:DeployToken"
+    ],
+    "services": []
+   },
+   {
+    "id": "api:@api/companies/:companyId/customer-query",
+    "repo": "api",
+    "route": "/companies/:companyId/customer-query",
+    "file": "@api/src/routes/customerQuery.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/services/featureRequests"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [
+     "table:api:FeatureRequest"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/projects/:projectId/deployments",
+    "repo": "api",
+    "route": "/companies/:companyId/projects/:projectId/deployments",
+    "file": "@api/src/routes/deployments.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Project"
+    ],
+    "tablesWritten": [],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/projects/:projectId/deployments/:deploymentId",
+    "repo": "api",
+    "route": "/companies/:companyId/projects/:projectId/deployments/:deploymentId",
+    "file": "@api/src/routes/deployments.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Project"
+    ],
+    "tablesWritten": [],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/projects/:projectId/deployments/:deploymentId/rollback",
+    "repo": "api",
+    "route": "/companies/:companyId/projects/:projectId/deployments/:deploymentId/rollback",
+    "file": "@api/src/routes/deployments.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/redeploy"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName/config"
+    ],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:Project"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/projects/:projectId/domains",
+    "repo": "api",
+    "route": "/companies/:companyId/projects/:projectId/domains",
+    "file": "@api/src/routes/domains.routes.ts",
+    "methods": [
+     "GET",
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/customDomain",
+     "lib:@api/src/lib/customDomainConfig",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/prismaErrors",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/services/audit"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:Domain",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:Domain"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/projects/:projectId/domains/:domain/verify",
+    "repo": "api",
+    "route": "/companies/:companyId/projects/:projectId/domains/:domain/verify",
+    "file": "@api/src/routes/domains.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/customDomain",
+     "lib:@api/src/lib/dnsVerify",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/customDomainActivation"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName/config"
+    ],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:Domain"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/projects/:projectId/domains/:domain",
+    "repo": "api",
+    "route": "/companies/:companyId/projects/:projectId/domains/:domain",
+    "file": "@api/src/routes/domains.routes.ts",
+    "methods": [
+     "DELETE"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/customDomainActivation"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName/config"
+    ],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:Domain"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/projects/:projectId/env-vars",
+    "repo": "api",
+    "route": "/companies/:companyId/projects/:projectId/env-vars",
+    "file": "@api/src/routes/envVars.routes.ts",
+    "methods": [
+     "GET",
+     "PUT"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/services/audit"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:EnvVar",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:EnvVar"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/projects/:projectId/env-vars/:key",
+    "repo": "api",
+    "route": "/companies/:companyId/projects/:projectId/env-vars/:key",
+    "file": "@api/src/routes/envVars.routes.ts",
+    "methods": [
+     "DELETE"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/services/audit"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:EnvVar"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/health",
+    "repo": "api",
+    "route": "/health",
+    "file": "@api/src/routes/health.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "api:@api/internal/customer-query",
+    "repo": "api",
+    "route": "/internal/customer-query",
+    "file": "@api/src/routes/internalCustomerQuery.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": true,
+    "imports": [
+     "lib:@api/src/services/featureRequests"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [
+     "table:api:FeatureRequest"
+    ],
+    "services": []
+   },
+   {
+    "id": "api:@api/internal/deployments/record",
+    "repo": "api",
+    "route": "/internal/deployments/record",
+    "file": "@api/src/routes/internalDeployments.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": true,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/deployActor",
+     "lib:@api/src/services/deployTokenAuth",
+     "lib:@api/src/services/deploymentVersioning",
+     "lib:@api/src/services/projectClaim"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:DeployToken",
+     "table:api:Deployment",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:Deployment",
+     "table:api:Project"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/internal/deployments/:deploymentId/complete",
+    "repo": "api",
+    "route": "/internal/deployments/:deploymentId/complete",
+    "file": "@api/src/routes/internalDeployments.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": true,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/requireInternalSecret",
+     "lib:@api/src/services/deploymentVersioning"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:Deployment",
+     "table:api:Project"
+    ],
+    "services": []
+   },
+   {
+    "id": "api:@api/internal/projects/claim",
+    "repo": "api",
+    "route": "/internal/projects/claim",
+    "file": "@api/src/routes/internalProjects.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": true,
+    "imports": [
+     "lib:@api/src/lib/billingUtility",
+     "lib:@api/src/lib/lago",
+     "lib:@api/src/lib/orphanMessage",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/deployActor",
+     "lib:@api/src/services/projectClaim",
+     "lib:@api/src/services/renameStatus"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:DeployToken",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:DeployToken",
+     "table:api:Project"
+    ],
+    "services": [
+     "ext:lago",
+     "ext:redis",
+     "ext:stripe"
+    ]
+   },
+   {
+    "id": "api:@api/internal/projects/lookup",
+    "repo": "api",
+    "route": "/internal/projects/lookup",
+    "file": "@api/src/routes/internalProjects.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": true,
+    "imports": [
+     "lib:@api/src/lib/prisma"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:Project"
+    ],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "api:@api/internal/proxy-auth/verify-membership",
+    "repo": "api",
+    "route": "/internal/proxy-auth/verify-membership",
+    "file": "@api/src/routes/internalProxyAuth.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": true,
+    "imports": [
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/middleware/requireInternalSecret"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/internal/deploy-tokens/validate",
+    "repo": "api",
+    "route": "/internal/deploy-tokens/validate",
+    "file": "@api/src/routes/internalTokens.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": true,
+    "imports": [
+     "lib:@api/src/lib/orphanMessage",
+     "lib:@api/src/services/deployTokenAuth"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:DeployToken"
+    ],
+    "tablesWritten": [
+     "table:api:DeployToken"
+    ],
+    "services": []
+   },
+   {
+    "id": "api:@api/companies/:companyId/projects",
+    "repo": "api",
+    "route": "/companies/:companyId/projects",
+    "file": "@api/src/routes/projects.routes.ts",
+    "methods": [
+     "GET",
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/reservedSlugs",
+     "lib:@api/src/lib/slug",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/services/appHealth",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/projectStatus"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName/status"
+    ],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:Project"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/projects/:projectId",
+    "repo": "api",
+    "route": "/companies/:companyId/projects/:projectId",
+    "file": "@api/src/routes/projects.routes.ts",
+    "methods": [
+     "DELETE",
+     "GET",
+     "PATCH"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/services/appHealth",
+     "lib:@api/src/services/appTeardown",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/projectStatus"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName",
+     "api:@deploy/internal/apps/:appName/status"
+    ],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:Project"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/projects/:projectId/slug",
+    "repo": "api",
+    "route": "/companies/:companyId/projects/:projectId/slug",
+    "file": "@api/src/routes/projects.routes.ts",
+    "methods": [
+     "GET",
+     "PATCH"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/services/slugChangeFlow"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName",
+     "api:@deploy/internal/apps/:appName/rename",
+     "api:@deploy/internal/apps/:appName/status"
+    ],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:AuditLog",
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:AuditLog",
+     "table:api:Deployment",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/projects/:projectId/memory",
+    "repo": "api",
+    "route": "/companies/:companyId/projects/:projectId/memory",
+    "file": "@api/src/routes/projects.routes.ts",
+    "methods": [
+     "PATCH"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/services/audit"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:Project"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/billing/plans",
+    "repo": "api",
+    "route": "/billing/plans",
+    "file": "@api/src/routes/publicBilling.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/lago",
+     "lib:@api/src/lib/publicPlansConfig"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:lago",
+     "ext:stripe"
+    ]
+   },
+   {
+    "id": "api:@api/public/customer-query",
+    "repo": "api",
+    "route": "/public/customer-query",
+    "file": "@api/src/routes/publicCustomerQuery.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/featureRequestConfig",
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/services/featureRequests"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [
+     "table:api:FeatureRequest"
+    ],
+    "services": []
+   },
+   {
+    "id": "api:@api/public/:slug",
+    "repo": "api",
+    "route": "/public/:slug",
+    "file": "@api/src/routes/publicDocs.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "api:@api/public/:slug.md",
+    "repo": "api",
+    "route": "/public/:slug.md",
+    "file": "@api/src/routes/publicDocs.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "api:@api/public/showcase",
+    "repo": "api",
+    "route": "/public/showcase",
+    "file": "@api/src/routes/publicShowcase.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/showcase"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/public/showcase/collections",
+    "repo": "api",
+    "route": "/public/showcase/collections",
+    "file": "@api/src/routes/publicShowcase.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/showcase"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/public/showcase/collections/:slug",
+    "repo": "api",
+    "route": "/public/showcase/collections/:slug",
+    "file": "@api/src/routes/publicShowcase.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/showcase"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/public/showcase/apps/:slug",
+    "repo": "api",
+    "route": "/public/showcase/apps/:slug",
+    "file": "@api/src/routes/publicShowcase.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/showcase"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/public/deploy-tokens/request",
+    "repo": "api",
+    "route": "/public/deploy-tokens/request",
+    "file": "@api/src/routes/publicTokens.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/publicTokenConfig",
+     "lib:@api/src/services/publicTokenRequest"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:DeployToken"
+    ],
+    "services": [
+     "ext:lago",
+     "ext:redis",
+     "ext:stripe",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/showcase/collections",
+    "repo": "api",
+    "route": "/companies/:companyId/showcase/collections",
+    "file": "@api/src/routes/showcase.routes.ts",
+    "methods": [
+     "GET",
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/prismaErrors",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/services/showcase"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/showcase/collections/:collectionId",
+    "repo": "api",
+    "route": "/companies/:companyId/showcase/collections/:collectionId",
+    "file": "@api/src/routes/showcase.routes.ts",
+    "methods": [
+     "DELETE",
+     "GET",
+     "PATCH"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/services/showcase"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/showcase/collections/:collectionId/projects/:listingId",
+    "repo": "api",
+    "route": "/companies/:companyId/showcase/collections/:collectionId/projects/:listingId",
+    "file": "@api/src/routes/showcase.routes.ts",
+    "methods": [
+     "PATCH"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/services/showcase",
+     "lib:@api/src/services/showcaseMail"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/showcase/pages",
+    "repo": "api",
+    "route": "/companies/:companyId/showcase/pages",
+    "file": "@api/src/routes/showcase.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/services/showcase"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/showcase/submissions",
+    "repo": "api",
+    "route": "/companies/:companyId/showcase/submissions",
+    "file": "@api/src/routes/showcase.routes.ts",
+    "methods": [
+     "GET",
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/frontendOrigin",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/services/showcase"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/showcase/submissions/:listingId",
+    "repo": "api",
+    "route": "/companies/:companyId/showcase/submissions/:listingId",
+    "file": "@api/src/routes/showcase.routes.ts",
+    "methods": [
+     "DELETE"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/services/showcase"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/tokens",
+    "repo": "api",
+    "route": "/companies/:companyId/tokens",
+    "file": "@api/src/routes/tokens.routes.ts",
+    "methods": [
+     "GET",
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/deployTokens",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/services/audit"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:DeployToken"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:DeployToken"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/tokens/:tokenId",
+    "repo": "api",
+    "route": "/companies/:companyId/tokens/:tokenId",
+    "file": "@api/src/routes/tokens.routes.ts",
+    "methods": [
+     "DELETE"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/services/audit"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:DeployToken"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:DeployToken"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/tokens/:tokenId/rotate",
+    "repo": "api",
+    "route": "/companies/:companyId/tokens/:tokenId/rotate",
+    "file": "@api/src/routes/tokens.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/deployTokens",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/services/audit"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:DeployToken"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:DeployToken"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   }
+  ],
+  "modules": [
+   {
+    "id": "lib:@api/scripts/grant-super-admin",
+    "repo": "api",
+    "file": "@api/scripts/grant-super-admin.ts",
+    "summary": "Bootstrap path for admin access: the FIRST super admin has to be created here (or via the equivalent manual SQL), since POST /admin/super-admins (src/routes/admin.routes.ts) requires the caller to already be a super admi",
+    "imports": [
+     "lib:@api/src/lib/prisma"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [
+     "table:api:SuperAdmin"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/app",
+    "repo": "api",
+    "file": "@api/src/app.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/frontendOrigin",
+     "lib:@api/src/lib/publicTokenConfig",
+     "lib:@api/src/middleware/errorHandler",
+     "lib:@api/src/middleware/requestLogger",
+     "lib:@api/src/routes/index"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/billingUtility",
+    "repo": "api",
+    "file": "@api/src/lib/billingUtility.ts",
+    "summary": "Constants and the shared error type for billing (Lago + Stripe).",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:lago",
+     "ext:stripe"
+    ]
+   },
+   {
+    "id": "lib:@api/src/lib/connectorPendingLogin",
+    "repo": "api",
+    "file": "@api/src/lib/connectorPendingLogin.ts",
+    "summary": "Single-use, short-TTL opaque codes standing in for a proxy_auth_token during the connector redirect hop (see auth.routes.ts's GET /auth/msg91/callback and connectorAuth.routes.ts's POST /connector/token).",
+    "imports": [
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/redis"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/connectorRedirect",
+    "repo": "api",
+    "file": "@api/src/lib/connectorRedirect.ts",
+    "summary": "Allowlist of external redirect_uri targets the MSG91 callback (see GET /auth/msg91/callback in auth.routes.ts) is permitted to redirect to when an AI-connector supplies one.",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/connectorTokenConfig",
+    "repo": "api",
+    "file": "@api/src/lib/connectorTokenConfig.ts",
+    "summary": "Config for the AI-connector token endpoints (src/routes/connectorAuth.routes.ts).",
+    "imports": [
+     "lib:@api/src/lib/env"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/customDomain",
+    "repo": "api",
+    "file": "@api/src/lib/customDomain.ts",
+    "summary": "Apex vs.",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/customDomainConfig",
+    "repo": "api",
+    "file": "@api/src/lib/customDomainConfig.ts",
+    "summary": "Config specific to the custom-domains feature — see docs/Customdomain-req.md.",
+    "imports": [
+     "lib:@api/src/lib/customDomain",
+     "lib:@api/src/lib/logger"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/deployAttribution",
+    "repo": "api",
+    "file": "@api/src/lib/deployAttribution.ts",
+    "summary": null,
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/deployTokenEmail",
+    "repo": "api",
+    "file": "@api/src/lib/deployTokenEmail.ts",
+    "summary": "Renders the deploy-token email as email-safe HTML (tables + inline styles, no external assets) so the viasocket flow only has to place one variable into its MSG91 template.",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/deployTokens",
+    "repo": "api",
+    "file": "@api/src/lib/deployTokens.ts",
+    "summary": null,
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/dnsVerify",
+    "repo": "api",
+    "file": "@api/src/lib/dnsVerify.ts",
+    "summary": "Confirms a custom domain's live DNS actually points at the platform — see docs/Customdomain-req.md constraint #3.",
+    "imports": [
+     "lib:@api/src/lib/customDomain",
+     "lib:@api/src/lib/customDomainConfig",
+     "lib:@api/src/lib/logger"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/env",
+    "repo": "api",
+    "file": "@api/src/lib/env.ts",
+    "summary": "Numeric env var with a default.",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/featureRequestConfig",
+    "repo": "api",
+    "file": "@api/src/lib/featureRequestConfig.ts",
+    "summary": "Config for the public feature-request/feedback endpoint — see docs/request-feature-req.md.",
+    "imports": [
+     "lib:@api/src/lib/env"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/frontendOrigin",
+    "repo": "api",
+    "file": "@api/src/lib/frontendOrigin.ts",
+    "summary": "Shared by app.ts (CORS) and auth.routes.ts (the msg91 redirect callback) so the two never drift on what \"the frontend\" means.",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/internalDeployClient",
+    "repo": "api",
+    "file": "@api/src/lib/internalDeployClient.ts",
+    "summary": "Config for this service's own calls INTO hostnsoft-deploy — the reverse direction of the deploy-token flow (which authenticates hostnsoft-deploy calling INTO this service instead).",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/lago",
+    "repo": "api",
+    "file": "@api/src/lib/lago.ts",
+    "summary": "Client for Lago (getlago.com), which owns plans, customers and subscriptions for billing.",
+    "imports": [
+     "lib:@api/src/lib/billingUtility",
+     "lib:@api/src/lib/logger"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:lago"
+    ]
+   },
+   {
+    "id": "lib:@api/src/lib/logger",
+    "repo": "api",
+    "file": "@api/src/lib/logger.ts",
+    "summary": "Every log line in this service goes through here so they all share one shape: `<ISO timestamp> <request id>: <message>`.",
+    "imports": [
+     "lib:@api/src/lib/requestContext"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/msg91",
+    "repo": "api",
+    "file": "@api/src/lib/msg91.ts",
+    "summary": "Client for MSG91 \"proxy\", which owns our users, companies and membership.",
+    "imports": [
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/ttlCache"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/orphanConfig",
+    "repo": "api",
+    "file": "@api/src/lib/orphanConfig.ts",
+    "summary": "Config for anonymous (\"orphan\") deploys — see docs/Anonymous-deploy-req.md.",
+    "imports": [
+     "lib:@api/src/lib/env"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/orphanMessage",
+    "repo": "api",
+    "file": "@api/src/lib/orphanMessage.ts",
+    "summary": "The human-readable notices that tell a deployer how to get a deploy token.",
+    "imports": [
+     "lib:@api/src/lib/frontendOrigin",
+     "lib:@api/src/lib/publicTokenConfig"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/prisma",
+    "repo": "api",
+    "file": "@api/src/lib/prisma.ts",
+    "summary": null,
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/prismaErrors",
+    "repo": "api",
+    "file": "@api/src/lib/prismaErrors.ts",
+    "summary": null,
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/publicPlansConfig",
+    "repo": "api",
+    "file": "@api/src/lib/publicPlansConfig.ts",
+    "summary": "Rate limits for the open GET /billing/plans.",
+    "imports": [
+     "lib:@api/src/lib/env"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/publicTokenConfig",
+    "repo": "api",
+    "file": "@api/src/lib/publicTokenConfig.ts",
+    "summary": "Config for the public email-based deploy-token endpoint — see docs/plans/2026-09-08-001-feat-email-deploy-token-api-plan.md.",
+    "imports": [
+     "lib:@api/src/lib/env"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/rateLimit",
+    "repo": "api",
+    "file": "@api/src/lib/rateLimit.ts",
+    "summary": "Shared rolling-window rate limiter for open, unauthenticated endpoints — extracted from the original POST /public/deploy-tokens/request limiter so a second public endpoint (feature requests) doesn't reimplement the same ",
+    "imports": [
+     "lib:@api/src/lib/redis"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "lib:@api/src/lib/redis",
+    "repo": "api",
+    "file": "@api/src/lib/redis.ts",
+    "summary": "Shared Redis client, used for caching proxy lookups (src/lib/msg91.ts).",
+    "imports": [
+     "lib:@api/src/lib/logger"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "lib:@api/src/lib/requestContext",
+    "repo": "api",
+    "file": "@api/src/lib/requestContext.ts",
+    "summary": "Carries the current request's unique id to every logger call made while handling it — including deep inside services that never see `req` directly — without threading it through every function signature.",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/reservedSlugs",
+    "repo": "api",
+    "file": "@api/src/lib/reservedSlugs.ts",
+    "summary": "App names nobody may claim, and the shape rules a name must satisfy.",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/slug",
+    "repo": "api",
+    "file": "@api/src/lib/slug.ts",
+    "summary": "Matches hostnsoft-deploy's X-App-Name validation (lowercase letters, digits, dashes) since the slug becomes that header's value.",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/stripe",
+    "repo": "api",
+    "file": "@api/src/lib/stripe.ts",
+    "summary": "Direct Stripe client.",
+    "imports": [
+     "lib:@api/src/lib/billingUtility",
+     "lib:@api/src/lib/logger"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:stripe"
+    ]
+   },
+   {
+    "id": "lib:@api/src/lib/superAdmin",
+    "repo": "api",
+    "file": "@api/src/lib/superAdmin.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/prisma"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:SuperAdmin"
+    ],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/ttlCache",
+    "repo": "api",
+    "file": "@api/src/lib/ttlCache.ts",
+    "summary": "Redis-backed TTL cache for proxy lookups, shared across processes.",
+    "imports": [
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/redis"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/webhooks",
+    "repo": "api",
+    "file": "@api/src/lib/webhooks.ts",
+    "summary": "Every outbound webhook this service calls, in one place.",
+    "imports": [
+     "lib:@api/src/lib/logger"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "lib:@api/src/middleware/companyContext",
+    "repo": "api",
+    "file": "@api/src/middleware/companyContext.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/msg91"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/middleware/deployTokenContext",
+    "repo": "api",
+    "file": "@api/src/middleware/deployTokenContext.ts",
+    "summary": "Authenticating an AI agent (or a CI script) holding a deploy token, against one app addressed by name.",
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/deployTokenAuth",
+     "lib:@api/src/services/showcase",
+     "lib:@api/src/services/slugChangeFlow"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:Project"
+    ],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/middleware/errorHandler",
+    "repo": "api",
+    "file": "@api/src/middleware/errorHandler.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/billingUtility",
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/msg91"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/middleware/projectContext",
+    "repo": "api",
+    "file": "@api/src/middleware/projectContext.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/prisma"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:Project"
+    ],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/middleware/proxyToken",
+    "repo": "api",
+    "file": "@api/src/middleware/proxyToken.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/msg91"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/middleware/refuseForStaticApp",
+    "repo": "api",
+    "file": "@api/src/middleware/refuseForStaticApp.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/publicTokenConfig"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/middleware/requestLogger",
+    "repo": "api",
+    "file": "@api/src/middleware/requestLogger.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/requestContext"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/middleware/requireInternalSecret",
+    "repo": "api",
+    "file": "@api/src/middleware/requireInternalSecret.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/internalDeployClient"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/middleware/requireSuperAdmin",
+    "repo": "api",
+    "file": "@api/src/middleware/requireSuperAdmin.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/superAdmin"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/admin.routes",
+    "repo": "api",
+    "file": "@api/src/routes/admin.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/middleware/requireSuperAdmin",
+     "lib:@api/src/services/featureRequests"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/admin/apps",
+     "api:@api/admin/customer-query",
+     "api:@api/admin/super-admins",
+     "api:@api/admin/super-admins/:userId"
+    ],
+    "tablesRead": [
+     "table:api:FeatureRequest",
+     "table:api:Project",
+     "table:api:SuperAdmin"
+    ],
+    "tablesWritten": [
+     "table:api:SuperAdmin"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/adminShowcase.routes",
+    "repo": "api",
+    "file": "@api/src/routes/adminShowcase.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/middleware/requireSuperAdmin",
+     "lib:@api/src/services/showcase"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/admin/showcase/collections",
+     "api:@api/admin/showcase/projects",
+     "api:@api/admin/showcase/projects/:id"
+    ],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:ShowcaseEvent"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/agentApps.routes",
+    "repo": "api",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "summary": "The agent-facing control plane: everything an AI agent needs to operate an app it deployed, authenticated with the deploy token it already has and addressed by the app name it already knows.",
+    "imports": [
+     "lib:@api/src/lib/customDomain",
+     "lib:@api/src/lib/customDomainConfig",
+     "lib:@api/src/lib/deployAttribution",
+     "lib:@api/src/lib/dnsVerify",
+     "lib:@api/src/lib/frontendOrigin",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/prismaErrors",
+     "lib:@api/src/middleware/deployTokenContext",
+     "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/services/appAnalytics",
+     "lib:@api/src/services/appTeardown",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/customDomainActivation",
+     "lib:@api/src/services/projectSlugChange",
+     "lib:@api/src/services/redeploy",
+     "lib:@api/src/services/showcase",
+     "lib:@api/src/services/slugChangeFlow"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/slug-changes/:projectId",
+     "api:@api/apps/:appName",
+     "api:@api/apps/:appName/env-vars",
+     "api:@api/apps/:appName/env-vars/apply",
+     "api:@api/apps/:appName/env-vars/:key",
+     "api:@api/apps/:appName/slug-change",
+     "api:@api/apps/:appName/deployments",
+     "api:@api/apps/:appName/deployments/:deploymentId",
+     "api:@api/apps/:appName/rollback",
+     "api:@api/apps/:appName/domains",
+     "api:@api/apps/:appName/domains/:domain/verify",
+     "api:@api/apps/:appName/domains/:domain",
+     "api:@api/apps/:appName/analytics",
+     "api:@api/apps/:appName/showcase"
+    ],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar"
+    ],
+    "tablesWritten": [
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/analytics.routes",
+    "repo": "api",
+    "file": "@api/src/routes/analytics.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/services/appAnalytics"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/companies/:companyId/projects/:projectId/analytics",
+     "api:@api/companies/:companyId/analytics"
+    ],
+    "tablesRead": [
+     "table:api:Project"
+    ],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/auth.routes",
+    "repo": "api",
+    "file": "@api/src/routes/auth.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/connectorPendingLogin",
+     "lib:@api/src/lib/connectorRedirect",
+     "lib:@api/src/lib/frontendOrigin",
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/superAdmin",
+     "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/billingCustomer"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/auth/msg91/exchange",
+     "api:@api/auth/msg91/callback",
+     "api:@api/auth/logout",
+     "api:@api/auth/me",
+     "api:@api/auth/switch-company"
+    ],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/billing.routes",
+    "repo": "api",
+    "file": "@api/src/routes/billing.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/billingUtility",
+     "lib:@api/src/lib/lago",
+     "lib:@api/src/lib/stripe",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/billingCustomer",
+     "lib:@api/src/validation/billing.validation"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/companies/:companyId/billing/customer",
+     "api:@api/companies/:companyId/billing/payment-methods",
+     "api:@api/companies/:companyId/billing/payment-methods/:paymentMethodId",
+     "api:@api/companies/:companyId/billing/checkout-url",
+     "api:@api/companies/:companyId/billing",
+     "api:@api/companies/:companyId/billing/subscription"
+    ],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/companies.routes",
+    "repo": "api",
+    "file": "@api/src/routes/companies.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/services/billingCustomer"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/companies",
+     "api:@api/companies/:companyId"
+    ],
+    "tablesRead": [
+     "table:api:Project"
+    ],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/connectorAuth.routes",
+    "repo": "api",
+    "file": "@api/src/routes/connectorAuth.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/connectorPendingLogin",
+     "lib:@api/src/lib/connectorTokenConfig",
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/rateLimit",
+     "lib:@api/src/services/connectorToken",
+     "lib:@api/src/services/deployTokenAuth"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/connector/token",
+     "api:@api/connector/token/validate"
+    ],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/customerQuery.routes",
+    "repo": "api",
+    "file": "@api/src/routes/customerQuery.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/services/featureRequests"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/companies/:companyId/customer-query"
+    ],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/deployments.routes",
+    "repo": "api",
+    "file": "@api/src/routes/deployments.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/redeploy"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/companies/:companyId/projects/:projectId/deployments",
+     "api:@api/companies/:companyId/projects/:projectId/deployments/:deploymentId",
+     "api:@api/companies/:companyId/projects/:projectId/deployments/:deploymentId/rollback"
+    ],
+    "tablesRead": [
+     "table:api:Deployment"
+    ],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/domains.routes",
+    "repo": "api",
+    "file": "@api/src/routes/domains.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/customDomain",
+     "lib:@api/src/lib/customDomainConfig",
+     "lib:@api/src/lib/dnsVerify",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/prismaErrors",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/customDomainActivation"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/companies/:companyId/projects/:projectId/domains",
+     "api:@api/companies/:companyId/projects/:projectId/domains/:domain/verify",
+     "api:@api/companies/:companyId/projects/:projectId/domains/:domain"
+    ],
+    "tablesRead": [
+     "table:api:Domain"
+    ],
+    "tablesWritten": [
+     "table:api:Domain"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/envVars.routes",
+    "repo": "api",
+    "file": "@api/src/routes/envVars.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/services/audit"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/companies/:companyId/projects/:projectId/env-vars",
+     "api:@api/companies/:companyId/projects/:projectId/env-vars/:key"
+    ],
+    "tablesRead": [
+     "table:api:EnvVar"
+    ],
+    "tablesWritten": [
+     "table:api:EnvVar"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/health.routes",
+    "repo": "api",
+    "file": "@api/src/routes/health.routes.ts",
+    "summary": null,
+    "imports": [],
+    "endpoints": [],
+    "defines": [
+     "api:@api/health"
+    ],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/index",
+    "repo": "api",
+    "file": "@api/src/routes/index.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/routes/admin.routes",
+     "lib:@api/src/routes/adminShowcase.routes",
+     "lib:@api/src/routes/agentApps.routes",
+     "lib:@api/src/routes/analytics.routes",
+     "lib:@api/src/routes/auth.routes",
+     "lib:@api/src/routes/billing.routes",
+     "lib:@api/src/routes/companies.routes",
+     "lib:@api/src/routes/connectorAuth.routes",
+     "lib:@api/src/routes/customerQuery.routes",
+     "lib:@api/src/routes/deployments.routes",
+     "lib:@api/src/routes/domains.routes",
+     "lib:@api/src/routes/envVars.routes",
+     "lib:@api/src/routes/health.routes",
+     "lib:@api/src/routes/internalCustomerQuery.routes",
+     "lib:@api/src/routes/internalDeployments.routes",
+     "lib:@api/src/routes/internalProjects.routes",
+     "lib:@api/src/routes/internalProxyAuth.routes",
+     "lib:@api/src/routes/internalTokens.routes",
+     "lib:@api/src/routes/projects.routes",
+     "lib:@api/src/routes/publicBilling.routes",
+     "lib:@api/src/routes/publicCustomerQuery.routes",
+     "lib:@api/src/routes/publicDocs.routes",
+     "lib:@api/src/routes/publicShowcase.routes",
+     "lib:@api/src/routes/publicTokens.routes",
+     "lib:@api/src/routes/showcase.routes",
+     "lib:@api/src/routes/tokens.routes"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/internalCustomerQuery.routes",
+    "repo": "api",
+    "file": "@api/src/routes/internalCustomerQuery.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/services/featureRequests"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/internal/customer-query"
+    ],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/internalDeployments.routes",
+    "repo": "api",
+    "file": "@api/src/routes/internalDeployments.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/deployAttribution",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/requireInternalSecret",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/deployActor",
+     "lib:@api/src/services/deployTokenAuth",
+     "lib:@api/src/services/deploymentVersioning",
+     "lib:@api/src/services/projectClaim"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/internal/deployments/record",
+     "api:@api/internal/deployments/:deploymentId/complete"
+    ],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:Deployment"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/internalProjects.routes",
+    "repo": "api",
+    "file": "@api/src/routes/internalProjects.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/billingUtility",
+     "lib:@api/src/lib/lago",
+     "lib:@api/src/lib/orphanConfig",
+     "lib:@api/src/lib/orphanMessage",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/deployActor",
+     "lib:@api/src/services/projectClaim",
+     "lib:@api/src/services/renameStatus"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/internal/projects/claim",
+     "api:@api/internal/projects/lookup"
+    ],
+    "tablesRead": [
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:Project"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/internalProxyAuth.routes",
+    "repo": "api",
+    "file": "@api/src/routes/internalProxyAuth.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/middleware/requireInternalSecret"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/internal/proxy-auth/verify-membership"
+    ],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/internalTokens.routes",
+    "repo": "api",
+    "file": "@api/src/routes/internalTokens.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/orphanMessage",
+     "lib:@api/src/services/deployTokenAuth"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/internal/deploy-tokens/validate"
+    ],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/projects.routes",
+    "repo": "api",
+    "file": "@api/src/routes/projects.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/reservedSlugs",
+     "lib:@api/src/lib/slug",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/services/appHealth",
+     "lib:@api/src/services/appTeardown",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/projectStatus",
+     "lib:@api/src/services/slugChangeFlow"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/companies/:companyId/projects",
+     "api:@api/companies/:companyId/projects/:projectId",
+     "api:@api/companies/:companyId/projects/:projectId/slug",
+     "api:@api/companies/:companyId/projects/:projectId/memory"
+    ],
+    "tablesRead": [
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:Project"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/publicBilling.routes",
+    "repo": "api",
+    "file": "@api/src/routes/publicBilling.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/lago",
+     "lib:@api/src/lib/publicPlansConfig",
+     "lib:@api/src/lib/rateLimit"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/billing/plans"
+    ],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/publicCustomerQuery.routes",
+    "repo": "api",
+    "file": "@api/src/routes/publicCustomerQuery.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/featureRequestConfig",
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/rateLimit",
+     "lib:@api/src/lib/webhooks",
+     "lib:@api/src/services/featureRequests",
+     "lib:@api/src/services/showcase"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/public/customer-query"
+    ],
+    "tablesRead": [
+     "table:api:AppDetails"
+    ],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/publicDocs.routes",
+    "repo": "api",
+    "file": "@api/src/routes/publicDocs.routes.ts",
+    "summary": null,
+    "imports": [],
+    "endpoints": [],
+    "defines": [
+     "api:@api/public/:slug",
+     "api:@api/public/:slug.md"
+    ],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/publicShowcase.routes",
+    "repo": "api",
+    "file": "@api/src/routes/publicShowcase.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/showcase"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/public/showcase",
+     "api:@api/public/showcase/collections",
+     "api:@api/public/showcase/collections/:slug",
+     "api:@api/public/showcase/apps/:slug"
+    ],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/publicTokens.routes",
+    "repo": "api",
+    "file": "@api/src/routes/publicTokens.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/publicTokenConfig",
+     "lib:@api/src/lib/rateLimit",
+     "lib:@api/src/services/publicTokenRequest"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/public/deploy-tokens/request"
+    ],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/showcase.routes",
+    "repo": "api",
+    "file": "@api/src/routes/showcase.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/frontendOrigin",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/prismaErrors",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/showcase",
+     "lib:@api/src/services/showcaseMail"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/companies/:companyId/showcase/collections",
+     "api:@api/companies/:companyId/showcase/collections/:collectionId",
+     "api:@api/companies/:companyId/showcase/collections/:collectionId/projects/:listingId",
+     "api:@api/companies/:companyId/showcase/pages",
+     "api:@api/companies/:companyId/showcase/submissions",
+     "api:@api/companies/:companyId/showcase/submissions/:listingId"
+    ],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/tokens.routes",
+    "repo": "api",
+    "file": "@api/src/routes/tokens.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/deployTokens",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/services/audit"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/companies/:companyId/tokens",
+     "api:@api/companies/:companyId/tokens/:tokenId",
+     "api:@api/companies/:companyId/tokens/:tokenId/rotate"
+    ],
+    "tablesRead": [
+     "table:api:DeployToken"
+    ],
+    "tablesWritten": [
+     "table:api:DeployToken"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/server",
+    "repo": "api",
+    "file": "@api/src/server.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/app",
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/redis",
+     "lib:@api/src/services/domainReverification",
+     "lib:@api/src/services/orphanCleanup"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/appAnalytics",
+    "repo": "api",
+    "file": "@api/src/services/appAnalytics.ts",
+    "summary": "Proxies hostnsoft-deploy's GET /internal/apps/:appName/analytics — see hostnsoft-deploy's analytics/*.js for how traffic (from Traefik's access log) and CPU/memory (from Nomad's stats API) are actually derived.",
+    "imports": [
+     "lib:@api/src/lib/internalDeployClient",
+     "lib:@api/src/lib/logger"
+    ],
+    "endpoints": [
+     "api:@deploy/internal/apps/:appName/analytics"
+    ],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/appHealth",
+    "repo": "api",
+    "file": "@api/src/services/appHealth.ts",
+    "summary": "Backs GET /companies/:companyId/projects/:projectId's health field — proxies hostnsoft-deploy's real Nomad allocation status (see hostnsoft-deploy's app-health.js for the simplified status vocabulary: running/crashed/sta",
+    "imports": [
+     "lib:@api/src/lib/internalDeployClient",
+     "lib:@api/src/lib/logger"
+    ],
+    "endpoints": [
+     "api:@deploy/internal/apps/:appName/status"
+    ],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/appRename",
+    "repo": "api",
+    "file": "@api/src/services/appRename.ts",
+    "summary": "Asks hostnsoft-deploy to move a running app to a new name — its half of a slug change for an app that has actually deployed.",
+    "imports": [
+     "lib:@api/src/lib/internalDeployClient",
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/prisma"
+    ],
+    "endpoints": [
+     "api:@deploy/internal/apps/:appName/rename"
+    ],
+    "defines": [],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar"
+    ],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/appTeardown",
+    "repo": "api",
+    "file": "@api/src/services/appTeardown.ts",
+    "summary": "Tears down an app's running Nomad job (and, by extension, its Traefik routing, which Traefik derives directly from the job) plus any Docker image, via hostnsoft-deploy's DELETE /internal/apps/:appName.",
+    "imports": [
+     "lib:@api/src/lib/internalDeployClient",
+     "lib:@api/src/lib/logger"
+    ],
+    "endpoints": [
+     "api:@deploy/internal/apps/:appName"
+    ],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/audit",
+    "repo": "api",
+    "file": "@api/src/services/audit.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/prisma"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [
+     "table:api:AuditLog"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/billingCustomer",
+    "repo": "api",
+    "file": "@api/src/services/billingCustomer.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/lago",
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/stripe",
+     "lib:@api/src/lib/ttlCache"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/connectorToken",
+    "repo": "api",
+    "file": "@api/src/services/connectorToken.ts",
+    "summary": "Token minting for the AI-connector exchange endpoint (src/routes/connectorAuth.routes.ts).",
+    "imports": [
+     "lib:@api/src/lib/deployTokens",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/audit"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [
+     "table:api:DeployToken"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/customDomainActivation",
+    "repo": "api",
+    "file": "@api/src/services/customDomainActivation.ts",
+    "summary": "Pushes a project's current set of *active* custom domains to hostnsoft-deploy so it can regenerate and reapply the app's Nomad job spec with one HTTP-01 router per domain — see docs/Customdomain-req.md \"Activating the ro",
+    "imports": [
+     "lib:@api/src/lib/internalDeployClient",
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/prisma"
+    ],
+    "endpoints": [
+     "api:@deploy/internal/apps/:appName/config"
+    ],
+    "defines": [],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:Domain"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/deployActor",
+    "repo": "api",
+    "file": "@api/src/services/deployActor.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/middleware/requireInternalSecret",
+     "lib:@api/src/services/deployTokenAuth"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/deployTokenAuth",
+    "repo": "api",
+    "file": "@api/src/services/deployTokenAuth.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/deployTokens",
+     "lib:@api/src/lib/orphanMessage",
+     "lib:@api/src/lib/prisma"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:DeployToken"
+    ],
+    "tablesWritten": [
+     "table:api:DeployToken"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/deploymentVersioning",
+    "repo": "api",
+    "file": "@api/src/services/deploymentVersioning.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/prismaErrors"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:Deployment"
+    ],
+    "tablesWritten": [
+     "table:api:Deployment",
+     "table:api:Project"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/domainReverification",
+    "repo": "api",
+    "file": "@api/src/services/domainReverification.ts",
+    "summary": "Periodic re-check of every already-active custom domain's DNS — see docs/Customdomain-req.md constraint #3: verification at claim time isn't enough, since a domain's DNS can be repointed elsewhere later while this platfo",
+    "imports": [
+     "lib:@api/src/lib/customDomain",
+     "lib:@api/src/lib/customDomainConfig",
+     "lib:@api/src/lib/dnsVerify",
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/customDomainActivation"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:Domain"
+    ],
+    "tablesWritten": [
+     "table:api:Domain"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/emailToken",
+    "repo": "api",
+    "file": "@api/src/services/emailToken.ts",
+    "summary": "Token minting for the public email endpoint (src/services/publicTokenRequest.ts).",
+    "imports": [
+     "lib:@api/src/lib/deployTokens",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/audit"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [
+     "table:api:DeployToken"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/featureRequests",
+    "repo": "api",
+    "file": "@api/src/services/featureRequests.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/prisma"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [
+     "table:api:FeatureRequest"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/orphanCleanup",
+    "repo": "api",
+    "file": "@api/src/services/orphanCleanup.ts",
+    "summary": "Deletes expired orphan projects — see docs/Anonymous-deploy-req.md #7.",
+    "imports": [
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/orphanConfig",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/appTeardown"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:Project"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/projectClaim",
+    "repo": "api",
+    "file": "@api/src/services/projectClaim.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/orphanConfig",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/prismaErrors",
+     "lib:@api/src/lib/reservedSlugs"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:Project"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/projectSlugChange",
+    "repo": "api",
+    "file": "@api/src/services/projectSlugChange.ts",
+    "summary": "Changing an app's slug — the hostname it answers on, the Nomad job name, and the X-App-Name an agent deploys with.",
+    "imports": [
+     "lib:@api/src/lib/env",
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/prismaErrors",
+     "lib:@api/src/lib/reservedSlugs",
+     "lib:@api/src/services/appHealth",
+     "lib:@api/src/services/appRename",
+     "lib:@api/src/services/appTeardown",
+     "lib:@api/src/services/showcase"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:AuditLog",
+     "table:api:Deployment",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:Deployment",
+     "table:api:Project"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/projectStatus",
+    "repo": "api",
+    "file": "@api/src/services/projectStatus.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/prisma"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:Deployment"
+    ],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/publicTokenRequest",
+    "repo": "api",
+    "file": "@api/src/services/publicTokenRequest.ts",
+    "summary": "POST /public/deploy-tokens/request: ensure the email has an account and a company, mint one NEW token per company (existing tokens untouched), mail them.",
+    "imports": [
+     "lib:@api/src/lib/deployTokenEmail",
+     "lib:@api/src/lib/deployTokens",
+     "lib:@api/src/lib/frontendOrigin",
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/webhooks",
+     "lib:@api/src/services/billingCustomer",
+     "lib:@api/src/services/emailToken"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/redeploy",
+    "repo": "api",
+    "file": "@api/src/services/redeploy.ts",
+    "summary": "Re-applying an app's configuration against an existing image, with no rebuild — the mechanism behind both rollback and \"make my env var changes take effect\".",
+    "imports": [
+     "lib:@api/src/lib/deployAttribution",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/customDomainActivation",
+     "lib:@api/src/services/deploymentVersioning",
+     "lib:@api/src/services/renameStatus"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar"
+    ],
+    "tablesWritten": [
+     "table:api:Deployment"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/renameStatus",
+    "repo": "api",
+    "file": "@api/src/services/renameStatus.ts",
+    "summary": "In-process record of address changes currently being carried out, and how the last one for each project ended.",
+    "imports": [
+     "lib:@api/src/lib/logger"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/showcase",
+    "repo": "api",
+    "file": "@api/src/services/showcase.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/prismaErrors",
+     "lib:@api/src/services/showcaseMail"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/showcaseMail",
+    "repo": "api",
+    "file": "@api/src/services/showcaseMail.ts",
+    "summary": "Showcase notification mails.",
+    "imports": [
+     "lib:@api/src/lib/frontendOrigin",
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/webhooks"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/slugChangeFlow",
+    "repo": "api",
+    "file": "@api/src/services/slugChangeFlow.ts",
+    "summary": "Running an address change end to end, for whichever surface asked for it.",
+    "imports": [
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/projectSlugChange",
+     "lib:@api/src/services/renameStatus",
+     "lib:@api/src/services/showcase"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:AuditLog",
+     "table:api:Project"
+    ],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/validation/billing.validation",
+    "repo": "api",
+    "file": "@api/src/validation/billing.validation.ts",
+    "summary": null,
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   }
+  ],
+  "tables": [
+   {
+    "id": "table:api:DeployToken",
+    "repo": "api",
+    "store": "api",
+    "name": "DeployToken",
+    "migration": "@api/prisma/schema.prisma",
+    "note": "Company-wide deploy token.",
+    "columns": [
+     "id",
+     "companyId",
+     "createdBy",
+     "label",
+     "tokenHash",
+     "tokenPrefix",
+     "createdAt",
+     "updatedAt",
+     "revokedAt",
+     "lastUsedAt",
+     "source"
+    ]
+   },
+   {
+    "id": "table:api:Project",
+    "repo": "api",
+    "store": "api",
+    "name": "Project",
+    "migration": "@api/prisma/schema.prisma",
+    "note": "One Project == one deployed app on hostnsoft-deploy.",
+    "columns": [
+     "id",
+     "companyId",
+     "createdBy",
+     "slug",
+     "name",
+     "memoryMb",
+     "createdAt",
+     "updatedAt",
+     "isOrphan",
+     "orphanExpiresAt",
+     "currentDeploymentId",
+     "kind",
+     "appType"
+    ]
+   },
+   {
+    "id": "table:api:Domain",
+    "repo": "api",
+    "store": "api",
+    "name": "Domain",
+    "migration": "@api/prisma/schema.prisma",
+    "note": "A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.",
+    "columns": [
+     "id",
+     "projectId",
+     "domain",
+     "type",
+     "status",
+     "lastVerifiedAt",
+     "createdAt",
+     "updatedAt"
+    ]
+   },
+   {
+    "id": "table:api:Deployment",
+    "repo": "api",
+    "store": "api",
+    "name": "Deployment",
+    "migration": "@api/prisma/schema.prisma",
+    "note": "Versioned deploy history — one row per deploy attempt.",
+    "columns": [
+     "id",
+     "projectId",
+     "version",
+     "appVersion",
+     "imageTag",
+     "memoryMb",
+     "status",
+     "errorDetail",
+     "triggeredBy",
+     "source",
+     "agentName",
+     "createdAt",
+     "updatedAt",
+     "finishedAt"
+    ]
+   },
+   {
+    "id": "table:api:EnvVar",
+    "repo": "api",
+    "store": "api",
+    "name": "EnvVar",
+    "migration": "@api/prisma/schema.prisma",
+    "note": null,
+    "columns": [
+     "id",
+     "projectId",
+     "key",
+     "value",
+     "createdAt",
+     "createdBy",
+     "updatedAt",
+     "updatedBy"
+    ]
+   },
+   {
+    "id": "table:api:SuperAdmin",
+    "repo": "api",
+    "store": "api",
+    "name": "SuperAdmin",
+    "migration": "@api/prisma/schema.prisma",
+    "note": "Internal admin flag, gating /admin/* routes — see docs/admin-panel.md.",
+    "columns": [
+     "userId",
+     "grantedAt"
+    ]
+   },
+   {
+    "id": "table:api:FeatureRequest",
+    "repo": "api",
+    "store": "api",
+    "name": "FeatureRequest",
+    "migration": "@api/prisma/schema.prisma",
+    "note": "One submission from either path — see docs/request-feature-req.md.",
+    "columns": [
+     "id",
+     "type",
+     "message",
+     "source",
+     "email",
+     "userId",
+     "companyId",
+     "projectSlug",
+     "agentName",
+     "createdAt"
+    ]
+   },
+   {
+    "id": "table:api:AuditLog",
+    "repo": "api",
+    "store": "api",
+    "name": "AuditLog",
+    "migration": "@api/prisma/schema.prisma",
+    "note": "Every mutating action: who, what, when.",
+    "columns": [
+     "id",
+     "actorUserId",
+     "companyId",
+     "projectId",
+     "action",
+     "details",
+     "createdAt",
+     "updatedAt"
+    ]
+   },
+   {
+    "id": "table:api:AppDetails",
+    "repo": "api",
+    "store": "api",
+    "name": "AppDetails",
+    "migration": "@api/prisma/schema.prisma",
+    "note": "Public-facing details of a deployed app.",
+    "columns": [
+     "id",
+     "projectId",
+     "companyId",
+     "createdBy",
+     "tagline",
+     "description",
+     "story",
+     "appUrl",
+     "screenshotUrls",
+     "videoUrl",
+     "creatorName",
+     "creatorProfile",
+     "contributorEmails",
+     "builtWith",
+     "category",
+     "tagsJson",
+     "customHtml",
+     "isPublic",
+     "featured",
+     "createdAt",
+     "updatedAt"
+    ]
+   },
+   {
+    "id": "table:api:ShowcaseEvent",
+    "repo": "api",
+    "store": "api",
+    "name": "ShowcaseEvent",
+    "migration": "@api/prisma/schema.prisma",
+    "note": "An event page, /showcase/<slug>: a hackathon, a demo day.",
+    "columns": [
+     "id",
+     "slug",
+     "title",
+     "intro",
+     "companyId",
+     "createdBy",
+     "submitCode",
+     "customHtml",
+     "createdAt",
+     "updatedAt"
+    ]
+   },
+   {
+    "id": "table:api:ShowcaseEventListing",
+    "repo": "api",
+    "store": "api",
+    "name": "ShowcaseEventListing",
+    "migration": "@api/prisma/schema.prisma",
+    "note": "One app shown on one event page.",
+    "columns": [
+     "id",
+     "appDetailsId",
+     "eventId",
+     "addedBy",
+     "status",
+     "rejectionReason",
+     "reviewedBy",
+     "reviewedAt",
+     "isHidden",
+     "createdAt"
+    ]
+   }
+  ],
+  "foreignKeys": [
+   {
+    "from": "table:api:Domain.projectId",
+    "to": "table:api:Project.id"
+   },
+   {
+    "from": "table:api:Deployment.projectId",
+    "to": "table:api:Project.id"
+   },
+   {
+    "from": "table:api:EnvVar.projectId",
+    "to": "table:api:Project.id"
+   },
+   {
+    "from": "table:api:AppDetails.projectId",
+    "to": "table:api:Project.id"
+   },
+   {
+    "from": "table:api:ShowcaseEventListing.appDetailsId",
+    "to": "table:api:AppDetails.id"
+   },
+   {
+    "from": "table:api:ShowcaseEventListing.eventId",
+    "to": "table:api:ShowcaseEvent.id"
+   }
+  ]
+ },
+ "deploy": {
+  "repo": {
+   "id": "deploy",
+   "alias": "@deploy",
+   "name": "hostnsoft-deploy",
+   "plain": "Builds the apps and keeps them running",
+   "available": true,
+   "commit": null
+  },
+  "store": {
+   "id": "deploy",
+   "name": "Traffic database",
+   "engine": "SQLite on the deploy server",
+   "binding": "ANALYTICS_DB_PATH",
+   "rows": false,
+   "repo": "deploy",
+   "tables": [
+    "table:deploy:request_log",
+    "table:deploy:resource_sample",
+    "table:deploy:tail_state"
+   ]
+  },
+  "screens": [],
+  "endpoints": [
+   {
+    "id": "api:@deploy/v1/deploy",
+    "repo": "deploy",
+    "route": "/v1/deploy",
+    "file": "@deploy/old_server.js",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:railpack"
+    ]
+   },
+   {
+    "id": "api:@deploy/capabilities",
+    "repo": "deploy",
+    "route": "/capabilities",
+    "file": "@deploy/server.js",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@deploy/capabilities"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:docker",
+     "ext:railpack"
+    ]
+   },
+   {
+    "id": "api:@deploy/capabilities/all",
+    "repo": "deploy",
+    "route": "/capabilities/all",
+    "file": "@deploy/server.js",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@deploy/capabilities"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:docker",
+     "ext:railpack"
+    ]
+   },
+   {
+    "id": "api:@deploy/capabilities/:topic",
+    "repo": "deploy",
+    "route": "/capabilities/:topic",
+    "file": "@deploy/server.js",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "api:@deploy/apps",
+    "repo": "deploy",
+    "route": "/apps",
+    "file": "@deploy/server.js",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@deploy/app-kind",
+     "lib:@deploy/build-plan",
+     "lib:@deploy/claim-project",
+     "lib:@deploy/deploy-credential",
+     "lib:@deploy/deploy-response",
+     "lib:@deploy/deploy-status",
+     "lib:@deploy/detect-manifest-root",
+     "lib:@deploy/detect-storage-usage",
+     "lib:@deploy/json-source",
+     "lib:@deploy/logger",
+     "lib:@deploy/nomad-job-spec",
+     "lib:@deploy/project-lookup",
+     "lib:@deploy/record-deployment",
+     "lib:@deploy/validate-deploy-token",
+     "lib:@deploy/verify-proxy-auth"
+    ],
+    "calls": [
+     "api:@api/internal/deploy-tokens/validate",
+     "api:@api/internal/deployments/record",
+     "api:@api/internal/projects/claim",
+     "api:@api/internal/projects/lookup",
+     "api:@api/internal/proxy-auth/verify-membership"
+    ],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:docker",
+     "ext:nomad",
+     "ext:railpack"
+    ]
+   },
+   {
+    "id": "api:@deploy/apps/:appName/status",
+    "repo": "deploy",
+    "route": "/apps/:appName/status",
+    "file": "@deploy/server.js",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@deploy/app-health",
+     "lib:@deploy/deploy-response",
+     "lib:@deploy/deploy-status",
+     "lib:@deploy/nomad-job-spec",
+     "lib:@deploy/static-site"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:docker",
+     "ext:nomad"
+    ]
+   },
+   {
+    "id": "api:@deploy/apps/:appName/logs",
+    "repo": "deploy",
+    "route": "/apps/:appName/logs",
+    "file": "@deploy/server.js",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@deploy/app-logs",
+     "lib:@deploy/build-diagnostics",
+     "lib:@deploy/deploy-response",
+     "lib:@deploy/deploy-status",
+     "lib:@deploy/static-site"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:docker",
+     "ext:nomad"
+    ]
+   },
+   {
+    "id": "api:@deploy/apps/:appName/customer-query",
+    "repo": "deploy",
+    "route": "/apps/:appName/customer-query",
+    "file": "@deploy/server.js",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@deploy/customer-query"
+    ],
+    "calls": [
+     "api:@api/internal/customer-query"
+    ],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "api:@deploy/internal/apps/:appName/config",
+    "repo": "deploy",
+    "route": "/internal/apps/:appName/config",
+    "file": "@deploy/server.js",
+    "methods": [
+     "POST"
+    ],
+    "inbound": true,
+    "imports": [
+     "lib:@deploy/image-retention",
+     "lib:@deploy/internal-auth",
+     "lib:@deploy/logger",
+     "lib:@deploy/nomad-job-spec",
+     "lib:@deploy/report-config-push",
+     "lib:@deploy/static-site",
+     "lib:@deploy/traefik-router-file"
+    ],
+    "calls": [
+     "api:@api/internal/deployments/:deploymentId/complete"
+    ],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:docker",
+     "ext:traefik"
+    ]
+   },
+   {
+    "id": "api:@deploy/internal/apps/:appName/rename",
+    "repo": "deploy",
+    "route": "/internal/apps/:appName/rename",
+    "file": "@deploy/server.js",
+    "methods": [
+     "POST"
+    ],
+    "inbound": true,
+    "imports": [
+     "lib:@deploy/deploy-status",
+     "lib:@deploy/internal-auth",
+     "lib:@deploy/logger",
+     "lib:@deploy/rename-app",
+     "lib:@deploy/static-site"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:docker",
+     "ext:nomad",
+     "ext:traefik"
+    ]
+   },
+   {
+    "id": "api:@deploy/internal/apps/:appName",
+    "repo": "deploy",
+    "route": "/internal/apps/:appName",
+    "file": "@deploy/server.js",
+    "methods": [
+     "DELETE"
+    ],
+    "inbound": true,
+    "imports": [
+     "lib:@deploy/internal-auth",
+     "lib:@deploy/logger",
+     "lib:@deploy/nomad-job",
+     "lib:@deploy/nomad-job-spec",
+     "lib:@deploy/scale-to-zero-registry",
+     "lib:@deploy/static-site",
+     "lib:@deploy/traefik-router-file"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:docker",
+     "ext:nomad",
+     "ext:traefik"
+    ]
+   },
+   {
+    "id": "api:@deploy/internal/apps/:appName/status",
+    "repo": "deploy",
+    "route": "/internal/apps/:appName/status",
+    "file": "@deploy/server.js",
+    "methods": [
+     "GET"
+    ],
+    "inbound": true,
+    "imports": [
+     "lib:@deploy/app-health",
+     "lib:@deploy/internal-auth",
+     "lib:@deploy/static-site"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:docker",
+     "ext:nomad"
+    ]
+   },
+   {
+    "id": "api:@deploy/internal/apps/:appName/analytics",
+    "repo": "deploy",
+    "route": "/internal/apps/:appName/analytics",
+    "file": "@deploy/server.js",
+    "methods": [
+     "GET"
+    ],
+    "inbound": true,
+    "imports": [
+     "lib:@deploy/analytics/access-log-tailer",
+     "lib:@deploy/analytics/query",
+     "lib:@deploy/analytics/resource-poller",
+     "lib:@deploy/analytics/retention",
+     "lib:@deploy/internal-auth",
+     "lib:@deploy/logger"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:deploy:request_log",
+     "table:deploy:resource_sample",
+     "table:deploy:tail_state"
+    ],
+    "tablesWritten": [
+     "table:deploy:request_log",
+     "table:deploy:resource_sample",
+     "table:deploy:tail_state"
+    ],
+    "services": [
+     "ext:docker",
+     "ext:nomad",
+     "ext:traefik"
+    ]
+   }
+  ],
+  "modules": [
+   {
+    "id": "lib:@deploy/activator",
+    "repo": "deploy",
+    "file": "@deploy/activator.js",
+    "summary": "activator.js — wakes an app that scale-to-zero stopped, and proxies for it.",
+    "imports": [
+     "lib:@deploy/analytics/bot-filter",
+     "lib:@deploy/nomad-job-spec",
+     "lib:@deploy/scale-to-zero-images",
+     "lib:@deploy/scale-to-zero-registry",
+     "lib:@deploy/sqlite-data-check"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:nomad"
+    ]
+   },
+   {
+    "id": "lib:@deploy/analytics/access-log-tailer",
+    "repo": "deploy",
+    "file": "@deploy/analytics/access-log-tailer.js",
+    "summary": "analytics/access-log-tailer.js Follows Traefik's JSON access log (TRAEFIK_ACCESS_LOG_PATH — see server-setup.sh's Traefik section, which enables --accesslog with format=json) and turns each request into one row in reques",
+    "imports": [
+     "lib:@deploy/analytics/db",
+     "lib:@deploy/logger"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:deploy:tail_state"
+    ],
+    "tablesWritten": [
+     "table:deploy:request_log",
+     "table:deploy:tail_state"
+    ],
+    "services": [
+     "ext:traefik"
+    ]
+   },
+   {
+    "id": "lib:@deploy/analytics/bot-filter",
+    "repo": "deploy",
+    "file": "@deploy/analytics/bot-filter.js",
+    "summary": "analytics/bot-filter.js Decides whether a logged request represents a REAL visit or automated background noise.",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/analytics/db",
+    "repo": "deploy",
+    "file": "@deploy/analytics/db.js",
+    "summary": "analytics/db.js Local, per-environment time-series store backing GET /internal/apps/:appName/analytics — see access-log-tailer.js (traffic) and resource-poller.js (CPU/memory) for what populates it, and query.js for how ",
+    "imports": [
+     "lib:@deploy/logger"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/analytics/query",
+    "repo": "deploy",
+    "file": "@deploy/analytics/query.js",
+    "summary": "analytics/query.js Reads back what access-log-tailer.js and resource-poller.js have written — backs GET /internal/apps/:appName/analytics.",
+    "imports": [
+     "lib:@deploy/analytics/db"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:deploy:request_log",
+     "table:deploy:resource_sample"
+    ],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/analytics/resource-poller",
+    "repo": "deploy",
+    "file": "@deploy/analytics/resource-poller.js",
+    "summary": "analytics/resource-poller.js Periodically samples every running app's CPU/memory usage and stores it in resource_sample (see db.js) — the historical counterpart to app-health.js's live-only status check.",
+    "imports": [
+     "lib:@deploy/analytics/db",
+     "lib:@deploy/logger"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [
+     "table:deploy:resource_sample"
+    ],
+    "services": [
+     "ext:nomad",
+     "ext:docker"
+    ]
+   },
+   {
+    "id": "lib:@deploy/analytics/retention",
+    "repo": "deploy",
+    "file": "@deploy/analytics/retention.js",
+    "summary": "analytics/retention.js Bounds the analytics DB's growth by pruning rows older than RETENTION_DAYS — this platform stores raw per-request rows (see access-log-tailer.js), not pre-aggregated buckets, so unpruned this would",
+    "imports": [
+     "lib:@deploy/analytics/db",
+     "lib:@deploy/logger"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [
+     "table:deploy:request_log",
+     "table:deploy:resource_sample"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/app-health",
+    "repo": "deploy",
+    "file": "@deploy/app-health.js",
+    "summary": "app-health.js Backs GET /internal/apps/:appName/status — see hostnsoft-api's src/services/appHealth.ts, which is the only caller (dashboard's project-detail view, replacing the previously-hardcoded health: \"unknown\").",
+    "imports": [
+     "lib:@deploy/logger",
+     "lib:@deploy/nomad-job",
+     "lib:@deploy/static-site"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/app-kind",
+    "repo": "deploy",
+    "file": "@deploy/app-kind.js",
+    "summary": "app-kind.js Answers \"what is deployed under this app name on THIS host right now\": a static site (static-site.js), a server app (a Nomad job), or nothing.",
+    "imports": [
+     "lib:@deploy/static-site"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:nomad"
+    ]
+   },
+   {
+    "id": "lib:@deploy/app-logs",
+    "repo": "deploy",
+    "file": "@deploy/app-logs.js",
+    "summary": "app-logs.js Fetches recent stdout/stderr for an app's most recent allocation straight from Nomad's HTTP API — backs GET /apps/:appName/logs.",
+    "imports": [
+     "lib:@deploy/logger",
+     "lib:@deploy/static-site"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:nomad"
+    ]
+   },
+   {
+    "id": "lib:@deploy/build-diagnostics",
+    "repo": "deploy",
+    "file": "@deploy/build-diagnostics.js",
+    "summary": "build-diagnostics.js Makes a failed build readable.",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/build-plan",
+    "repo": "deploy",
+    "file": "@deploy/build-plan.js",
+    "summary": "build-plan.js Asks Railpack what it WOULD do with an uploaded app, without building anything — `railpack info --format json` runs the same detection `railpack build` starts with, stopped before BuildKit is involved.",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:railpack"
+    ]
+   },
+   {
+    "id": "lib:@deploy/capabilities",
+    "repo": "deploy",
+    "file": "@deploy/capabilities.js",
+    "summary": "GET /capabilities — the machine-readable contract an agent reads BEFORE it designs or deploys an app.",
+    "imports": [
+     "lib:@deploy/image-retention"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:railpack"
+    ]
+   },
+   {
+    "id": "lib:@deploy/claim-project",
+    "repo": "deploy",
+    "file": "@deploy/claim-project.js",
+    "summary": "claim-project.js Confirms (and, on first sight, auto-creates) that an app name is actually available to the deploying company BEFORE any build/Nomad resources are spent on it — see hostnsoft-api's src/routes/internalProj",
+    "imports": [
+     "lib:@deploy/deploy-credential",
+     "lib:@deploy/logger"
+    ],
+    "endpoints": [
+     "api:@api/internal/projects/claim"
+    ],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/customer-query",
+    "repo": "deploy",
+    "file": "@deploy/customer-query.js",
+    "summary": "customer-query.js (renamed from feature-request.js, 2026-09-09 — hostnsoft-api's endpoint moved from /internal/feature-requests to /internal/customer-query, same underlying table/type) Forwards an agent-submitted feature",
+    "imports": [
+     "lib:@deploy/logger"
+    ],
+    "endpoints": [
+     "api:@api/internal/customer-query"
+    ],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/deploy-credential",
+    "repo": "deploy",
+    "file": "@deploy/deploy-credential.js",
+    "summary": "deploy-credential.js Reads whichever credential a POST /apps request presented, and packages it for the two hostnsoft-api calls a deploy makes (claim-project.js and record-deployment.js) so neither has to know which kind",
+    "imports": [
+     "lib:@deploy/validate-deploy-token"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/deploy-response",
+    "repo": "deploy",
+    "file": "@deploy/deploy-response.js",
+    "summary": "deploy-response.js One shape for every agent-facing reply of this service — POST /apps, GET /apps/:appName/status, GET /apps/:appName/logs, and their errors: { status, app, next, links } status — where things stand, one ",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/deploy-status",
+    "repo": "deploy",
+    "file": "@deploy/deploy-status.js",
+    "summary": "deploy-status.js In-process, in-memory record of each app's most recent deploy attempt — backs GET /apps/:appName/status.",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/detect-manifest-root",
+    "repo": "deploy",
+    "file": "@deploy/detect-manifest-root.js",
+    "summary": "detect-manifest-root.js Confirms a freshly extracted upload actually has a buildable manifest (or, for a static site, an index.html) at buildDir's own root — the same rule scripts/deploy.sh and SKILL.md already state to ",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/detect-storage-usage",
+    "repo": "deploy",
+    "file": "@deploy/detect-storage-usage.js",
+    "summary": "detect-storage-usage.js Cheap check for `window.storage` usage (Claude Artifacts' storage API, which doesn't exist outside that sandbox).",
+    "imports": [
+     "lib:@deploy/logger"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/idle-report",
+    "repo": "deploy",
+    "file": "@deploy/idle-report.js",
+    "summary": "Reports which apps are idle and, with --apply, stops them.",
+    "imports": [
+     "lib:@deploy/analytics/bot-filter",
+     "lib:@deploy/analytics/db",
+     "lib:@deploy/nomad-job-spec",
+     "lib:@deploy/scale-to-zero-apps",
+     "lib:@deploy/scale-to-zero-images",
+     "lib:@deploy/scale-to-zero-registry"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:deploy:request_log"
+    ],
+    "tablesWritten": [],
+    "services": [
+     "ext:nomad"
+    ]
+   },
+   {
+    "id": "lib:@deploy/image-registry",
+    "repo": "deploy",
+    "file": "@deploy/image-registry.js",
+    "summary": "image-registry.js Copies every freshly built image into the host's local registry (server-setup.md#image-registry).",
+    "imports": [
+     "lib:@deploy/logger"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:registry",
+     "ext:docker"
+    ]
+   },
+   {
+    "id": "lib:@deploy/image-retention",
+    "repo": "deploy",
+    "file": "@deploy/image-retention.js",
+    "summary": "image-retention.js Keeps only the N most recently built local images for an app, deleting older ones — bounds disk usage on a host that never pushes images to a registry (every build lives here forever otherwise), while ",
+    "imports": [
+     "lib:@deploy/logger"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:docker"
+    ]
+   },
+   {
+    "id": "lib:@deploy/internal-auth",
+    "repo": "deploy",
+    "file": "@deploy/internal-auth.js",
+    "summary": "internal-auth.js Authenticates hostnsoft-api's own calls INTO this service (e.g.",
+    "imports": [
+     "lib:@deploy/logger"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/json-source",
+    "repo": "deploy",
+    "file": "@deploy/json-source.js",
+    "summary": "json-source.js Lets POST /apps take the source as JSON instead of a multipart tarball: Content-Type: application/json { \"appName\": \"my-app\", \"appType\": \"portfolio\", \"agentName\": \"claude\", \"files\": [ { \"path\": \"index.html",
+    "imports": [
+     "lib:@deploy/deploy-response"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/logger",
+    "repo": "deploy",
+    "file": "@deploy/logger.js",
+    "summary": "logger.js Every log line in this service goes through here so they all share one shape: `<ISO timestamp> <request id>: <message>`.",
+    "imports": [
+     "lib:@deploy/request-context"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/nomad-job-spec",
+    "repo": "deploy",
+    "file": "@deploy/nomad-job-spec.js",
+    "summary": "nomad-job-spec.js Builds an app's Nomad job spec (Traefik tags included) — shared between the initial deploy path (server.js's POST /apps, after a fresh build) and the custom-domain config-update path (POST /internal/app",
+    "imports": [
+     "lib:@deploy/logger"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/nomad-job",
+    "repo": "deploy",
+    "file": "@deploy/nomad-job.js",
+    "summary": "Exact-ID Nomad job lookups.",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:nomad"
+    ]
+   },
+   {
+    "id": "lib:@deploy/old_server",
+    "repo": "deploy",
+    "file": "@deploy/old_server.js",
+    "summary": null,
+    "imports": [],
+    "endpoints": [],
+    "defines": [
+     "api:@deploy/v1/deploy"
+    ],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:railpack"
+    ]
+   },
+   {
+    "id": "lib:@deploy/orphan-proxy/proxy",
+    "repo": "deploy",
+    "file": "@deploy/orphan-proxy/proxy.js",
+    "summary": "proxy.js — orphan-expiry banner injector, language/framework-agnostic.",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/project-lookup",
+    "repo": "deploy",
+    "file": "@deploy/project-lookup.js",
+    "summary": "project-lookup.js Read-only counterpart to claim-project.js — calls hostnsoft-api's POST /internal/projects/lookup to find out whether an app name exists, whether it's an unclaimed orphan, and which company owns it, WITH",
+    "imports": [
+     "lib:@deploy/logger"
+    ],
+    "endpoints": [
+     "api:@api/internal/projects/lookup"
+    ],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/record-deployment",
+    "repo": "deploy",
+    "file": "@deploy/record-deployment.js",
+    "summary": "record-deployment.js Reports a deploy attempt's state to hostnsoft-api so the dashboard's deployment history is actually populated — see hostnsoft-api's src/routes/internalDeployments.routes.ts.",
+    "imports": [
+     "lib:@deploy/deploy-credential",
+     "lib:@deploy/logger"
+    ],
+    "endpoints": [
+     "api:@api/internal/deployments/record"
+    ],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/rename-app",
+    "repo": "deploy",
+    "file": "@deploy/rename-app.js",
+    "summary": "rename-app.js — move a deployed app from one name to another.",
+    "imports": [
+     "lib:@deploy/analytics/db",
+     "lib:@deploy/logger",
+     "lib:@deploy/nomad-job",
+     "lib:@deploy/nomad-job-spec",
+     "lib:@deploy/scale-to-zero-images",
+     "lib:@deploy/scale-to-zero-registry",
+     "lib:@deploy/static-site",
+     "lib:@deploy/traefik-router-file"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:traefik",
+     "ext:docker"
+    ]
+   },
+   {
+    "id": "lib:@deploy/report-config-push",
+    "repo": "deploy",
+    "file": "@deploy/report-config-push.js",
+    "summary": "report-config-push.js Reports the outcome of an ASYNC config-push (see POST /internal/apps/:appName/config's deploymentId branch in server.js) back to hostnsoft-api once it's actually known — that endpoint now responds 2",
+    "imports": [
+     "lib:@deploy/logger"
+    ],
+    "endpoints": [
+     "api:@api/internal/deployments/:deploymentId/complete"
+    ],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/request-context",
+    "repo": "deploy",
+    "file": "@deploy/request-context.js",
+    "summary": "Carries the current request's unique id to every logger call made while handling it, without threading it through every function argument.",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/scale-to-zero-apps",
+    "repo": "deploy",
+    "file": "@deploy/scale-to-zero-apps.js",
+    "summary": "The mode switch, and the exclusions universal mode can never override.",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/scale-to-zero-images",
+    "repo": "deploy",
+    "file": "@deploy/scale-to-zero-images.js",
+    "summary": "Is an app's image still on this host?",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/scale-to-zero-registry",
+    "repo": "deploy",
+    "file": "@deploy/scale-to-zero-registry.js",
+    "summary": "Which apps opted into scale-to-zero, and the Traefik routers that make a stopped one reachable.",
+    "imports": [
+     "lib:@deploy/nomad-job-spec",
+     "lib:@deploy/scale-to-zero-apps"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:nomad",
+     "ext:traefik"
+    ]
+   },
+   {
+    "id": "lib:@deploy/server",
+    "repo": "deploy",
+    "file": "@deploy/server.js",
+    "summary": null,
+    "imports": [
+     "lib:@deploy/analytics/access-log-tailer",
+     "lib:@deploy/analytics/query",
+     "lib:@deploy/analytics/resource-poller",
+     "lib:@deploy/analytics/retention",
+     "lib:@deploy/app-health",
+     "lib:@deploy/app-kind",
+     "lib:@deploy/app-logs",
+     "lib:@deploy/build-diagnostics",
+     "lib:@deploy/build-plan",
+     "lib:@deploy/capabilities",
+     "lib:@deploy/claim-project",
+     "lib:@deploy/customer-query",
+     "lib:@deploy/deploy-credential",
+     "lib:@deploy/deploy-response",
+     "lib:@deploy/deploy-status",
+     "lib:@deploy/detect-manifest-root",
+     "lib:@deploy/detect-storage-usage",
+     "lib:@deploy/image-registry",
+     "lib:@deploy/image-retention",
+     "lib:@deploy/internal-auth",
+     "lib:@deploy/json-source",
+     "lib:@deploy/logger",
+     "lib:@deploy/nomad-job",
+     "lib:@deploy/nomad-job-spec",
+     "lib:@deploy/project-lookup",
+     "lib:@deploy/record-deployment",
+     "lib:@deploy/rename-app",
+     "lib:@deploy/report-config-push",
+     "lib:@deploy/request-context",
+     "lib:@deploy/scale-to-zero-registry",
+     "lib:@deploy/static-site",
+     "lib:@deploy/traefik-router-file",
+     "lib:@deploy/validate-deploy-token",
+     "lib:@deploy/verify-proxy-auth"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@deploy/capabilities",
+     "api:@deploy/capabilities/all",
+     "api:@deploy/capabilities/:topic",
+     "api:@deploy/apps",
+     "api:@deploy/apps/:appName/status",
+     "api:@deploy/apps/:appName/logs",
+     "api:@deploy/apps/:appName/customer-query",
+     "api:@deploy/internal/apps/:appName/config",
+     "api:@deploy/internal/apps/:appName/rename",
+     "api:@deploy/internal/apps/:appName",
+     "api:@deploy/internal/apps/:appName/status",
+     "api:@deploy/internal/apps/:appName/analytics"
+    ],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:traefik",
+     "ext:railpack",
+     "ext:docker"
+    ]
+   },
+   {
+    "id": "lib:@deploy/sqlite-data-check",
+    "repo": "deploy",
+    "file": "@deploy/sqlite-data-check.js",
+    "summary": "sqlite-data-check.js — the part of the activator's wake-time data check that knows what a SQLite checkpoint looks like.",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/static-site",
+    "repo": "deploy",
+    "file": "@deploy/static-site.js",
+    "summary": "static-site.js The static fast path's on-disk state — see docs/Static-apps-req.md.",
+    "imports": [
+     "lib:@deploy/image-retention",
+     "lib:@deploy/logger"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/traefik-router-file",
+    "repo": "deploy",
+    "file": "@deploy/traefik-router-file.js",
+    "summary": "traefik-router-file.js Traefik routing for a static app — the counterpart of the Traefik tags nomad-job-spec.js puts on a container app's Nomad service.",
+    "imports": [
+     "lib:@deploy/logger",
+     "lib:@deploy/nomad-job-spec"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:traefik"
+    ]
+   },
+   {
+    "id": "lib:@deploy/validate-deploy-token",
+    "repo": "deploy",
+    "file": "@deploy/validate-deploy-token.js",
+    "summary": "validate-deploy-token.js Confirms a deploy request's token is real and live against hostnsoft-api before this service spends any build/deploy resources on it.",
+    "imports": [
+     "lib:@deploy/logger"
+    ],
+    "endpoints": [
+     "api:@api/internal/deploy-tokens/validate"
+    ],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/verify-proxy-auth",
+    "repo": "deploy",
+    "file": "@deploy/verify-proxy-auth.js",
+    "summary": "verify-proxy-auth.js Lets GET /apps/:appName/status, .../logs, and .../customer-query (all sharing one authorizeAppAccess helper in server.js) also accept a dashboard proxy_auth_token for a CLAIMED app, not just a deploy",
+    "imports": [
+     "lib:@deploy/logger"
+    ],
+    "endpoints": [
+     "api:@api/internal/proxy-auth/verify-membership"
+    ],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   }
+  ],
+  "tables": [
+   {
+    "id": "table:deploy:request_log",
+    "repo": "deploy",
+    "store": "deploy",
+    "name": "request_log",
+    "migration": "@deploy/analytics/db.js",
+    "note": null,
+    "columns": [
+     "id",
+     "app_name",
+     "ts",
+     "status",
+     "duration_ms",
+     "path",
+     "user_agent"
+    ]
+   },
+   {
+    "id": "table:deploy:resource_sample",
+    "repo": "deploy",
+    "store": "deploy",
+    "name": "resource_sample",
+    "migration": "@deploy/analytics/db.js",
+    "note": null,
+    "columns": [
+     "id",
+     "app_name",
+     "ts",
+     "cpu_percent",
+     "memory_mb"
+    ]
+   },
+   {
+    "id": "table:deploy:tail_state",
+    "repo": "deploy",
+    "store": "deploy",
+    "name": "tail_state",
+    "migration": "@deploy/analytics/db.js",
+    "note": "One row, keyed by the log file's own path — lets the tailer resume from where it left off across restarts, and detect rotation (a changed inode, or a file that's now smaller than our last offset).",
+    "columns": [
+     "log_path",
+     "inode",
+     "byte_offset"
+    ]
+   }
+  ],
+  "foreignKeys": []
+ }
+}

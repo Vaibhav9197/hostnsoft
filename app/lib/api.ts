@@ -322,8 +322,10 @@ export async function currentSuperAdmin(): Promise<Identity | null> {
 
   const res = await upstream("/auth/me", { proxyToken }).catch(() => null);
   if (!res || !res.ok) return null;
+  return superAdminFrom(await res.json().catch(() => null));
+}
 
-  const data = (await res.json().catch(() => null)) as Record<string, unknown> | null;
+function superAdminFrom(data: Record<string, unknown> | null): Identity | null {
   // Strict true: a missing flag, a string "false", or any other shape is not
   // an admin.
   if (!data || data.isSuperAdmin !== true) return null;
@@ -349,6 +351,28 @@ export async function currentSuperAdmin(): Promise<Identity | null> {
   }
 
   return identity;
+}
+
+// The same gate as currentSuperAdmin, told apart for a page that needs to say
+// why: nobody signed in, a session hostnsoft-api no longer accepts (the
+// account was removed or signed out elsewhere), or a signed-in person who
+// simply isn't a platform admin. Fails closed the same way.
+export type AdminAccess =
+  | { state: "anon" }
+  | { state: "removed" }
+  | { state: "denied" }
+  | { state: "admin"; identity: Identity };
+
+export async function superAdminAccess(): Promise<AdminAccess> {
+  const proxyToken = await readProxyToken();
+  if (!proxyToken) return { state: "anon" };
+
+  const res = await upstream("/auth/me", { proxyToken }).catch(() => null);
+  if (res && (res.status === 401 || res.status === 403)) return { state: "removed" };
+  if (!res || !res.ok) return { state: "denied" };
+
+  const identity = superAdminFrom(await res.json().catch(() => null));
+  return identity ? { state: "admin", identity } : { state: "denied" };
 }
 
 // Guard for internal-only routes. Resolves the caller from the login session,

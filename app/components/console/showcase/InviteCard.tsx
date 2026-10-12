@@ -10,22 +10,19 @@ import { showcaseListPrompt } from "@/app/lib/showcasePrompt";
 import { cn } from "@/app/lib/utils";
 
 /**
- * How an event page's owner brings apps in: the page link, the prompt for
- * participants' AI, and whether that prompt carries the page's code.
+ * How an event page's owner brings apps in: the prompt for participants' AI,
+ * and whether that prompt carries the page's code.
  *
  * The code is what lets an app skip the owner's review, so it lives here,
- * next to the prompt it goes into, rather than in the page header. The link
- * never carries it: anyone arriving from a shared link waits for approval.
+ * next to the prompt it goes into, rather than in the page header.
  */
 export function InviteCard({
   page,
-  origin,
   includeCode,
   onIncludeCodeChange,
   heading,
 }: {
   page: { slug: string; title: string; submitCode?: string | null };
-  origin: string | null;
   includeCode: boolean;
   onIncludeCodeChange: (next: boolean) => void;
   /** The card's title area — "No apps yet", the just-created celebration, or "Invite participants". */
@@ -38,8 +35,7 @@ export function InviteCard({
     <Panel padded>
       {heading}
       <p className="text-[0.9rem] text-muted-foreground">
-        Invite participants to add their apps. Share the page link, or send the prompt and their AI adds the app for
-        them.
+        Invite participants to add their apps. Send them the prompt and their AI adds the app for them.
       </p>
 
       {code && (
@@ -72,15 +68,6 @@ export function InviteCard({
       )}
 
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-        <CopyButton
-          text={`${origin ?? ""}/showcase/${page.slug}`}
-          announce="Link copied."
-          fallbackLabel="Page link to copy"
-          variant="default"
-          className="h-11 w-full sm:h-9 sm:w-auto"
-        >
-          Share link
-        </CopyButton>
         <CopyPromptButton
           text={showcaseListPrompt(
             { slug: page.slug, title: page.title, type: "event" },
@@ -89,7 +76,7 @@ export function InviteCard({
           )}
           announce="Prompt copied."
           copiedChildren={COPIED_LABEL}
-          className={cn(buttonVariants({ variant: "outline" }), "h-11 w-full sm:h-9 sm:w-auto")}
+          className={cn(buttonVariants({ variant: "default" }), "h-11 w-full sm:h-9 sm:w-auto")}
         >
           <PromptIcon aria-hidden="true" />
           Share prompt to add app

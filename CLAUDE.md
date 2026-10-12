@@ -1,5 +1,11 @@
 # Embarko Panel — UX Redesign Instructions
 
+Start with [docs/prd/README.md](docs/prd/README.md). It is the Live PRD,
+generated from the code of this repo, `hostnsoft-api` and `hostnsoft-deploy`.
+It gives the files and tables behind every story step, by ID. A change can alter a story, a step, a table, or code a
+story names. When it does, update `app/lib/system/story.ts` and run
+`npm run prd`. `npm run prd:check` fails while the PRD is stale.
+
 ## Core principle
 
 Embarko is not an app builder. The user's AI agent builds the app. Embarko only

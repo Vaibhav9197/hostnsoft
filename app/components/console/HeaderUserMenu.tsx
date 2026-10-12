@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Building2, ChevronDown, CreditCard, KeyRound, LayoutGrid, LogOut, Shield, Sparkles, Settings, Users } from "lucide-react";
+import { Building2, ChevronDown, CreditCard, KeyRound, LayoutGrid, LogOut, Map as MapIcon, Shield, Sparkles, Settings, Users } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -39,6 +39,7 @@ export function HeaderUserMenu() {
       // shows through the same tint as hover.
       triggerClassName="flex max-w-[16rem] items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:outline-none"
       label="Account menu"
+      align="start"
     >
       <span className="grid size-7 shrink-0 place-items-center rounded-md bg-foreground text-xs font-bold text-background">
         {initial}
@@ -59,8 +60,8 @@ export function HeaderUserMenu() {
 }
 
 /**
- * The console's one navigation menu, opened from whatever trigger the caller
- * renders — the header's account button, or the breadcrumb's menu icon.
+ * The console's one navigation menu, opened from the top bar's workspace
+ * button.
  */
 export function AccountMenu({
   children,
@@ -89,7 +90,12 @@ export function AccountMenu({
       { href: "/app/members", label: "Members", icon: Users },
       { href: "/app/billing", label: "Billing", icon: CreditCard },
       { href: "/app/settings", label: "Settings", icon: Settings },
-      ...(isSuperAdmin ? [{ href: "/admin", label: "Admin", icon: Shield }] : []),
+      ...(isSuperAdmin
+        ? [
+            { href: "/admin", label: "Admin", icon: Shield },
+            { href: "/admin/system", label: "How it's made", icon: MapIcon },
+          ]
+        : []),
     ],
   ];
 

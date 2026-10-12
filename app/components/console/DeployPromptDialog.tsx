@@ -3,12 +3,10 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Button, buttonVariants } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { UploadDeployPanel } from "./UploadDeployPanel";
-import { COPIED_LABEL, CopyPromptButton, PromptIcon } from "../CopyPromptButton";
-import { CONSOLE_DEPLOY_PROMPT, consoleDeployPromptFor } from "@/app/lib/deployPrompt";
+import { DeploySteps } from "./DeploySteps";
 import { useSession } from "@/app/lib/session";
 
 /**
@@ -23,13 +21,17 @@ import { useSession } from "@/app/lib/session";
  * is looking at this is already signed in, so their marketing-visit cookie says
  * nothing about where the deploy came from.
  *
- * Handing the agent a prompt stays the default, because it is the path that
- * keeps working afterwards — the agent that deployed can also fix and redeploy.
+ * The prompt path is the four steps in DeploySteps — the same ones the empty
+ * apps page shows, so the two never tell it differently.
+ *
  * Uploading is for whoever already has the app built and would rather not go
- * through an agent at all.
+ * through an agent at all. It's hidden for now (SHOW_UPLOAD); the code stays.
  */
 
 type Start = "prompt" | "upload";
+
+/** Upload is parked, not removed: flip this to bring the tab back. */
+const SHOW_UPLOAD = false;
 
 export function DeployPromptDialog({
   open,
@@ -37,6 +39,7 @@ export function DeployPromptDialog({
   title,
   description,
   appSlug,
+  projectId,
   onDeployed,
 }: {
   open: boolean;
@@ -46,13 +49,27 @@ export function DeployPromptDialog({
   /** Names the app in the prompt, so a redeploy lands on this one rather than
    *  creating a second app. Omitted by the apps list, which has no app yet. */
   appSlug?: string | null;
+  /** The app being updated. Step 4 follows whichever app the AI deploys,
+   *  but if two change at once, this one wins. */
+  projectId?: string | null;
   /** Lets the caller pick up a freshly uploaded app — the list reloads, the
    *  project page re-reads its status. */
   onDeployed?: () => void;
 }) {
   const { activeCompanyId } = useSession();
-  const prompt = appSlug ? consoleDeployPromptFor(appSlug) : CONSOLE_DEPLOY_PROMPT;
   const [start, setStart] = useState<Start>("prompt");
+
+  const steps = (
+    <div className="mt-1">
+      <DeploySteps
+        mode={appSlug ? "update" : "new"}
+        appSlug={appSlug}
+        projectId={projectId}
+        active={open}
+        onEvent={() => onDeployed?.()}
+      />
+    </div>
+  );
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
@@ -62,51 +79,36 @@ export function DeployPromptDialog({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
-        <Tabs value={start} onValueChange={(value) => setStart(value as Start)}>
-          <TabsList variant="line">
-            <TabsTrigger value="prompt">Paste a prompt</TabsTrigger>
-            <TabsTrigger value="upload">Upload file</TabsTrigger>
-          </TabsList>
+        {!SHOW_UPLOAD ? (
+          steps
+        ) : (
+          <Tabs value={start} onValueChange={(value) => setStart(value as Start)}>
+            <TabsList variant="line">
+              <TabsTrigger value="prompt">Paste a prompt</TabsTrigger>
+              <TabsTrigger value="upload">Upload file</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="prompt" className="mt-3 flex flex-col gap-4">
-            <pre className="max-h-[40vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-border bg-elevated p-4 font-mono text-xs leading-relaxed text-muted-foreground">
-              {prompt}
-            </pre>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" type="button" onClick={onClose}>
-                Cancel
-              </Button>
-              {/* The shared copy button owns the clipboard behaviour and the
-                  copied-state flip; it only needs the primary button's styling. */}
-              <CopyPromptButton
-                text={prompt}
-                className={buttonVariants()}
-                copiedChildren={COPIED_LABEL}
-                onCopied={onClose}
-              >
-                <PromptIcon aria-hidden="true" />
-                Copy
-              </CopyPromptButton>
-            </div>
-          </TabsContent>
+            <TabsContent value="prompt" className="mt-3">
+              {steps}
+            </TabsContent>
 
-          {/* The upload panel carries its own Deploy button: it is only live
-              once something has been packed, which the footer above has no way
-              of knowing. */}
-          <TabsContent value="upload" className="mt-3">
-            <UploadDeployPanel
-              companyId={activeCompanyId}
-              appSlug={appSlug}
-              onDeployed={(appName) => {
-                toast.success(`Deploying ${appName}`, {
-                  description: "The build runs in the background — it'll appear here once it's up.",
-                });
-                onDeployed?.();
-                onClose();
-              }}
-            />
-          </TabsContent>
-        </Tabs>
+            {/* The upload panel carries its own Deploy button: it is only
+                live once something has been packed. */}
+            <TabsContent value="upload" className="mt-3">
+              <UploadDeployPanel
+                companyId={activeCompanyId}
+                appSlug={appSlug}
+                onDeployed={(appName) => {
+                  toast.success(`Deploying ${appName}`, {
+                    description: "The build runs in the background — it'll appear here once it's up.",
+                  });
+                  onDeployed?.();
+                  onClose();
+                }}
+              />
+            </TabsContent>
+          </Tabs>
+        )}
       </DialogContent>
     </Dialog>
   );

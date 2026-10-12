@@ -32,10 +32,27 @@ type PromptContext = {
  * - **none**: the marketing pages. The quickstart handles access.
  */
 function build({ appName, token, signedIn }: PromptContext = {}): string {
-  const lines = ["Deploy this app to Embarko", `Read ${SITE}/docs/agent-quickstart.md and follow it.`];
-  if (appName) lines.push(`Redeploy it as the existing app "${appName}", that exact name.`);
-  if (token) lines.push(`Use this deploy token: ${token}`);
-  else if (signedIn || appName) lines.push("Deploy it under my account, not anonymously.");
+  const lines = [
+    "Deploy this app to Embarko — cloud hosting for small apps. No Dockerfile, no signup.",
+    "",
+    `Read ${SITE}/docs/agent-quickstart.md and follow it. Nothing to install.`,
+  ];
+  if (appName) lines.push(`Redeploy it as the existing Embarko app "${appName}" — that exact name, so it updates that app instead of standing up a second one on a second subdomain.`);
+  const useSavedToken = "use DEPLOY_TOKEN or ~/.embarko/credentials if either is already set";
+  const askForToken = `if neither is, ask me for one — I can create it on the "Deploy tokens" page at ${SITE}/app/tokens — and save it to ~/.embarko/credentials so later deploys reuse it`;
+  if (token) {
+    lines.push(`Use this Embarko deploy token: ${token}`);
+    lines.push("Set it as DEPLOY_TOKEN and save it to ~/.embarko/credentials so later deploys reuse it. Don't deploy anonymously.");
+  } else if (appName) {
+    lines.push(`That app is already claimed, so this needs my deploy token: ${useSavedToken}, and ${askForToken}.`);
+  } else if (signedIn) {
+    lines.push(`Deploy it under my account, not anonymously: ${useSavedToken}, and ${askForToken}.`);
+    lines.push("This matters — an anonymous deploy isn't attached to my account, so it won't show up in my Embarko console and is deleted after 24 hours.");
+  } else {
+    lines.push("Deploy anonymously first — no token, no account — then give me the live URL.");
+    lines.push("Only once it's live, ask me for my email: Embarko mails back a token that makes the app permanent.");
+  }
+  lines.push("", "Faster, if your tools let you install one: npx skills add embarko-ai/skill --skill embarko-deploy -g");
   return lines.join("\n");
 }
 
@@ -53,10 +70,11 @@ export const CONSOLE_DEPLOY_PROMPT = build({ signedIn: true });
 /**
  * The console prompt with the app already named, for redeploying that app.
  * Pass the slug, not the display name: `X-App-Name` is the live subdomain.
- * Falls back to the generic prompt when the slug hasn't loaded.
+ * Falls back to the generic prompt when the slug hasn't loaded. With a token,
+ * the agent uses it instead of asking for one.
  */
-export function consoleDeployPromptFor(appSlug: string | null | undefined): string {
-  return build({ appName: appSlug, signedIn: true });
+export function consoleDeployPromptFor(appSlug: string | null | undefined, token?: string | null): string {
+  return build({ appName: appSlug, token, signedIn: true });
 }
 
 /** The console prompt with a freshly issued deploy token inside it. */

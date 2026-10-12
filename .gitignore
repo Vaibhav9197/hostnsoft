@@ -65,3 +65,6 @@ cloudflare-env.d.ts
 .claude/launch.json
 # local A/B test store
 /.data/
+
+# Live PRD facts — regenerated before dev and build (history.generated.json is committed)
+/app/lib/system/facts.generated.json

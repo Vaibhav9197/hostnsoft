@@ -20,10 +20,6 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
-  /* True while the empty state is waiting for a first app after a copy. The
-     settling poll below only runs once a card exists, so without this a first
-     deploy never showed up until someone refreshed. */
-  const [listening, setListening] = useState(false);
   // Parked with the name field and createProject below.
   // const [name, setName] = useState("");
   // const [busy, setBusy] = useState(false);
@@ -92,16 +88,6 @@ export default function ProjectsPage() {
     (p) => p.status === "in_progress" || p.health === "starting",
   ) ?? false;
   useEffect(() => {
-    if (!listening || (projects?.length ?? 0) > 0) return;
-    const tick = setInterval(() => load(true), 5000);
-    const giveUp = setTimeout(() => clearInterval(tick), 30 * 60 * 1000);
-    return () => {
-      clearInterval(tick);
-      clearTimeout(giveUp);
-    };
-  }, [listening, projects?.length, load]);
-
-  useEffect(() => {
     if (!settling) return;
     const tick = setInterval(() => load(true), 5000);
     const giveUp = setTimeout(() => clearInterval(tick), 10 * 60 * 1000);
@@ -166,8 +152,8 @@ export default function ProjectsPage() {
       <DeployPromptDialog
         open={creating}
         onClose={() => setCreating(false)}
-        title="Deploy an app"
-        description="Hand the prompt to your AI agent, or upload the app yourself. Either way it lands here on its own subdomain."
+        title="Host new app"
+        description="Your AI built the app. Let it put the app online too."
         onDeployed={refreshAfterDeploy}
       />
 
@@ -179,7 +165,7 @@ export default function ProjectsPage() {
         </div>
       )}
 
-      {projects && projects.length === 0 && <FirstAppEmpty onWaitingChange={setListening} onCheckNow={() => load(true)} />}
+      {projects && projects.length === 0 && <FirstAppEmpty onLive={() => load(true)} />}
 
       {projects && projects.length > 0 && (
         <div className="sc">

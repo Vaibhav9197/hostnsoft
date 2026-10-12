@@ -88,7 +88,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ["/showcase", 0.9, "daily"],
     ["/pages", 0.8, "weekly"],
     ["/use-cases", 0.8, "weekly"],
-    ["/skill", 0.9, "daily"],
     ["/status", 0.6, "daily"],
     ["/support", 0.5, "monthly"],
     ["/security", 0.6, "monthly"],
