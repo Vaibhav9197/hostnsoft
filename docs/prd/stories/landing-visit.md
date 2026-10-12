@@ -8,7 +8,7 @@
 - **Wants to:** understand what Embarko does and try it
 - **Ends with:** The visitor has seen one landing version, copied the prompt, and the visit counts for that version.
 - **Steps:** 5 · 0 by AI · 3 can go wrong
-- **Last change to its code:** v63, 7 Oct 2026 — reverting to old copy deployment prompt
+- **Last change to its code:** v66, 12 Oct 2026 — feat(landing): one feature list for v1–v4 — tiles on v1/v2, tabs on v3/v4
 
 [← All stories](../README.md)
 
@@ -155,11 +155,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v66 (a1ec2d4) | 12 Oct 2026 | feat(landing): one feature list for v1–v4 — tiles on v1/v2, tabs on v3/v4 | read-page |
+| v65 (a7e6b9b) | 10 Oct 2026 | feat(landing): trim copy, pill labels, Use cases moves to the footer | read-page, copy-prompt |
+| v64 (a6658fd) | 10 Oct 2026 | feat(console): deploy steps with live status, shared by dialog and empty state | copy-prompt |
 | v63 (3f8de6c) | 7 Oct 2026 | reverting to old copy deployment prompt | copy-prompt |
 | v62 (2e9bdb3) | 6 Oct 2026 | feat(showcase): one-action header, wordmark-only app pages | copy-prompt |
-| v61 (edc2ec7) | 6 Oct 2026 | feat(v2): story-first hero, capability tiles in the story's end | read-page |
-| v60 (94906f5) | 6 Oct 2026 | feat(v2): "How it works" story next to the copy button | read-page |
-| v59 (fa959e3) | 6 Oct 2026 | fix(v1): steady tile hover and keep step 2 lit after copy | read-page |
 
 ## Open questions
 

@@ -463,3 +463,62 @@ export interface AdminShowcaseListingPage {
   total: number;
   totalPages: number;
 }
+
+// ---- Coupons (docs/billing.md "Coupons" in hostnsoft-api) -----------------
+
+export type CouponFrequency = "once" | "recurring" | "forever";
+
+export type CouponBlocker =
+  | "terminated"
+  | "expired"
+  | "already_applied"
+  | "already_used"
+  | "pending_free_downgrade"
+  | "not_reusable"
+  | "plan_overlap"
+  | "currency_mismatch"
+  | "other";
+
+export type CouponWarning = "plan_mismatch" | "currency_mismatch";
+
+export interface CouponSummary {
+  code: string;
+  name: string;
+  description: string | null;
+  type: "fixed_amount" | "percentage";
+  amountCents: number | null;
+  currency: string | null;
+  percentageRate: string | null;
+  frequency: CouponFrequency;
+  frequencyDuration: number | null;
+  expiresAt: string | null;
+  // null = applies to every plan.
+  planCodes: string[] | null;
+  reusable: boolean;
+}
+
+// GET /companies/:id/billing/coupons/:code — nothing is applied by a check.
+export interface CouponCheck {
+  coupon: CouponSummary;
+  applicable: boolean;
+  blockers: CouponBlocker[];
+  warnings: CouponWarning[];
+  // The coupon waives the card on upgrade (decided server-side from the
+  // coupon table; this flag only lets the UI skip the add-card step).
+  skipPaymentMethod: boolean;
+}
+
+// GET /companies/:id/billing/coupons — active applied coupons.
+export interface AppliedCoupon {
+  code: string;
+  name: string;
+  amountCents: number | null;
+  amountCentsRemaining: number | null;
+  currency: string | null;
+  percentageRate: string | null;
+  frequency: CouponFrequency;
+  frequencyDuration: number | null;
+  frequencyDurationRemaining: number | null;
+  expiresAt: string | null;
+  appliedAt: string;
+}

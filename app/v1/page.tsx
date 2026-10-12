@@ -8,7 +8,7 @@ import { SectionSnap } from './SectionSnap';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { ExampleAppCards } from '../components/ExampleAppCards';
-import { NeedsGrid } from '../components/NeedsGrid';
+import { FeatureTiles } from '../components/FeatureTiles';
 import { ButtonLink, GlowBackdrop, Pill, PrimaryCta, Serif } from '@/app/components/ds';
 
 /* Display headings: the ds hero weight and tracking, sized per scene. */
@@ -177,7 +177,7 @@ export default function EmbarkoV1() {
                 Need more? You <Serif grad>already</Serif> have it.
               </h2>
             </div>
-            <NeedsGrid />
+            <FeatureTiles />
             <p className="text-[15px] text-[var(--ds-mute)]">
               No Firebase setup. No S3 setup. No OAuth console. <span className="font-semibold text-[var(--ds-ink)]">Life&apos;s too short for that.</span>
             </p>

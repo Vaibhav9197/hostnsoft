@@ -99,6 +99,8 @@ export const AREAS: Area[] = [
       "lib:app/components/AppsMarquee",
       "lib:app/components/ExampleAppCards",
       "lib:app/components/FeatureShowcase",
+      "lib:app/components/FeatureTiles",
+      "lib:app/lib/features",
       "lib:app/components/NeedsGrid",
       "lib:app/components/WhyEmbarko",
       "lib:app/components/Header",
@@ -157,7 +159,7 @@ export const AREAS: Area[] = [
     lane: "screens",
     plain: "Step-by-step articles that bring people from search to their first deploy.",
     detail: "Markdown with frontmatter in content/guides/, served at /guides and /guides/<slug> with cover images from public/assets/guides/ (drawn by scripts/guide-covers.mjs). Only posts with status \"published\" are built.",
-    refs: ["page:/guides", "page:/guides/*", "lib:app/guides/*", "lib:app/lib/guides"],
+    refs: ["page:/guides", "page:/guides/*", "api:/guides/llms.txt", "api:/guides/[slug]/llms.txt", "lib:app/guides/*", "lib:app/lib/guides"],
   },
   {
     id: "sign-in",

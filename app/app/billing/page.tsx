@@ -18,17 +18,18 @@ import {
   Toast,
 } from "../../components/console/kit";
 import { ConfirmDialog } from "../../components/console/ConfirmDialog";
+import { CouponBox, type CouponBoxState, couponErrorMessage, describeCoupon } from "../../components/console/CouponBox";
 import { Button } from "../../components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../components/ui/tooltip";
 import { useBilling } from "../../lib/billing";
 import { HnsError } from "../../lib/client";
-import { formatDate, formatMoney, intervalSuffix } from "../../lib/format";
+import { formatDate, formatDateUTC, formatMoney, intervalSuffix } from "../../lib/format";
 import { billingApi } from "../../lib/hnsApi";
 import { useSession } from "../../lib/session";
 import { cn } from "../../lib/utils";
 import { monthlyCents, planDetails, planFamily, takePlanAfterLogin } from "../../lib/plans";
-import type { BillingPlan, PaymentMethod } from "../../lib/types";
+import type { AppliedCoupon, BillingPlan, CouponCheck, PaymentMethod } from "../../lib/types";
 
 type PendingAction =
   | { kind: "change"; plan: BillingPlan }
@@ -37,6 +38,11 @@ type PendingAction =
   | { kind: "cancel" }
   | { kind: "removeCard"; card: PaymentMethod }
   | null;
+
+type CouponsState =
+  | { kind: "loading" }
+  | { kind: "ready"; coupons: AppliedCoupon[] }
+  | { kind: "error"; message: string };
 
 type CardsState =
   | { kind: "loading" }
@@ -101,6 +107,39 @@ export default function BillingPage() {
     loadCards();
   }, [loadCards]);
 
+  // Applied coupons live in Lago too; fetched alongside cards, refreshed after
+  // an apply or a plan change.
+  const [coupons, setCoupons] = useState<CouponsState>({ kind: "loading" });
+  const loadCoupons = useCallback(async () => {
+    if (!activeCompanyId || setup !== "ready") return;
+    try {
+      setCoupons({ kind: "ready", coupons: (await billingApi.appliedCoupons(activeCompanyId)).coupons });
+    } catch (e) {
+      setCoupons({ kind: "error", message: couponErrorMessage(e) });
+    }
+  }, [activeCompanyId, setup]);
+  useEffect(() => {
+    loadCoupons();
+  }, [loadCoupons]);
+
+  // Coupon checked above the plan cards. While set, plan-limited coupons
+  // narrow the cards to the plans they cover and the upgrade carries the code.
+  const [coupon, setCoupon] = useState<CouponCheck | null>(null);
+  const [couponBoxKey, setCouponBoxKey] = useState(0); // bump to reset the box
+  const [couponOpen, setCouponOpen] = useState(false); // "Have a coupon?" expanded
+  const onCouponState = useCallback((s: CouponBoxState) => {
+    setCoupon(s.kind === "checked" ? s.check : null);
+  }, []);
+  const couponCovers = (plan: BillingPlan) => !coupon?.coupon.planCodes || coupon.coupon.planCodes.includes(plan.code);
+  const couponPlans = coupon?.coupon.planCodes ? plans.filter((p) => coupon.coupon.planCodes!.includes(p.code)) : [];
+  // Jump to the billing period the coupon's plan is on (e.g. a monthly-only
+  // coupon flips the toggle to Monthly) so the covered card is visible.
+  useEffect(() => {
+    const first = couponPlans[0];
+    if (first && first.amount_cents > 0) setInterval(first.interval === "yearly" ? "yearly" : "monthly");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coupon?.coupon.code]);
+
   // Every mutation goes through here: one in-flight action at a time, errors
   // surface in the page-level alert, and only the affected data is refetched.
   // `fn` may return a notice to show on success.
@@ -138,14 +177,29 @@ export default function BillingPage() {
 
   // Lago decides whether a change is immediate or end-of-period; the returned
   // subscription's status says which, so the notice reflects what happened.
-  const changePlan = (plan: BillingPlan) =>
+  const changePlan = (plan: BillingPlan, couponCode?: string) =>
     run(
       `plan:${plan.code}`,
       async (id) => {
-        const sub = await billingApi.changePlan(id, plan.code);
+        let sub;
+        try {
+          sub = await billingApi.changePlan(id, plan.code, couponCode);
+        } catch (e) {
+          // The API takes the coupon back off when the plan change fails, so
+          // the user can simply retry; say so, and show coupon errors plainly.
+          if (couponCode) throw new Error(`${couponErrorMessage(e)} Your coupon was not applied.`);
+          throw e;
+        } finally {
+          if (couponCode) {
+            loadCoupons();
+            setCoupon(null);
+            setCouponBoxKey((k) => k + 1);
+          }
+        }
+        const withCoupon = couponCode ? " Your coupon is applied." : "";
         return sub.status === "pending"
-          ? `Your plan will switch to ${plan.name} at the end of the current billing period.`
-          : `You’re now on ${plan.name}.`;
+          ? `Your plan will switch to ${plan.name} at the end of the current billing period.${withCoupon}`
+          : `You’re now on ${plan.name}.${withCoupon}`;
       },
       "status",
     );
@@ -153,7 +207,10 @@ export default function BillingPage() {
   // Upgrades charge immediately, so Lago needs a card first. Re-fetch rather
   // than trusting the cached list (a card may have been removed elsewhere).
   const startChange = (plan: BillingPlan) => {
-    if (!isUpgrade(plan, active?.plan ?? null)) {
+    // Downgrades never need a card; neither does an upgrade with a coupon
+    // the server says waives it (the API re-checks that, this just skips
+    // the add-card prompt).
+    if (!isUpgrade(plan, active?.plan ?? null) || (coupon?.skipPaymentMethod && couponCovers(plan))) {
       setConfirm({ kind: "change", plan });
       return;
     }
@@ -306,11 +363,48 @@ export default function BillingPage() {
         </Panel>
       )}
 
+      {/* ---------------------------------------------------- applied coupons */}
+      {setup === "ready" && coupons.kind === "ready" && coupons.coupons.length > 0 && (
+        <Panel>
+          <div className="border-b border-border px-6 py-4">
+            <PanelTitle>Applied coupons</PanelTitle>
+            <p className="mt-0.5 text-[0.88rem] text-muted-foreground">Deducted from your next invoices, before tax.</p>
+          </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Coupon</TableHead>
+                  <TableHead>Discount</TableHead>
+                  <TableHead>Remaining</TableHead>
+                  <TableHead>Expires</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {coupons.coupons.map((c) => (
+                  <TableRow key={c.code}>
+                    <TableCell>
+                      <div className="font-medium text-foreground">{c.name}</div>
+                      <div className="font-mono text-xs text-muted-foreground">{c.code}</div>
+                    </TableCell>
+                    <TableCell>{couponDiscount(c)}</TableCell>
+                    <TableCell>{couponRemaining(c)}</TableCell>
+                    <TableCell>{formatDateUTC(c.expiresAt)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+        </Panel>
+      )}
+
       {/* ---------------------------------------------------- plans */}
       {setup === "ready" && (
         <section id="plans" className="flex flex-col gap-3.5 scroll-mt-20">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <PanelTitle>Plans</PanelTitle>
+            <div className="flex items-center gap-4">
+            {!couponOpen && activeCompanyId && (
+              <LinkButton onClick={() => setCouponOpen(true)}>Have a coupon code?</LinkButton>
+            )}
             {hasBothIntervals && (
               <div
                 role="radiogroup"
@@ -337,9 +431,37 @@ export default function BillingPage() {
                 })}
               </div>
             )}
+            </div>
           </div>
+          {couponOpen && activeCompanyId && (
+            <Panel padded>
+              <CouponBox
+                key={couponBoxKey}
+                companyId={activeCompanyId}
+                plans={plans}
+                allowApply={!isFree && currentPlan != null && couponCovers(currentPlan)}
+                onChange={onCouponState}
+                onApplied={() => {
+                  setNotice("Coupon applied.");
+                  setCoupon(null);
+                  setCouponBoxKey((k) => k + 1);
+                  setCouponOpen(false);
+                  loadCoupons();
+                }}
+              />
+            </Panel>
+          )}
           {!isFree && cards.kind === "ready" && !hasDefaultCard && (
             <span className="text-[0.82rem] text-warning">No default card on file — add one below to keep your plan active.</span>
+          )}
+          {coupon && (
+            <Alert variant="info">
+              {coupon.coupon.planCodes
+                ? couponPlans.length > 0
+                  ? <>Coupon <b>{coupon.coupon.name}</b> works with <b>{couponPlans.map((p) => `${p.name} (${p.interval})`).join(", ")}</b> only. Other plans are disabled while it’s selected — press Clear to remove it.</>
+                  : <>Coupon <b>{coupon.coupon.name}</b> doesn’t cover any plan listed here.</>
+                : <>Coupon <b>{coupon.coupon.name}</b> works with any paid plan — it’s applied with your upgrade.</>}
+            </Alert>
           )}
 
           {plans.length === 0 ? (
@@ -432,10 +554,14 @@ export default function BillingPage() {
                         <Button
                           variant={upgrade ? "default" : "outline"}
                           className="w-full"
-                          disabled={busy != null || !active}
+                          disabled={busy != null || !active || (coupon != null && (!couponCovers(plan) || !upgrade))}
                           onClick={() => startChange(plan)}
                         >
-                          {busy === `plan:${plan.code}` ? "Checking…" : upgrade ? "Upgrade" : "Downgrade"}
+                          {busy === `plan:${plan.code}`
+                            ? "Checking…"
+                            : upgrade
+                              ? coupon && couponCovers(plan) ? "Upgrade with coupon" : "Upgrade"
+                              : "Downgrade"}
                         </Button>
                       )}
                     </div>
@@ -545,9 +671,19 @@ export default function BillingPage() {
       <ConfirmDialog
         request={
           confirm && {
-            ...describe(confirm, currentPlan),
+            ...describe(
+              confirm,
+              currentPlan,
+              confirm.kind === "change" && coupon && couponCovers(confirm.plan) && isUpgrade(confirm.plan, currentPlan) ? (
+                <p className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
+                  Coupon <b>{coupon.coupon.name}</b> will be applied: {describeCoupon(coupon.coupon)}
+                  {coupon.skipPaymentMethod && <> No card is needed for this coupon.</>}
+                </p>
+              ) : null,
+            ),
             onConfirm: () => {
-              if (confirm.kind === "change") changePlan(confirm.plan);
+              const code = confirm.kind === "change" && coupon && couponCovers(confirm.plan) ? coupon.coupon.code : undefined;
+              if (confirm.kind === "change") changePlan(confirm.plan, code);
               else if (confirm.kind === "needCard") addCard();
               else if (confirm.kind === "cancel") cancelPlan();
               else if (confirm.kind === "removeCard") removeCard(confirm.card);
@@ -566,14 +702,17 @@ function isUpgrade(target: BillingPlan, current: BillingPlan | null): boolean {
   return monthlyCents(target) > (current ? monthlyCents(current) : 0);
 }
 
-function describe(action: NonNullable<PendingAction>, currentPlan: BillingPlan | null) {
+function describe(action: NonNullable<PendingAction>, currentPlan: BillingPlan | null, couponSlot: React.ReactNode = null) {
   switch (action.kind) {
     case "change": {
       const up = isUpgrade(action.plan, currentPlan);
       return {
         title: `${up ? "Upgrade" : "Downgrade"} to ${action.plan.name}?`,
         body: up ? (
-          <>You’ll be moved to <b>{action.plan.name}</b> ({price(action.plan)}) immediately and your default card will be charged.</>
+          <>
+            <p>You’ll be moved to <b>{action.plan.name}</b> ({price(action.plan)}) immediately and your default card will be charged.</p>
+            {couponSlot && <div className="mt-4">{couponSlot}</div>}
+          </>
         ) : (
           <>You’ll stay on {currentPlan?.name ?? "your current plan"} until the end of this billing period, then switch to <b>{action.plan.name}</b> ({price(action.plan)}).</>
         ),
@@ -615,4 +754,22 @@ function describe(action: NonNullable<PendingAction>, currentPlan: BillingPlan |
       };
     }
   }
+}
+
+// Applied-coupon table copy. "Remaining" depends on the coupon shape: fixed
+// amounts count down money, recurring ones count down periods.
+function couponDiscount(c: AppliedCoupon): string {
+  if (c.percentageRate) return `${Number(c.percentageRate)}% off`;
+  if (c.amountCents != null && c.currency) return `${formatMoney(c.amountCents, c.currency)} off`;
+  return "—";
+}
+
+function couponRemaining(c: AppliedCoupon): string {
+  if (c.amountCentsRemaining != null && c.currency) return `${formatMoney(c.amountCentsRemaining, c.currency)} left`;
+  if (c.frequency === "recurring") {
+    const n = c.frequencyDurationRemaining ?? c.frequencyDuration;
+    return n != null ? `${n} more ${n === 1 ? "invoice" : "invoices"}` : "—";
+  }
+  if (c.frequency === "forever") return "Ongoing";
+  return "Next invoice";
 }

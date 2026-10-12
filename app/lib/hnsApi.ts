@@ -38,6 +38,8 @@ import type {
   ShowcaseSubmissionInput,
   SlugChangeAccepted,
   SlugChangeStatus,
+  CouponCheck,
+  AppliedCoupon,
 } from "./types";
 
 // ---------------------------------------------------------------- Companies
@@ -283,11 +285,29 @@ export const billingApi = {
 
   // PUT .../subscription — change plan. Upgrades apply now; downgrades at
   // period end (shows as a "pending" subscription until then).
-  changePlan: (companyId: string, planCode: string) =>
+  changePlan: (companyId: string, planCode: string, couponCode?: string) =>
     hns<BillingSubscription>(`/companies/${companyId}/billing/subscription`, {
       method: "PUT",
-      body: { plan_code: planCode },
+      body: couponCode ? { plan_code: planCode, coupon_code: couponCode } : { plan_code: planCode },
     }),
+
+  // GET .../coupons/:code — check a coupon without applying it. 404
+  // BILLING_COUPON_NOT_FOUND for unknown (or non-self-serve) codes.
+  checkCoupon: (companyId: string, code: string, planCode?: string) =>
+    hns<CouponCheck>(
+      `/companies/${companyId}/billing/coupons/${encodeURIComponent(code)}` +
+        (planCode ? `?plan_code=${encodeURIComponent(planCode)}` : ""),
+    ),
+
+  // POST .../coupons — apply on the current (paid) plan. 409
+  // BILLING_COUPON_REQUIRES_PAID_PLAN on free; 422 BILLING_COUPON_NOT_APPLICABLE
+  // with payload.details.reason otherwise.
+  applyCoupon: (companyId: string, code: string) =>
+    hns<AppliedCoupon>(`/companies/${companyId}/billing/coupons`, { method: "POST", body: { coupon_code: code } }),
+
+  // GET .../coupons — coupons currently applied to the company.
+  appliedCoupons: (companyId: string) =>
+    hns<{ coupons: AppliedCoupon[] }>(`/companies/${companyId}/billing/coupons`),
 
   // DELETE .../subscription — cancel = move back to the free plan.
   cancel: (companyId: string) =>
