@@ -16,6 +16,7 @@ flowchart LR
     landing["Landing pages"]
     site_pages["Info pages"]
     docs["Agent docs"]
+    guides["Guides"]
     sign_in["Sign-in"]
     console["Your apps panel"]
     showcase_manage["Showcase manager"]
@@ -211,6 +212,13 @@ The instructions an AI agent reads before it deploys.
 - **Receives from:** Your AI agent (reads the rules)
 - **Stories:** [First Deploy](stories/first-deploy.md)
 - **Code files:** `@api/src/routes/publicDocs.routes.ts`, `@deploy/capabilities.js`, `app/content/docs/[file]/route.ts`, `app/docs/DocView.tsx`, `app/docs/[file]/route.ts`, `app/docs/agent-playbook/page.tsx`, `app/docs/agent-quickstart/page.tsx`, `app/docs/api/page.tsx`, `app/docs/capabilities/page.tsx`, `app/docs/connectors/page.tsx`, `app/docs/escalation/page.tsx`, `app/docs/limitations/page.tsx`, `app/docs/overview/page.tsx`, `app/docs/renderDoc.tsx`, `app/docs/troubleshoot/page.tsx`, `app/lib/docs.ts`
+
+### Guides (`guides`)
+
+Step-by-step articles that bring people from search to their first deploy.
+
+- **How it works:** Markdown with frontmatter in content/blog/, served at /blog and /blog/<slug> with cover images from public/assets/blog/ (drawn by scripts/blog-covers.mjs). Only posts with status "published" are built.
+- **Code files:** `app/blog/BlogArticle.tsx`, `app/blog/BlogShare.tsx`, `app/blog/ContinueReading.tsx`, `app/blog/[slug]/page.tsx`, `app/blog/page.tsx`, `app/lib/blog.ts`
 
 ### Sign-in (`sign-in`)
 

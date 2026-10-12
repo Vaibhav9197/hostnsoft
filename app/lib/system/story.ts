@@ -152,6 +152,14 @@ export const AREAS: Area[] = [
     ],
   },
   {
+    id: "guides",
+    name: "Guides",
+    lane: "screens",
+    plain: "Step-by-step articles that bring people from search to their first deploy.",
+    detail: "Markdown with frontmatter in content/blog/, served at /blog and /blog/<slug> with cover images from public/assets/blog/ (drawn by scripts/blog-covers.mjs). Only posts with status \"published\" are built.",
+    refs: ["page:/blog", "page:/blog/*", "lib:app/blog/*", "lib:app/lib/blog"],
+  },
+  {
     id: "sign-in",
     name: "Sign-in",
     lane: "screens",
