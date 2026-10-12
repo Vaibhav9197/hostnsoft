@@ -193,7 +193,7 @@ The four versions of the home page a visitor may see.
 - **Passes to:** Visit tracking (views and clicks), Embarko prompt (copy prompt)
 - **Receives from:** Visitors (opens the site), Landing split test (chosen version)
 - **Stories:** [Landing Visit](stories/landing-visit.md)
-- **Code files:** `app/components/AppsMarquee.tsx`, `app/components/BetaBanner.tsx`, `app/components/ExampleAppCards.tsx`, `app/components/FeatureShowcase.tsx`, `app/components/Header.tsx`, `app/components/NavDepth.tsx`, `app/components/NeedsGrid.tsx`, `app/components/SiteFooter.tsx`, `app/components/SiteHeader.tsx`, `app/components/WhyEmbarko.tsx`, `app/lib/agents.ts`, `app/lib/landingMetadata.ts`, `app/lib/trust.ts`, `app/page.tsx`, `app/v1/SectionSnap.tsx`, `app/v1/layout.tsx`, `app/v1/page.tsx`, `app/v2/HostLink.tsx`, `app/v2/HowItWorks.tsx`, `app/v2/layout.tsx`, `app/v2/page.tsx`, `app/v3/layout.tsx`, `app/v3/page.tsx`, `app/v4/layout.tsx`, `app/v4/page.tsx`
+- **Code files:** `app/components/AppsMarquee.tsx`, `app/components/BetaBanner.tsx`, `app/components/ExampleAppCards.tsx`, `app/components/FeatureShowcase.tsx`, `app/components/FeatureTiles.tsx`, `app/components/Header.tsx`, `app/components/NavDepth.tsx`, `app/components/NeedsGrid.tsx`, `app/components/SiteFooter.tsx`, `app/components/SiteHeader.tsx`, `app/components/WhyEmbarko.tsx`, `app/lib/agents.ts`, `app/lib/features.ts`, `app/lib/landingMetadata.ts`, `app/lib/trust.ts`, `app/page.tsx`, `app/v1/SectionSnap.tsx`, `app/v1/layout.tsx`, `app/v1/page.tsx`, `app/v2/HostLink.tsx`, `app/v2/HowItWorks.tsx`, `app/v2/layout.tsx`, `app/v2/page.tsx`, `app/v3/layout.tsx`, `app/v3/page.tsx`, `app/v4/layout.tsx`, `app/v4/page.tsx`
 
 ### Info pages (`site-pages`)
 
