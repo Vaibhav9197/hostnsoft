@@ -49,10 +49,12 @@ export default function SwitchCompanyPage() {
               <div
                 key={c.companyId}
                 className={cn(
-                  "group relative flex flex-col gap-4 overflow-hidden rounded-xl border p-5 transition-all duration-150",
+                  "group relative flex flex-col gap-4 overflow-hidden rounded-xl border p-5 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md",
+                  /* The current workspace is tinted green, matching its chip,
+                     so it's found at a glance. */
                   isActive
-                    ? "border-border bg-elevated shadow-sm"
-                    : "border-border bg-card hover:-translate-y-0.5 hover:border-input hover:bg-elevated hover:shadow-md",
+                    ? "border-[rgba(22,163,74,0.35)] bg-[var(--ok-soft)]"
+                    : "border-border bg-card hover:border-input hover:bg-elevated",
                 )}
               >
                 <div className="flex items-start gap-3.5">
@@ -70,7 +72,7 @@ export default function SwitchCompanyPage() {
                     <div className="truncate text-[1.05rem] font-bold text-foreground">{c.companyName}</div>
                   </div>
                   {isActive && (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-elevated px-2 py-0.5 font-mono text-[0.55rem] uppercase tracking-[0.12em] text-foreground">
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-success bg-card px-2 py-0.5 font-mono text-[0.55rem] uppercase tracking-[0.12em] text-success">
                       <Check className="size-3" />
                       Current
                     </span>
@@ -78,23 +80,19 @@ export default function SwitchCompanyPage() {
                 </div>
 
                 <div className="flex items-center justify-between gap-2">
-                  {isActive ? (
-                    <span className="text-[0.82rem] font-medium text-muted-foreground">You’re working here</span>
-                  ) : (
-                    <>
-                      {/* Stretched over the whole card, so anywhere on it switches. */}
-                      <button
-                        type="button"
-                        onClick={() => choose(c.companyId)}
-                        aria-label={`Switch to ${c.companyName}`}
-                        className="absolute inset-0 z-10 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
-                      />
-                      <span className="inline-flex items-center gap-1.5 text-[0.84rem] font-semibold text-muted-foreground transition-colors group-hover:text-foreground">
-                        Switch
-                        <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-                      </span>
-                    </>
-                  )}
+                  {/* Stretched over the whole card, so anywhere on it opens it. The
+                      current one is clickable too: changing your mind here should
+                      take you straight back, not leave you on this page. */}
+                  <button
+                    type="button"
+                    onClick={() => (isActive ? router.push("/app") : choose(c.companyId))}
+                    aria-label={isActive ? `Back to ${c.companyName}` : `Switch to ${c.companyName}`}
+                    className="absolute inset-0 z-10 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+                  />
+                  <span className="inline-flex items-center gap-1.5 text-[0.84rem] font-semibold text-muted-foreground transition-colors group-hover:text-foreground">
+                    {isActive ? "Back to your apps" : "Switch"}
+                    <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                  </span>
                   {/* Rename and delete are parked for now — the dialog and its
                       handlers stay wired up, only the entry points are hidden.
                   <div className="flex items-center gap-0.5 opacity-60 transition-opacity group-hover:opacity-100 focus-within:opacity-100">

@@ -8,7 +8,7 @@
 - **Wants to:** change a live app, or return to a version that worked
 - **Ends with:** A new or earlier version of the app is live.
 - **Steps:** 5 · 1 by AI · 3 can go wrong
-- **Last change to its code:** v126, 8 Oct 2026 — feat(panel): "Host new app" dialog tells the deploy as three steps
+- **Last change to its code:** v127, 10 Oct 2026 — feat(console): deploy steps with live status, shared by dialog and empty state
 
 [← All stories](../README.md)
 
@@ -161,11 +161,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v127 (a6658fd) | 10 Oct 2026 | feat(console): deploy steps with live status, shared by dialog and empty state | choose |
 | v126 (fc85ee2) | 8 Oct 2026 | feat(panel): "Host new app" dialog tells the deploy as three steps | choose |
 | v125 (3f8de6c) | 7 Oct 2026 | reverting to old copy deployment prompt | choose |
 | v124 (f10b4e1) | 5 Oct 2026 | feat(ui): magic wand icon on every copy-prompt button | choose |
 | v123 (a92e66f) | 5 Oct 2026 | feat(prompt): shorten copy prompt to two lines plus one contextual line | choose |
-| v122 (3ae7dff) | 5 Oct 2026 | Now Checking with exact name not from prefixes (#20) | ai-updates, rollback |
 
 ## Open questions
 

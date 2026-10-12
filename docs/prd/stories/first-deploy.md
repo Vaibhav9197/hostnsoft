@@ -8,7 +8,7 @@
 - **Wants to:** get the app their AI built online
 - **Ends with:** The app is live at its own embarko.app address and shows in Your apps.
 - **Steps:** 10 · 1 by AI · 7 can go wrong
-- **Last change to its code:** v189, 9 Oct 2026 — docs(showcase): tell the agent contributors get an invite and a name credit (#25)
+- **Last change to its code:** v190, 10 Oct 2026 — feat(console): deploy steps with live status, shared by dialog and empty state
 
 [← All stories](../README.md)
 
@@ -292,11 +292,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v190 (a6658fd) | 10 Oct 2026 | feat(console): deploy steps with live status, shared by dialog and empty state | copy-prompt, make-token, watch, app-appears |
 | v189 (b866cf3) | 9 Oct 2026 | docs(showcase): tell the agent contributors get an invite and a name credit (#25) | ai-deploys |
 | v188 (67cbcf0) | 8 Oct 2026 | feat(showcase): custom HTML on event pages- #15 (#15) | make-token |
 | v187 (fc85ee2) | 8 Oct 2026 | feat(panel): "Host new app" dialog tells the deploy as three steps | copy-prompt, app-appears |
 | v186 (67eadd2) | 8 Oct 2026 | feat(panel): top bar with workspace and plan; prompt-first showcase actions | copy-prompt, app-appears |
-| v185 (3f8de6c) | 7 Oct 2026 | reverting to old copy deployment prompt | copy-prompt |
 
 ## Open questions
 
