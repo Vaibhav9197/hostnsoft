@@ -106,7 +106,7 @@ flowchart TD
 - **Keeps:** `AuditLog`, `Deployment`, `Domain`, `Project`
 - **Looks up:** `EnvVar`
 - **Code:** `page:/app/projects/[projectId]/deployments` → `app/app/projects/[projectId]/deployments/page.tsx`, `api:@api/companies/:companyId/projects/:projectId/deployments/:deploymentId/rollback` → `@api/src/routes/deployments.routes.ts`, `lib:@api/src/services/redeploy` → `@api/src/services/redeploy.ts`, `api:@deploy/internal/apps/:appName/config` → `@deploy/server.js`
-- **Outside services:** Docker, Redis, Traefik
+- **Outside services:** Docker, Lago, Redis, Stripe, Traefik
 
 ### 4. Confirm it worked
 

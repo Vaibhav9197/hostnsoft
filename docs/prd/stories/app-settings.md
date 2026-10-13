@@ -163,7 +163,7 @@ flowchart TD
 - **Keeps:** `AuditLog`, `Domain`
 - **Looks up:** `Deployment`, `EnvVar`, `Project`
 - **Code:** `api:@api/companies/:companyId/projects/:projectId/domains/:domain/verify` → `@api/src/routes/domains.routes.ts`, `lib:@api/src/lib/dnsVerify` → `@api/src/lib/dnsVerify.ts`, `lib:@api/src/services/customDomainActivation` → `@api/src/services/customDomainActivation.ts`, `api:@deploy/internal/apps/:appName/config` → `@deploy/server.js`
-- **Outside services:** Docker, Redis, Traefik
+- **Outside services:** Docker, Lago, Redis, Stripe, Traefik
 
 ### 3. Re-check every day
 
@@ -221,7 +221,7 @@ flowchart TD
 - **Keeps:** `AppDetails`, `AuditLog`, `Deployment`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`
 - **Looks up:** `Domain`, `EnvVar`
 - **Code:** `page:/app/projects/[projectId]/settings` → `app/app/projects/[projectId]/settings/page.tsx`, `api:@api/companies/:companyId/projects/:projectId/slug` → `@api/src/routes/projects.routes.ts`, `lib:@api/src/services/slugChangeFlow` → `@api/src/services/slugChangeFlow.ts`
-- **Outside services:** Redis, viaSocket webhook
+- **Outside services:** Lago, Redis, Stripe, viaSocket webhook
 
 ### 7. Move the app
 

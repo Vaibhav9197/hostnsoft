@@ -8,7 +8,7 @@
 - **Wants to:** move to the plan that fits their apps
 - **Ends with:** They are on the new plan, paid by card, or back on Free.
 - **Steps:** 4 · 0 by AI · 4 can go wrong
-- **Last change to its code:** v37, 8 Oct 2026 — feat(panel): top bar with workspace and plan; prompt-first showcase actions
+- **Last change to its code:** v41, 8 Oct 2026 — feat(panel): top bar with workspace and plan; prompt-first showcase actions
 
 [← All stories](../README.md)
 
@@ -124,7 +124,8 @@ flowchart TD
   - If the change fails → the server's reason, or "Something went wrong. Please try again."
   - If A payment later fails → nothing in Embarko hears about it; there are no billing webhooks.
 - **Parts:** Panel bridge (`bridge`), Billing (`billing`), Billing providers (`payments`)
-- **Keeps:** `AuditLog`
+- **Keeps:** `AuditLog`, `Domain`
+- **Looks up:** `Deployment`, `EnvVar`, `Project`
 - **Code:** `api:@api/companies/:companyId/billing/subscription` → `@api/src/routes/billing.routes.ts`, `lib:@api/src/services/billingCustomer` → `@api/src/services/billingCustomer.ts`
 - **Outside services:** Lago, Redis, Stripe
 
@@ -144,6 +145,10 @@ See [system-map.md](../system-map.md) for how the parts connect.
 ## Tables
 
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
+- **Keeps** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
+- **Looks up** `Deployment` — Versioned deploy history — one row per deploy attempt.
+- **Looks up** `EnvVar`
+- **Looks up** `Project` — One Project == one deployed app on hostnsoft-deploy.
 
 See [tables.md](../tables.md).
 
@@ -151,11 +156,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v37 (67eadd2) | 8 Oct 2026 | feat(panel): top bar with workspace and plan; prompt-first showcase actions | load |
-| v36 (8107360) | 7 Oct 2026 | feat(panel): breadcrumb row replaces the header; calmer app cards | load |
-| v35 (7aaa197) | 1 Oct 2026 | fix(pricing): plan buttons sign in and continue to the chosen plan | load, choose, card |
-| v34 (84b9da3) | 1 Oct 2026 | fix(site): no sideways scroll on phones; main CTA above the fold | choose |
-| v33 (7d70639) | 30 Sept 2026 | perf(panel): load billing after the page's own data | load |
+| v41 (67eadd2) | 8 Oct 2026 | feat(panel): top bar with workspace and plan; prompt-first showcase actions | load |
+| v40 (8107360) | 7 Oct 2026 | feat(panel): breadcrumb row replaces the header; calmer app cards | load |
+| v39 (7aaa197) | 1 Oct 2026 | fix(pricing): plan buttons sign in and continue to the chosen plan | load, choose, card |
+| v38 (84b9da3) | 1 Oct 2026 | fix(site): no sideways scroll on phones; main CTA above the fold | choose |
+| v37 (7d70639) | 30 Sept 2026 | perf(panel): load billing after the page's own data | load |
 
 ## Open questions
 
