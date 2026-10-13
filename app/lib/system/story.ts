@@ -1414,7 +1414,7 @@ export const JOURNEYS: Journey[] = [
         choices: ["Keep the last one", "Switch workspace", "Create a workspace"],
         failure: [
           "Switching fails on the server → it is ignored; the choice is kept in this browser.",
-          "They are not a member → \"Company not found\" (404).",
+          "They are not a member → \"Workspace not found\" (404).",
           "Creating a workspace fails → \"Couldn't create the workspace.\"",
         ],
         areas: ["console", "session", "accounts"],

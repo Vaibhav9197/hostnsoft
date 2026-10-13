@@ -70,9 +70,9 @@ Surviving a redeploy is the *only* durability promise for `DATA_DIR`. There is n
 
 ## [How far back can I roll back?](#rollback)
 
-### [Only the last N build images are kept per app](#only-the-last-n-build-images-are-kept-per-app)
+### [Only the last N builds are kept per app](#only-the-last-n-build-images-are-kept-per-app)
 
-Every deploy builds a real image, kept on the host and never pushed to a registry. Only the most recent few are kept. Older ones are removed automatically to limit disk use. Rollback, by API or from the dashboard, can only reach images still on disk. Going further back returns a `422` that says exactly how far back you can go (see [`troubleshoot.md`](troubleshoot.md#rollback-target-image-unavailable)). That is a normal response, not a platform failure.
+Only the most recent few builds of each app are kept; older ones are removed automatically. Rollback, by API or from the dashboard, can only reach builds that are still kept. Going further back returns a `422` that says exactly how far back you can go (see [`troubleshoot.md`](troubleshoot.md#rollback-target-image-unavailable)). That is a normal response, not a platform failure.
 
 **Recommendation:** treat rollback as "undo my last few deploys", not a long-term archive. To rebuild a much older version, keep your own source history (git tags, releases) and redeploy from it.
 

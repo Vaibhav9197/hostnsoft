@@ -23,7 +23,7 @@ This page covers deploying (`POST /apps`) and everything you do to an app after:
 | 422 | `unsupported_storage_pattern` | No, fix the code | [422 unsupported_storage_pattern](#422-unsupported_storage_pattern) |
 | 422 | `no_manifest_at_root` | No, repackage | [422 no_manifest_at_root](#422-no_manifest_at_root) |
 | 422 | `app_nested_in_subdirectory` | No, deploy the subfolder | [422 app_nested_in_subdirectory](#422-app_nested_in_subdirectory) |
-| 422 | `rollback_image_unavailable` | No, pick a newer target | [Rollback target image unavailable](#rollback-target-image-unavailable) |
+| 422 | `rollback_image_unavailable` | No, pick a newer target | [Rollback target too old](#rollback-target-image-unavailable) |
 | 422 | Other rollback error | No, pick another target | [Rollback returns 422 for a different reason](#rollback-returns-422-for-a-different-reason) |
 | 502 | `app_name_check_failed` | Yes, as is | [502 app_name_check_failed](#502-app_name_check_failed) |
 | 502 | Agent customer-query endpoint | Yes | [502 from the agent customer-query endpoint](#502-from-the-agent-customer-query-endpoint) |
@@ -77,7 +77,7 @@ The `docs` URL is what the platform returns today. `/docs/docs.md` now redirects
 
 ### [409 app_name_taken](#409-app_name_taken)
 
-- **Match:** `"already in use by a different company"`
+- **Match:** `"already in use by a different workspace"`
 - **Cause:** `X-App-Name` is also the live subdomain, so it must be unique across the whole platform, not just your account.
 - **Fix:** pick a different `X-App-Name`. Or, if it is your orphan app, claim it with a real token before its 24h expiry.
 
@@ -115,7 +115,7 @@ The `docs` URL is what the platform returns today. `/docs/docs.md` now redirects
 ### ["npm run build" did not complete successfully: exit code: 127](#npm-run-build-did-not-complete-successfully-exit-code-127)
 
 - **Match:** `exit code: 127`, usually followed by a line like `open /var/lib/docker/tmp/docker-import-… : no such file or directory`.
-- **Cause:** exit 127 means **"command not found"** in the build image. `npm` ran fine. The tool the build script called is missing. Two common reasons:
+- **Cause:** exit 127 means **"command not found"** while building the app. `npm` ran fine. The tool the build script called is missing. Two common reasons:
   - the build tool isn't in the app's `dependencies` or `devDependencies`, or
   - the root `package.json` hands the build to a subfolder whose dependencies were never installed. That shape is now rejected before the build. See [422 app_nested_in_subdirectory](#422-app_nested_in_subdirectory).
 
@@ -163,7 +163,7 @@ The `docs` URL is what the platform returns today. `/docs/docs.md` now redirects
 ### [404 on status/logs endpoint](#404-on-statuslogs-endpoint)
 
 - **Match:** `{"error":"Not found"}` from `GET .../status` or `.../logs`
-- **Cause:** a claimed app's status and logs need the owning company's token. An orphan app accepts no token at all. A wrong or missing token on a claimed app always returns 404, so it never confirms the app exists.
+- **Cause:** a claimed app's status and logs need the owning workspace's token. An orphan app accepts no token at all. A wrong or missing token on a claimed app always returns 404, so it never confirms the app exists.
 - **Fix:** send `Authorization: Bearer <deploy token>` for a claimed app. Leave the header out if the app is still meant to be an orphan.
 
 ## [Why did my customer query fail?](#customer-queries-feature-requests-feedback-other)
@@ -264,17 +264,17 @@ The path is `.../customer-query` on all three routes (dashboard, public, agent).
 
 ## [Why did my rollback fail?](#rollback)
 
-### [Rollback target image unavailable](#rollback-target-image-unavailable)
+### [Rollback target too old](#rollback-target-image-unavailable)
 
-- **Match:** HTTP 422, `"code":"rollback_image_unavailable"`, from `POST /api/apps/<app-name>/rollback` with `{"deploymentId": "..."}` (the agent path, deploy token) or the dashboard's Rollback button. The message starts with `"Cannot roll back: the image is no longer available"`. Older responses said `"is no longer available on this host"`. Branch on `code`, which is stable, not on either wording.
-- **Cause:** images are built on the platform's host and never pushed to a registry. Only the most recent few are kept (see [`limitations-and-recommendations.md`](limitations-and-recommendations.md#only-the-last-n-build-images-are-kept-per-app)). The response's `retainCount` field says exactly how many. The target version's image has already been removed.
+- **Match:** HTTP 422, `"code":"rollback_image_unavailable"`, from `POST /api/apps/<app-name>/rollback` with `{"deploymentId": "..."}` (the agent path, deploy token) or the dashboard's Rollback button. The message starts with `"Cannot roll back: that version is too old to restore"`. Older responses said `"the image is no longer available"` or `"is no longer available on this host"`. Branch on `code`, which is stable, not on either wording.
+- **Cause:** only the most recent few builds of each app are kept (see [`limitations-and-recommendations.md`](limitations-and-recommendations.md#only-the-last-n-build-images-are-kept-per-app)). The response's `retainCount` field says exactly how many. The target version is older than that.
 - **Fix:** roll back to one of the last `retainCount` deployments instead (see `GET .../deployments`). Or redeploy the old source fresh if you still have it. The exact number is in the error response, so you don't need to look it up.
 
 ### [Rollback returns 422 for a different reason](#rollback-returns-422-for-a-different-reason)
 
-- **Match:** HTTP 422 from `POST .../rollback`, and `error` does NOT start with `"Cannot roll back: the image is no longer available"`
-- **Cause:** the target deployment didn't succeed (`status !== "success"`) or has no recorded image tag.
-- **Fix:** pick another deployment from `GET .../deployments`. Only successful deployments with an image can be rollback targets.
+- **Match:** HTTP 422 from `POST .../rollback`, and `error` does NOT start with `"Cannot roll back: that version is too old to restore"`
+- **Cause:** the target deployment didn't succeed (`status !== "success"`) or has no kept build.
+- **Fix:** pick another deployment from `GET .../deployments`. Only successful deployments that are still kept can be rollback targets.
 
 ## [Which changes need a redeploy to take effect?](#configuration-changes-that-dont-apply-until-you-redeploy)
 
