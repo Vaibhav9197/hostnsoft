@@ -20,10 +20,6 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
-  /* True while the empty state is waiting for a first app after a copy. The
-     settling poll below only runs once a card exists, so without this a first
-     deploy never showed up until someone refreshed. */
-  const [listening, setListening] = useState(false);
   // Parked with the name field and createProject below.
   // const [name, setName] = useState("");
   // const [busy, setBusy] = useState(false);
@@ -92,16 +88,6 @@ export default function ProjectsPage() {
     (p) => p.status === "in_progress" || p.health === "starting",
   ) ?? false;
   useEffect(() => {
-    if (!listening || (projects?.length ?? 0) > 0) return;
-    const tick = setInterval(() => load(true), 5000);
-    const giveUp = setTimeout(() => clearInterval(tick), 30 * 60 * 1000);
-    return () => {
-      clearInterval(tick);
-      clearTimeout(giveUp);
-    };
-  }, [listening, projects?.length, load]);
-
-  useEffect(() => {
     if (!settling) return;
     const tick = setInterval(() => load(true), 5000);
     const giveUp = setTimeout(() => clearInterval(tick), 10 * 60 * 1000);
@@ -166,24 +152,29 @@ export default function ProjectsPage() {
       <DeployPromptDialog
         open={creating}
         onClose={() => setCreating(false)}
-        title="Deploy an app"
-        description="Hand the prompt to your AI agent, or upload the app yourself. Either way it lands here on its own subdomain."
+        title="Host new app"
+        description="Your AI built the app. Let it put the app online too."
         onDeployed={refreshAfterDeploy}
       />
 
       {error && <Alert>{error}</Alert>}
 
       {!projects && !error && (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3.5">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3.5">
           {[0, 1, 2].map((i) => <Skeleton className="min-h-[150px]" key={i} aria-hidden="true" />)}
         </div>
       )}
 
-      {projects && projects.length === 0 && <FirstAppEmpty onWaitingChange={setListening} onCheckNow={() => load(true)} />}
+      {projects && projects.length === 0 && <FirstAppEmpty onLive={() => load(true)} />}
 
       {projects && projects.length > 0 && (
         <div className="sc">
-          <div className="sc-gal !pb-0">
+          {/* The Showcase grid drops to two columns below 1100px, which made
+              each card half the screen on small laptops. Here the column count
+              follows the room instead: three across on a normal screen, as
+              before, and four on short low-resolution screens (1366×768 and
+              the like), where three left room for barely one row. */}
+          <div className="sc-gal !grid-cols-[repeat(auto-fill,minmax(240px,1fr))] !pb-0 [@media(max-height:820px)]:!grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
             {projects.map((p) => (
               <AppTile key={p.id} project={p} />
             ))}

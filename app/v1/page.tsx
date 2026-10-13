@@ -1,63 +1,22 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Check, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowRight, Check, Sparkles } from 'lucide-react';
 import { trackPageView, trackCTA } from '../lib/tracking';
-import { DEPLOY_PROMPT } from '../lib/deployPrompt';
 import { SectionSnap } from './SectionSnap';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { ExampleAppCards } from '../components/ExampleAppCards';
-import { NeedsGrid } from '../components/NeedsGrid';
+import { FeatureTiles } from '../components/FeatureTiles';
 import { ButtonLink, GlowBackdrop, Pill, PrimaryCta, Serif } from '@/app/components/ds';
 
 /* Display headings: the ds hero weight and tracking, sized per scene. */
 const H_DISPLAY = 'font-extrabold leading-[0.98] tracking-[-0.045em]';
 
-/* Exactly what the copy button puts on the clipboard, shown as it will be
-   pasted, so nobody wonders what they're handing their AI. */
-const PROMPT_LINES = DEPLOY_PROMPT.split('\n');
-
 /* The page's one action, the same button in every scene. */
 function CopyPromptCta({ size }: { size?: 'md' | 'lg' }) {
   return <PrimaryCta size={size} label="Host your app" onClicked={() => trackCTA('copy')} />;
-}
-
-/* The prompt's lines, with only URLs allowed to break mid-word. */
-function PromptText() {
-  return (
-    <>
-      {PROMPT_LINES.map((line, i) => (
-        <span key={i} className="block">
-          {line.split(/(https?:\/\/\S+)/).map((part, j) =>
-            /^https?:\/\//.test(part) ? <span key={j} className="break-all">{part}</span> : part,
-          )}
-        </span>
-      ))}
-    </>
-  );
-}
-
-/* Step 1 as one object: the prompt text and the button that copies it. The
-   text is the real prompt; nothing else on the page looks copyable. */
-function PromptCard({ onCopied }: { onCopied?: () => void }) {
-  return (
-    <div className="w-full overflow-hidden rounded-[18px] bg-[var(--ds-dark)] text-left">
-      <p className="px-4 pb-3 pt-4 font-mono text-[12.5px] leading-relaxed text-white/90">
-        <PromptText />
-      </p>
-      <div className="px-3 pb-3">
-        <PrimaryCta
-          size="md"
-          glow={false}
-          label="Host your app"
-          onClicked={() => trackCTA('copy')}
-          onCopied={onCopied}
-          className="!w-full !bg-white !text-[var(--ds-ink)] hover:!bg-white/90"
-        />
-      </div>
-    </div>
-  );
 }
 
 function PageViewTracker() {
@@ -202,9 +161,6 @@ export default function EmbarkoV1() {
             <h1 className={`${H_DISPLAY} text-[44px] sm:text-6xl md:text-[80px]`}>
               Hosting made <Serif grad>ridiculously</Serif> easy.
             </h1>
-            <p className="mx-auto mt-4 max-w-xl text-lg text-[var(--ds-mute)] sm:mt-5 md:text-xl">
-              Your AI built the app. Let it put the app online too.
-            </p>
 
             <div className="mt-8 sm:mt-10">
               <HeroTimeline />
@@ -216,24 +172,29 @@ export default function EmbarkoV1() {
         <section className={SCENE}>
           <div className="w-full max-w-5xl space-y-10 text-center">
             <div className="space-y-4">
-              <p className="ds-kicker">When your app needs more</p>
+              <Pill className="mb-2">When your app needs more</Pill>
               <h2 className={`${H_DISPLAY} text-4xl sm:text-5xl md:text-6xl`}>
                 Need more? You <Serif grad>already</Serif> have it.
               </h2>
             </div>
-            <NeedsGrid />
+            <FeatureTiles />
             <p className="text-[15px] text-[var(--ds-mute)]">
               No Firebase setup. No S3 setup. No OAuth console. <span className="font-semibold text-[var(--ds-ink)]">Life&apos;s too short for that.</span>
             </p>
           </div>
         </section>
 
-        {/* SCREEN 4: EXAMPLES. Big words, so a student sees their project. */}
+        {/* SCREEN 4: EXAMPLES. Big words, so a student sees their project.
+            Framed as a sample, with the full list one click away, so it
+            doesn't read as everything Embarko can host. */}
         <section className={SCENE}>
           <div className="w-full max-w-5xl space-y-12 text-center">
-            <h2 className={`${H_DISPLAY} text-4xl sm:text-5xl md:text-6xl`}>
-              What can you put <Serif grad>online?</Serif>
-            </h2>
+            <div>
+              <Pill className="mb-6">A few examples</Pill>
+              <h2 className={`${H_DISPLAY} text-4xl sm:text-5xl md:text-6xl`}>
+                What can you put <Serif grad>online?</Serif>
+              </h2>
+            </div>
             <ul className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-2xl font-semibold tracking-tight sm:text-3xl md:text-4xl">
               {EXAMPLES.map((e, i) => (
                 <li key={e} className={i % 2 ? 'text-[var(--ds-mute)]' : ''}>
@@ -244,10 +205,16 @@ export default function EmbarkoV1() {
                 That random useful app you built <Serif>yesterday</Serif>
               </li>
             </ul>
-            <div className="space-y-6 border-t border-[var(--ds-line)] pt-10">
-              <p className="text-lg text-[var(--ds-mute)] md:text-xl">Build it with AI. Ask the same AI to deploy it.</p>
+            <Link
+              href="/use-cases"
+              className="group inline-flex items-center gap-1.5 text-base font-medium text-[var(--ds-ink)] underline decoration-[var(--ds-line)] underline-offset-4 transition hover:decoration-current md:text-lg"
+            >
+              And 160+ more — see use cases
+              <ArrowRight className="size-4 transition group-hover:translate-x-0.5 motion-reduce:transition-none" aria-hidden="true" />
+            </Link>
+            <div className="!mt-8">
               <div className="flex justify-center">
-                <CopyPromptCta size="md" />
+                <CopyPromptCta size="lg" />
               </div>
             </div>
           </div>
@@ -257,7 +224,7 @@ export default function EmbarkoV1() {
         <section className={SCENE}>
           <div className="w-full max-w-6xl space-y-10 text-center">
             <div className="space-y-4">
-              <p className="ds-kicker">For teams</p>
+              <Pill className="mb-2">For teams</Pill>
               <h2 className={`${H_DISPLAY} text-4xl sm:text-5xl md:text-6xl`}>
                 One <Serif grad>home</Serif> for everything your team builds with AI.
               </h2>
@@ -278,10 +245,10 @@ export default function EmbarkoV1() {
               <h2 className={`${H_DISPLAY} text-5xl sm:text-6xl md:text-7xl`}>
                 Already built <Serif grad>something?</Serif>
               </h2>
-              <div className="mx-auto max-w-md">
-                <PromptCard />
+              {/* The button only: the prompt is for the AI, not the reader. */}
+              <div className="flex justify-center">
+                <CopyPromptCta size="lg" />
               </div>
-              <p className="text-[var(--ds-mute)]">Paste it into the AI chat where you built your app. It replies with a live link.</p>
             </div>
           </div>
           {/* -mx undoes the section's own gutter so the footer keeps its own. */}

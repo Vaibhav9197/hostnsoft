@@ -717,7 +717,6 @@ export default function ShowcaseManagePage() {
               {pendingLine}
               <InviteCard
                 page={meta}
-                origin={origin}
                 includeCode={includeCode}
                 onIncludeCodeChange={setIncludeCode}
                 heading={
@@ -755,7 +754,6 @@ export default function ShowcaseManagePage() {
                 code that skips review, are still needed. */}
             <InviteCard
               page={meta}
-              origin={origin}
               includeCode={includeCode}
               onIncludeCodeChange={setIncludeCode}
               heading={
@@ -816,21 +814,17 @@ export default function ShowcaseManagePage() {
           ) : (
             <EmptyState title="None of your apps are on Embarko Showcase yet.">
               List one and it gets its own public page in the gallery.
-              <div className="mt-5 flex flex-col items-center gap-2">
-                <Button asChild className="h-11 sm:h-9">
-                  <Link href="/app/showcase/submit">List an app</Link>
-                </Button>
+              {/* The AI lists the app. The form at /app/showcase/submit stays
+                  in place for later, just without a button here. */}
+              <div className="mt-5">
                 <CopyPromptButton
                   text={showcaseListPrompt({ slug: meta.slug, title: meta.title, type: "public" })}
                   copiedChildren={COPIED_LABEL}
                   announce="Prompt copied. Paste it in your AI."
-                  className={cn(
-                    "inline-flex min-h-11 cursor-pointer items-center gap-1.5 text-[0.84rem] font-semibold text-muted-foreground transition-colors hover:text-foreground hover:underline motion-reduce:transition-none sm:min-h-8",
-                    FOCUS,
-                  )}
+                  className={cn(buttonVariants(), "h-11 sm:h-9")}
                 >
-                  <PromptIcon className="size-3.5" aria-hidden="true" />
-                  Or copy a prompt for your AI
+                  <PromptIcon aria-hidden="true" />
+                  List your app here
                 </CopyPromptButton>
               </div>
             </EmptyState>

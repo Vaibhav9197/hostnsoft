@@ -36,7 +36,7 @@ deploy of that name updates it.
 - **To update an app, deploy the same name again.** Do not invent `my-app-2`.
   A redeploy of a name you own returns `2xx` and replaces the running app in
   place. It keeps its env vars, domains and `DATA_DIR` data.
-- **`409 app_name_taken` means a different company owns the name.** It does
+- **`409 app_name_taken` means a different workspace owns the name.** It does
   not mean "your app already exists". That case is a normal successful
   redeploy. Pick a different name. Do not retry the same one.
 - **Exception:** an unclaimed anonymous app that *you* just deployed. Redeploy
@@ -53,7 +53,7 @@ auth rule.** Use this table:
 | Auth | Calls |
 | --- | --- |
 | **None, ever** | `GET /capabilities` (and `/capabilities/<topic>`, `/capabilities/all`); `POST /api/public/deploy-tokens/request`; `POST /api/public/customer-query` (rate limited); `GET /api/public/showcase/apps/<name>` (an app's current listing) |
-| **None while the app is an unclaimed anonymous deploy; the owning company's token once claimed** | `POST /apps` (deploy); `GET /apps/<name>/status`; `GET /apps/<name>/logs`; `POST /apps/<name>/customer-query` |
+| **None while the app is an unclaimed anonymous deploy; the owning workspace's token once claimed** | `POST /apps` (deploy); `GET /apps/<name>/status`; `GET /apps/<name>/logs`; `POST /apps/<name>/customer-query` |
 | **Deploy token, always** | `/api/apps/<name>/domains…`; `GET /api/apps/<name>/analytics`; `PATCH /api/apps/<name>` (rename); `DELETE /api/apps/<name>`; and everything under `/api/apps/<name>/…`: env vars, deployments, rollback, showcase, slug-change |
 
 Two path shapes share the host:
@@ -303,7 +303,7 @@ curl -X POST "https://ship.embarko.ai/apps" \
     "claimed": false,
     "expiresAt": "2026-09-30T10:04:00.000Z"
   },
-  "next": "Building: poll links.status every 10 seconds until it says \"live\" or \"failed\".",
+  "next": "Building: poll links.status every 10 seconds until it says \"live\", \"failed\" or \"crashed\".",
   "links": {
     "status": "https://ship.embarko.ai/apps/my-app/status",
     "feedback": "https://ship.embarko.ai/apps/my-app/customer-query"
@@ -348,7 +348,7 @@ Other reply variants:
 
 ```json
 {
-  "error": "App name \"my-app\" is already in use by a different company",
+  "error": "App name \"my-app\" is already in use by a different workspace",
   "code": "app_name_taken",
   "next": "That name belongs to someone else: pick a different one.",
   "links": {
@@ -456,7 +456,7 @@ company's token once claimed.
     "kind": "service",
     "claimed": true
   },
-  "error": "Exit code 127 means a command in the build script was not found inside the build image. …",
+  "error": "Exit code 127 means a command in the build script was not found while building your app. …",
   "next": "Build failed: read links.logs, fix the cause, and redeploy with the same name. If it isn't clear, report it to links.feedback (see links.help).",
   "links": {
     "feedback": "https://ship.embarko.ai/apps/my-app/customer-query",
@@ -624,7 +624,7 @@ curl -X POST "https://ship.embarko.ai/api/apps/my-app/rollback" \
 **Failure: `422`:**
 
 ```json
-{ "error": "Cannot roll back: the image is no longer available...", "code": "rollback_image_unavailable", "retainCount": 5 }
+{ "error": "Cannot roll back: that version is too old to restore...", "code": "rollback_image_unavailable", "retainCount": 5 }
 ```
 
 **Errors:**
@@ -797,7 +797,7 @@ temporary app has no token to call this with.
 | `description` | | What it does: features and use cases, in plain searchable words. Up to 4000 characters. |
 | `story` | | Why it was built, in the creator's words. Up to 600 characters. |
 | `creatorProfile` | | An `https` link to the creator: GitHub, X, LinkedIn or a personal site. |
-| `contributorEmails` | | Everyone who built the app, max 10, the person showcasing it first (the main contact). Adds a "Contact Dev" button that mails all of them. Visitors never see the addresses. **Ask before sending it.** |
+| `contributorEmails` | | Everyone who built the app, max 10, the person showcasing it first (the main contact). Adds a "Contact Dev" button that mails all of them. Anyone listed who has no Embarko account gets an invite mail; contributors who have signed up with their listed address are credited by name on the app page (address on hover). **Ask before sending it.** |
 | `builtWith` | | The tool that built it: `Claude`, `Codex`, `Cursor`, `Lovable`, `Replit`, or another. |
 | `category` | | The closest of `AI Tool`, `Personal`, `Business`, `Productivity`, `Education`, `Game`, `Developer Tool`, `Other`. |
 | `tags` | | Terms people would search for, not the category again. At most 8. |

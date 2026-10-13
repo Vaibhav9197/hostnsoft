@@ -73,6 +73,14 @@ export function formatDate(iso: string | null): string {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
+// Calendar date as stored, ignoring the viewer's timezone. For dates that
+// mean "that day" (a coupon valid through Oct 31, stored as 23:59:59Z) —
+// formatDate would roll it into Nov 1 for anyone east of UTC.
+export function formatDateUTC(iso: string | null): string {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+}
+
 // Absolute date with clock time, e.g. "27 Aug 2026, 14:05". For timestamps
 // where the hour matters — "yesterday" is no use when you want to know whether
 // a change landed before or after something else.

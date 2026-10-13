@@ -2,7 +2,7 @@
  * Packs what the browser can offer into what the deploy endpoint accepts.
  *
  * The endpoint takes one thing: a gzipped tar, posted as multipart `source`
- * (see public/skills/embarko-deploy.sh, which is the reference implementation
+ * (see scripts/deploy.sh in github.com/embarko-ai/skill, the reference implementation
  * every agent deploy already goes through). A person at a keyboard has a
  * folder, or a zip — so this converts both, and passes an existing tarball
  * through untouched.
@@ -401,7 +401,7 @@ function fileAt(entries: PackEntry[], path: string): PackEntry | undefined {
 
 /**
  * Mirrors detectDelegatingRoot in the server's detect-manifest-root.js (and
- * the same check in public/skills/embarko-deploy.sh) — keep the three in step.
+ * the same check in embarko-ai/skill's scripts/deploy.sh) — keep the three in step.
  */
 function delegatesTo(entries: PackEntry[]): string | null {
   const root = fileAt(entries, "package.json");

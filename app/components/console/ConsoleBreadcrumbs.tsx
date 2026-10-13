@@ -39,15 +39,16 @@ const SECTIONS: Record<string, string> = {
 };
 
 /**
- * "Home / my-app / Deployments" above every panel page, so the way home
- * is always in the same place. Not shown on the apps list itself: a trail that
- * only says where you already are is noise.
+ * "Home / my-app / Deployments" above every panel page, so the way home is
+ * always in the same place. Home is the apps list; the workspace and the menu
+ * live in the top bar's left corner instead. The apps list has no trail.
  */
 export function ConsoleBreadcrumbs() {
   const pathname = usePathname() ?? "/app";
   const parts = pathname.replace(/^\/app\/?/, "").split("/").filter(Boolean);
   const projectId = parts[0] === "projects" ? parts[1] : null;
 
+  /* The apps list is Home itself, and its title already says so. */
   if (parts.length === 0) return null;
 
   const crumbs: Crumb[] = [{ label: "Home", href: "/app" }];
@@ -65,7 +66,9 @@ export function ConsoleBreadcrumbs() {
   }
 
   return (
-    <nav aria-label="Breadcrumb" className="mb-5">
+    /* Its own layer: the apps list's sky backdrop is fixed behind that page
+       and would otherwise paint over this row. */
+    <nav aria-label="Breadcrumb" className="relative z-[1] mb-5">
       <ol className="flex flex-wrap items-center gap-1 text-[0.82rem] text-muted-foreground">
         {crumbs.map((c, i) => {
           const last = i === crumbs.length - 1;

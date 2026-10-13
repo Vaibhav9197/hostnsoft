@@ -3,7 +3,8 @@
 import { useId, useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Activity, Database, FolderOpen, Globe, HardDrive, KeyRound, Plug } from "lucide-react";
+import { FEATURES, type Feature } from "../lib/features";
+import { Serif } from "./ds/Serif";
 
 /**
  * "What you get, without setting it up" — the replacement for the eight-cell
@@ -16,29 +17,9 @@ import { Activity, Database, FolderOpen, Globe, HardDrive, KeyRound, Plug } from
  * configures, and printing the words makes that concrete in a way a paragraph
  * about it cannot.
  *
- * Shared by /v1, /v3 and /v4, which are three different palettes over the same
- * content — hence `tone` rather than three copies of the markup.
+ * The list itself lives in app/lib/features.ts, shared with the tiles on /v1
+ * and /v2 (FeatureTiles). Used by /v3 and /v4 — `tone` picks the palette.
  */
-
-type Feature = {
-  id: string;
-  /* The rail label. One word where possible: it is read as a list. */
-  label: string;
-  Icon: typeof Globe;
-  headline: string;
-  body: string;
-  /* What the owner types into their agent. Written as speech, because that is
-     what it is — not commands, and not a CLI. */
-  prompts: string[];
-  Mockup: () => ReactNode;
-  /* Not built yet. Says so on the rail and again in the panel, because the
-     mockup below it draws a working feature and a drawing is persuasive
-     enough to be mistaken for one. */
-  upcoming?: boolean;
-  /* How the feature is named mid-sentence in the docs link. Defaults to the
-     lowercased rail label, which is wrong for anything carrying an acronym. */
-  linkLabel?: string;
-};
 
 /* Two palettes, one layout. `gray` is the plain Tailwind scale /v1 and /v4 are
    built on; `token` is the semantic palette /v3 shares with the console, which
@@ -149,7 +130,7 @@ function mockups(tone: ShowcaseTone) {
       </Frame>
     ),
 
-    keys: () => (
+    tools: () => (
       <Frame tone={tone}>
         <div className={`mb-2 font-mono text-[10px] uppercase tracking-[0.1em] ${t.faint}`}>Variables</div>
         {/* Masked the way the console masks them, so the drawing doesn't
@@ -164,6 +145,17 @@ function mockups(tone: ShowcaseTone) {
       </Frame>
     ),
 
+    email: () => (
+      <Frame tone={tone}>
+        <div className="text-[13px]">
+          <Row tone={tone} left="Welcome to Studio Bookings" right="sent" />
+          <Row tone={tone} left="Your receipt #1042" right="sent" />
+          <Row tone={tone} left="Reset your password" right="sent" last />
+        </div>
+        <p className={`mt-3 text-[12px] ${t.faint}`}>Sent through your own email service</p>
+      </Frame>
+    ),
+
     login: () => (
       <Frame tone={tone}>
         <div className="mx-auto max-w-[260px] py-2 text-center">
@@ -172,7 +164,7 @@ function mockups(tone: ShowcaseTone) {
             you@example.com
           </div>
           <div className={`mt-2 rounded-lg ${t.quote} px-3 py-2 text-[13px] font-medium`}>Continue</div>
-          <p className={`mt-3 text-[11px] ${t.faint}`}>Accounts and resets already work</p>
+          <p className={`mt-3 text-[11px] ${t.faint}`}>Accounts and password resets</p>
         </div>
       </Frame>
     ),
@@ -201,6 +193,50 @@ function mockups(tone: ShowcaseTone) {
       </Frame>
     ),
 
+    logs: () => (
+      <Frame tone={tone}>
+        <div className="font-mono text-[12px] leading-relaxed">
+          <p className={t.faint}>12:04 GET /checkout 500</p>
+          <p className={t.faint}>12:04 Error: STRIPE_KEY is not set</p>
+          <p className={t.faint}>12:06 deploy v14 · rolled back to v13</p>
+        </div>
+        <div className={`mt-3 border-t ${t.line} pt-3`}>
+          <Pill tone={tone}>Back to normal</Pill>
+        </div>
+      </Frame>
+    ),
+
+    sharing: () => (
+      <Frame tone={tone}>
+        <div className="mx-auto max-w-[260px] py-2 text-center">
+          <p className="text-[15px] font-semibold">This app is private</p>
+          <p className={`mt-1 text-[12px] ${t.faint}`}>Ask the owner for access</p>
+          <div className="mt-4 text-left text-[13px]">
+            <Row tone={tone} left="dana@studio.co" right="can open" />
+            <Row tone={tone} left="sam@studio.co" right="can open" last />
+          </div>
+        </div>
+      </Frame>
+    ),
+
+    schedules: () => (
+      <Frame tone={tone}>
+        <div className="text-[13px]">
+          <Row tone={tone} left="Send the weekly report" right="Mon 09:00" />
+          <Row tone={tone} left="Clear old carts" right="every night" last />
+        </div>
+      </Frame>
+    ),
+
+    jobs: () => (
+      <Frame tone={tone}>
+        <div className="text-[13px]">
+          <Row tone={tone} left="Resize 240 photos" right="running" />
+          <Row tone={tone} left="Import the customer list" right="queued" last />
+        </div>
+      </Frame>
+    ),
+
     uptime: () => (
       <Frame tone={tone}>
         <div className="flex items-baseline justify-between">
@@ -222,80 +258,10 @@ function mockups(tone: ShowcaseTone) {
   };
 }
 
-/* Shipped first, then what is coming. A rail that opens on something the owner
-   can't have yet sells the wrong thing, and mixing the two in one list leaves
-   them checking every row for a tag. */
-function features(tone: ShowcaseTone): Feature[] {
+/* The shared list, each feature paired with its drawing. */
+function features(tone: ShowcaseTone): (Feature & { Mockup: () => ReactNode })[] {
   const m = mockups(tone);
-  return [
-    {
-      id: "domain",
-      label: "Domain",
-      Icon: Globe,
-      headline: "A live address, the moment it deploys",
-      body: "Every deploy comes back with a URL you can send to anyone. Bring your own domain when you are ready and your agent points it here.",
-      prompts: ["“Deploy this to Embarko”", "“Point shop.mysite.com at it”", "“Is it live yet?”"],
-      Mockup: m.domain,
-    },
-    {
-      id: "database",
-      label: "Database",
-      Icon: Database,
-      headline: "Somewhere to keep what your app saves",
-      body: "Orders, notes, sign-ups. Your app can write and read from its first deploy — nothing to provision, no connection string to paste in.",
-      prompts: ["“Save the sign-ups”", "“Add a table for orders”", "“What’s in the database?”"],
-      Mockup: m.database,
-    },
-    {
-      id: "tools",
-      label: "Connect tools",
-      Icon: Plug,
-      headline: "Connect the tools you already pay for",
-      body: "Stripe, Resend, OpenAI, a spreadsheet — save the key once and your app gets it on every deploy. Your agent reads them by name and never has to ask you for one twice.",
-      prompts: ["“Take payments with my Stripe key”", "“Email the receipts through Resend”", "“Use my OpenAI key for the chat”"],
-      Mockup: m.keys,
-      linkLabel: "connecting tools",
-    },
-    {
-      id: "uptime",
-      label: "Uptime",
-      Icon: Activity,
-      headline: "It stays up while you are not looking",
-      body: "Embarko restarts the app if it stops and renews HTTPS before it lapses. When something does need you, it says so in plain words.",
-      prompts: ["“Is anything wrong?”", "“Why did it restart?”", "“Check on my app”"],
-      Mockup: m.uptime,
-    },
-    {
-      id: "login",
-      label: "Login",
-      Icon: KeyRound,
-      headline: "Let people sign in without building it",
-      body: "Accounts, sessions and password resets, ready to switch on. You will ask for them and they appear, instead of sitting down to design an auth flow.",
-      prompts: ["“Add login to this”", "“Only let my team in”", "“Add Google sign-in”"],
-      Mockup: m.login,
-      upcoming: true,
-    },
-    {
-      id: "files",
-      label: "Files",
-      Icon: FolderOpen,
-      headline: "Room for whatever people upload",
-      body: "Photos, PDFs, spreadsheets. Your app will take files and hand them back, with the space for them growing as it fills.",
-      prompts: ["“Let people upload photos”", "“Keep the PDFs”", "“Show the uploads as a gallery”"],
-      Mockup: m.files,
-      upcoming: true,
-    },
-    {
-      id: "backups",
-      label: "Backups",
-      Icon: HardDrive,
-      headline: "Yesterday is still there",
-      body: "Your data copied on a schedule and kept, so when something goes wrong your agent can put an earlier version back.",
-      prompts: ["“Roll back to yesterday”", "“When was the last backup?”", "“Restore what I deleted”"],
-      Mockup: m.backups,
-      upcoming: true,
-    },
-  ];
+  return FEATURES.map((f) => ({ ...f, Mockup: m[f.id as keyof typeof m] }));
 }
 
 function Tag({ tone, className = "" }: { tone: ShowcaseTone; className?: string }) {
@@ -310,13 +276,13 @@ function Tag({ tone, className = "" }: { tone: ShowcaseTone; className?: string 
 
 export function FeatureShowcase({
   tone = "gray",
-  heading = "A link to your app — and everything under it.",
-  body = "Your agent builds the app. What it needs in order to actually run is already here, so neither of you has to go and set it up.",
+  heading = <>Need more? You <Serif grad>already</Serif> have it.</>,
+  body = "Your agent builds the app. What it needs to actually run is already here, so neither of you has to set it up.",
   className = "",
 }: {
   tone?: ShowcaseTone;
-  heading?: string;
-  body?: string;
+  heading?: ReactNode;
+  body?: string | null;
   className?: string;
 }) {
   const t = TONES[tone];
@@ -329,10 +295,14 @@ export function FeatureShowcase({
 
   return (
     <div className={`w-full max-w-5xl ${className}`}>
-      <div className="max-w-2xl">
-        <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-[44px]">{heading}</h2>
-        <p className={`mt-4 text-lg font-light leading-relaxed ${t.muted}`}>{body}</p>
-      </div>
+      {/* A host that already titles the moment (the /v2 story's last scene)
+          passes heading={null} and body={null}, so there aren't two headlines. */}
+      {(heading || body) && (
+        <div className="max-w-2xl">
+          {heading && <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-[44px]">{heading}</h2>}
+          {body && <p className={`mt-4 text-lg font-light leading-relaxed ${t.muted}`}>{body}</p>}
+        </div>
+      )}
 
       {/* Three columns on a wide screen, stacked below it. The rail turns into
           a horizontal scroller rather than a stack of six full-width rows,
@@ -342,7 +312,7 @@ export function FeatureShowcase({
           edge: a bleed has to match the host page's side padding or the
           document overflows sideways, and the three pages using this don't
           share one. */}
-      <div className="mt-12 grid gap-8 lg:grid-cols-[200px_minmax(0,1fr)_200px] lg:gap-10">
+      <div className={`${heading || body ? "mt-12" : ""} grid gap-8 lg:grid-cols-[244px_minmax(0,1fr)_200px] lg:gap-10`}>
         <div
           role="tablist"
           aria-label="What Embarko handles"
@@ -358,7 +328,7 @@ export function FeatureShowcase({
                 aria-selected={selected}
                 aria-controls={selected ? panelId : undefined}
                 onClick={() => setActiveId(id)}
-                className={`flex shrink-0 items-center gap-2.5 rounded-lg px-3.5 py-2.5 text-left text-[14px] font-medium transition-colors ${
+                className={`flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-lg px-3.5 py-2.5 text-left text-[14px] font-medium transition-colors ${
                   selected ? t.railActive : t.railIdle
                 }`}
               >

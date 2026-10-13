@@ -117,9 +117,6 @@ export function Header({ onAuthClick, links, cta, bare }: HeaderProps) {
           {/* With anchors in play everything folds into the menu below lg, so
               these three stay hidden until then; without anchors the bar is
               short enough to keep showing them from sm, as it always has. */}
-          <Link href="/use-cases" className={`hidden ${NAV_LINK} ${hasLinks ? "lg:block" : "sm:block"}`}>
-            Use cases
-          </Link>
           <Link href="/showcase" className={`hidden ${NAV_LINK} ${hasLinks ? "lg:block" : "sm:block"}`}>
             Showcase
           </Link>
@@ -178,13 +175,6 @@ export function Header({ onAuthClick, links, cta, bare }: HeaderProps) {
                 {link.label}
               </a>
             ))}
-            <Link
-              href="/use-cases"
-              onClick={() => setMenuOpen(false)}
-              className="border-t border-[var(--line)] py-3 text-[15px] font-medium text-neutral-700 hover:text-neutral-950"
-            >
-              Use cases
-            </Link>
             <Link
               href="/showcase"
               onClick={() => setMenuOpen(false)}

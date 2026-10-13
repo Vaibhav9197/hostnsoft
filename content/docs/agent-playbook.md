@@ -144,7 +144,8 @@ exactly what each call takes and returns.
    - After 10 minutes, stop polling and read the logs.
 9. **Check, then report.** Fetch `https://my-app.embarko.app` and confirm it
    responds. Give the user the URL. If you deployed anonymously, tell them it
-   is deleted in 24 hours and offer to [make it permanent](#claim).
+   is deleted in 24 hours and give them the deploy reply's `links.claim` to
+   open and sign in, which [makes it permanent](#claim).
 
 ---
 
@@ -525,7 +526,24 @@ The ways in are explained in [Authentication](capabilities.md#agent-auth).
 ## [How do I make an anonymous app permanent?](#claim)
 
 An app deployed without a token is deleted 24 hours after it was created.
-Claiming it cancels that.
+Claiming it cancels that. There are two ways; the link is the first choice.
+
+**With the claim link** (no redeploy, no source code needed):
+
+1. **Give the user `links.claim`** from the reply to the deploy that created
+   the app. It carries the app's name and a one-time code only that deploy
+   received, so it proves the app is theirs.
+2. **They open it and sign in** (or sign up — the same screen does both),
+   pick a workspace, and press Keep. The app is permanent at the same URL
+   and appears in their console. Nothing for you to do.
+3. **Afterwards, deploys of that name need their token.** The success screen
+   gives them a prompt with one for you; an anonymous redeploy of a claimed
+   name is a `409`.
+
+The link is in the deploy reply only — status replies never carry it. If you
+no longer have it, claim by redeploying instead:
+
+**By redeploying with a token:**
 
 1. **Check for a token you already have:** `$DEPLOY_TOKEN`, then
    `~/.embarko/credentials`. The full order, connector first, is in
@@ -553,6 +571,9 @@ Claiming it cancels that.
 
 **Good to know**
 
+- **The claim link works once,** only until the deadline, and only for the
+  app it names. A wrong, used or expired link shows a plain "doesn't work
+  anymore" page.
 - **Rate limits on the email request:** 5 per hour per email, 10 per hour
   per IP.
 - **Always `202`.** Don't call again to check it worked.

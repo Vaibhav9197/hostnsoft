@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, Check, CloudOff, Lock, RotateCcw, X } from 'luci
 import { Serif, buttonClass } from '@/app/components/ds';
 import { CopyPromptButton, PromptIcon } from '../components/CopyPromptButton';
 import { agentIconSrc } from '../lib/agents';
-import { NeedsGrid } from '../components/NeedsGrid';
+import { FeatureTiles } from '../components/FeatureTiles';
 import { HostLink } from './HostLink';
 import { trackCTA, trackEvent } from '../lib/tracking';
 
@@ -309,7 +309,7 @@ function EndStage({ t, onReplay }: { t: number; onReplay: () => void }) {
       <div className="w-full text-center" style={rise(t, 700, 600, 16)}>
         <p className="ds-kicker">When your app needs more, you already have it</p>
         <div className="mt-4">
-          <NeedsGrid />
+          <FeatureTiles />
         </div>
       </div>
       <div className="mt-7 flex flex-col items-center gap-3" style={rise(t, 1100)}>

@@ -69,17 +69,16 @@ function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-[var(--beta-bar-h)] z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-2 sm:px-4">
-        {/* Navigation sits on the left, next to the account it belongs to; the
-            right edge is for the plan chip. */}
+      {/* A borderless top bar: the workspace (and the one menu) in the left
+          corner, the plan chip in the right. Its own layer so the apps list's
+          fixed sky backdrop doesn't paint over it. */}
+      <header className="relative z-[1] flex h-14 shrink-0 items-center justify-between gap-3 px-3 sm:px-5">
         <HeaderUserMenu />
-        <div className="ml-auto flex items-center gap-2">
-          <HeaderPlanBadge />
-        </div>
+        <HeaderPlanBadge />
       </header>
       <main className="flex-1">
         {/* Extra bottom padding keeps the last row clear of the feedback launcher. */}
-        <div className="mx-auto w-full max-w-5xl px-4 pb-24 pt-8 sm:px-8">
+        <div className="mx-auto w-full max-w-5xl px-4 pb-24 pt-4 sm:px-8">
           {!apiConnected && (
             <Alert variant="warn" className="mb-6">
               You're signed in, but the Embarko API service is unreachable right now — workspace and

@@ -6,16 +6,20 @@
     "node": ">=20"
   },
   "scripts": {
+    "predev": "npm run system:facts",
     "dev": "next dev",
-    "prebuild": "node scripts/check-node.mjs",
+    "prebuild": "node scripts/check-node.mjs && npm run system:facts",
     "build": "opennextjs-cloudflare build",
     "start": "next start",
     "lint": "next lint",
+    "prepreview": "npm run system:facts",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "predeploy": "npm run system:facts",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
-    "sync:skill": "bash scripts/sync-skill-assets.sh",
-    "prepare": "git config core.hooksPath .githooks 2>/dev/null || true"
+    "system:facts": "node scripts/build-system-map.mjs && node scripts/build-system-history.mjs",
+    "prd": "node scripts/build-prd.mjs",
+    "prd:check": "node scripts/build-system-map.mjs --check && node scripts/build-prd.mjs --check"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

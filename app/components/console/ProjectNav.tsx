@@ -117,10 +117,11 @@ export function ProjectNav({ projectId }: { projectId: string }) {
         open={promptOpen}
         onClose={() => setPromptOpen(false)}
         title="Prompt to update this app"
-        description={`Ship a new version of${project ? ` ${project.name}` : " this app"} — copy the prompt for your AI agent, or upload it yourself.`}
+        description={`Ship a new version of${project ? ` ${project.name}` : " this app"} — your AI does the work.`}
         /* Names this app in the prompt, so the agent redeploys it instead of
            standing up a second one under a different name. */
         appSlug={project?.slug}
+        projectId={project?.id}
       />
 
       {/* Underline tabs rather than a pill row: they read as sections of this

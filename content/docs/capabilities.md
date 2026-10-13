@@ -226,7 +226,7 @@ to poll.
 **Good to know:**
 
 - No token while the app is an unclaimed anonymous deploy. Once claimed, the
-  owning company's token is needed. A wrong token then returns `404`, which
+  owning workspace's token is needed. A wrong token then returns `404`, which
   never confirms the app exists.
 - Status is held in memory and shows the latest attempt only. For a lasting
   record, use [deployment history](#history).
@@ -253,7 +253,7 @@ It names the failing command. Read it before you change anything.
 **Good to know:**
 
 - **`exit code: 127`** is the most common sign. It means "command not found"
-  in the build image: the build tool isn't in the app's dependencies, or the
+  while building the app: the build tool isn't in the app's dependencies, or the
   real app is in a subfolder whose dependencies were never installed.
 - A trailing `docker-import ... no such file` line is a side effect, not the
   cause.
@@ -626,8 +626,8 @@ rollback too.
 **Good to know:**
 
 - Needs a deploy token.
-- **It is a record, not an archive.** The **build images** behind old entries
-  are pruned, so an entry can exist that you can no longer roll back to.
+- **It is a record, not an archive.** The **builds** behind old entries
+  are removed, so an entry can exist that you can no longer roll back to.
 - Pass a meaningful `X-App-Version`, or entries are just timestamps. Never
   reuse a tag for different code.
 

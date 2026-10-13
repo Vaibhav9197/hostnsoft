@@ -360,6 +360,13 @@
 @media (max-width:600px){.sc .sc-br-wide{display:none}}
 
 .sc .sc-contributors{display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:0}
-.sc .sc-contributors a{max-width:100%;overflow-wrap:anywhere}
+/* Name only; the address is a card that opens on hover or keyboard focus. */
+.sc .sc-contributor{position:relative;display:inline-block;max-width:100%;overflow-wrap:anywhere;font-weight:500;color:var(--sc-ink);border-bottom:1px dotted var(--sc-line2);cursor:default;outline:none}
+.sc .sc-contributor:hover,.sc .sc-contributor:focus-visible{border-bottom-color:var(--sc-ink)}
+.sc .sc-contributor-card{position:absolute;right:0;bottom:calc(100% + 6px);z-index:2;padding:6px 10px;border-radius:8px;background:var(--sc-card);border:1px solid var(--sc-line);box-shadow:var(--sc-sh);font-family:var(--mono);font-size:12px;font-weight:400;color:var(--sc-mute);white-space:nowrap;opacity:0;translate:0 2px;pointer-events:none;transition:opacity .15s var(--sc-ease),translate .15s var(--sc-ease)}
+.sc .sc-contributor:hover .sc-contributor-card,.sc .sc-contributor:focus-visible .sc-contributor-card{opacity:1;translate:0 0}
+@media (hover:none){.sc .sc-contributor-card{position:static;display:block;opacity:1;translate:none;padding:0;border:0;box-shadow:none;background:none;text-align:right}}
 .sc .sc-custom-wrap{margin-top:var(--sc-chapter)}
+/* An event page's block sits right under its header, as part of it. */
+.sc .sc-subhero + .sc-custom-wrap{margin-top:32px}
 .sc .sc-custom{display:block;width:100%;border:0;background:transparent}

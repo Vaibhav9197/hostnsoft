@@ -1,6 +1,7 @@
 import { ShowcaseHeader } from "./ShowcaseHeader";
 import { SiteFooter } from "../components/SiteFooter";
 import { listCollections, type ShowcaseApp } from "../lib/showcase";
+import { CustomHtml } from "../components/CustomHtml";
 import { BackToShowcase, DeployCta, EmptyList, OtherPages, TileGrid } from "./kit";
 import { ShareRow } from "./share";
 
@@ -20,6 +21,7 @@ export async function ListPage({
   shareTitle,
   shareWhenEmpty = false,
   currentSlug,
+  customHtml,
 }: {
   title: string;
   lede?: string;
@@ -38,8 +40,12 @@ export async function ListPage({
   shareWhenEmpty?: boolean;
   /** Slug of the page being viewed, left out of the "more pages" row. */
   currentSlug?: string;
+  /** An event organiser's HTML block: rules, schedule, sponsors. Sits above
+      the apps, since it is what a visitor needs before browsing them. */
+  customHtml?: string | null;
 }) {
   const pages = await listCollections();
+  const html = customHtml?.trim();
   return (
     <main className="min-h-[100dvh] bg-background pt-16 text-foreground antialiased">
       {/* An event page's header copies its own prompt, which names this page,
@@ -57,6 +63,12 @@ export async function ListPage({
           {note && <p className="sc-note">{note}</p>}
           {actions && <div className="sc-row">{actions}</div>}
         </section>
+
+        {html && (
+          <section className="sc-custom-wrap" aria-label={`About ${title}`}>
+            <CustomHtml html={html} title={`About ${title}`} />
+          </section>
+        )}
 
         <div className="mt-10">
           {apps.length > 0 ? <TileGrid apps={apps} /> : <EmptyList {...empty} />}

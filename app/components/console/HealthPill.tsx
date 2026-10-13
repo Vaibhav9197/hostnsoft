@@ -52,11 +52,18 @@ export function HealthPill({
    *  the deploy starts, so without this the card sits there looking idle. */
   deploying = false,
   variant = "plain",
+  labelOnHover = false,
   className,
 }: {
   health: ProjectHealth;
   deploying?: boolean;
   variant?: "plain" | "pill";
+  /** Dot only, with the word sliding in to its left when the enclosing
+   *  `group` (the app card) is hovered or focused. For grids, where a word on
+   *  every card is noise. "Needs attention" ignores it and always shows the
+   *  word: it's the one state somebody must not miss, and colour alone can't
+   *  carry it. Touch screens have no hover, so they always show the word. */
+  labelOnHover?: boolean;
   className?: string;
 }) {
   const resolved = TONES[health] ?? TONES.unknown;
@@ -69,6 +76,7 @@ export function HealthPill({
      rather than the faint grey the other offline states use: a pulse nobody
      can see is the same as no pulse. */
   const working = deploying || health === "starting";
+  const hideLabel = labelOnHover && tone !== "attention";
 
   return (
     /* The dot is decorative — the word carries the meaning. Colour alone must
@@ -88,6 +96,14 @@ export function HealthPill({
           Fading a 6px grey dot in and out is a change almost nobody notices;
           something moving outwards is caught by peripheral vision, which is
           the point — the reader is looking at the app name, not the pill. */}
+      {/* With labelOnHover the word comes first, so the dot holds the card's
+          right edge and the word grows leftwards out of it. It stays in the
+          DOM while hidden, so screen readers still hear the state. */}
+      {hideLabel && (
+        <span className="overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-300 [@media(hover:hover)]:max-w-0 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:max-w-[10rem] [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:max-w-[10rem] [@media(hover:hover)]:group-focus-within:opacity-100">
+          {label}
+        </span>
+      )}
       {working ? (
         <span className="relative flex size-2.5 shrink-0 items-center justify-center" aria-hidden="true">
           <span className="absolute inline-flex size-2.5 animate-ping rounded-full bg-primary opacity-75" />
@@ -96,7 +112,7 @@ export function HealthPill({
       ) : (
         <span className={cn("size-1.5 shrink-0 rounded-full", style.dot)} aria-hidden="true" />
       )}
-      {label}
+      {!hideLabel && label}
       {/* Says the same thing to a screen reader that the pulse says to a
           sighted reader: this is not a settled state, come back to it. */}
       {working && <span className="sr-only">, in progress</span>}
