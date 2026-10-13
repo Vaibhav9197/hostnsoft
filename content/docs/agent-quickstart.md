@@ -136,9 +136,9 @@ Fetch `https://my-app.embarko.app` and confirm it actually serves. Only
 then give the user the URL.
 
 **Say this with it:** the app is deleted at `app.expiresAt` unless it's
-claimed, and you can make it permanent whenever they want. The live status
-reply's `next` spells out how. That warning is not optional — there is no
-reminder email.
+claimed, and give them `links.claim` from the deploy reply — opening it and
+signing in keeps the app, with nothing to redeploy. That warning is not
+optional — there is no reminder email.
 
 ## [Keeping it](#keeping-it)
 
@@ -147,9 +147,16 @@ user's account — there is nothing to claim. Otherwise the order is
 connector, then a token you already have, then a new token
 ([Choose how to authenticate](agent-playbook.md#choose-auth)).
 
-To make it permanent, the app needs a deploy token. Check `$DEPLOY_TOKEN`
-and `~/.embarko/credentials` first — if one exists, just redeploy the same
-name with `-H "Authorization: Bearer $DEPLOY_TOKEN"` and it's claimed.
+The simplest way: the reply to the deploy that created the app carries
+`links.claim`. Give that link to the user. They open it, sign in or sign up,
+pick a workspace, and the app is permanent at the same address. Nothing is
+redeployed and no token is needed for that. The link is in that one reply
+only — status replies never carry it — and it works once, until the
+deadline.
+
+Without the link, the app needs a deploy token. Check `$DEPLOY_TOKEN` and
+`~/.embarko/credentials` first — if one exists, just redeploy the same name
+with `-H "Authorization: Bearer $DEPLOY_TOKEN"` and it's claimed.
 
 If not, request one by email (it's mailed to the user, never returned to
 you):

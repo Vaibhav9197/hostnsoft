@@ -96,6 +96,18 @@ export interface Project {
  *  reads better at call sites that fetch a single project. */
 export type ProjectDetail = Project;
 
+/** POST /companies/:companyId/orphans/claim — the app now belongs to the
+ *  company and won't be deleted. `applied` says whether the running image
+ *  was re-pushed without the temporary-app notice straight away; when it
+ *  couldn't be (no recorded image to re-push), the notice goes with the
+ *  next deploy instead. */
+export interface OrphanClaimResult {
+  project: Project;
+  applied: boolean;
+  deploymentId: string | null;
+  bannerClearsOn: "now" | "next_deploy";
+}
+
 /** 202 from PATCH .../slug for an app that is live: the move is running in
  *  the background and its outcome comes from SlugChangeStatus, not here. */
 export interface SlugChangeAccepted {
