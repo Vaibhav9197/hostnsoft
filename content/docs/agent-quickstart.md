@@ -57,9 +57,39 @@ characters, not starting or ending with a dash. It becomes the public subdomain,
 
 ## [1. Package](#package)
 
+Leave out anything the build makes or downloads on its own, and anything
+secret. Look at the actual folders in the project and decide for each one.
+Typical ones:
+
+- installed packages, such as `node_modules`, `vendor`, or a Python virtual
+  environment under any name
+- build output that the build step will make again, such as `.next`,
+  `target`, or `_build`
+- caches, such as `__pycache__`, `.cache`, or `.pytest_cache`
+- version history, meaning the `.git` folder
+- secrets, meaning any `.env` file
+
+Check what a folder holds before you exclude it. A folder named `build`,
+`vendor`, or `lib` can hold source code. Exclude a folder only if the build
+can make it again.
+
+Never exclude `dist` or `build`. For a prebuilt static site that folder is
+the site itself, and leaving it out ships an empty page. If the project has
+a build step, the build makes the folder again, so sending it costs nothing.
+
+Keep source code, config files, lock files, tool wrappers such as `mvnw` and
+the `.mvn` folder, and the build manifest, such as `package.json`,
+`requirements.txt`, `go.mod`, or `Cargo.toml`. The build needs those.
+
+Then pack with one exclude per item. Write names without a trailing slash,
+since tar ignores a pattern like `vendor/`. Replace the examples with what
+your project actually has:
+
 ```bash
-tar -czf /tmp/app.tar.gz --exclude=node_modules --exclude=.git \
-  --exclude='.env*' -C /path/to/app .
+tar -czf /tmp/app.tar.gz \
+  --exclude=.git --exclude='.env*' \
+  --exclude=node_modules \
+  -C /path/to/app .
 ```
 
 Excluding `.env*` matters: secrets in the tarball end up in the deployed

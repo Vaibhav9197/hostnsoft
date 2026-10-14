@@ -198,7 +198,7 @@ How to poll:
 | Where | Name | Rules |
 | --- | --- | --- |
 | header | `X-App-Name` | `^[a-z0-9-]+$`, 3–63 chars, no leading or trailing dash, unique platform-wide. Also the subdomain. |
-| multipart field | `source` | `.tar.gz` of the app's source, manifest at the archive root. |
+| multipart field | `source` | `.tar.gz` of the app's source, manifest at the archive root. Leave out installed packages, build output, caches, `.git` and `.env` files; see the example below. |
 
 Or send the source as JSON. See [JSON source](#deploy) below.
 
@@ -215,8 +215,10 @@ Or send the source as JSON. See [JSON source](#deploy) below.
 **Example request:**
 
 ```bash
-tar -czf /tmp/my-app.tar.gz --exclude=node_modules --exclude=.git \
-  --exclude='.env*' -C /path/to/app .
+tar -czf /tmp/my-app.tar.gz \
+  --exclude=.git --exclude='.env*' \
+  --exclude=node_modules \
+  -C /path/to/app .
 
 curl -X POST "https://ship.embarko.ai/apps" \
   -H "Authorization: Bearer $DEPLOY_TOKEN" \
@@ -226,6 +228,15 @@ curl -X POST "https://ship.embarko.ai/apps" \
   -H "X-Agent-Name: claude" \
   -F "source=@/tmp/my-app.tar.gz"
 ```
+
+The excludes above are examples. Leave out whatever the build makes or
+downloads for this project (installed packages, build output, caches), plus
+`.git` and any `.env` file. Check what a folder holds before excluding it: a
+folder named `build` or `vendor` can be source. Never exclude `dist` or
+`build`: for a prebuilt static site that folder is the site itself, and if
+there is a build step it is made again anyway. Keep source, config, lock
+files, tool wrappers and the manifest. Write names without a trailing slash.
+Full guidance: [Package the app](agent-quickstart.md#package).
 
 **App type (`X-App-Type`).** Optional, but send it when you can. Use the
 example label that fits best, or your own short phrase. To choose it:

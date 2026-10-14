@@ -86,11 +86,17 @@ exactly what each call takes and returns.
    is neither, ask the user once, as in
    [Choose how to authenticate](#choose-auth). If they skip it, deploy
    anonymously.
-7. **Package and deploy:**
+7. **Package and deploy.** Work out the excludes as described in
+   [Package](agent-quickstart.md#package) in the quickstart: leave out what
+   the build makes or downloads and any `.env` file, keep `dist` and `build`,
+   keep the source and manifest. The excludes below are only examples;
+   replace them with what your project actually has:
 
    ```bash
-   tar -czf /tmp/app.tar.gz --exclude=node_modules --exclude=.git \
-     --exclude='.env*' -C /path/to/app .
+   tar -czf /tmp/app.tar.gz \
+     --exclude=.git --exclude='.env*' \
+     --exclude=node_modules \
+     -C /path/to/app .
 
    curl -X POST "https://ship.embarko.ai/apps" \
      -H "X-App-Name: my-app" \
@@ -219,11 +225,15 @@ a flaky network.
    connecting one named **Embarko** makes future deploys work in the chat.
    Give them the link for their tool from [Connectors](connectors.md).
 4. **Leave them something that works.** Give them a script to run on their
-   own machine, which has normal network access:
+   own machine, which has normal network access. Fill in the excludes you
+   worked out for this project in step 7 of the deploy procedure; the ones
+   below are only examples:
 
    ```bash
-   tar -czf /tmp/app.tar.gz --exclude=node_modules --exclude=.git \
-     --exclude='.env*' -C /path/to/app .
+   tar -czf /tmp/app.tar.gz \
+     --exclude=.git --exclude='.env*' \
+     --exclude=node_modules \
+     -C /path/to/app .
 
    curl -X POST "https://ship.embarko.ai/apps" \
      -H "X-App-Name: my-app" \

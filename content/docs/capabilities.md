@@ -67,8 +67,10 @@ online" an app you built.
 **How:**
 
 ```bash
-tar -czf /tmp/app.tar.gz --exclude=node_modules --exclude=.git \
-  --exclude='.env*' -C /path/to/app .
+tar -czf /tmp/app.tar.gz \
+  --exclude=.git --exclude='.env*' \
+  --exclude=node_modules \
+  -C /path/to/app .
 
 curl -X POST "https://ship.embarko.ai/apps" \
   -H "X-App-Name: my-app" \
@@ -77,6 +79,15 @@ curl -X POST "https://ship.embarko.ai/apps" \
   -H "X-Agent-Name: claude" \
   -F "source=@/tmp/app.tar.gz"
 ```
+
+The excludes above are examples. Leave out whatever the build makes or
+downloads for this project (installed packages, build output, caches), plus
+`.git` and any `.env` file. Check what a folder holds before excluding it: a
+folder named `build` or `vendor` can be source. Never exclude `dist` or
+`build`: for a prebuilt static site that folder is the site itself, and if
+there is a build step it is made again anyway. Keep source, config, lock
+files, tool wrappers and the manifest. Write names without a trailing slash.
+Full guidance: [Package the app](agent-quickstart.md#package).
 
 - A first deploy needs no `Authorization` header.
 - `X-App-Type` is optional. It says what the app is for (`personal website`,
