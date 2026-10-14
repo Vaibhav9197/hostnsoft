@@ -14,11 +14,17 @@ export async function GET() {
   try {
     const { results } = await getAdminDb()
       .prepare(
-        `SELECT feature_id, email, company_id, created_at
+        `SELECT feature_id, email, company_id, query_id, created_at
          FROM feature_votes
          ORDER BY created_at DESC`,
       )
-      .all<{ feature_id: string; email: string; company_id: string | null; created_at: string }>();
+      .all<{
+        feature_id: string;
+        email: string;
+        company_id: string | null;
+        query_id: string | null;
+        created_at: string;
+      }>();
     return NextResponse.json({ votes: results });
   } catch (err) {
     console.error('Feature votes summary error:', err);

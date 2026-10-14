@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Check, ChevronRight, ChevronUp, MessageSquare, X } from "lucide-react";
+import { Check, ChevronRight, MessageSquare, Triangle, X } from "lucide-react";
 
 import { Button } from "../ui/button";
 import {
@@ -65,9 +65,12 @@ async function votesRequest(init?: RequestInit): Promise<string[]> {
 function UpcomingVotes({
   companyId,
   userId,
+  onVoted,
 }: {
   companyId: string | null;
   userId: string | null;
+  /** The features just cast, so the message sent next can carry them. */
+  onVoted: (ids: string[]) => void;
 }) {
   // userId only re-reads the votes when the signed-in person changes.
   const [open, setOpen] = useState(false);
@@ -123,6 +126,7 @@ function UpcomingVotes({
       });
       setVoted(ids);
       setJustSent(picked.length);
+      onVoted(picked);
       closeBubble();
       setOpen(false);
     } catch (err) {
@@ -149,7 +153,7 @@ function UpcomingVotes({
           />
         }
       >
-        <ChevronUp aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+        <Triangle aria-hidden="true" fill="currentColor" className="size-3.5 shrink-0 text-success" />
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-medium text-foreground">Upvote upcoming features</span>
           {status && <span className="block text-xs text-muted-foreground">{status}</span>}
@@ -243,6 +247,10 @@ export function FeedbackWidget() {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Votes cast since the last message. Sending a message ties them to it, so
+  // the admin sees them on that message rather than on every one this person
+  // ever sent.
+  const [unsentVotes, setUnsentVotes] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const doneRef = useRef<HTMLButtonElement>(null);
 
@@ -289,8 +297,19 @@ export function FeedbackWidget() {
     setBusy(true);
     setError(null);
     try {
-      await customerQueryApi.create(activeCompanyId, type, message.trim());
+      const { id } = await customerQueryApi.create(activeCompanyId, type, message.trim());
       setSent(true);
+      if (id && unsentVotes.length > 0) {
+        const features = unsentVotes;
+        setUnsentVotes([]);
+        // Best effort: the message is in either way, and the votes still
+        // count on the Feature Votes page if the link doesn't land.
+        fetch("/api/feature-votes", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ queryId: String(id), features }),
+        }).catch(() => {});
+      }
     } catch (err) {
       setError(err instanceof HnsError ? err.message : "Couldn’t send that. Please try again.");
       setBusy(false);
@@ -382,7 +401,11 @@ export function FeedbackWidget() {
               ))}
             </div>
 
-            <UpcomingVotes companyId={activeCompanyId} userId={user?.id ?? null} />
+            <UpcomingVotes
+              companyId={activeCompanyId}
+              userId={user?.id ?? null}
+              onVoted={(ids) => setUnsentVotes((current) => [...new Set([...current, ...ids])])}
+            />
 
             <label htmlFor="contact-message" className="sr-only">
               Message

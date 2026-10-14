@@ -99,6 +99,10 @@ export default function Votes() {
                         <span className="flex items-center gap-2 font-semibold text-foreground">
                           <f.Icon className="size-4 text-muted-foreground" aria-hidden="true" />
                           {f.label}
+                          <span className="font-normal text-muted-foreground">
+                            – <span className="font-semibold tabular-nums text-foreground">{n}</span>{' '}
+                            {n === 1 ? 'vote' : 'votes'}
+                          </span>
                           {f.shipped && (
                             <span className="rounded-full bg-accent px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
                               Shipped
@@ -114,9 +118,10 @@ export default function Votes() {
                           />
                         </span>
                       </span>
-                      <span className="text-right">
-                        <span className="block text-xl font-bold tabular-nums text-foreground">{n}</span>
-                        <span className="block text-xs text-muted-foreground">{share}%</span>
+                      {/* The count sits by the name; this column is the
+                          share of all votes, for comparing features. */}
+                      <span className="min-w-[3.5rem] text-right text-xl font-bold tabular-nums text-foreground">
+                        {share}%
                       </span>
                     </button>
 
