@@ -37,11 +37,13 @@ Package the app so that the build manifest (package.json, requirements.txt, go.m
 is at the archive root. Leave out whatever the build makes or downloads for this project: installed
 packages (node_modules, vendor, a Python virtual environment under any name), build output, caches,
 plus .git and any .env file. Check what a folder holds before excluding it; a folder named build or
-vendor can be source. Keep source, config, lock files, tool wrappers and the manifest. Write names
-without a trailing slash. The excludes below are examples; replace them with what the project has.
+vendor can be source. Never exclude dist or build: for a prebuilt static site that folder is the site
+itself, and if there is a build step it is made again anyway. Keep source, config, lock files, tool
+wrappers and the manifest. Write names without a trailing slash. The excludes below are examples;
+replace them with what the project has.
 Full guidance: https://embarko.ai/docs/agent-quickstart#package
 
-    tar -czf /tmp/app.tar.gz --exclude=.git --exclude='.env*' --exclude=node_modules --exclude=dist -C ./app .
+    tar -czf /tmp/app.tar.gz --exclude=.git --exclude='.env*' --exclude=node_modules -C ./app .
 
     curl -X POST "https://ship.embarko.ai/apps" \
       -H "X-App-Name: my-app" \

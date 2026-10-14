@@ -217,7 +217,7 @@ Or send the source as JSON. See [JSON source](#deploy) below.
 ```bash
 tar -czf /tmp/my-app.tar.gz \
   --exclude=.git --exclude='.env*' \
-  --exclude=node_modules --exclude=dist \
+  --exclude=node_modules \
   -C /path/to/app .
 
 curl -X POST "https://ship.embarko.ai/apps" \
@@ -232,7 +232,9 @@ curl -X POST "https://ship.embarko.ai/apps" \
 The excludes above are examples. Leave out whatever the build makes or
 downloads for this project (installed packages, build output, caches), plus
 `.git` and any `.env` file. Check what a folder holds before excluding it: a
-folder named `build` or `vendor` can be source. Keep source, config, lock
+folder named `build` or `vendor` can be source. Never exclude `dist` or
+`build`: for a prebuilt static site that folder is the site itself, and if
+there is a build step it is made again anyway. Keep source, config, lock
 files, tool wrappers and the manifest. Write names without a trailing slash.
 Full guidance: [Package the app](agent-quickstart.md#package).
 
