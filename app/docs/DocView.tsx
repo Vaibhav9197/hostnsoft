@@ -6,24 +6,18 @@ import remarkGfm from "remark-gfm";
 import { Header } from "../components/Header";
 import { SiteFooter } from "../components/SiteFooter";
 import { LoginModal } from "../components/LoginModal";
-import { DOCS, localizeDocHref, slugify, type TocEntry } from "../lib/docs";
+import { slugify, type TocEntry } from "../lib/docs";
+import { GUIDE_NAV } from "../lib/guide/site";
+import { SITE } from "../lib/site";
 
-/* Turn a heading's rendered children back into plain text, so an id can be
-   derived from it. The source writes headings as self-links —
-   `## [Overview](#overview)` — so children is usually a single anchor node. */
-/* The sidebar, grouped. Order comes from DOCS, so the reading order is set
-   in one place; a doc with no `group` is published and routed but kept out
-   of the nav (hackathons reads as a landing page, not reference). */
-const NAV_GROUPS: { title: string; docs: typeof DOCS }[] = DOCS.reduce(
-  (groups, doc) => {
-    if (!doc.group) return groups;
-    const existing = groups.find((g) => g.title === doc.group);
-    if (existing) existing.docs.push(doc);
-    else groups.push({ title: doc.group, docs: [doc] });
-    return groups;
-  },
-  [] as { title: string; docs: typeof DOCS }[],
-);
+/* Guide links are written absolute, on the canonical host, so a page copied
+   out of the site still works. On the site they become relative, so a link
+   stays on whatever host you are reading (and works in local dev). */
+function localHref(href: string | undefined): string | undefined {
+  if (!href) return href;
+  if (href === SITE) return "/";
+  return href.startsWith(`${SITE}/`) ? href.slice(SITE.length) : href;
+}
 
 function textOf(node: ReactNode): string {
   if (node == null || typeof node === "boolean") return "";
@@ -89,9 +83,7 @@ const components = {
     <strong className="font-semibold text-neutral-950">{children}</strong>
   ),
   a: ({ href, children }: { href?: string; children?: ReactNode }) => {
-    /* A link to a sibling doc points at its raw .md file; send it to that
-       doc's page here instead of handing the reader a file download. */
-    const to = localizeDocHref(href);
+    const to = localHref(href);
     return (
       <a
         href={to}
@@ -121,7 +113,11 @@ const components = {
     </th>
   ),
   td: ({ children }: { children?: ReactNode }) => (
-    <td className="border-b border-neutral-100 px-4 py-3 align-top text-neutral-600">{children}</td>
+    /* An error code breaks only at a space here: the table scrolls sideways
+       rather than splitting "domain_reserved" across two lines. */
+    <td className="border-b border-neutral-100 px-4 py-3 align-top text-neutral-600 [&_code]:[overflow-wrap:normal]">
+      {children}
+    </td>
   ),
   pre: ({ children }: { children?: ReactNode }) => (
     <pre className="mt-4 overflow-x-auto rounded-xl bg-neutral-900 p-4 font-mono text-xs leading-relaxed text-neutral-200">
@@ -281,14 +277,83 @@ function TocBlock({
   );
 }
 
+function NavLink({
+  href,
+  current,
+  strong,
+  children,
+}: {
+  href: string;
+  current: boolean;
+  strong?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      aria-current={current ? "page" : undefined}
+      className={`block rounded-lg px-3 py-1.5 text-sm leading-snug ${
+        current
+          ? "bg-neutral-100 font-semibold text-neutral-950"
+          : `hover:bg-neutral-50 hover:text-neutral-950 ${strong ? "font-medium text-neutral-800" : "text-neutral-600"}`
+      }`}
+    >
+      {children}
+    </a>
+  );
+}
+
+/* The guide's own contents page, as a sidebar: the same sections and
+   numbering an agent sees in /docs/index.md, so a person and an agent talk
+   about one structure. A section with a single page is that page's link. */
+function GuideIndex({ activeSlug }: { activeSlug: string }) {
+  return (
+    <>
+      <a href="/docs" className="mb-1 block px-3 text-sm font-semibold text-neutral-950 hover:text-neutral-600">
+        Embarko agent guide
+      </a>
+      <p className="mb-5 px-3 text-xs leading-relaxed text-neutral-500">
+        Every page is also plain Markdown: add .md to its address.
+      </p>
+      {GUIDE_NAV.map((group, i) => (
+        <div key={group.title} className={i === 0 ? undefined : "mt-3"}>
+          {group.href ? (
+            <NavLink href={group.href} current={group.slug === activeSlug} strong>
+              {group.title}
+            </NavLink>
+          ) : (
+            <>
+              <p className="mb-1 mt-4 px-3 text-xs font-semibold uppercase tracking-widest text-neutral-500">
+                {group.title}
+              </p>
+              <div className="space-y-0.5">
+                {group.items.map((item) => (
+                  <NavLink key={item.slug} href={item.href} current={item.slug === activeSlug}>
+                    {item.label}
+                  </NavLink>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      ))}
+    </>
+  );
+}
+
 interface DocViewProps {
   markdown: string;
   toc: TocEntry[];
-  /** Which of DOCS is being shown, so the switcher can mark it. */
+  /** Which guide page is being shown, so the sidebar can mark it. */
   activeSlug: string;
+  /** The page as raw Markdown and JSON, for the bar above the content. */
+  mdUrl?: string;
+  jsonUrl?: string;
+  /** The "what Embarko is" header. Off for pages that are not part of the guide. */
+  intro?: boolean;
 }
 
-export function DocView({ markdown, toc, activeSlug }: DocViewProps) {
+export function DocView({ markdown, toc, activeSlug, mdUrl, jsonUrl, intro = true }: DocViewProps) {
   const [loginOpen, setLoginOpen] = useState(false);
   const active = useActiveHeading(toc);
   const sections = useMemo(() => groupToc(toc), [toc]);
@@ -305,51 +370,65 @@ export function DocView({ markdown, toc, activeSlug }: DocViewProps) {
             would take its width out of the prose, so below xl the contents
             list stays under Guides where it used to live. */}
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_240px]">
-          <nav className="hidden lg:block" aria-label="Documentation">
+          <nav className="hidden lg:block" aria-label="Guide contents">
             {/* Scrolls on its own: the guides plus a long contents list runs
                 past a short viewport, and a sticky block that overflows just
                 hides its own tail. */}
             <div className="sticky top-[calc(6rem+var(--beta-bar-h))] max-h-[calc(100vh-8rem-var(--beta-bar-h))] overflow-y-auto pb-10">
-              {/* The docs cross-reference each other constantly, so they need
-                  to be reachable from one another, not just by URL.
-                  Deliberately styled as filled rows, not rail entries: moving
-                  between documents is a different act from moving within one,
-                  and the two lists shouldn't read as one long menu. */}
-              {NAV_GROUPS.map((group, i) => (
-                <div key={group.title} className={i === 0 ? undefined : "mt-6"}>
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-neutral-500">
-                    {group.title}
-                  </p>
-                  <div className="space-y-0.5">
-                    {group.docs.map((d) => (
-                      <a
-                        key={d.slug}
-                        href={d.path}
-                        aria-current={d.slug === activeSlug ? "page" : undefined}
-                        className={`block rounded-lg px-3 py-2 text-sm leading-snug ${
-                          d.slug === activeSlug
-                            ? "bg-neutral-100 font-semibold text-neutral-950"
-                            : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-950"
-                        }`}
-                      >
-                        {d.title}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              ))}
+              <GuideIndex activeSlug={activeSlug} />
 
               <TocBlock sections={sections} active={active} className="mt-8 xl:hidden" />
             </div>
           </nav>
 
           <div className="min-w-0 max-w-2xl">
-            {/* No "unavailable" fallback: the markdown is bundled from
-                content/docs/, so there is no fetch left to fail. */}
+            {/* Who the guide is for, on every page, so a reader landing on
+                any topic knows what Embarko is and where an agent starts. */}
+            {intro && (
+              <header className="border-b border-neutral-200 pb-4 text-sm leading-relaxed text-neutral-600">
+                <p>
+                  Embarko is the cloud for small apps built by AI. The AI builds the app; Embarko gets it
+                  online, keeps it running, and helps the AI take the next useful step.
+                </p>
+                <p className="mt-2">
+                  Agents start with the{" "}
+                  <a href="/docs/quickstart.md" className="font-medium text-neutral-950 underline underline-offset-2">
+                    Markdown quickstart
+                  </a>
+                  . Every page is also available as Markdown and JSON.
+                </p>
+              </header>
+            )}
+            {(mdUrl || jsonUrl) && (
+              <div className="flex flex-wrap items-center gap-4 border-b border-neutral-200 py-3 text-sm">
+                <a href="#guide-contents" className="font-medium text-neutral-950 underline underline-offset-2 lg:hidden">
+                  Contents
+                </a>
+                {mdUrl && (
+                  <a href={mdUrl} className="font-medium text-neutral-950 underline underline-offset-2">
+                    Open Markdown
+                  </a>
+                )}
+                {jsonUrl && (
+                  <a href={jsonUrl} className="font-medium text-neutral-950 underline underline-offset-2">
+                    JSON
+                  </a>
+                )}
+              </div>
+            )}
+            <div className="h-6" />
+            {/* No "unavailable" fallback: the guide is bundled with the site,
+                so there is no fetch left to fail. */}
             <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
               {markdown}
             </ReactMarkdown>
           </div>
+
+          {/* Below lg there is no sidebar: the contents follow the page, and
+              the "Contents" link in the bar jumps here. */}
+          <nav id="guide-contents" className="border-t border-neutral-200 pt-8 lg:hidden" aria-label="Guide contents">
+            <GuideIndex activeSlug={activeSlug} />
+          </nav>
 
           <nav className="hidden xl:block" aria-label="On this page">
             <div className="sticky top-[calc(6rem+var(--beta-bar-h))] max-h-[calc(100vh-8rem-var(--beta-bar-h))] overflow-y-auto pb-10">

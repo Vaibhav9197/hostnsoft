@@ -87,6 +87,7 @@ flowchart TD
   - If their payment account is still being made → "This usually takes a few seconds — refresh shortly."
   - If the billing provider is down → refused (BILLING_UNAVAILABLE, 503).
 - **Parts:** Your apps panel (`console`), Panel bridge (`bridge`), Billing (`billing`), Billing providers (`payments`)
+- **Keeps:** `Company`
 - **Code:** `page:/app/billing` → `app/app/billing/page.tsx`, `lib:app/lib/billing` → `app/lib/billing.tsx`, `lib:app/lib/plans` → `app/lib/plans.ts`, `lib:app/components/console/HeaderPlanBadge` → `app/components/console/HeaderPlanBadge.tsx`, `api:@api/companies/:companyId/billing` → `@api/src/routes/billing.routes.ts`, `lib:@api/src/lib/lago` → `@api/src/lib/lago.ts`
 - **Outside services:** Lago, Redis, Stripe
 
@@ -100,6 +101,7 @@ flowchart TD
   - If another change is running → the buttons wait.
   - If they are already on that plan → refused (BILLING_ALREADY_ON_PLAN).
 - **Parts:** App builders (`builders`), Your apps panel (`console`), Info pages (`site-pages`)
+- **Keeps:** `Company`
 - **Code:** `page:/app/billing` → `app/app/billing/page.tsx`, `page:/pricing` → `app/pricing/page.tsx`, `api:@api/billing/plans` → `@api/src/routes/publicBilling.routes.ts`
 - **Outside services:** Lago, Stripe
 
@@ -112,6 +114,7 @@ flowchart TD
   - If no card on file for a paid plan → refused (BILLING_PAYMENT_METHOD_REQUIRED, 402).
   - If cards can't load → "Couldn't load payment methods."
 - **Parts:** Billing (`billing`), Billing providers (`payments`)
+- **Keeps:** `Company`
 - **Code:** `page:/app/billing` → `app/app/billing/page.tsx`, `api:@api/companies/:companyId/billing/checkout-url` → `@api/src/routes/billing.routes.ts`, `lib:@api/src/lib/stripe` → `@api/src/lib/stripe.ts`
 - **Outside services:** Lago, Redis, Stripe
 
@@ -124,7 +127,7 @@ flowchart TD
   - If the change fails → the server's reason, or "Something went wrong. Please try again."
   - If A payment later fails → nothing in Embarko hears about it; there are no billing webhooks.
 - **Parts:** Panel bridge (`bridge`), Billing (`billing`), Billing providers (`payments`)
-- **Keeps:** `AuditLog`, `Domain`
+- **Keeps:** `AuditLog`, `Company`, `Domain`
 - **Looks up:** `Deployment`, `EnvVar`, `Project`
 - **Code:** `api:@api/companies/:companyId/billing/subscription` → `@api/src/routes/billing.routes.ts`, `lib:@api/src/services/billingCustomer` → `@api/src/services/billingCustomer.ts`
 - **Outside services:** Lago, Redis, Stripe
@@ -145,6 +148,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 ## Tables
 
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
+- **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
 - **Looks up** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Looks up** `EnvVar`

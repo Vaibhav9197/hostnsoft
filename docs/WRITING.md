@@ -1,7 +1,8 @@
 # Writing the docs
 
-How to write every page in `content/docs/`. AI agents and people read the same
-page, so it has to work for both: short, plain, easy to scan.
+How to write every page of the agent guide (`app/lib/guide/content.js`, served
+at `/docs`) and every page in `content/docs/`. AI agents and people read the
+same page, so it has to work for both: short, plain, easy to scan.
 
 Check a page against this guide whenever you add or edit it.
 

@@ -1,5 +1,19 @@
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
+/* Pages of the docs the agent guide replaced, and the guide topic each one's
+   content moved to ("" is the guide's contents page). */
+const OLD_DOCS = [
+  ["overview", "prerequisites"],
+  ["agent-quickstart", "quickstart"],
+  ["agent-playbook", "quickstart"],
+  ["escalation", "prerequisites"],
+  ["capabilities", ""],
+  ["api", ""],
+  ["troubleshoot", "errors"],
+  ["limitations", "prerequisites"],
+  ["limitations-and-recommendations", "prerequisites"],
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async redirects() {
@@ -38,41 +52,28 @@ const nextConfig = {
       // script already installed on people's machines, which prints it in the
       // error output of a failed deploy. Neither can be recalled, and the
       // second one is read at exactly the moment somebody is stuck.
-      { source: "/troubleshoot", destination: "/docs/troubleshoot", permanent: true },
-      {
-        source: "/limitations-and-recommendations",
-        destination: "/docs/limitations",
-        permanent: true,
-      },
+      { source: "/troubleshoot", destination: "/docs/errors", permanent: true },
+      { source: "/limitations-and-recommendations", destination: "/docs/prerequisites", permanent: true },
 
-      // /docs was the original single-page manual. Once the docs were split
-      // into layered pages it was ~70% duplicate of /docs/api and
-      // /docs/overview, and two copies of the same fact drift — which is
-      // exactly what happened to /deploy-troubleshooting.md below. Its
-      // unique content moved into overview (where apps run) and
-      // capabilities (the /capabilities manifest), and the page is gone.
-      //
-      // Both spellings redirect, to different places on purpose: a human on
-      // /docs wants the landing page, while /docs/docs.md is what the copy
-      // prompt and older pasted prompts tell an AGENT to fetch, and an agent
-      // that asked for the full reference should land on the API contract,
-      // not the conceptual overview.
-      { source: "/docs", destination: "/docs/overview", permanent: true },
-      { source: "/docs/docs.md", destination: "/docs/api.md", permanent: true },
+      // /docs is now the agent guide (app/lib/guide): one topic per page, in
+      // the order an agent meets them. Every page of the docs it replaced
+      // redirects to the topic that took its place, in both spellings — the
+      // page and its .md, which is what agents and old deploy prompts fetch.
+      // An unlisted .md would otherwise fall through to the guide's 404.
+      ...OLD_DOCS.flatMap(([from, to]) => [
+        { source: `/docs/${from}`, destination: to ? `/docs/${to}` : "/docs", permanent: true },
+        { source: `/docs/${from}.md`, destination: `/docs/${to || "index"}.md`, permanent: true },
+      ]),
+      // The repo-shaped path, the first thing anyone guesses for a doc's source.
+      { source: "/content/docs/:file", destination: "/docs/:file", permanent: true },
+      // /docs/docs.md is what older pasted prompts tell an agent to fetch.
+      { source: "/docs/docs.md", destination: "/docs/index.md", permanent: true },
 
       // /deploy-troubleshooting.md was a second, hand-maintained copy of the
-      // troubleshooting reference, served as a static file from public/ and
-      // linked from nothing in this repo. It had drifted: it still told
-      // agents to raise memory with `PATCH .../memory`, which is not a thing
-      // you can do, and named the pre-deploymentId rollback path. Every entry
-      // it had exists in content/docs/troubleshoot.md in a better form.
-      // Redirected rather than dropped because it was publicly reachable for
-      // months and an agent may hold the URL.
-      {
-        source: "/deploy-troubleshooting.md",
-        destination: "/docs/troubleshoot.md",
-        permanent: true,
-      },
+      // troubleshooting reference, served from public/. Redirected rather
+      // than dropped because it was publicly reachable for months and an
+      // agent may hold the URL.
+      { source: "/deploy-troubleshooting.md", destination: "/docs/errors.md", permanent: true },
 
       // public/skills/ was a generated copy of the skill repo, kept in sync by
       // git hooks, and linked from nothing live. The skill repo is now the only
@@ -87,11 +88,10 @@ const nextConfig = {
     ];
   },
 
-  /* The published docs live in this repo as markdown under content/docs/ and
-     are imported as raw strings. They can't be read off disk at request time:
-     production is a Cloudflare Worker via OpenNext, which has no filesystem.
-     Bundling them as source means the markdown ships inside the build and
-     rendering a doc costs no IO at all.
+  /* content/docs/hackathons.md is imported as a raw string. It can't be read
+     off disk at request time: production is a Cloudflare Worker via OpenNext,
+     which has no filesystem. Bundling it as source means the markdown ships
+     inside the build and rendering it costs no IO at all.
 
      `next dev` and `opennextjs-cloudflare build` both run webpack, so this one
      rule covers development and production. */

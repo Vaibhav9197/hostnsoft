@@ -3,7 +3,7 @@
  * app follows — nothing else in app/ should spell out "embarko.ai" or
  * "embarko.app" directly.
  *
- * Files that can't import TypeScript (content/docs/*.md, public/llms.txt,
+ * Files that can't import TypeScript (app/lib/guide/*.js, content/docs/*.md,
  * wrangler.jsonc, next.config.mjs, .env*) still carry the literal hostnames
  * and have to be updated by hand. So does the deploy script in the skill
  * repo (github.com/embarko-ai/skill).

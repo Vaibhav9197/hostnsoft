@@ -108,6 +108,18 @@ Declared links come from foreign keys (Prisma `@relation`); the rest are inferre
 - **Written by:** nothing in this repo
 - **Read by:** nothing in this repo
 
+## feature_votes
+
+- **Store:** Site database (`table:store:feature_votes`)
+- **Meaning:** Feature votes: which upcoming features signed-in users want next.
+- **Part:** none
+- **Defined in:** `migrations/0004_feature_votes.sql`
+- **Columns:** `user_id`, `feature_id`, `email`, `company_id`, `created_at`, `query_id`
+- **Declared links:** none
+- **Stories:** none — not explored yet
+- **Written by:** `api:/api/feature-votes`
+- **Read by:** `api:/api/feature-votes`, `api:/api/feature-votes/summary`
+
 ## DeployToken
 
 - **Store:** API database (`table:api:DeployToken`)
@@ -239,6 +251,18 @@ Declared links come from foreign keys (Prisma `@relation`); the rest are inferre
 - **Stories:** [App Settings](stories/app-settings.md), [Showcase Listing](stories/showcase-listing.md), [Event Page](stories/event-page.md)
 - **Written by:** `api:@api/admin/showcase/collections`, `api:@api/admin/showcase/projects`, `api:@api/admin/showcase/projects/:id`, `api:@api/slug-changes/:projectId`, `api:@api/apps/:appName/slug-change`, `api:@api/apps/:appName/showcase`, `api:@api/companies/:companyId/projects/:projectId/slug`, `api:@api/public/showcase`, `api:@api/public/showcase/collections`, `api:@api/public/showcase/collections/:slug`, `api:@api/public/showcase/apps/:slug`, `api:@api/companies/:companyId/showcase/collections`, `api:@api/companies/:companyId/showcase/collections/:collectionId`, `api:@api/companies/:companyId/showcase/collections/:collectionId/projects/:listingId`, `api:@api/companies/:companyId/showcase/pages`, `api:@api/companies/:companyId/showcase/submissions`, `api:@api/companies/:companyId/showcase/submissions/:listingId`, `lib:@api/src/routes/showcase.routes`, `lib:@api/src/services/showcase`
 - **Read by:** `api:@api/admin/showcase/collections`, `api:@api/admin/showcase/projects`, `api:@api/admin/showcase/projects/:id`, `api:@api/slug-changes/:projectId`, `api:@api/apps/:appName/slug-change`, `api:@api/apps/:appName/showcase`, `api:@api/companies/:companyId/projects/:projectId/slug`, `api:@api/public/showcase`, `api:@api/public/showcase/collections`, `api:@api/public/showcase/collections/:slug`, `api:@api/public/showcase/apps/:slug`, `api:@api/companies/:companyId/showcase/collections`, `api:@api/companies/:companyId/showcase/collections/:collectionId`, `api:@api/companies/:companyId/showcase/collections/:collectionId/projects/:listingId`, `api:@api/companies/:companyId/showcase/pages`, `api:@api/companies/:companyId/showcase/submissions`, `api:@api/companies/:companyId/showcase/submissions/:listingId`, `lib:@api/src/routes/publicShowcase.routes`, `lib:@api/src/routes/showcase.routes`, `lib:@api/src/services/showcase`
+
+## Company
+
+- **Store:** API database (`table:api:Company`)
+- **Meaning:** Local mirror of the few company facts the proxy doesn't hold.
+- **Part:** none
+- **Defined in:** `@api/prisma/schema.prisma`
+- **Columns:** `id`, `planCode`, `lagoCustomerId`, `stripeCustomerId`, `createdAt`, `updatedAt`
+- **Declared links:** none
+- **Stories:** [First Deploy](stories/first-deploy.md), [Trial App](stories/try-without-account.md), [Fix Or Update](stories/fix-or-update.md), [App Settings](stories/app-settings.md), [Change Plan](stories/change-plan.md)
+- **Written by:** `api:@api/slug-changes/:projectId`, `api:@api/apps/:appName/env-vars`, `api:@api/apps/:appName/env-vars/apply`, `api:@api/apps/:appName/env-vars/:key`, `api:@api/apps/:appName/slug-change`, `api:@api/apps/:appName/rollback`, `api:@api/apps/:appName/domains/:domain/verify`, `api:@api/apps/:appName/domains/:domain`, `api:@api/companies/:companyId/billing/customer`, `api:@api/companies/:companyId/billing/payment-methods`, `api:@api/companies/:companyId/billing/payment-methods/:paymentMethodId`, `api:@api/companies/:companyId/billing/checkout-url`, `api:@api/companies/:companyId/billing`, `api:@api/companies/:companyId/billing/subscription`, `api:@api/companies/:companyId/billing/coupons`, `api:@api/companies/:companyId/billing/coupons/:code`, `api:@api/companies`, `api:@api/companies/:companyId/projects/:projectId/deployments/:deploymentId/rollback`, `api:@api/companies/:companyId/projects/:projectId/domains/:domain/verify`, `api:@api/companies/:companyId/projects/:projectId/domains/:domain`, `api:@api/internal/billing/lago/webhook`, `api:@api/internal/projects/claim`, `api:@api/companies/:companyId/orphans/claim`, `api:@api/companies/:companyId/projects/:projectId/slug`, `api:@api/billing/plans`, `api:@api/public/deploy-tokens/request`, `lib:@api/src/services/companyStore`
+- **Read by:** nothing in this repo
 
 ## request_log
 

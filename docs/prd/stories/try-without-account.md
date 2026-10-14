@@ -92,7 +92,7 @@ flowchart TD
   - If A workspace already owns the name → refused (app_name_taken).
   - If deploying the same trial app again → it is updated, but the 24 hours do not restart.
 - **Parts:** App records (`app-records`), Apps and deploys (`apps-data`)
-- **Keeps:** `DeployToken`, `Project`
+- **Keeps:** `Company`, `DeployToken`, `Project`
 - **Looks up:** `Domain`, `EnvVar`
 - **Code:** `api:@api/internal/projects/claim` → `@api/src/routes/internalProjects.routes.ts`, `lib:@api/src/services/projectClaim` → `@api/src/services/projectClaim.ts`, `lib:@api/src/lib/orphanMessage` → `@api/src/lib/orphanMessage.ts`
 - **Outside services:** Lago, Redis, Stripe
@@ -116,7 +116,7 @@ flowchart TD
   - If more than 5 requests an hour for one email, 10 from one place, or 200 in total → refused (429) with when to retry.
   - If the email can't be sent → the key is made but never arrives; the reply looks the same either way.
 - **Parts:** Visitors (`visitors`), Deploy keys (`tokens`), viaSocket (`webhook`), MSG91 (`msg91`)
-- **Keeps:** `AuditLog`, `DeployToken`
+- **Keeps:** `AuditLog`, `Company`, `DeployToken`
 - **Code:** `api:@api/public/deploy-tokens/request` → `@api/src/routes/publicTokens.routes.ts`, `lib:@api/src/services/publicTokenRequest` → `@api/src/services/publicTokenRequest.ts`, `lib:@api/src/services/emailToken` → `@api/src/services/emailToken.ts`
 - **Outside services:** Lago, Redis, Stripe, viaSocket webhook
 
@@ -128,7 +128,7 @@ flowchart TD
 - **If it goes wrong:**
   - If the key is revoked by then → refused (401), and the app stays a trial.
 - **Parts:** Deploy intake (`intake`), App records (`app-records`)
-- **Keeps:** `DeployToken`, `Project`
+- **Keeps:** `Company`, `DeployToken`, `Project`
 - **Looks up:** `Domain`, `EnvVar`
 - **Code:** `api:@api/internal/projects/claim` → `@api/src/routes/internalProjects.routes.ts`, `lib:@api/src/services/projectClaim` → `@api/src/services/projectClaim.ts`
 - **Outside services:** Lago, Redis, Stripe
@@ -167,6 +167,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 ## Tables
 
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
+- **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `DeployToken` — Company-wide deploy token.
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
 - **Looks up** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
