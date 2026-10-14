@@ -114,7 +114,11 @@ const CLOSE_ANIM_MS = 160;
    it. A scroll moves it with its tile (section snap keeps scrolling after
    the wheel stops, so closing on scroll killed hovers) and closes it only
    once the tile leaves the screen. */
-export function FeatureTiles() {
+/* The bubble's whole lifecycle, so any grid of feature tiles — this one, or
+   the upvote picker in the panel's feedback box — opens the same bubble the
+   same way. Spread `hoverProps(id)` on the tile's <li>, mark the tile itself
+   `data-feature`, and render `bubble`. */
+export function useFeatureBubble() {
   const [anchor, setAnchor] = useState<Anchor | null>(null);
   const [closing, setClosing] = useState(false);
   const openTimer = useRef(0);
@@ -177,6 +181,29 @@ export function FeatureTiles() {
     window.clearTimeout(unmountTimer.current);
   }, []);
 
+  const hoverProps = (id: string) => ({
+    onPointerEnter: (e: React.PointerEvent<HTMLElement>) => {
+      if (e.pointerType !== 'mouse') return;
+      const el = e.currentTarget.firstElementChild as HTMLElement;
+      window.clearTimeout(openTimer.current);
+      openTimer.current = window.setTimeout(() => openFor(id, el), anchor ? 0 : HOVER_OPEN_MS);
+    },
+    onPointerLeave: (e: React.PointerEvent<HTMLElement>) => e.pointerType === 'mouse' && scheduleClose(),
+  });
+
+  /* Portalled: the bubble is fixed-positioned from the tile's rect, and a
+     stacking context, overlay or zoomed parent around the grid would
+     otherwise clip or shift it. */
+  const bubble = anchor
+    ? createPortal(<NeedBubble anchor={anchor} closing={closing} onEnter={cancelClose} onLeave={scheduleClose} />, document.body)
+    : null;
+
+  return { anchor, closing, openFor, close, hoverProps, bubble };
+}
+
+export function FeatureTiles() {
+  const { anchor, closing, openFor, close, hoverProps, bubble } = useFeatureBubble();
+
   return (
     <div className="w-full">
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -189,13 +216,7 @@ export function FeatureTiles() {
             <li
               key={n.id}
               className="group min-w-0"
-              onPointerEnter={(e) => {
-                if (e.pointerType !== 'mouse') return;
-                const el = e.currentTarget.firstElementChild as HTMLElement;
-                window.clearTimeout(openTimer.current);
-                openTimer.current = window.setTimeout(() => openFor(n.id, el), anchor ? 0 : HOVER_OPEN_MS);
-              }}
-              onPointerLeave={(e) => e.pointerType === 'mouse' && scheduleClose()}
+              {...hoverProps(n.id)}
             >
               <button
                 type="button"
@@ -227,10 +248,7 @@ export function FeatureTiles() {
         })}
       </ul>
       <p className="mt-5 text-sm text-[var(--ds-dim)]">Hover or tap a tile to see what to ask for.</p>
-      {/* Portalled: the bubble is fixed-positioned from the tile's rect, and a
-          stacking context, overlay or zoomed parent around the grid would
-          otherwise clip or shift it. */}
-      {anchor && createPortal(<NeedBubble anchor={anchor} closing={closing} onEnter={cancelClose} onLeave={scheduleClose} />, document.body)}
+      {bubble}
     </div>
   );
 }
