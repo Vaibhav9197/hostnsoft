@@ -1,0 +1,132 @@
+/* The guides index: a picker and a list of routes. Open rows on the cream
+   ground, separated by hairlines (no card per guide). Colour stays ink on
+   cream; green appears only on a "live link" dot, as everywhere on the site. */
+
+.gx-pick { padding: 22px 0 18px; border-bottom: 1px solid var(--line); }
+.gx-pick__q { margin: 0 0 12px; color: var(--ink); font-size: 15px; font-weight: 600; }
+.gx-pick__chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.gx-chip {
+  min-height: 40px;
+  padding: 8px 15px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color .2s var(--ds-ease), border-color .2s var(--ds-ease), color .2s var(--ds-ease);
+}
+.gx-chip:hover { border-color: var(--ink); }
+.gx-chip[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--bg); }
+.gx-chip:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+@media (pointer: coarse) { .gx-chip { min-height: 44px; } }
+.gx-pick__say { min-height: 1.5em; margin: 12px 0 0; color: var(--ink-soft); font-size: 14px; }
+.gx-pick__say a { color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+
+.gx-list { margin: 0; padding: 0; list-style: none; }
+.gx-row { border-bottom: 1px solid var(--line); transition: opacity .3s var(--ds-ease); }
+.gx-row__link {
+  display: grid;
+  grid-template-columns: minmax(0, 300px) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px 40px;
+  padding: 26px 4px;
+  color: inherit;
+  text-decoration: none;
+}
+.gx-row__link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 12px; }
+
+/* The route: where the app is today, a line, and the live link. */
+.gx-route { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.gx-route__from,
+.gx-route__to {
+  display: inline-flex; align-items: center; gap: 7px;
+  flex: none;
+  padding: 6px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.gx-route__from { max-width: 60%; overflow: hidden; text-overflow: ellipsis; }
+.gx-route__to { color: var(--ink-soft); }
+.gx-route__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--line-control); transition: background-color .3s var(--ds-ease), box-shadow .3s var(--ds-ease); }
+.gx-route__line {
+  position: relative;
+  flex: 1 1 24px;
+  min-width: 24px;
+  height: 2px;
+  background-image: linear-gradient(90deg, var(--line-strong) 55%, transparent 55%);
+  background-size: 8px 2px;
+}
+.gx-route__line i {
+  position: absolute; inset: 0;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .5s var(--ds-ease);
+}
+.gx-row__link:hover .gx-route__line i,
+.gx-row__link:focus-visible .gx-route__line i,
+.gx-row.is-match .gx-route__line i { transform: scaleX(1); }
+.gx-row__link:hover .gx-route__dot,
+.gx-row__link:focus-visible .gx-route__dot,
+.gx-row.is-match .gx-route__dot { background: var(--ok); box-shadow: 0 0 0 3px var(--ok-soft); transition-delay: .35s; }
+.gx-row__link:hover .gx-route__to,
+.gx-row.is-match .gx-route__to { color: var(--ok-ink); }
+
+.gx-row__text { display: grid; gap: 6px; min-width: 0; }
+.gx-row__title { margin: 0; color: var(--ink); font-size: 21px; font-weight: 700; line-height: 1.25; letter-spacing: -.02em; text-wrap: balance; }
+.gx-row__desc { color: var(--ink-soft); font-size: 15px; line-height: 1.55; }
+.gx-row__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 4px; color: var(--ink-soft); font-size: 13px; }
+.gx-row__avatar {
+  display: grid; place-items: center;
+  width: 24px; height: 24px;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 10px; font-weight: 700;
+}
+.gx-row__arrow { width: 20px; height: 20px; color: var(--ink); transition: transform .2s var(--ds-ease); }
+.gx-row__link:hover .gx-row__arrow { transform: translateX(4px); }
+.gx-row__link:hover .gx-row__title { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+
+/* Picking a start: the match moves to the top and lights up; the rest stay
+   readable, only quieter. */
+.gx-row.is-match { animation: gx-in .45s var(--ds-ease) both; }
+.gx-row.is-match .gx-route__from { border-color: var(--ink); background: var(--ink); color: var(--bg); }
+.gx-row.is-other { opacity: .62; }
+.gx-row.is-other:hover, .gx-row.is-other:focus-within { opacity: 1; }
+@keyframes gx-in { from { opacity: 0; transform: translateY(-6px); } }
+
+@media (max-width: 760px) {
+  .gx-row__link { grid-template-columns: minmax(0, 1fr) auto; gap: 14px 16px; padding: 22px 0; }
+  .gx-route { grid-column: 1 / -1; }
+  .gx-row__title { font-size: 19px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gx-row, .gx-route__line i, .gx-route__dot, .gx-row__arrow { transition: none; }
+  .gx-row.is-match { animation: none; }
+}
+
+/* Phones: the choices sit in one row you can swipe, so the first guide stays
+   on the first screen. */
+@media (max-width: 600px) {
+  .gx-pick__chips {
+    flex-wrap: nowrap;
+    margin: 0 -24px;
+    padding: 2px 24px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 24px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 24px), transparent);
+  }
+  .gx-pick__chips::-webkit-scrollbar { display: none; }
+  .gx-chip { flex: none; }
+}

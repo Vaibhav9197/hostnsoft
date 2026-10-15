@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 
 import { SiteFooter } from "../components/SiteFooter";
 import { SiteHeader } from "../components/SiteHeader";
-import { Card, CtaSection, Serif } from "../components/ds";
-import { formatDate, POSTS, type BlogPost } from "../lib/guides";
+import { CtaSection, Serif } from "../components/ds";
+import { formatDate, POSTS } from "../lib/guides";
 import { initials } from "./ContinueReading";
+import { GuidesIndex } from "./GuidesIndex";
 import { SITE } from "../lib/site";
 
 export const metadata: Metadata = {
@@ -20,51 +19,7 @@ export const metadata: Metadata = {
   ],
 };
 
-/* The cover, cropped to the share-image ratio. It zooms a little on hover of
-   its card; motion-safe keeps it still for anyone who turned motion off. */
-function Cover({ post, eager, className = "" }: { post: BlogPost; eager?: boolean; className?: string }) {
-  if (!post.cover) return null;
-  return (
-    <div className={`overflow-hidden border-b border-border ${className}`}>
-      <img
-        src={post.cover}
-        alt={post.coverAlt}
-        width={1200}
-        height={630}
-        loading={eager ? "eager" : "lazy"}
-        className="aspect-[1200/630] h-full w-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-[1.03]"
-      />
-    </div>
-  );
-}
-
-/* Author, date and read time on one line, with an arrow that moves on hover
-   to say the whole card is the link. */
-function Byline({ post, className = "" }: { post: BlogPost; className?: string }) {
-  return (
-    <div className={`flex items-center gap-3 text-sm text-muted-foreground ${className}`}>
-      <span
-        aria-hidden="true"
-        className="grid size-8 shrink-0 place-items-center rounded-full border border-border bg-background text-[11px] font-semibold text-foreground"
-      >
-        {initials(post.author)}
-      </span>
-      <span className="min-w-0">
-        <span className="block truncate font-medium text-foreground">{post.author}</span>
-        <span className="block">
-          <time dateTime={post.datePublished}>{formatDate(post.datePublished)}</time> · {post.readMinutes} min read
-        </span>
-      </span>
-      <ArrowRight
-        aria-hidden="true"
-        className="ml-auto size-5 shrink-0 text-foreground transition-transform duration-200 motion-safe:group-hover:translate-x-1"
-      />
-    </div>
-  );
-}
-
 export default function BlogIndexPage() {
-  const [featured, ...rest] = POSTS;
   const breadcrumbs = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -82,7 +37,7 @@ export default function BlogIndexPage() {
       {/* A blog index, not a landing page: a short heading, then the guides
           start on the first screen. */}
       <div className="mx-auto max-w-6xl px-6 pb-24 pt-12 sm:pt-16">
-        <header className="flex flex-wrap items-end justify-between gap-x-10 gap-y-4 border-b border-border pb-8">
+        <header className="flex flex-wrap items-end justify-between gap-x-10 gap-y-4 pb-2">
           <div className="max-w-2xl">
             <p className="text-sm font-semibold text-muted-foreground">Embarko guides</p>
             <h1 className="mt-2 text-4xl font-extrabold leading-[1.05] tracking-[-0.035em] text-foreground sm:text-5xl">
@@ -104,46 +59,18 @@ export default function BlogIndexPage() {
           All guides
         </h2>
 
-        <div className="mt-10">
-        {featured && (
-          <Card as="article" lift className="group mx-auto max-w-6xl !p-0">
-            <Link
-              href={`/guides/${featured.slug}`}
-              className="grid overflow-hidden rounded-[inherit] lg:grid-cols-[1.25fr_1fr] lg:items-stretch"
-            >
-              <Cover post={featured} eager className="lg:h-full lg:border-b-0 lg:border-r" />
-              <div className="flex flex-col p-7 sm:p-9">
-                <p className="font-mono text-xs uppercase tracking-[0.06em] text-muted-foreground">Newest guide</p>
-                <h3 className="mt-3 text-2xl font-bold leading-tight tracking-[-0.02em] text-foreground [text-wrap:balance] sm:text-3xl">
-                  {featured.title}
-                </h3>
-                <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">{featured.description}</p>
-                <Byline post={featured} className="mt-auto pt-7" />
-              </div>
-            </Link>
-          </Card>
-        )}
-
-        {rest.length > 0 && (
-          <ul className="mx-auto mt-6 grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {rest.map((post) => (
-              <Card as="li" lift key={post.slug} className="group !p-0">
-                <Link href={`/guides/${post.slug}`} className="flex h-full flex-col overflow-hidden rounded-[inherit]">
-                  <Cover post={post} />
-                  <div className="flex flex-1 flex-col p-6">
-                    <h3 className="line-clamp-2 text-lg font-semibold leading-snug tracking-[-0.01em] text-foreground">
-                      {post.title}
-                    </h3>
-                    <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">{post.description}</p>
-                    <Byline post={post} className="mt-auto pt-6" />
-                  </div>
-                </Link>
-              </Card>
-            ))}
-          </ul>
-        )}
-
-        </div>
+        <GuidesIndex
+          posts={POSTS.map((p) => ({
+            slug: p.slug,
+            title: p.title,
+            description: p.description,
+            author: p.author,
+            initials: initials(p.author),
+            date: p.datePublished,
+            dateLabel: formatDate(p.datePublished),
+            readMinutes: p.readMinutes,
+          }))}
+        />
 
         <p className="mt-10 text-center text-sm text-muted-foreground">
           Reading as an AI agent? Every guide is plain markdown at{" "}
