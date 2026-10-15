@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import "./guides-index.css";
 
@@ -37,14 +37,19 @@ const CHOICES: { key: string; label: string }[] = [
   { key: "student", label: "A class project" },
   { key: "any", label: "Not sure" },
 ];
+const LABELS: Record<string, string> = { ...Object.fromEntries(CHOICES.map((c) => [c.key, c.label])), any: "Any AI tool" };
 
 /**
- * The guides as routes: pick where your app is today and its route moves to
- * the top and lights up. Nothing is hidden; the other guides stay readable
- * below it. Without JavaScript it is a plain list of links.
+ * The guides as one journey, in the same language as the guides themselves:
+ * a route line runs down the list and fills as you scroll, each guide is a
+ * stop with its own route (where the app is today → a live link) that draws
+ * as it comes into view, and the list ends on the live link. Picking where
+ * your app is moves its guide to the top; nothing is hidden. Without
+ * JavaScript it is a plain list of links with every route drawn.
  */
 export function GuidesIndex({ posts }: { posts: IndexPost[] }) {
   const [pick, setPick] = useState<string | null>(null);
+  const root = useRef<HTMLDivElement>(null);
 
   const ordered = useMemo(() => {
     if (!pick) return posts;
@@ -53,8 +58,58 @@ export function GuidesIndex({ posts }: { posts: IndexPost[] }) {
   }, [pick, posts]);
   const best = pick ? posts.find((p) => STARTS[p.slug]?.key === pick) : undefined;
 
+  /* Scroll: rows draw their route as they arrive; the journey line fills. */
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    el.classList.add("gx-js");
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const rows = Array.from(el.querySelectorAll<HTMLElement>(".gx-row"));
+    const list = el.querySelector<HTMLElement>(".gx-list");
+    if (reduced || !("IntersectionObserver" in window) || !list) {
+      rows.forEach((r) => r.classList.add("is-in"));
+      el.style.setProperty("--fill", "1");
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          e.target.classList.add("is-in");
+          io.unobserve(e.target);
+        }),
+      { rootMargin: "0px 0px -12% 0px", threshold: 0.2 },
+    );
+    rows.forEach((r) => io.observe(r));
+    let raf = 0;
+    const tick = () => {
+      raf = 0;
+      const r = list.getBoundingClientRect();
+      const p = Math.min(1, Math.max(0, (innerHeight * 0.62 - r.top) / (r.height || 1)));
+      el.style.setProperty("--fill", p.toFixed(4));
+      el.classList.toggle("is-arrived", p > 0.98);
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+    tick();
+    addEventListener("scroll", onScroll, { passive: true });
+    addEventListener("resize", onScroll);
+    return () => {
+      io.disconnect();
+      removeEventListener("scroll", onScroll);
+      removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  /* A newly picked guide is already on screen: draw it at once. */
+  useEffect(() => {
+    root.current?.querySelectorAll(".gx-row.is-match").forEach((r) => r.classList.add("is-in"));
+  }, [pick]);
+
   return (
-    <div className={`gx ${pick ? "gx--picked" : ""}`}>
+    <div ref={root} className={`gx ${pick ? "gx--picked" : ""}`}>
       <div className="gx-pick">
         <p id="gx-pick-q" className="gx-pick__q">
           Where is your app right now?
@@ -83,43 +138,58 @@ export function GuidesIndex({ posts }: { posts: IndexPost[] }) {
         </p>
       </div>
 
-      <ol className="gx-list">
-        {ordered.map((p, i) => {
-          const start = STARTS[p.slug] ?? { key: "", from: "your app" };
-          const isMatch = !!pick && start.key === pick;
-          return (
-            <li key={p.slug} className={`gx-row ${isMatch ? "is-match" : ""} ${pick && !isMatch ? "is-other" : ""}`} style={{ ["--i" as string]: i }}>
-              <Link href={`/guides/${p.slug}`} className="gx-row__link">
-                <span className="gx-route" aria-hidden="true">
-                  <span className="gx-route__from">{start.from}</span>
-                  <span className="gx-route__line">
-                    <i />
-                  </span>
-                  <span className="gx-route__to">
-                    <span className="gx-route__dot" />
-                    live link
-                  </span>
-                </span>
-                <span className="gx-row__text">
-                  <h3 className="gx-row__title">{p.title}</h3>
-                  <span className="gx-row__desc">{p.description}</span>
-                  <span className="gx-row__meta">
-                    <span className="gx-row__avatar" aria-hidden="true">
-                      {p.initials}
+      <div className="gx-journey">
+        <span className="gx-rail" aria-hidden="true">
+          <i />
+        </span>
+        <ol className="gx-list">
+          {ordered.map((p, i) => {
+            const start = STARTS[p.slug] ?? { key: "", from: "your app" };
+            const isMatch = !!pick && start.key === pick;
+            return (
+              <li key={p.slug} className={`gx-row ${isMatch ? "is-match is-in" : ""} ${pick && !isMatch ? "is-other" : ""}`}>
+                <span className="gx-node" aria-hidden="true" />
+                <Link href={`/guides/${p.slug}`} className="gx-row__link">
+                  <span className="gx-row__text">
+                    <span className="gx-eyebrow">
+                      <span className="gx-eyebrow__n">{String(i + 1).padStart(2, "0")}</span> — {LABELS[start.key] ?? "Guide"}
                     </span>
-                    <span>{p.author}</span>
-                    <span aria-hidden="true">·</span>
-                    <time dateTime={p.date}>{p.dateLabel}</time>
-                    <span aria-hidden="true">·</span>
-                    <span>{p.readMinutes} min read</span>
+                    <h3 className="gx-row__title">{p.title}</h3>
+                    <span className="gx-row__desc">{p.description}</span>
+                    <span className="gx-row__meta">
+                      <span className="gx-row__avatar" aria-hidden="true">
+                        {p.initials}
+                      </span>
+                      <span>{p.author}</span>
+                      <span aria-hidden="true">·</span>
+                      <time dateTime={p.date}>{p.dateLabel}</time>
+                      <span aria-hidden="true">·</span>
+                      <span>{p.readMinutes} min read</span>
+                    </span>
                   </span>
-                </span>
-                <ArrowRight aria-hidden="true" className="gx-row__arrow" />
-              </Link>
-            </li>
-          );
-        })}
-      </ol>
+                  <span className="gx-route" aria-hidden="true">
+                    <span className="gx-route__from">{start.from}</span>
+                    <span className="gx-route__line">
+                      <i />
+                    </span>
+                    <span className="gx-route__to">
+                      <span className="gx-route__dot" />
+                      live link
+                    </span>
+                  </span>
+                  <ArrowRight aria-hidden="true" className="gx-row__arrow" />
+                </Link>
+              </li>
+            );
+          })}
+        </ol>
+        <p className="gx-end">
+          <span className="gx-end__node" aria-hidden="true" />
+          <span>
+            Every route ends in the same place: <strong>a live link anyone can open</strong>.
+          </span>
+        </p>
+      </div>
     </div>
   );
 }

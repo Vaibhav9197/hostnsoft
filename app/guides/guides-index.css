@@ -1,6 +1,7 @@
-/* The guides index: a picker and a list of routes. Open rows on the cream
-   ground, separated by hairlines (no card per guide). Colour stays ink on
-   cream; green appears only on a "live link" dot, as everywhere on the site. */
+/* The guides index, in the guides' own language (Hermes interactive-blog-
+   designer): open rows on the cream ground, a journey line that fills as you
+   scroll, a node and a mono eyebrow per stop, and each guide's route drawing
+   from grey to a green live link. Green only ever means "live". */
 
 .gx-pick { padding: 22px 0 18px; border-bottom: 1px solid var(--line); }
 .gx-pick__q { margin: 0 0 12px; color: var(--ink); font-size: 15px; font-weight: 600; }
@@ -24,20 +25,61 @@
 .gx-pick__say { min-height: 1.5em; margin: 12px 0 0; color: var(--ink-soft); font-size: 14px; }
 .gx-pick__say a { color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 
+/* ---------- The journey line ---------- */
+.gx-journey { position: relative; padding-left: 44px; }
+.gx-rail { position: absolute; left: 9px; top: 46px; bottom: 30px; width: 2px; }
+.gx-rail::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image: linear-gradient(180deg, var(--line-strong) 55%, transparent 55%);
+  background-size: 2px 8px;
+}
+.gx-rail i { position: absolute; inset: 0; background: var(--ink); transform: scaleY(var(--fill, 1)); transform-origin: top; }
+.gx-js .gx-rail i { transform: scaleY(var(--fill, 0)); }
+
 .gx-list { margin: 0; padding: 0; list-style: none; }
-.gx-row { border-bottom: 1px solid var(--line); transition: opacity .3s var(--ds-ease); }
+.gx-row { position: relative; border-bottom: 1px solid var(--line); transition: opacity .3s var(--ds-ease); }
+.gx-node {
+  position: absolute; left: -40px; top: 41px; z-index: 1;
+  width: 12px; height: 12px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: var(--bg);
+  transition: background-color .4s var(--ds-ease), box-shadow .4s var(--ds-ease);
+}
+.gx-row.is-in .gx-node, .gx:not(.gx-js) .gx-node { background: var(--ink); box-shadow: 0 0 0 4px var(--surface-2); }
+
 .gx-row__link {
   display: grid;
-  grid-template-columns: minmax(0, 300px) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 290px) auto;
   align-items: center;
-  gap: 18px 40px;
-  padding: 26px 4px;
+  gap: 16px 40px;
+  padding: 28px 4px;
   color: inherit;
   text-decoration: none;
 }
 .gx-row__link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 12px; }
 
-/* The route: where the app is today, a line, and the live link. */
+.gx-row__text { display: grid; gap: 6px; min-width: 0; }
+.gx-eyebrow { color: var(--ink-faint); font: 500 12px/1.4 var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+.gx-eyebrow__n { color: var(--ink); }
+.gx-row__title { margin: 2px 0 0; color: var(--ink); font-size: 22px; font-weight: 700; line-height: 1.22; letter-spacing: -.022em; text-wrap: balance; }
+.gx-row__desc { color: var(--ink-soft); font-size: 15px; line-height: 1.6; }
+.gx-row__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 4px; color: var(--ink-soft); font-size: 13px; }
+.gx-row__avatar {
+  display: grid; place-items: center;
+  width: 24px; height: 24px;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 10px; font-weight: 700;
+}
+.gx-row__arrow { width: 20px; height: 20px; color: var(--ink); transition: transform .2s var(--ds-ease); }
+.gx-row__link:hover .gx-row__arrow { transform: translateX(4px); }
+.gx-row__link:hover .gx-row__title { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+
+/* ---------- Each guide's route: where the app is → a live link ---------- */
 .gx-route { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .gx-route__from,
 .gx-route__to {
@@ -53,8 +95,8 @@
   white-space: nowrap;
 }
 .gx-route__from { max-width: 60%; overflow: hidden; text-overflow: ellipsis; }
-.gx-route__to { color: var(--ink-soft); }
-.gx-route__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--line-control); transition: background-color .3s var(--ds-ease), box-shadow .3s var(--ds-ease); }
+.gx-route__to { color: var(--ink-soft); transition: color .3s var(--ds-ease) .45s, border-color .3s var(--ds-ease) .45s; }
+.gx-route__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--line-control); transition: background-color .3s var(--ds-ease) .45s, box-shadow .3s var(--ds-ease) .45s; }
 .gx-route__line {
   position: relative;
   flex: 1 1 24px;
@@ -68,36 +110,28 @@
   background: var(--ink);
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform .5s var(--ds-ease);
+  transition: transform .55s var(--ds-ease);
 }
-.gx-row__link:hover .gx-route__line i,
-.gx-row__link:focus-visible .gx-route__line i,
-.gx-row.is-match .gx-route__line i { transform: scaleX(1); }
-.gx-row__link:hover .gx-route__dot,
-.gx-row__link:focus-visible .gx-route__dot,
-.gx-row.is-match .gx-route__dot { background: var(--ok); box-shadow: 0 0 0 3px var(--ok-soft); transition-delay: .35s; }
-.gx-row__link:hover .gx-route__to,
-.gx-row.is-match .gx-route__to { color: var(--ok-ink); }
+.gx-row.is-in .gx-route__line i, .gx:not(.gx-js) .gx-route__line i { transform: scaleX(1); }
+.gx-row.is-in .gx-route__dot, .gx:not(.gx-js) .gx-route__dot { background: var(--ok); box-shadow: 0 0 0 3px var(--ok-soft); }
+.gx-row.is-in .gx-route__to, .gx:not(.gx-js) .gx-route__to { color: var(--ok-ink); border-color: color-mix(in srgb, var(--ok) 35%, var(--line)); }
 
-.gx-row__text { display: grid; gap: 6px; min-width: 0; }
-.gx-row__title { margin: 0; color: var(--ink); font-size: 21px; font-weight: 700; line-height: 1.25; letter-spacing: -.02em; text-wrap: balance; }
-.gx-row__desc { color: var(--ink-soft); font-size: 15px; line-height: 1.55; }
-.gx-row__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 4px; color: var(--ink-soft); font-size: 13px; }
-.gx-row__avatar {
-  display: grid; place-items: center;
-  width: 24px; height: 24px;
-  border: 1px solid var(--line-strong);
+/* ---------- The end of the line: live ---------- */
+.gx-end { position: relative; display: flex; align-items: center; gap: 12px; margin: 0; padding: 22px 0 0; color: var(--ink-soft); font-size: 15px; }
+.gx-end strong { color: var(--ink); font-weight: 600; }
+.gx-end__node {
+  position: absolute; left: -42px; top: 25px;
+  width: 16px; height: 16px;
+  border: 2px solid var(--line-control);
   border-radius: 50%;
-  background: var(--surface);
-  color: var(--ink);
-  font-size: 10px; font-weight: 700;
+  background: var(--bg);
+  transition: background-color .4s var(--ds-ease), border-color .4s var(--ds-ease), box-shadow .4s var(--ds-ease);
 }
-.gx-row__arrow { width: 20px; height: 20px; color: var(--ink); transition: transform .2s var(--ds-ease); }
-.gx-row__link:hover .gx-row__arrow { transform: translateX(4px); }
-.gx-row__link:hover .gx-row__title { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+.gx.is-arrived .gx-end__node, .gx:not(.gx-js) .gx-end__node { border-color: var(--ok); background: var(--ok); box-shadow: 0 0 0 5px var(--ok-soft); }
 
-/* Picking a start: the match moves to the top and lights up; the rest stay
-   readable, only quieter. */
+/* ---------- Arrival on scroll, and picking a start ---------- */
+.gx-js .gx-row:not(.is-in) .gx-row__link { opacity: 0; transform: translateY(14px); }
+.gx-js .gx-row .gx-row__link { transition: opacity .7s var(--ds-ease), transform .7s var(--ds-ease); }
 .gx-row.is-match { animation: gx-in .45s var(--ds-ease) both; }
 .gx-row.is-match .gx-route__from { border-color: var(--ink); background: var(--ink); color: var(--bg); }
 .gx-row.is-other { opacity: .62; }
@@ -105,14 +139,13 @@
 @keyframes gx-in { from { opacity: 0; transform: translateY(-6px); } }
 
 @media (max-width: 760px) {
-  .gx-row__link { grid-template-columns: minmax(0, 1fr) auto; gap: 14px 16px; padding: 22px 0; }
-  .gx-route { grid-column: 1 / -1; }
+  .gx-journey { padding-left: 30px; }
+  .gx-rail { left: 5px; top: 34px; }
+  .gx-node { left: -30px; top: 29px; }
+  .gx-end__node { left: -32px; }
+  .gx-row__link { grid-template-columns: minmax(0, 1fr) auto; gap: 14px 12px; padding: 22px 0; }
+  .gx-route { grid-column: 1 / -1; grid-row: 2; }
   .gx-row__title { font-size: 19px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .gx-row, .gx-route__line i, .gx-route__dot, .gx-row__arrow { transition: none; }
-  .gx-row.is-match { animation: none; }
 }
 
 /* Phones: the choices sit in one row you can swipe, so the first guide stays
@@ -129,4 +162,9 @@
   }
   .gx-pick__chips::-webkit-scrollbar { display: none; }
   .gx-chip { flex: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gx-row, .gx-row__link, .gx-route__line i, .gx-route__dot, .gx-route__to, .gx-node, .gx-row__arrow { transition: none !important; }
+  .gx-row.is-match { animation: none; }
 }

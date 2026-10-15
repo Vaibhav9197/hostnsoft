@@ -39,8 +39,8 @@ export default function BlogIndexPage() {
       <div className="mx-auto max-w-6xl px-6 pb-24 pt-12 sm:pt-16">
         <header className="flex flex-wrap items-end justify-between gap-x-10 gap-y-4 pb-2">
           <div className="max-w-2xl">
-            <p className="text-sm font-semibold text-muted-foreground">Embarko guides</p>
-            <h1 className="mt-2 text-4xl font-extrabold leading-[1.05] tracking-[-0.035em] text-foreground sm:text-5xl">
+            <p className="inline-flex rounded-full border border-[var(--line-strong)] px-3 py-1 text-[13px] font-semibold leading-normal text-foreground">Guides</p>
+            <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] tracking-[-0.035em] text-foreground sm:text-5xl">
               From localhost to <Serif>live</Serif>.
             </h1>
             <p className="mt-3 text-lg leading-relaxed text-muted-foreground">
