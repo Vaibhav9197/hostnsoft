@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { GUIDE_TOPICS } from "./lib/guide/site";
+import { POSTS } from "./lib/guides";
 import { categorySlug, listApps, tagSlug } from "./lib/showcase";
 import { SITE } from "./lib/site";
 
@@ -75,9 +76,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ];
 
+  /* Real dates, so these are the one kind of page here that gets lastModified. */
+  const blog = POSTS.map((post) => ({
+    url: `${SITE}/guides/${post.slug}`,
+    lastModified: post.dateModified,
+    changeFrequency: "monthly" as const,
+    priority: 0.8,
+  }));
+
   const pages: Array<[string, number, MetadataRoute.Sitemap[number]["changeFrequency"]]> = [
     ["/", 1.0, "daily"],
     ["/pricing", 0.9, "weekly"],
+    ["/guides", 0.8, "weekly"],
     ["/showcase", 0.9, "daily"],
     ["/pages", 0.8, "weekly"],
     ["/hackathons", 0.7, "monthly"],
@@ -100,6 +110,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority,
     })),
     ...docs,
+    ...blog,
     ...showcase,
   ];
 }

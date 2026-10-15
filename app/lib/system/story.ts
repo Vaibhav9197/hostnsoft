@@ -157,6 +157,14 @@ export const AREAS: Area[] = [
     ],
   },
   {
+    id: "guides",
+    name: "Guides",
+    lane: "screens",
+    plain: "Step-by-step articles that bring people from search to their first deploy.",
+    detail: "Markdown with frontmatter in content/guides/, served at /guides and /guides/<slug> with cover images from public/assets/guides/ (drawn by scripts/guide-covers.mjs). Only posts with status \"published\" are built. Guides with their own interactive design (app/guides/_interactive/ registry) render it instead of the standard article.",
+    refs: ["page:/guides", "page:/guides/*", "api:/guides/llms.txt", "api:/guides/[slug]/llms.txt", "lib:app/guides/*", "lib:app/lib/guides"],
+  },
+  {
     id: "sign-in",
     name: "Sign-in",
     lane: "screens",
