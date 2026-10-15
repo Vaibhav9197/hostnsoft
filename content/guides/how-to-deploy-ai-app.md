@@ -1,189 +1,287 @@
 ---
-title: "How to Deploy an AI App: Which Route Fits Your App"
-meta_description: "How to deploy an AI app: pick the right route for a chat UI, a RAG front end or an AI-built app, get a live HTTPS link, and know the limits first."
+title: "How to Deploy an AI App: From Idea to Live Link"
+meta_description: "Built an app with AI? Learn how to deploy it: copy one prompt, paste it into Claude, Cursor or Antigravity and share a live link. No coding, no GitHub."
 slug: "how-to-deploy-ai-app"
 primary_keyword: "how to deploy ai app"
-secondary_keywords: ["deploy ai chat app", "host rag app", "deploy app that calls openai api", "where to put api key when deploying", "deploy app built with ai"]
+secondary_keywords: ["what does localhost mean", "what does it mean to deploy an app", "deploy app built with ai", "deploy without github", "where to put api key when deploying"]
 category: "Guide"
 cover: "/assets/guides/how-to-deploy-ai-app.png"
-cover_alt: "A live AI chat app at your-app-name.embarko.app keeps its MODEL_API_KEY as an encrypted environment variable and calls a model API hosted elsewhere over HTTPS."
-read_minutes: 11
+cover_alt: "An AI tool chat where Embarko's prompt has been pasted and the reply says the app is live, with an arrow to the finished app open at your-app-name.embarko.app."
+read_minutes: 6
 datePublished: "2026-10-07"
-dateModified: "2026-10-07"
-last_verified: "2026-10-07"
+dateModified: "2026-10-14"
+last_verified: "2026-10-14"
 author: "The Embarko team"
 status: "published"
 ---
 
-# How to deploy an AI app
+# How to Deploy an AI App: From Idea to Live Link
 
-**To deploy an AI app, give your AI agent the project folder and let it upload it.** On Embarko, install the [deploy skill](https://github.com/embarko-ai/skill) or paste the deployment prompt from [embarko.ai](/) into your AI tool, and the agent packs the folder, uploads it and returns a live HTTPS link. It suits small apps, such as a chat UI over a model API. It does not host models: there are no GPUs.
+Your app works on your laptop. Now you want to send someone a link. Here's what's going on, what your options are, and the quickest way to get there.
+
+**To deploy an AI-built app, you move it from your own computer to a server that stays online, which gives it a public web address.** The quickest way is to let your AI tool do the move for you. With Embarko, you copy one prompt from [embarko.ai](/), paste it into the tool you built your app in, and it hands you a link like `your-app-name.embarko.app`. No GitHub, no Docker, no hosting course.
 
 ## [Key takeaways](#takeaways)
 
-- "AI app" usually means one of two things: an app that **calls a model API** (a chat UI, a RAG front end), or an app that an **AI coding tool built**. Both deploy the same way. Hosting a model itself is a different job.
-- Your agent does the deploy. It packs the folder as a `.tar.gz`, [uploads it to Embarko's API](/docs/capabilities#deploy) and [checks the status](/docs/capabilities#status) until the app is `live`. No Git repo, no Dockerfile, no dashboard.
-- The first deploy is anonymous and **deleted after 24 hours** unless you [claim it](/docs/agent-playbook#claim). **You must claim the app before you can set an API key.**
-- Limits that matter for AI apps: **no GPUs**, **[256MB of memory](/docs/capabilities#resources)**, **no WebSockets**, no [background workers](/docs/capabilities#workers), and request timeouts and server-sent events are **not confirmed** in the docs.
-- Embarko is built for small apps. Heavy models, long jobs and realtime features belong somewhere else.
+- An AI-built app runs on **localhost**, which only your own computer can open.
+- **Deploying** means putting it on a server with a public address.
+- The usual route needs a GitHub repo, a hosting account, build settings and secret keys.
+- With Embarko, your AI tool does the upload from **one prompt**, and you get a live link.
 
-## [Which route fits your AI app?](#route)
+## [The whole journey, from idea to live link](#journey)
 
-Pick the row that matches what you have. The deploy steps are the same; what changes is how you start and what to watch for.
+Every AI-built app follows the same four stages. The first two are your AI tool's job. The third is where you need a host.
 
-| What you have | How to start | Watch for |
-|---|---|---|
-| **A project folder built by an AI coding tool** (Claude Code, Cursor, Codex and others) | The [deploy skill](https://github.com/embarko-ai/skill) or the copied deployment prompt, run by your agent | Nothing extra to set up first. A model API key still needs the [claim step](#step-5) below. If the agent's sandbox blocks the upload, see the fix in [step 3](#step-3) |
-| **A chat UI or RAG front end that calls a model API** | The same route. Deploy it as a server app, claim it, then [set the API key](#key) | The key cannot go in the folder. Setting it needs a claimed app |
-| **A front end only** (plain HTML, CSS and JS) | The same route. It is published as a [static site](/docs/capabilities#static-sites), usually live within seconds | A static site runs no process, so it cannot hold a secret. If the page calls a model API, do not put the key in the files: anyone can read it. Deploy a small server app that makes the call and holds the key, and have the page call that app |
-| **Code that exists only in a Claude chat** | Save the files into a folder and use Claude Code, or add the [Embarko connector](https://claude.ai/directory/embarko) ([how to connect](/docs/connectors#connect)) if the code is already at a public `.tar.gz` link | The connector cannot upload a folder from your computer. A Claude Artifact that calls `window.storage` is [rejected at deploy](/docs/troubleshoot#422-unsupported_storage_pattern): use SQLite under [`DATA_DIR`](/docs/capabilities#file-storage) |
-| **A model that needs a GPU**, or your own model weights | Not Embarko. Run the model with a GPU or model-hosting provider, then have your app call it over HTTP | Your app can still run on Embarko and call the model over HTTP |
+1. **Describe it.** You tell your AI tool what you want, in plain words.
+2. **Try it.** The tool builds it and runs it on your computer, so you can click around.
+3. **Put it online.** This is the stage where projects get stuck. It's what the rest of this guide is about.
+4. **Share it.** You send the link, get feedback and keep improving the app.
 
-## [Before you start: four checks](#checks)
+## [Why your AI-built app only works on your computer](#why)
 
-Your agent can usually fix these itself, but it helps to know them. The [agent quickstart](/docs/agent-quickstart#before) has the same list for your agent.
+When Claude, Cursor or another AI tool builds your app, it runs it on your own machine so you can try it. If you look at the address bar, you'll often see something like `localhost:3000`.
 
-- **Read the port from `PORT` and listen on `0.0.0.0`.** A fixed port, or `localhost` only, never goes live.
-- **Remove any Dockerfile and keep the manifest at the top.** AI tools sometimes add a Dockerfile; Embarko builds the app itself and [rejects one](/docs/limitations#build-runtime-customization). Files like `package.json` must sit at the root of the folder.
-- **Keep secrets out of the folder.** Your agent must leave `.env` files out of the archive (the docs say always exclude them), and anything you do include ships with the app. Your model API key goes in later as an [environment variable](/docs/capabilities#secrets).
-- **Read the API key when a request arrives, not when the app starts.** The first deploy has no key yet, and a crashed app is [restarted only a few times](/docs/troubleshoot#crash-loop-exhausted) before it is stopped. Reading the key lazily lets the app start without it.
+"Localhost" is simply the name for "this computer." A link that starts with it only means something on the machine that made it. Send it to a friend and it points at their computer, where your app doesn't exist.
 
-## [How to deploy an AI app, step by step](#steps)
+- **On your computer:** `localhost:3000`. Only you can open it. It stops when you close your laptop.
+- **On the internet:** `your-app-name.embarko.app`. Anyone with the link can open it, any time.
 
-### [1. Open the project in your AI tool](#step-1)
+## [What "deploying" actually means](#what)
 
-Start your agent in the folder that holds the app, and make sure it runs locally. That folder is what gets uploaded.
+Deploying sounds technical, but it's three simple things, and you only ever need to think about them once:
 
-### [2. Give your agent the deploy instructions](#step-2)
+1. **A computer that stays on.** Called a server. It sits in a data center and never goes to sleep, so your app is always reachable.
+2. **Your app's files on it.** Your project gets packed up and copied there. This is the "upload" part.
+3. **A public address.** A link anyone can type or tap. Hosting companies give you one for free or by default.
 
-**Option A, the skill.** Run this once in your terminal:
+That whole bundle is called hosting. The only real question is how you get your app from your computer onto a host. There are a few ways.
 
-```bash
-npx skills add embarko-ai/skill --skill embarko-deploy -g
-```
+## [Why deploying is the part where people get stuck](#hard)
 
-This needs Node.js, because the command uses `npx`. The skill packages and deploys for you, and its source is at [embarko.ai/skill](https://github.com/embarko-ai/skill), which opens the public GitHub page for the skill. If `npx` is not found, install Node.js or use Option B, which needs nothing installed.
+Building the app with AI took an afternoon. Putting it online is a different kind of work. The usual route asks you to learn things you never planned to:
 
-**Option B, the prompt.** Open [embarko.ai](/), copy the deployment prompt and paste it into your agent. It tells the agent how to deploy, so you do not have to learn the API.
+- **Make a GitHub account and a repository.** Then learn enough Git to push your code there, and keep it in sync every time you change something.
+- **Pick a hosting service and sign up.** Vercel, Netlify, DigitalOcean and others all work differently, and each has its own dashboard and vocabulary.
+- **Tell it how to build and start your app.** That means build commands, start commands, a framework preset, and sometimes a Dockerfile you didn't ask for.
+- **Get the port and the address right.** An app that listens on `localhost:3000` builds fine and then shows nothing online, and the error doesn't tell you why.
+- **Handle secret keys.** Your ChatGPT, Gemini or Claude key must live in "[environment variables](/docs/capabilities#secrets)" on the host, never in the code, or it can leak.
+- **Read the build logs when it fails.** They're written for developers, and one small error can stop the whole deploy.
 
-Example ask for your agent:
+None of this is hard for a developer. For everyone else, it can be a lot to take in, and the thing you built stays on your laptop until it's done.
 
-```text
-I built a web app, help me get it live on Embarko
-```
+## [Three ways to deploy an AI-built app](#routes)
 
-### [3. Let the agent do the deploy](#step-3)
+### [1. A Git repository and a host](#route-git)
 
-It packages the project as a `.tar.gz` (leaving out `node_modules`, `.git` and `.env` files), uploads it to Embarko's deploy API, and checks the status about every 10 seconds until it reaches `live`. A static site is usually live in the first reply. A server app has to build first, so it takes longer.
+Push your code to GitHub and connect it to Vercel, Netlify or DigitalOcean. Best for projects you keep changing or share with a team.
 
-- **Why "202 Accepted" is not the finish line.** A first response of `202 Accepted` only means the build started. The app is live when the status says `live`. See [202 Accepted is not live](/docs/troubleshoot#202-accepted-misread-as-live-deploy).
-- **Your agent says it cannot reach Embarko?** If you see something like `403 host_not_allowed`, a network sandbox is blocking the upload. Allow `embarko.ai`, `ship.embarko.ai` and `*.embarko.app` in its network settings, add the [Embarko connector](/docs/connectors) if you use Claude, or ask the agent for the deploy commands and run them in your own terminal. Nothing was deployed, so do not wait for a link. See [what to do when the API is unreachable](/docs/agent-playbook#no-connectivity).
+### [2. The command line](#route-cli)
 
-### [4. Open your link](#step-4)
+Pack and upload the project yourself. Best if you like working in a terminal.
 
-When it is live, your agent gives you the address, `your-app-name.embarko.app`. Open it and click around. Until you add your API key, the AI part of the app will not work yet, and an unclaimed HTML page shows a [countdown banner](/docs/troubleshoot#the-in-app-will-be-deleted-banner-doesnt-show-up). If the status says `crashed` instead of `live`, see the API key check in [Before you start](#checks).
+### [3. Your AI tool](#route-ai)
 
-### [5. Claim it within 24 hours](#step-5)
+Your tool packs, uploads and checks the app. With Embarko, that's one prompt. Best for a first deploy or a quick share.
 
-An app deployed without a token is deleted after 24 hours, and there is no reminder email. Ask your agent to [make it permanent](/docs/agent-playbook#claim). It asks for your email, and Embarko emails you a token. **Paste the token back into your agent**, and it **redeploys the same name** with it. You can also create a token at [embarko.ai/app/tokens](/app/tokens).
+## [The Embarko way: one prompt instead of all of that](#ways)
 
-**What success looks like:** the agent tells you the app is now permanent, and the link stays the same.
+Embarko is hosting that your AI tool runs for you. The tool that built your app also packs it, uploads it and checks that it's live, so you skip most of the steps in that list.
 
-## [Add your model API key (after you claim the app)](#key)
+| The usual route | With Embarko |
+| --- | --- |
+| Create a GitHub account and push a repository | No repository. Your tool [uploads the project folder directly](/guides/deploy-app-without-github). |
+| Sign up and learn a hosting dashboard | Your [first link](/docs/capabilities#anonymous) doesn't need an account. |
+| Set build commands and write a Dockerfile | No Dockerfile. [Embarko builds the app itself](/docs/limitations#build-runtime-customization). |
+| Watch the build and decode the logs | Your tool checks that it's live and sends you the link. |
+| Learn the hosting terms first | Paste one prompt, then approve and keep. |
 
-An AI app that calls a model API needs a key, and the key must **not** sit in the project folder. Embarko keeps secrets as per-app [environment variables](/docs/capabilities#secrets), encrypted at rest and visible only to your app at runtime. Setting one needs a deploy token, which is why the app has to be claimed first.
+For a long-running project with a team, Git-based hosting is a good fit. For getting something you just built in front of people, one prompt is hard to beat.
 
-1. Claim the app ([step 5](#step-5)).
-2. Ask your agent to set your model API key as an environment variable, for example `MODEL_API_KEY`, using your Embarko deploy token (not the model key). Use whatever name your code reads. The agent follows [how to add a secret](/docs/agent-playbook#add-secret).
-3. Ask it to **apply** the change, or redeploy. A write alone only stores the value; the running app [keeps the old one until you apply](/docs/troubleshoot#env-var-changes-need-a-redeploy-to-reach-the-running-app).
-4. Open the link and test a real request.
+## [What you can deploy with Embarko](#fit)
 
-**Deployed through the Claude connector?** The app is already in your account, so there is nothing to claim, but setting an environment variable still needs a deploy token. See the [three ways to sign in](/docs/capabilities#agent-auth).
+Embarko suits small web apps. Here's how common AI-built apps line up, and what to do if yours needs something else.
 
-Values are write-only: you can list the keys but never read a value back, so keep your own copy of the key. Environment variables work on server apps only; [static sites](/docs/capabilities#static-sites) cannot hold one.
+| What your AI built | Fits? | What to know |
+| --- | --- | --- |
+| A plain website | Yes | Keep `index.html` at the top of the folder. |
+| A Node.js app | Yes | `package.json` at the top. Read the port from `PORT` and listen on `0.0.0.0`. |
+| A Python app | Yes | `requirements.txt` or `pyproject.toml` at the top. |
+| A React or Vite app | Yes | Built first, then run as a server app. |
+| A small database | Yes, SQLite | Save the SQLite file under `DATA_DIR`, the folder that [survives redeploys](/docs/capabilities#file-storage). Keep your own copy of important data. |
+| A frontend and a backend in one project | Two apps | Deploy each folder as its own app. If you see `422 app_nested_in_subdirectory`, deploy the folder it names. |
+| A Claude artifact that uses `window.storage` | Swap it | Replace `window.storage` with SQLite under `DATA_DIR`. |
+| Postgres or MySQL | Another route | Use SQLite for small data, or host that app where its database lives. |
+| Live updates (WebSockets) | Another route | Use regular HTTP polling instead. |
+| Scheduled jobs | Another route | Run them elsewhere and have them call your app. |
+| Your own AI model | Another route | Host the model elsewhere and let your app call it. Apps that call ChatGPT, Gemini or Claude are fine. |
 
-> **Your link is public, and so is anything behind it.** Embarko has no [private apps](/docs/capabilities#access-protection) and no [built-in login](/docs/capabilities#app-auth) yet, so anyone with the link can use your app, and that spends your model API key. Add your own sign-in or a usage limit, and set a spend limit with your model provider if it offers one.
+Not sure which one you have? Ask your AI tool: "Does this app use a database, live updates or scheduled jobs?"
 
-## [What AI apps run into](#limits-ai)
+## [Deploy with one prompt](#deploy)
 
-| Limit | What it means for an AI app | What to do |
-|---|---|---|
-| **[256MB of memory](/docs/limitations#compute-isolation)**, one process | Loading a large model or a big index into memory can run the app out of memory (exit code `137`). The limit cannot be raised | Keep the app small and call a model API instead of loading a model. Use the production start command, not a dev server |
-| **No GPUs** | You cannot run a model that needs one | Host the model elsewhere and call it over HTTP |
-| **No WebSockets** | Live push features built on them (chat, live dashboards) deploy but do not work | Poll over plain HTTP from the browser on an interval |
-| **Timeouts and server-sent events are unconfirmed** | The docs do not confirm a request timeout, or whether server-sent events work | Test a long model reply before you rely on it, and do not design around a value |
-| **No [background workers](/docs/capabilities#workers) or [scheduled jobs](/docs/capabilities#scheduled-jobs)** | Work must finish inside the request that started it | Keep model calls short, or run the long job elsewhere and call your app over HTTP |
-| **One folder keeps data** | Only [`DATA_DIR`](/docs/capabilities#file-storage) survives a redeploy. There is no managed database and no [automatic backups](/docs/capabilities#backups) yet | Keep chat history or documents in [SQLite](/docs/capabilities#database) with the file under `DATA_DIR`, and keep your own backup |
+**Before you start**
 
-## [Changing the app later](#later)
+- Your app's folder is open in your AI tool.
+- The tool can run commands and reach the internet. It asks before it does.
+- An email address, only if you pick email sign-in.
 
-Ask your agent to [redeploy](/docs/capabilities#redeploy) with the same name. Embarko keeps [deployment history](/docs/capabilities#history), and a claimed app can [roll back](/docs/agent-playbook#rollback) to a previous successful build. It keeps only the **last 5**. [Rollback](/docs/capabilities#rollback) restores code, never data.
+**1. Grab the prompt.** Go to [embarko.ai](/) and tap **Host your app** on the home page (it's called **Copy deployment prompt** on the [pricing page](/pricing)). The prompt is a ready-made message that tells your AI tool how to put your app online. You don't write it, you just copy it.
 
-> **No repo means no safety net.** With no GitHub, Embarko is not where your code lives, and it has **no automatic backups yet**. Its docs recommend you **[keep your own source history](/docs/limitations#persistence)**. A local Git repository, a copy in cloud storage, or a regular backup of the folder all work.
+**2. Hand it to your tool.** The steps work in Claude, Cursor, Antigravity, Codex, Replit, Lovable, Bolt, v0, ChatGPT or Gemini. Where did you build your app? Find it below.
 
-## [If something goes wrong](#errors)
+### [Built in Claude](#tool-claude)
+
+1. Paste the prompt into Claude and press Enter.
+2. Claude uploads your app and checks that it's live.
+3. It sends you a link. Open it.
+
+**You'll know it worked** when your app opens at `your-app-name.embarko.app`. Tip: add Embarko's [skill](https://embarko.ai/skill) once, and Claude will know how to deploy whenever you ask.
+
+### [Built in Cursor](#tool-cursor)
+
+1. Paste the prompt into Cursor's chat.
+2. If Cursor asks to run a command, tap Allow.
+3. Cursor gives you the link. Open it.
+
+**You'll know it worked** when your app opens at your link.
+
+### [Built in Antigravity](#tool-antigravity)
+
+1. Paste the prompt into Antigravity's agent chat.
+2. When it asks permission to run the upload, read the command and approve it.
+3. The agent gives you the link. Open it.
+
+**You'll know it worked** when your app opens at your link.
+
+### [Built in Codex](#tool-codex)
+
+1. Paste the prompt into Codex.
+2. If it asks to run a command, approve it.
+3. Codex gives you the link. Open it.
+
+**You'll know it worked** when your app opens at your link.
+
+### [Built in Replit](#tool-replit)
+
+Replit apps need one extra step first: getting your files out.
+
+1. In Replit, tap the three-dot menu at the top of the file tree and choose **Download as zip**.
+2. Unzip it and open the folder in Claude or Cursor.
+3. Paste the prompt there. The tool gives you the link.
+
+**You'll know it worked** when your app opens at your link.
+
+### [Built in Lovable, Bolt or v0](#tool-browser)
+
+These tools run in your browser, so you'll move your project into a tool on your computer first.
+
+1. Export or download your project.
+2. Open it in Claude or Cursor.
+3. Paste the prompt there. The tool gives you the link.
+
+**You'll know it worked** when your app opens at your link.
+
+### [Only have code from ChatGPT or Gemini](#tool-chat)
+
+No problem. Chat code just needs a home on your computer first.
+
+1. Save the code into a folder on your computer.
+2. Open that folder in Claude or Cursor.
+3. Paste the prompt there. The tool gives you the link.
+
+**You'll know it worked** when your app opens at your link.
+
+**3. Your tool does the work.** It packs your project (leaving out `node_modules`, `.git` and `.env` files), uploads it, checks about every 10 seconds until the app is live, then hands you the link.
+
+**4. Approve what it asks.** You allow the upload command (read it first), choose email sign-in and paste the token Embarko sends you, then open the "keep this app" link at the end.
+
+**5. Confirm it worked.** Your tool reports that the app is live and gives you a link ending in `.embarko.app`. Open it, click the main pages, and try any form or button that talks to a server. A first reply of "202 Accepted" only means the build has started.
+
+**6. Keep it.** A link made without signing in lasts 24 hours, with no reminder email, so press **Keep** on the "[keep this app](/docs/agent-playbook#claim)" link your tool shares (or tell it "Make my Embarko app permanent") and it stays at the same address. After you press Keep, Embarko gives you a prompt that carries your token. Paste it into your tool once, and "Update my Embarko app." works from then on.
+
+## [If something goes wrong](#fix)
+
+Most failed deploys come from three things:
+
+1. **Addresses that only work on your computer.** Code that calls `localhost` from the browser fails for every visitor.
+2. **Missing settings.** Keys in a `.env` file on your laptop don't exist on the host until you add them.
+3. **The wrong port.** Hosts choose the port, so an app fixed to 3000 or to localhost shows nothing online.
 
 | What you see | Likely cause | Fix |
-|---|---|---|
-| Other deploy errors, such as [`409 app_name_taken`](/docs/troubleshoot#409-app_name_taken) or a [`422`](/docs/troubleshoot#build-time-rejections-before-any-build-runs) | The reply's `code` field names the cause | Look the code up in the [troubleshooting reference](/docs/troubleshoot#quick-lookup-by-code). Do not retry a 409 or 422 unchanged |
-| [Exit code 137](/docs/troubleshoot#oom-killed) | The app went over 256MB (often a dev server, or a model or index loaded into memory) | Use the production start command and load less. See [the out-of-memory fix](/docs/troubleshoot#oom-killed) |
-| [`crashed` status right after the first deploy](/docs/troubleshoot#crash-loop-exhausted) | The app needs its API key at startup, and none is set yet. A crashed app is restarted a few times, then stopped | Make the app read the key when a request arrives, then redeploy it with your Embarko token (this also claims it), and [set the key](#key) |
-| The app loads but the AI part fails | The API key is missing, or was written but never applied | Set the key as an environment variable on the claimed app, then [apply it or redeploy](/docs/troubleshoot#env-var-changes-need-a-redeploy-to-reach-the-running-app) |
-| [`403 host_not_allowed`](/docs/agent-playbook#no-connectivity) | A network sandbox blocks the upload. Nothing was deployed | Allow `embarko.ai`, `ship.embarko.ai` and `*.embarko.app`, use the Claude connector, or run the deploy commands in your own terminal |
+| --- | --- | --- |
+| Network error or `403 host_not_allowed` | Your tool is blocking the upload. | Allow `embarko.ai`, `ship.embarko.ai` and `*.embarko.app`, or run a script in your own terminal. |
+| "202 Accepted", no link yet | The build is still running. | Wait for the status to say `live`. |
+| `422 no_manifest_at_root` | Your app file isn't at the top. | Move `package.json`, `requirements.txt`, `pyproject.toml` or `index.html` to the top. |
+| Exit code 137 | Over 256 MB, often a dev server. | Use the production start command. |
+| `409 app_name_taken` | The name is in use. | Pick another name. |
+| `422 app_nested_in_subdirectory` | The build is handed to a subfolder. | Deploy the folder named in the reply. A frontend and a backend are two apps. |
+| A feature fails | A key or setting is missing. | After Keep, add it as a secret and apply it. Plain websites keep settings in their files. |
+| The link doesn't open, or the status says failed or crashed | Wrong port or localhost only. | Use the prompt below. |
 
-The full list is in the [troubleshooting reference](/docs/troubleshoot).
+> Make my app read its port from the PORT environment variable and listen on 0.0.0.0, then redeploy.
 
-## [When this is not the right route](#limits)
+Every code is explained in the [troubleshooting reference](/docs/troubleshoot).
 
-Embarko is built for small request-and-response apps. The overview explains [when Embarko is the wrong choice](/docs/overview#not-right-when).
+## [After it's live](#after)
 
-**Good fit**
+To change something, ask your tool: "Update my Embarko app."
 
-- A chat UI over a model API
-- A document question-answering or RAG front end
-- A dashboard for an agent or automation you already run
-- A wrapper that gives a script a URL and a UI
-- Internal tools, forms and prototypes
+To add an AI key, never put it in your project files. Once you've pressed Keep, ask: "Add my AI key to my Embarko app as a secret."
 
-**Not a fit**
-
-- Anything that needs a GPU, or hosting a model
-- WebSockets or realtime push
-- [Scheduled jobs](/docs/capabilities#scheduled-jobs) and [background workers](/docs/capabilities#workers)
-- Heavy or long-running work, such as video or image processing
-
-A chat UI over a model API is a server (dynamic) app. The Free plan lists **1 dynamic app** and unlimited static websites; see [pricing](/pricing).
-
-Every app is **public to anyone with the URL**, and there is no [private-app option](/docs/capabilities#access-protection) yet. Embarko is in beta.
+Plain websites can't use secrets, so keep their settings in the site's files. A custom domain is listed under the paid Creator plan (see [pricing](/pricing)). You'll need to own the domain, and your tool tells you the one DNS record to add. Then share your link with anyone.
 
 ## [FAQ](#faq)
 
+### [What does localhost mean?](#faq-localhost)
+
+Localhost is the name for "this computer." A link that starts with localhost, like `localhost:3000`, only works on the machine running the app. To let other people open your app, it has to be deployed to a server with a public address.
+
+### [What does it mean to deploy an app?](#faq-deploy-meaning)
+
+Deploying means moving your app from your own computer to a server that stays online, so it gets a public address anyone can open. The server, your app's files on it and the address together are called hosting.
+
 ### [How do I deploy an AI app?](#faq-how)
 
-Give your AI agent the project folder and let it upload it. On Embarko, install the [deploy skill](https://github.com/embarko-ai/skill) or paste the deployment prompt from [embarko.ai](/) into your AI tool. The agent packs the folder, uploads it and returns a live HTTPS link. It suits small apps and does not host models, because there are no GPUs.
+Copy Embarko's prompt from embarko.ai and paste it into the AI tool you built your app in, such as Claude, Cursor or Antigravity. The tool uploads your app and gives you a live link. Press Keep so the link stays permanent.
 
-### [Can I deploy an app that calls a model API?](#faq-model-api)
+### [Do I need to know how to code?](#faq-code)
 
-Yes. A chat UI over a model API and a RAG front end are both named as good fits. Deploy it as a server app, [claim it](/docs/agent-playbook#claim), then set your API key as an [environment variable](/docs/capabilities#secrets) and apply it. Keys are write-only, so keep your own copy.
+No. Your AI tool does the technical work. You copy one prompt, paste it, answer a question or two, and approve a command if your tool asks. Nothing needs to be installed.
 
-### [Where do I put my API key?](#faq-api-key)
+### [Do I need GitHub?](#faq-github)
 
-In an [environment variable](/docs/capabilities#secrets), never in the project folder. Setting one needs a deploy token, so claim the app first. Write the value, then [apply it or redeploy](/docs/troubleshoot#env-var-changes-need-a-redeploy-to-reach-the-running-app), because a write alone does not reach the running app. Static sites run no process, so they cannot hold a secret.
+No. With Embarko your AI tool [uploads the project folder directly](/guides/deploy-app-without-github), so there is no repository to create or connect and no Dockerfile to write.
 
-### [Can I host my own model on Embarko?](#faq-own-model)
+### [Is it free?](#faq-free)
 
-No. There are no GPUs and none are planned, and each app gets 256MB of memory, which [cannot be raised](/docs/limitations#compute-isolation). Embarko hosts the app around a model, such as the chat UI. Run the model itself elsewhere and have your app call it over HTTP.
+There is a Free plan: $0 a month for unlimited simple websites and 1 app that runs code behind the scenes, with Embarko branding. Using your own domain is listed under the paid Creator plan. Prices are from [embarko.ai/pricing](/pricing) and can change.
 
-### [Do I need GitHub or Docker to deploy an AI app?](#faq-github-docker)
+### [Where do I put my AI key?](#faq-api-key)
 
-No. Embarko takes the project folder directly, so there is no repo to create. It also [rejects a Dockerfile](/docs/limitations#build-runtime-customization), because it builds the app itself, so delete one if your AI tool added it. Keep your own copy of the code, since Embarko is not where it lives.
+Not in your project files. Once you've pressed Keep, ask your AI tool to add the key to your Embarko app as a [secret](/docs/capabilities#secrets) and apply it. Embarko keeps it encrypted and nobody can read it back, so keep your own copy of the key. Plain websites can't use secrets, so keep their settings in the site's files.
 
-### [Will my AI app stay online?](#faq-stay-online)
+### [What kinds of apps can I deploy to Embarko?](#faq-kinds)
 
-Not automatically. An app deployed without a token is deleted 24 hours after its first deploy. To keep it, ask your agent to [claim it](/docs/agent-playbook#claim): Embarko emails you a token, you paste it back, and the agent redeploys the same name with it. The link stays the same.
+Plain websites, Node.js apps such as Express, Python apps such as Flask or FastAPI, and React or Vite apps with a build step. Chat apps that call ChatGPT, Gemini or Claude are a normal fit. A frontend and a backend are two apps, so deploy each folder on its own. Apps that need a managed Postgres or MySQL database, live WebSocket updates, scheduled jobs, or your own AI model need another route for that part.
 
-## [Built something with AI? Ask it to deploy to Embarko.](#deploy)
+### [How do I know my app deployed successfully?](#faq-success)
 
-Install the skill or copy the prompt, and get a live link without creating a repo. [Get the deployment prompt →](/)
+Your tool reports that the app is live and gives you a link ending in `.embarko.app`. Open it, click through the main pages and try anything that talks to a server, such as a form or a button. A first reply of 202 Accepted only means the build has started.
 
-**Keep reading:** [Agent quickstart](/docs/agent-quickstart) · [Troubleshooting reference](/docs/troubleshoot) · [Connectors](/docs/connectors) · [Pricing](/pricing)
+### [Which AI tools can I deploy from?](#faq-tools)
+
+You can deploy from Claude, Cursor, Antigravity or Codex by pasting the prompt into the tool. Apps from Replit, Lovable, Bolt or v0, and code from ChatGPT or Gemini, work too: export or save the project, open it in Claude or Cursor, and paste the prompt there.
+
+### [Is it safe to put an AI-built app online?](#faq-safe)
+
+Keep secret keys, such as a ChatGPT, Gemini or Claude key, out of your project files. Once you've pressed Keep, ask your AI tool to add the key to your Embarko app as a secret instead. Also remember that anyone with your link can open your app, so if it uses your AI key, set a spending limit with your AI provider if they offer one.
+
+### [How do I update my app later?](#faq-update)
+
+Ask your AI tool: "Update my Embarko app." It [uploads the new version](/docs/capabilities#redeploy) to the same link. After you press Keep, Embarko gives you a prompt that carries your token. Paste it into your tool once, and updates work from then on.
+
+## [Ready to get your app a link?](#next)
+
+Copy the prompt, paste it into your AI tool and share what you built.
+
+**Keep reading:** [Agent quickstart](/docs/agent-quickstart): the steps your AI tool follows to deploy. · [Troubleshooting reference](/docs/troubleshoot): every error code, explained. · [Pricing](/pricing): what each plan includes.

@@ -242,32 +242,30 @@ const COVERS = {
     ${browser(692, 110, 460, 400, "your-site-name.embarko.app", siteMock(460))}
   `),
 
-  /* A live chat app, its key kept as an env var, calling a model API elsewhere. */
+  /* One prompt pasted into the AI tool that built the app -> a live link. */
   "how-to-deploy-ai-app": () => frame(`
-    ${browser(60, 90, 600, 450, "your-app-name.embarko.app", `
-      <rect x="40" y="34" width="300" height="56" rx="16" fill="${C.s2}"/>${bar(62, 54, 220, 11)}${bar(62, 72, 150, 9, C.strong, 4)}
-      <rect x="230" y="110" width="330" height="56" rx="16" fill="${C.ink}"/>${bar(254, 130, 250, 11, "#5b574f")}${bar(254, 148, 170, 9, "#4a463f", 4)}
-      <rect x="40" y="186" width="360" height="74" rx="16" fill="${C.s2}"/>${bar(62, 206, 290, 11)}${bar(62, 224, 250, 11)}${bar(62, 242, 160, 9, C.strong, 4)}
-      <rect x="40" y="318" width="520" height="52" rx="26" fill="${C.surface}" stroke="${C.strong}"/>
-      ${text(66, 350, "Ask about your documents…", { size: 17, fill: C.faint })}
-      <circle cx="532" cy="344" r="18" fill="${C.ink}"/><path d="M525 344h14m-6-6 6 6-6 6" fill="none" stroke="${C.bg}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    ${card(60, 120, 470, 400, `
+      <rect width="470" height="54" rx="18" fill="${C.ink}"/><rect y="36" width="470" height="18" fill="${C.ink}"/>
+      <circle cx="26" cy="27" r="6" fill="#4a463f"/><circle cx="46" cy="27" r="6" fill="#4a463f"/><circle cx="66" cy="27" r="6" fill="#4a463f"/>
+      ${text(444, 33, "Your AI tool", { size: 15, weight: 600, fill: "#bdb7ab", anchor: "end" })}
+      <rect x="150" y="82" width="296" height="92" rx="18" fill="${C.ink}"/>
+      ${text(172, 114, "Embarko's prompt", { size: 17, weight: 700, fill: C.bg })}
+      ${bar(172, 130, 230, 10, "#5b574f", 5)}${bar(172, 150, 170, 10, "#4a463f", 5)}
+      <rect x="24" y="200" width="320" height="108" rx="18" fill="${C.s2}"/>
+      ${text(46, 232, "Done. Your app is live:", { size: 17, weight: 600 })}
+      <rect x="46" y="250" width="276" height="38" rx="19" fill="${C.surface}" stroke="${C.strong}"/>
+      ${text(62, 275, "your-app-name.embarko.app", { size: 15, font: MONO })}
+      <rect x="24" y="336" width="422" height="42" rx="21" fill="${C.surface}" stroke="${C.strong}"/>
+      ${text(46, 363, "Paste, press Enter", { size: 16, fill: C.faint })}
     `)}
-    ${card(700, 110, 440, 190, `
-      ${text(28, 44, "Environment", { size: 15, weight: 700, fill: C.soft })}
-      <rect x="28" y="64" width="384" height="52" rx="12" fill="${C.s2}"/>
-      <rect x="44" y="80" width="22" height="20" rx="4" fill="none" stroke="${C.ink}" stroke-width="2.2"/><path d="M49 80v-5a6 6 0 0 1 12 0v5" fill="none" stroke="${C.ink}" stroke-width="2.2"/>
-      ${text(80, 97, "MODEL_API_KEY", { size: 18, weight: 600, font: MONO })}
-      ${text(396, 97, "••••••••", { size: 18, font: MONO, fill: C.soft, anchor: "end" })}
-      <circle cx="40" cy="152" r="9" fill="${C.ok}"/><path d="M35 152l4 4 7-8" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-      ${text(58, 158, "Applied · encrypted · write-only", { size: 16, fill: C.soft })}
-    `)}
-    <path d="M660 430 C 760 430, 760 420, 830 420" fill="none" stroke="${C.ink}" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round"/>
-    <rect x="690" y="392" width="88" height="30" rx="15" fill="${C.ink}"/>${text(734, 413, "HTTPS", { size: 14, weight: 700, fill: C.bg, font: MONO, anchor: "middle" })}
-    ${card(840, 350, 300, 150, `
-      <path d="M58 92a26 26 0 0 1 4-51 34 34 0 0 1 64-6 26 26 0 0 1 22 49z" fill="${C.s3}"/>
-      ${text(170, 64, "Model API", { size: 22, weight: 700 })}
-      ${text(170, 92, "hosted elsewhere", { size: 16, fill: C.soft })}
-      ${text(28, 128, "no GPU needed on Embarko", { size: 15, fill: C.faint })}
+    ${arrow(560, 320, 664, "one prompt")}
+    ${browser(676, 110, 470, 420, "your-app-name.embarko.app", `
+      <rect x="36" y="30" width="260" height="52" rx="16" fill="${C.s2}"/>${bar(56, 48, 190, 11)}${bar(56, 66, 130, 9, C.strong, 4)}
+      <rect x="170" y="104" width="262" height="52" rx="16" fill="${C.ink}"/>${bar(190, 122, 190, 11, "#5b574f")}${bar(190, 140, 120, 9, "#4a463f", 4)}
+      <rect x="36" y="178" width="300" height="70" rx="16" fill="${C.s2}"/>${bar(56, 198, 240, 11)}${bar(56, 216, 200, 11)}${bar(56, 234, 120, 9, C.strong, 4)}
+      <rect x="36" y="290" width="396" height="48" rx="24" fill="${C.surface}" stroke="${C.strong}"/>
+      ${text(60, 320, "Ask about your documents…", { size: 16, fill: C.faint })}
+      <circle cx="406" cy="314" r="17" fill="${C.ink}"/><path d="M399 314h14m-6-6 6 6-6 6" fill="none" stroke="${C.bg}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
     `)}
   `),
 };

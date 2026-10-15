@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 
 import { SiteFooter } from "../components/SiteFooter";
 import { SiteHeader } from "../components/SiteHeader";
-import { Card, CtaSection, Hero, Section, Serif } from "../components/ds";
+import { Card, CtaSection, Serif } from "../components/ds";
 import { formatDate, POSTS, type BlogPost } from "../lib/guides";
 import { initials } from "./ContinueReading";
 import { SITE } from "../lib/site";
@@ -79,23 +79,32 @@ export default function BlogIndexPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }} />
       <SiteHeader />
 
-      <Hero
-        eyebrow="Embarko guides"
-        title={
-          <>
-            From localhost
-            <br />
-            to <Serif>live</Serif>.
-          </>
-        }
-        sub="Step-by-step guides for putting an AI-built app online, and for fixing it when a deploy breaks."
-      />
+      {/* A blog index, not a landing page: a short heading, then the guides
+          start on the first screen. */}
+      <div className="mx-auto max-w-6xl px-6 pb-24 pt-12 sm:pt-16">
+        <header className="flex flex-wrap items-end justify-between gap-x-10 gap-y-4 border-b border-border pb-8">
+          <div className="max-w-2xl">
+            <p className="text-sm font-semibold text-muted-foreground">Embarko guides</p>
+            <h1 className="mt-2 text-4xl font-extrabold leading-[1.05] tracking-[-0.035em] text-foreground sm:text-5xl">
+              From localhost to <Serif>live</Serif>.
+            </h1>
+            <p className="mt-3 text-lg leading-relaxed text-muted-foreground">
+              Step-by-step guides for putting an AI-built app online, and for fixing it when a deploy breaks.
+            </p>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {POSTS.length} guides ·{" "}
+            <a href="/guides/llms.txt" className="font-mono text-foreground underline underline-offset-4">
+              llms.txt
+            </a>
+          </p>
+        </header>
 
-      <Section labelledBy="posts-h">
         <h2 id="posts-h" className="sr-only">
           All guides
         </h2>
 
+        <div className="mt-10">
         {featured && (
           <Card as="article" lift className="group mx-auto max-w-6xl !p-0">
             <Link
@@ -134,7 +143,9 @@ export default function BlogIndexPage() {
           </ul>
         )}
 
-        <p className="mx-auto mt-10 max-w-6xl text-center text-sm text-muted-foreground">
+        </div>
+
+        <p className="mt-10 text-center text-sm text-muted-foreground">
           Reading as an AI agent? Every guide is plain markdown at{" "}
           <a href="/guides/llms.txt" className="font-mono text-foreground underline underline-offset-4">
             /guides/llms.txt
@@ -145,7 +156,7 @@ export default function BlogIndexPage() {
         {POSTS.length === 0 && (
           <p className="text-center text-sm text-muted-foreground">The first guides are on their way.</p>
         )}
-      </Section>
+      </div>
 
       <CtaSection />
       <SiteFooter />

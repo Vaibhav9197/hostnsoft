@@ -1,0 +1,30 @@
+{
+  "deploy-antigravity-website": {
+    "dir": "_deploy-antigravity-website",
+    "scenes": true
+  },
+  "deploy-app-without-github": {
+    "dir": "_deploy-app-without-github",
+    "scenes": true
+  },
+  "deploy-from-cursor": {
+    "dir": "_deploy-from-cursor",
+    "scenes": true
+  },
+  "deploy-replit-app-free": {
+    "dir": "_deploy-replit-app-free",
+    "scenes": true
+  },
+  "free-hosting-for-students": {
+    "dir": "_free-hosting-for-students",
+    "scenes": true
+  },
+  "host-website-built-with-claude": {
+    "dir": "_host-website-built-with-claude",
+    "scenes": true
+  },
+  "how-to-deploy-ai-app": {
+    "dir": "_deploy-ai-app",
+    "scenes": false
+  }
+}

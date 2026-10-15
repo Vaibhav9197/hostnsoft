@@ -1,187 +1,234 @@
 ---
 title: "How to Host a Website Built with Claude in 60 Seconds"
-meta_description: "Host a website built with Claude: ask Claude Code to deploy it and get a live HTTPS link. No GitHub, no Vercel. Steps, limits and fixes for common errors."
+meta_description: "Built a website with Claude? Deploy it with Claude Code or the Embarko connector and get a live HTTPS link. No GitHub or Vercel. Steps, setups and fixes."
 slug: "host-website-built-with-claude"
 primary_keyword: "host a website built with claude"
-secondary_keywords: ["deploy website from claude code", "host claude artifact", "put my claude website online", "claude code deploy website"]
+secondary_keywords: ["deploy website from claude code", "host claude artifact", "put my claude website online", "claude code deploy website", "embarko claude connector"]
 category: "Guide"
 cover: "/assets/guides/host-website-built-with-claude.png"
-cover_alt: "Claude Code is asked to deploy a portfolio to Embarko, and the portfolio site goes live at your-site-name.embarko.app."
-read_minutes: 11
+cover_alt: "Claude is asked to deploy a portfolio to Embarko, and the portfolio site goes live at your-site-name.embarko.app."
+read_minutes: 14
 datePublished: "2026-10-07"
-dateModified: "2026-10-07"
-last_verified: "2026-10-07"
+dateModified: "2026-10-15"
+last_verified: "2026-10-15"
 author: "The Embarko team"
 status: "published"
 ---
 
 # How to host a website built with Claude
 
-**To host a website built with Claude, ask Claude Code to deploy it.** Install Embarko's [deploy skill](https://github.com/embarko-ai/skill) (or paste the deployment prompt from [embarko.ai](/)) and the agent packs your project folder, uploads it and hands you a live HTTPS link. A [static site](/docs/capabilities#static-sites) is usually live within seconds; a server app builds first, so it takes longer. No GitHub or Vercel is needed, and a site nobody claims is [deleted after 24 hours](/docs/troubleshoot#your-app-disappears-24-hours-after-an-anonymous-deploy).
+**To host a website built with Claude, connect Embarko to Claude once and ask it to deploy, or paste Embarko's deployment prompt into Claude Code.** With the [connector](/docs/connectors), Claude sends your site's files straight to Embarko and the site lands in your account. With Claude Code, the agent packs your project folder and uploads it. A plain site is usually live within a couple of seconds, and a server app builds first, so it takes longer. No GitHub or Vercel is needed.
 
 ## [Key takeaways](#takeaways)
 
-- **Claude Code can run the whole deploy.** It packs the folder as a `.tar.gz`, [uploads it to Embarko's API](/docs/capabilities#deploy) and [checks the status](/docs/capabilities#status) until the site is live. No Git repo, no Dockerfile, no dashboard.
-- **There are two ways to start:** install the skill with `npx skills add embarko-ai/skill --skill embarko-deploy -g` and say "deploy this to Embarko", or paste the deployment prompt you copy from [embarko.ai](/).
-- **A plain site** (an `index.html` plus assets) is published as a [static site](/docs/capabilities#static-sites) with no build, usually live within seconds. A site with a build step, such as Vite, runs as a server app and takes longer, because it has to build first.
-- **The first deploy is anonymous** and deleted after 24 hours unless you [claim it](/docs/agent-playbook#claim). Claiming takes an email and a redeploy of the same name.
-- **Limits to know first:** [256MB of memory, one process](/docs/capabilities#resources), no WebSockets, no [scheduled jobs](/docs/capabilities#scheduled-jobs), no [automatic backups](/docs/capabilities#backups) yet. Every site is [public to anyone with the URL](/docs/capabilities#access-protection).
+- A website Claude builds runs on `localhost`, which only your own computer can open. To share it, it needs a host.
+- The usual route to a host asks for a GitHub repository, a hosting account, build settings and secret keys.
+- You have two main routes with Embarko: the **Claude connector** (add it once, then ask Claude to deploy) or **Claude Code** (paste the deployment prompt or install the skill).
+- With the connector, the site is permanent from the start. With Claude Code, the agent deploys first and asks for your email only after the site is live, then Embarko emails you a token to keep it.
+- Anyone with your link can open the site, because Embarko doesn't provide login or private apps yet.
+
+## [Why your Claude website isn't online yet](#why)
+
+When Claude builds a website, it runs it on your own machine so you can try it. You'll often see an address like `localhost:3000`. "Localhost" simply means "this computer", so a link that starts with it only works for you. Send it to a friend and it points at their computer, where your site doesn't exist.
+
+Putting a site online is called **deploying**. It takes three things: a server that stays on, your site's files copied onto it, and a public address anyone can open. Together that's called **hosting**. Claude builds the site, but something else still has to host it.
+
+## [Why hosting a Claude-built site gets complicated](#hard)
+
+Claude gives you a folder of code that works. The usual route to a host then asks for more than you may expect:
+
+1. **A GitHub account and a repository**, plus enough Git to push the folder Claude made.
+2. **A hosting service.** Vercel, Netlify and others each have their own sign-up, dashboard and vocabulary.
+3. **Build and start settings**, and sometimes a Dockerfile Claude didn't write.
+4. **Secret keys kept out of the code** and added as environment variables on the host.
+5. **Build logs** to read when a deploy fails, written for developers.
+
+That's fair work for a developer. For a small site Claude wrote in one sitting, it's a long way from "it runs" to "here's the link".
+
+## [The usual route compared with Embarko](#compare)
+
+Embarko is hosting that your AI tool runs for you. Claude packs or sends the site and checks that it's live.
+
+| The usual route | With Embarko |
+|---|---|
+| Push Claude's folder to a GitHub repository | No repository. Claude sends the files directly. |
+| Sign up for a host such as Vercel | With Claude Code, your first deploy needs no account. |
+| Configure the build, maybe add a Dockerfile | No Dockerfile. Embarko [detects the language](/docs/deploy) and builds the site itself. |
+| Read the build logs yourself | Claude checks the [status](/docs/status) and hands you the link. |
 
 ## [Which Claude did you build it with?](#which)
 
-"Built with Claude" can mean three different setups, and each has a different route to a live link.
+"Built with Claude" can mean a few different setups, and each has its own route to a live link.
 
-| Where your site lives | Best route | Good to know |
+| Where your site lives | Best route | What to know |
 |---|---|---|
-| **Claude Code:** a project folder on your computer | The [deploy skill](https://github.com/embarko-ai/skill) or the copied prompt. Claude Code uploads the folder directly | Nothing to host first, and no public link needed |
-| **The Claude app**, where your site exists only as code in a chat | The [Embarko connector](/docs/connectors), only if your site is already available as a public `.tar.gz` link. Otherwise use Claude Code or the copied prompt | Sites it deploys land in your account from the start, so there is nothing to claim. It cannot upload a folder from your computer, and it has no status tool, so open the link to check the site is up |
-| **A Claude Artifact** | Put the files in a project folder, then deploy that folder with Claude Code | An artifact that calls `window.storage` is [rejected at deploy](/docs/troubleshoot#422-unsupported_storage_pattern). Replace it with SQLite, with the file under [`DATA_DIR`](/docs/capabilities#file-storage); that makes it a server app, so check the memory and one-process limits |
+| **Claude with the Embarko connector** | Ask Claude to deploy. It calls the connector's `deploy_app` tool with your site's files. | No terminal, no token and nothing to keep. It works even where a sandbox blocks Embarko. |
+| **Claude Code:** a project folder on your computer | Paste the deployment prompt or install the skill. The agent packs the folder and uploads it over HTTP. | The first deploy needs no account and is temporary until you keep it. |
+| **Claude in a chat, with no connector and no terminal** | Add the connector once. If you can't, ask Claude for a `.zip` of the site and use the upload page. | Nothing Claude does from inside the chat can reach Embarko until the connector is added. |
+| **A Claude Artifact** | Put the files in a project, then deploy with the connector or Claude Code. | An artifact that calls `window.storage` is [rejected at deploy](/docs/errors). Replace it with SQLite under `DATA_DIR`. |
 
-> **Is your site only in a Claude chat?** Save the files into a project folder, open that folder in Claude Code and follow the steps below. Pasting the deployment prompt into the chat itself may work, but if the chat environment cannot reach Embarko you will see a `403 host_not_allowed` error. If that happens, use Claude Code.
+## [How to host a website built with Claude with the connector](#connector)
 
-Claude builds your site, but something still has to host it. A Git repository is one common starting point, but it is a lot of setup for a small site an agent wrote in one session, and Embarko does not need one. All it needs is your project, an agent that can reach Embarko, and your claim within 24 hours if you want to keep the site.
+A connector lets Claude deploy and manage your apps from inside the chat, signed in as you. Claude is the only AI tool with an Embarko connector today. It needs no token, nothing to install, and it works where a sandbox blocks `ship.embarko.ai`. Only you can add it.
 
-## [Is your site static or a server app?](#static)
+### [1. Add the connector once](#connector-add)
 
-This decides how it is published and what it can do. Check what Claude built for you:
+Open [claude.ai/directory/embarko](https://claude.ai/directory/embarko), add Embarko and sign in. It's the same sign-in as embarko.ai, so you'll see the apps and workspaces you already have. If Claude says it can't reach Embarko, it will give you this one link and ask you to connect first.
 
-| What Claude built | How Embarko treats it | Good to know |
-|---|---|---|
-| A folder with `index.html` and its CSS, JS and images (or a `public/` folder, or a `Staticfile`) | **[Static site](/docs/capabilities#static-sites).** Published with no build and no server, usually live within seconds | No logs, no environment variables and no `DATA_DIR`. The Free plan lists unlimited static websites ([pricing](/pricing)) |
-| A site with a build step, such as Vite or Create React App | **Server app.** Built and run as a server app | It must read its port from `PORT` and listen on `0.0.0.0`. Start it with the production command, not a dev server |
-| A site with a Node or Python backend | **Server app, one process** | Keep data in [SQLite under `DATA_DIR`](/docs/capabilities#database). The Free plan lists 1 dynamic app ([pricing](/pricing)) |
+### [2. Ask Claude to deploy](#connector-deploy)
 
-## [Before you start: three checks](#checks)
+With the connector added, ask Claude in plain words, for example:
 
-Claude Code can usually fix these itself, but it helps to know them. The [agent quickstart](/docs/agent-quickstart#before) has the same list for your agent.
+```text
+Deploy my portfolio site to Embarko and send me the link
+```
 
-- **Keep the manifest at the top.** Files like `package.json` or `index.html` must sit at the root of the folder, not in a subfolder.
-- **Remove any Dockerfile.** AI tools sometimes add one. Delete it or leave it out of the upload: Embarko builds the app itself and [rejects a Dockerfile](/docs/limitations#build-runtime-customization).
-- **Keep secrets out of the folder.** The deploy leaves `.env` files out of the archive, and anything you do include ships with the site. Put secrets in [environment variables](/docs/capabilities#secrets) instead.
+Claude calls `deploy_app` with your site's files (text as it is, images and other binaries as base64), then calls `read_app` to check the status until the site is `live`. A plain static site is usually live straight away. You'll get a link like `your-site-name.embarko.app`.
 
-### [Also good to know: limits and names](#limits-and-names)
+### [3. What the connector can do](#connector-tools)
 
-- **Embarko builds it for you.** It [detects](/docs/capabilities#deploy) Node, Python, Go, Ruby, PHP, Rust, Java and plain static sites.
-- **Memory.** Each server app gets 256MB, which [cannot be raised](/docs/limitations#compute-isolation), and runs as one process. Dev servers such as `vite dev` or `next dev` are the most common reason an app [runs out of memory](/docs/troubleshoot#oom-killed).
-- **Site names.** Lowercase letters, digits and dashes, 3 to 63 characters, not starting or ending with a dash. The name becomes your subdomain and must be unique across all of Embarko. See [app names](/docs/capabilities#identity).
-- **Upload size.** If your agent uploads files as JSON (for example from a sandbox that cannot send a file), the limit is 25 MB and 2,000 files. See [deploy limits](/docs/capabilities#deploy).
+The connector gives Claude four tools:
 
-## [How to host a website built with Claude, step by step](#steps)
+| Tool | What it does |
+|---|---|
+| `deploy_app` | Deploys or updates an app from its files. The app goes straight into your account: permanent, nothing to keep. |
+| `read_app` | Shows status, logs, details and analytics. |
+| `update_app` | Sets environment variables, connects your own domain, rolls back and sends feedback. |
+| `app_danger_zone` | Renames or deletes an app, only after you confirm. |
 
-### [1. Open the project in Claude Code](#step-1)
+### [4. Know the limit](#connector-limit)
 
-Start Claude Code in the folder that holds your site, and make sure the site runs locally. That folder is what gets uploaded.
+A connector call carries the whole site inside one tool call, so it's limited by how much Claude can write in one reply, well before the 25MB cap. Send source files only: no `node_modules`, build output or videos. Images the site shows are fine, but very large media (over about 5MB each) should live on an outside host. There's no way to split one deploy across several calls. If your site is too big, use Claude Code with the HTTP upload, or the upload page.
 
-### [2. Give Claude Code the deploy instructions](#step-2)
+## [How to host a website built with Claude with Claude Code](#claude-code)
 
-**Option A, the skill (faster).** Run this once in your terminal:
+Claude Code runs commands in your project folder, so it can use Embarko's HTTP route with no setup.
+
+### [1. Open the project in Claude Code](#cc-step-1)
+
+Start Claude Code in the folder that holds your site, and make sure the site runs locally. That folder is what gets uploaded. Claude Code needs to be able to reach `ship.embarko.ai`, so if a sandbox blocks it, see [if something goes wrong](#errors).
+
+### [2. Give Claude Code the deploy instructions](#cc-step-2)
+
+**Option A, the prompt.** Open [embarko.ai](/), copy the deployment prompt and paste it into Claude Code. It tells the agent to read Embarko's quickstart, deploy anonymously first, give you the live link, and only then ask for your email. You don't have to learn the API.
+
+**Option B, the skill (faster).** Run this once in your terminal:
 
 ```bash
 npx skills add embarko-ai/skill --skill embarko-deploy -g
 ```
 
-This needs Node.js, because the command uses `npx`. The skill packages and deploys for you, and its source is at [embarko.ai/skill](https://github.com/embarko-ai/skill), which opens the public GitHub page for the skill. If `npx` is not found, install Node.js or use Option B, which needs nothing installed.
+This needs Node.js, because the command uses `npx`. The skill's source is at [embarko.ai/skill](/skill). If `npx` isn't found, use Option A, which needs nothing installed.
 
-**Option B, the prompt.** Open [embarko.ai](/), copy the deployment prompt and paste it into Claude Code. It tells the agent how to deploy, so you do not have to learn the API.
+### [3. Let Claude Code deploy it](#cc-step-3)
 
-Example ask for Claude Code:
+The agent packs the project (leaving out `node_modules`, `.git` and `.env` files), uploads it, and checks the status about every 10 seconds for a server app, or about every 2 seconds for a static site, until it reaches `live`. It then opens the link itself to check the main feature works and gives you the link and the exact time the site will be deleted if you don't keep it. A first reply of "202 Accepted" only means the build has started, so only `live` counts.
 
-```text
-Deploy my portfolio to Embarko and share the live link
-```
+### [4. Keep it](#cc-step-4)
 
-### [3. Let Claude Code do the deploy](#step-3)
+A site deployed without a token is deleted 24 hours after its first deploy, with no reminder email. The agent offers to keep it permanently once it's live. Say yes and give your email: Embarko emails you a token, you paste it back, and the agent redeploys the same name with it. The link stays the same. You'll see "claimed" in the reply when it's done. After that, every later call about the site needs that token, which the agent saves for you.
 
-It packages the project as a `.tar.gz` (leaving out `node_modules`, `.git` and `.env` files), uploads it to Embarko's deploy API, and [checks the status](/docs/capabilities#status) about every 10 seconds until it reaches `live`. A static site is usually live in the first reply, within seconds. A server app has to build first, so it takes longer.
+## [Or upload a zip](#upload)
 
-- **Why "202 Accepted" is not the finish line.** A first response of `202 Accepted` only means the build started. The site is live when the status says `live`. See [202 Accepted is not live](/docs/troubleshoot#202-accepted-misread-as-live-deploy).
-- **Claude Code says it cannot reach Embarko?** If you see something like `403 host_not_allowed`, a network sandbox is blocking the upload. Allow `embarko.ai`, `ship.embarko.ai` and `*.embarko.app` in its network settings, use Claude with the [Embarko connector](/docs/connectors), or ask Claude Code for the deploy commands and run them in your own terminal. Nothing was deployed, so do not wait for a link. See [what to do when the API is unreachable](/docs/agent-playbook#no-connectivity).
+If Claude can't reach Embarko and you can't add the connector, there's a route that needs no terminal. Ask Claude for the site as a `.zip` to download, then sign in at [embarko.ai/app](/app), choose **Deploy an app** and **Upload file**, and pick the folder or `.zip`. The browser packs it, the site goes into your account, and it's permanent from the start.
 
-### [4. Open your link](#step-4)
+## [Is your site static or a server app?](#static)
 
-When it is live, Claude Code gives you the address, `your-site-name.embarko.app`. Open it and click around to confirm it works. Until you claim it, an HTML page shows a [countdown banner](/docs/troubleshoot#the-in-app-will-be-deleted-banner-doesnt-show-up).
+This decides how it's published and what it can do. Check what Claude built for you:
 
-### [5. Claim it within 24 hours](#step-5)
+| What Claude built | How Embarko treats it | What to know |
+|---|---|---|
+| A folder with `index.html` and its CSS, JS and images | **[Static site.](/docs/static-sites)** Published with no build and no server, usually live within 2 seconds. | No logs, no environment variables and no `DATA_DIR`. A static site can't later become a server app. |
+| A Vite, Create React App, Lovable or Bolt project | Built on Embarko, then served as a website. | Send the project with its `package.json` and build script, not a built `dist` folder. No start script or server is needed, and links to inner pages load the app. |
+| A site with a Node or Python backend | **Server app, one process.** | It reads its port from `PORT` and listens on `0.0.0.0`. Keep data under `DATA_DIR`, which survives redeploys. |
 
-A site deployed without a token is deleted after 24 hours. There is no reminder email, but an unclaimed HTML page shows a countdown banner. To keep it, ask Claude Code to [make it permanent](/docs/agent-playbook#claim). It asks for your email, and Embarko emails you a token. Paste the token back into Claude Code, and it redeploys the same name with it. You can also create a token yourself at [embarko.ai/app/tokens](/app/tokens).
+Values a frontend build reads, such as `VITE_` or `REACT_APP_` ones, can't come from `.env`, because `.env` files are left out of the upload. Put public values in a committed config file. Never put a secret key in frontend code. Secrets belong on a backend.
 
-**What success looks like:** Claude Code tells you the site is now permanent, and the link stays the same.
+If your site needs something else, here's the route:
+
+| If your site needs | What to do |
+|---|---|
+| A database | Embarko has no managed database. Use SQLite with its file under [`DATA_DIR`](/docs/data), and keep your own copy because data isn't backed up. |
+| Live updates (WebSockets) | Not supported. Use regular HTTP requests, with the browser polling. |
+| Scheduled jobs | Not supported. Put the job behind an HTTP route protected by a secret, and call it from an outside scheduler. |
+| A frontend and a backend | They're [two apps](/docs/two-apps). Deploy the backend first, point the frontend at its address, and allow the frontend in the backend's CORS. |
+| Sign-in or a private site | Embarko doesn't provide [login or private apps](/docs/app-login) yet. Build sign-in into the app itself. |
+| More than 256MB of memory | Each app gets 256MB, which can't be raised, so a site that needs more has to stay on a host built for it. |
+
+## [Good to know](#good-to-know)
+
+- **Languages.** Embarko detects Node, Python, Go, Ruby, PHP, Rust, Java and plain static sites.
+- **Delete any Dockerfile** Claude added. Embarko builds the site itself, and a Dockerfile is a common reason a deploy fails.
+- **Site names.** Lowercase letters, digits and dashes, 3 to 63 characters, not starting or ending with a dash. The name becomes your subdomain and must be unique across all of Embarko. If it's taken, the agent picks a close variant and tells you. Some names, such as `www`, `api`, `app`, `admin`, `docs` and `help`, are reserved.
+- **Upload size.** Connector and JSON uploads are limited to 25MB and 2,000 files. A `.tar.gz` upload has no file count limit.
 
 ## [Changing the site later](#later)
 
-Ask Claude Code to [redeploy](/docs/capabilities#redeploy) with the same name. Embarko keeps [deployment history](/docs/capabilities#history), and you can [roll back](/docs/agent-playbook#rollback) to a previous successful build. It keeps only the **last 5**, so [older versions may not be available](/docs/limitations#rollback). [Rollback](/docs/capabilities#rollback) restores code, never data, and needs a claimed site.
+Ask Claude to deploy again with the same name. With the connector, `deploy_app` updates the same app. With Claude Code, the agent redeploys with your token. Embarko keeps your last 5 builds, so you can [undo a bad update](/docs/rollback): it switches back to an earlier successful deploy with no rebuild, keeps your current environment variables and domains, and never rolls back your data in `DATA_DIR`. Since Embarko isn't where your code lives, keep your own copy too. A local Git repository is enough.
 
-> **No repo means no safety net.** With no GitHub, Embarko is not where your code lives, and it has [no automatic backups](/docs/capabilities#backups) yet. Its docs recommend you [keep your own source history](/docs/limitations#persistence). You do not need GitHub for that: a local Git repository, a copy in cloud storage, or a regular backup of the folder all work.
-
-**Your own domain.** You can use a domain you already own. Claude Code [adds the domain](/docs/agent-playbook#add-custom-domain) to your site and tells you the exact DNS record, and you create it at your DNS provider. On Cloudflare the record must be DNS-only (grey cloud), and a [subdomain is better than a root domain](/docs/limitations#custom-domains). The [pricing page](/pricing) lists [custom domains](/docs/capabilities#custom-domains) on the Creator plan, and the site must be claimed first.
+**Your own domain.** You can use a domain you already own. Claude [connects it](/docs/custom-domain) and tells you the exact DNS record, and you add that record where your domain is managed. You can also do it yourself in the dashboard: open [embarko.ai/app](/app), choose the site and open its **Domain** tab. The [pricing page](/pricing) lists your own domain on the Creator plan.
 
 ## [If something goes wrong](#errors)
 
+Failed deploys often come down to a blocked upload, a missing key or setting, or a site listening on the wrong port. Here's what you might see. Every code is in the [errors reference](/docs/errors).
+
 | What you see | Likely cause | Fix |
 |---|---|---|
-| [`409 app_name_taken`](/docs/troubleshoot#409-app_name_taken) | Someone already uses that name (it becomes the subdomain) | Pick another name. Do not retry the same one |
-| [`422 no_manifest_at_root`](/docs/troubleshoot#422-no_manifest_at_root) | `package.json` (or similar) is in a subfolder | Repackage so it is at the top level |
-| [Build exit code 127](/docs/troubleshoot#npm-run-build-did-not-complete-successfully-exit-code-127) | A tool the build calls is missing from your dependencies | Add the tool to `dependencies` or `devDependencies`, then redeploy |
-| [`422 app_nested_in_subdirectory`](/docs/troubleshoot#422-app_nested_in_subdirectory) | Your root `package.json` hands the build to a subfolder such as `frontend/` | Deploy that subfolder on its own; the error names it in `deployThisInstead`. One deploy is one app, so a frontend and a backend need two app names |
-| [Exit code 137](/docs/troubleshoot#oom-killed) | The app went over 256MB (often a dev server) | Use the production start command and remove anything you do not use. See the [troubleshooting reference](/docs/troubleshoot) |
-| [Site gone after a day](/docs/troubleshoot#your-app-disappears-24-hours-after-an-anonymous-deploy) | It was never claimed | Deploy it again, this time with a token, so it is kept. Next time, claim it within 24 hours |
-| [`403 host_not_allowed`](/docs/agent-playbook#no-connectivity) | A network sandbox blocks the upload. Nothing was deployed | Allow `embarko.ai`, `ship.embarko.ai` and `*.embarko.app`, use the Claude connector, or run the deploy commands in your own terminal |
-
-The full list is in the [troubleshooting reference](/docs/troubleshoot).
-
-## [When this is not the right route](#limits)
-
-Embarko is built for small request-and-response sites and apps. The overview explains [when Embarko is the wrong choice](/docs/overview#not-right-when).
-
-**Good fit**
-
-- Portfolios and landing pages
-- Marketing sites and blogs
-- Forms and internal tools
-- MVPs and small AI chat interfaces
-- Small games and calculators
-
-**Not a fit**
-
-- WebSockets or realtime connections
-- [Scheduled jobs](/docs/capabilities#scheduled-jobs) and [background workers](/docs/capabilities#workers)
-- GPU workloads
-- Heavy processing such as video and image conversion
-
-Every site is public to anyone with the URL, and there is no [private-site option](/docs/capabilities#access-protection) yet. Embarko is in beta.
+| `403 host_not_allowed` or a network error | Your own environment blocks `ship.embarko.ai`. Nothing was deployed. | Switch route: add the connector, or ask for a `.zip` and use the upload page. |
+| The status says `failed` | The build failed, for example `Exit code 127` means a command in the build script wasn't found. | Read the [logs](/docs/logs), fix the cause and redeploy with the same name. |
+| The status says `crashed` | It built but stopped running. | Read the logs for errors, fix them and redeploy. |
+| `409 app_name_taken` or `409 app_name_reserved` | Someone already uses the name, or it's a reserved name. | Pick a different name. Don't retry the same one. |
+| `422 no_manifest_at_root` | `package.json` (or similar) is in a subfolder | Package from the folder the error names. |
+| `422 app_nested_in_subdirectory` | Your root `package.json` hands the build to a subfolder such as `frontend/` | Deploy the folder named in `deployThisInstead`. A frontend and a backend are two apps. |
+| `422 unsupported_storage_pattern` | The site uses `window.storage` (a Claude Artifact feature) | Switch to SQLite with the file under `DATA_DIR`. |
+| `413 source_too_large` or `too_many_files` | A connector or JSON upload is over 25MB or 2,000 files | Trim the upload, or use Claude Code's `.tar.gz` upload. |
+| The site was deleted after a day | It was never kept | Deploy it again and keep it this time. |
+| The link opens but the page doesn't work | The site isn't reading `PORT`, isn't listening on `0.0.0.0`, saves data outside `DATA_DIR`, or needs WebSockets or scheduled jobs | Fix the cause, then redeploy with the same name. |
 
 ## [FAQ](#faq)
 
+### [What does it mean to host a website?](#faq-meaning)
+
+Hosting means putting your site's files on a server that stays online and giving it a public address. Without it, a site built with Claude only exists on your own computer at an address like `localhost:3000`, which nobody else can open.
+
 ### [How do I host a website built with Claude?](#faq-how)
 
-Open the project in Claude Code, install Embarko's [deploy skill](https://github.com/embarko-ai/skill) or paste the deployment prompt from [embarko.ai](/), and ask it to deploy. Claude Code packs the folder, uploads it and gives you a live HTTPS link. No GitHub repository or Vercel account is needed, and the first deploy needs no account of any kind.
+Add the [Embarko connector](/docs/connectors) to Claude and ask it to deploy, or paste the deployment prompt from [embarko.ai](/) into Claude Code. Either way you get a live HTTPS link. No GitHub repository or Vercel account is needed, and with Claude Code the first deploy needs no account of any kind.
 
-### [Can I host a website built in the Claude app instead of Claude Code?](#faq-claude-app)
+### [Should I use the connector or Claude Code?](#faq-which)
 
-Yes, with the [Embarko connector](/docs/connectors) for Claude. It deploys from a public `.tar.gz` link, not from a folder on your computer, and the site lands in your account from the start. If your site only exists as code in a chat, Claude Code or the copied deployment prompt is usually easier.
+Use the connector if you work in the Claude chat and want the site permanent from the start with no terminal. Use Claude Code if your project is a folder on your computer, or the site is too big for one connector call. The connector deploys the site's files from the chat, and Claude Code uploads the project folder.
 
 ### [Do I need GitHub or Vercel to host a Claude-built site?](#faq-github)
 
-No. Embarko takes the project folder directly, so there is no repo to create and no account to connect. Without a repo, Embarko is not where your code lives, so [keep your own copy](/docs/limitations#persistence): a local Git repository, a copy in cloud storage or a backup of the folder all work.
+No. Embarko takes your site's files directly, so there's no repo to create and no account to connect. Embarko isn't where your code lives, so [keep your own copy](#later): a local Git repository, a copy in cloud storage or a backup of the folder all work.
 
 ### [Will my website stay online?](#faq-stay-online)
 
-Not automatically. A site deployed without a token is deleted 24 hours after its first deploy. To keep it, ask Claude Code to [claim it](/docs/agent-playbook#claim): Embarko emails you a token, you paste it back into Claude Code, and the agent redeploys the same app name with it. The link stays the same and the site becomes permanent.
+Yes, once it's in your account. A site deployed with the connector is permanent from the start. A site deployed over HTTP is deleted 24 hours after its first deploy unless you keep it: Embarko emails you a token, you paste it back, and the agent redeploys the same name with it. The link stays the same.
 
 ### [Can I host a Claude Artifact?](#faq-artifact)
 
-Only if it works as a normal web app. An artifact that uses `window.storage` is rejected at deploy with a [`422 unsupported_storage_pattern`](/docs/troubleshoot#422-unsupported_storage_pattern) error. Replace it with [SQLite](/docs/capabilities#database), with the database file under the [`DATA_DIR`](/docs/capabilities#file-storage) folder, because only that folder survives a redeploy. That makes it a server app, not a static site.
+Yes, if it works as a normal web app. Put its files in a project and deploy that. An artifact that uses `window.storage` is rejected at deploy with a `422 unsupported_storage_pattern` error. Replace it with SQLite, with the database file under the [`DATA_DIR`](/docs/data) folder, because only that folder survives a redeploy. That makes it a server app, not a static site.
+
+### [Is it safe to put my Claude website online?](#faq-safe)
+
+Keep secret keys out of your project files. The deploy leaves `.env` files out of the upload, and you can add keys as [environment variables](/docs/env-vars), which Embarko stores write-only so nobody can read them back. Also remember that anyone with your link can open the site, so if it uses your AI key, set a spending limit with your AI provider if they offer one.
 
 ### [Can I use my own domain?](#faq-domain)
 
-Yes, if you already own one. [Custom domains](/docs/capabilities#custom-domains) are supported, and the [pricing page](/pricing) lists them on the Creator plan. Claude Code [adds the domain](/docs/agent-playbook#add-custom-domain) to your site and tells you the exact DNS record, then you create that record at your DNS provider. On Cloudflare the record must be DNS-only. If it does not start working, see [custom domain troubleshooting](/docs/troubleshoot#custom-domains).
+Yes, if you already own one. Claude connects the domain and tells you the one DNS record to add, and you add it where your domain is managed. The [pricing page](/pricing) lists your own domain on the Creator plan. See [own domain](/docs/custom-domain) for the steps.
 
-### [What if Claude Code cannot reach Embarko?](#faq-cannot-reach)
+### [What if Claude can't reach Embarko?](#faq-cannot-reach)
 
-An error such as `403 host_not_allowed` means a network sandbox is blocking the upload and nothing was deployed. Allow `embarko.ai`, `ship.embarko.ai` and `*.embarko.app` in the sandbox's network settings, use the [Claude connector](/docs/connectors), or ask Claude Code for the deploy commands and run them in your own terminal. See [what to do when the API is unreachable](/docs/agent-playbook#no-connectivity).
+An error such as `403 host_not_allowed` means your environment blocks `ship.embarko.ai` and nothing was deployed. Add the Embarko connector, which works from outside your sandbox, or ask Claude for a `.zip` and use the upload page at [embarko.ai/app](/app).
+
+### [Is it free?](#faq-free)
+
+There's a Free plan with unlimited static websites and **1 dynamic app**, with Embarko branding. Creator is $9/month billed yearly for up to 5 dynamic apps, and Team is $23/month billed yearly for up to 20. Prices are from [embarko.ai/pricing](/pricing) and can change.
 
 ## [Built something with AI? Ask it to deploy to Embarko.](#deploy)
 
-Install the skill or copy the prompt, and get a live link without creating a repo. [Get the deployment prompt →](/)
+Connect Embarko to Claude once, or copy the prompt, and get a live link without creating a repo. [Get the deployment prompt →](/)
 
-**Keep reading:** [Agent quickstart](/docs/agent-quickstart) · [Troubleshooting reference](/docs/troubleshoot) · [Connectors](/docs/connectors) · [Pricing](/pricing)
+**Keep reading:** [How to deploy an AI app](/guides/how-to-deploy-ai-app) · [Deploy an app without GitHub](/guides/deploy-app-without-github) · [Quickstart](/docs/quickstart) · [Connectors](/docs/connectors) · [Errors reference](/docs/errors) · [Pricing](/pricing)

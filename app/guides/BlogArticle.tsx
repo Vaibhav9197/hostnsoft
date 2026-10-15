@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ArrowUp, ChevronDown, List } from "lucide-react";
@@ -19,6 +19,8 @@ interface BlogArticleProps {
   datePublished: string;
   dateModified: string;
   readMinutes: number;
+  /** Replaces the markdown body for a guide that has its own interactive version. */
+  interactive?: { intro: ReactNode; body: ReactNode; faqHeading?: ReactNode; outro?: ReactNode };
 }
 
 /* Wrapped so the article can size its prose (16px) without touching the
@@ -199,7 +201,7 @@ function GuideToc({ toc, active }: { toc: TocEntry[]; active: string | null }) {
  * Client-side only because the markdown renderer and the scroll-spy are; the
  * page around it stays a server component.
  */
-export function BlogArticle({ parts, toc, title, author, datePublished, dateModified, readMinutes }: BlogArticleProps) {
+export function BlogArticle({ parts, toc, title, author, datePublished, dateModified, readMinutes, interactive }: BlogArticleProps) {
   const active = useActiveHeading(toc);
   useOpenTargetedFaq();
 
@@ -219,15 +221,15 @@ export function BlogArticle({ parts, toc, title, author, datePublished, dateModi
         {/* Phones and tablets: the contents box comes first, so a reader can
             jump before scrolling. From lg up the sidebar does this job. */}
         <JumpLinks toc={toc} />
-        {parts.takeaways && (
+        {parts.takeaways && !interactive && (
           <div className="mt-8 rounded-2xl border border-neutral-200 bg-[var(--surface)] px-6 pb-6 sm:px-8 lg:mt-0 [&>h2:first-child]:mt-6">
             <Markdown>{parts.takeaways}</Markdown>
           </div>
         )}
         <div className={parts.takeaways ? "mt-8" : undefined}>
-          <Markdown>{parts.intro}</Markdown>
+          {interactive?.intro ?? <Markdown>{parts.intro}</Markdown>}
         </div>
-        {parts.main && <Markdown>{parts.main}</Markdown>}
+        {parts.main && (interactive?.body ?? <Markdown>{parts.main}</Markdown>)}
         {/* Who wrote it and the facts about it, just above the FAQ. No "Last
             verified" or AI-disclosure line on any post (owner decision,
             2026-10-08). */}
@@ -244,13 +246,13 @@ export function BlogArticle({ parts, toc, title, author, datePublished, dateModi
           </dl>
         </footer>
 
-        {parts.faqHeading && <Markdown>{parts.faqHeading}</Markdown>}
+        {parts.faqHeading && (interactive?.faqHeading ?? <Markdown>{parts.faqHeading}</Markdown>)}
         {parts.faq.length > 0 && <FaqList items={parts.faq} />}
-        {parts.outro && <Markdown>{parts.outro}</Markdown>}
+        {parts.outro && (interactive?.outro ?? <Markdown>{parts.outro}</Markdown>)}
 
         <section
           aria-labelledby="share-h"
-          className="mt-10 flex flex-wrap items-center justify-between gap-5 rounded-2xl border border-neutral-200 bg-[var(--surface)] p-6 sm:p-7"
+          className="mt-14 flex flex-wrap items-center justify-between gap-5 border-t border-neutral-200 pt-8"
         >
           <div className="min-w-0">
             <h2 id="share-h" className="text-lg font-semibold text-neutral-950">

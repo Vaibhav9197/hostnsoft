@@ -7,145 +7,161 @@ secondary_keywords: ["antigravity deploy app", "host antigravity app", "antigrav
 category: "Guide"
 cover: "/assets/guides/deploy-antigravity-website.png"
 cover_alt: "Antigravity's agent asks permission to run the Embarko upload, the user allows it, and the website goes live at your-site-name.embarko.app."
-read_minutes: 9
+read_minutes: 13
 datePublished: "2026-10-12"
-dateModified: "2026-10-12"
-last_verified: "2026-10-12"
+dateModified: "2026-10-14"
+last_verified: "2026-10-14"
 author: "The Embarko team"
 status: "published"
 ---
 
 # How to deploy an Antigravity website with one prompt
 
-**To deploy a website built in Antigravity, paste Embarko's deployment prompt into Antigravity's agent.** Copy the prompt from [embarko.ai](/), open your project and paste it. The agent packs the folder, uploads it and hands you a live HTTPS link. No Git repo or Dockerfile is needed. Antigravity may block the upload until you [approve the command or allow Embarko's domains](#sandbox). An app nobody claims is [deleted after 24 hours](/docs/troubleshoot#your-app-disappears-24-hours-after-an-anonymous-deploy).
+**To deploy a website built in Google Antigravity, paste Embarko's deployment prompt into Antigravity's agent.** Copy the prompt from [embarko.ai](/), open your project and paste it. The agent packs the folder, uploads it and hands you a live HTTPS link. No Git repo or Dockerfile is needed. Antigravity may ask you to approve the upload, which is normal. [Here is what to expect](#sandbox).
 
 ## [Key takeaways](#takeaways)
 
-- **The "one prompt" is Embarko's deployment prompt,** copied from [embarko.ai](/) and pasted into Antigravity's agent. It tells the agent how to deploy, so you never learn the API.
-- **The agent runs the commands.** It packs your folder as a `.tar.gz`, [uploads it](/docs/capabilities#deploy) and [checks the status](/docs/capabilities#status) until the app is `live`.
-- **Antigravity's terminal sandbox can block the upload.** On macOS and Linux in Antigravity 2.0, sandboxed commands run without network access by default. Approve the command, or allow `embarko.ai` and `embarko.app`.
-- **Antigravity has no Embarko connector.** Only Claude does ([connectors](/docs/connectors)). The prompt works for any AI tool that can run commands.
-- **The first deploy is anonymous and deleted after 24 hours** unless you [claim it](/docs/agent-playbook#claim). Limits: [256MB of memory, one process](/docs/capabilities#resources), no WebSockets, no [scheduled jobs](/docs/capabilities#scheduled-jobs).
+- A website Antigravity builds runs on `localhost`, which only your own computer can open. To share it, it needs a host.
+- The usual route asks for a GitHub repository, a hosting account, build settings and secret keys.
+- With Embarko, the "one prompt" is the deployment prompt copied from [embarko.ai](/). The agent packs the folder, [uploads it](/docs/capabilities#deploy) and [checks the status](/docs/capabilities#status) until the site is `live`.
+- Antigravity's terminal sandbox can block network access, so expect it to ask before it runs the upload. Read the command and approve it.
+- Your first link needs no account. Press **Keep** within 24 hours and it stays at the same address.
 
-## [What "deploy with one prompt" means in Antigravity](#prompt)
+## [Why your Antigravity website isn't online yet](#why)
 
-Antigravity writes your site, but something still has to host it. Embarko is built so the agent does that part: it sends your project straight to Embarko, which builds it, runs it and serves it at `your-app-name.embarko.app`.
+When Antigravity builds a website, it runs it on your own machine so you can try it. You'll often see an address like `localhost:3000`. "Localhost" simply means "this computer", so a link that starts with it only works for you. Send it to a friend and it points at their computer, where your site doesn't exist.
 
-Antigravity comes as a desktop app (Antigravity 2.0), a command-line tool launched with `agy`, and an IDE. Google's docs say agents there work inside your projects, and the IDE has a **Terminal command auto execution** setting for the commands the agent runs. That is what makes this route work: your agent follows the deployment prompt, packages the folder, uploads it and reports the live link.
+Putting a site online is called **deploying**. It takes three things: a server that stays on, your site's files copied onto it, and a public address anyone can open. Together that's called **hosting**. Antigravity writes the site, but something else still has to host it.
 
-## [Before you start: four checks](#checks)
+## [Why deploying from Antigravity gets complicated](#hard)
 
-Antigravity can usually fix these itself, but it helps to know them. The [agent quickstart](/docs/agent-quickstart#before) has the same list for your agent.
+Antigravity hands you a project that works. The usual route to a host then asks for more than you may expect:
 
-- **Read the port from `PORT` and listen on `0.0.0.0`.** A fixed port, or `localhost` only, never goes live.
-- **Remove any Dockerfile and keep the manifest at the top.** Embarko builds the app itself and [rejects a Dockerfile](/docs/limitations#build-runtime-customization). Files like `package.json` must sit at the root of the folder, not in a subfolder. A plain site with an `index.html` is published as [static files](/docs/capabilities#static-sites).
-- **Use the production start command.** Each app gets 256MB of memory, which [cannot be raised](/docs/limitations#compute-isolation). Dev servers such as `vite dev` are the most common reason an app [runs out of memory](/docs/troubleshoot#oom-killed).
-- **Keep secrets out of the folder.** The agent must leave `.env` files out of the archive, and anything you include ships with the app. API keys go in later as [environment variables](/docs/capabilities#secrets), after you claim the app.
+1. **A GitHub account and a repository**, plus enough Git to push the project.
+2. **A hosting service.** Vercel, Netlify and others each have their own sign-up, dashboard and vocabulary.
+3. **Build and start settings**, and sometimes a Dockerfile Antigravity didn't write.
+4. **Secret keys kept out of the code** and added as environment variables on the host.
+5. **Permission prompts and sandbox settings.** Antigravity controls which terminal commands the agent may run and whether they get network access, so even a correct deploy command can stop and wait for you.
 
-## [Let Antigravity's agent reach Embarko](#sandbox)
+That's fair work for a developer. For a small site Antigravity wrote in one sitting, it's a long way from "it runs" to "here's the link".
 
-This is the step most Antigravity deploys trip on. The upload is a network call from a terminal command, and Antigravity controls both parts.
+## [The usual route compared with Embarko](#compare)
 
-**Command approval.** In the IDE, **Terminal command auto execution** has two options. **Request Review** makes the agent ask before any terminal command, except commands on your allowlist. **Always Proceed** runs commands without asking, except those on your denylist, and Google labels it high autonomy, high risk. If you use Request Review, read the upload command and approve it.
+Embarko is hosting that your AI tool runs for you. Antigravity's agent packs the site, uploads it and checks that it's live.
 
-**Network access.** In Antigravity 2.0 on macOS and Linux, Google's docs say the terminal sandbox is on by default under the Default permission preset, and sandboxed commands run without network access until you approve a domain. On Windows the sandbox is an opt-in preview, and in the CLI `enableTerminalSandbox` is `false` by default. If your sandbox is on, allow Embarko's domains.
+| The usual route | With Embarko |
+|---|---|
+| Push the project to a GitHub repository | No repository. The agent [uploads the folder directly](/docs/capabilities#deploy). |
+| Sign up for a host and connect it | Your first link needs no account. |
+| Configure the build, maybe add a Dockerfile | No Dockerfile. Embarko [detects the language](/docs/capabilities#deploy) and builds the site itself. |
+| Read the build logs yourself | The agent checks the status and hands you the link. |
 
-| Option | What to do | Good to know |
+## [What "one prompt" means in Antigravity](#prompt)
+
+The one prompt is Embarko's deployment prompt, a ready-made message that tells the agent how to deploy. It works because Antigravity's agent can run terminal commands in your project. Antigravity comes as an app, a command-line tool and an IDE, and Google's docs describe the permission and sandbox settings for each. The agent follows the prompt, packs the folder, uploads it and reports the live link.
+
+## [What to expect when Antigravity asks permission](#sandbox)
+
+The upload is a network call from a terminal command, and Antigravity controls both parts. What happens depends on which Antigravity you use:
+
+| Which Antigravity | What it does by default | What to do |
 |---|---|---|
-| **Allow Embarko's domains** (recommended) | Add two `read_url` rules: `read_url(embarko.ai)` and `read_url(embarko.app)`. In the CLI, put them in the `allow` list of `~/.gemini/antigravity-cli/settings.json`. In the desktop app, approve the domain in the prompt card when the agent asks. | A `read_url` rule matches the domain and its subdomains, so `embarko.ai` also covers `ship.embarko.ai`, and `embarko.app` covers your app's address. Domains allowed under `read_url` are added to the sandbox's outbound allowlist. |
-| **Approve the command** | When Antigravity asks about the upload command, review it and approve it. | Check that it only sends your project to `ship.embarko.ai`. |
-| **Run it yourself** | Ask the agent for the deploy commands and run them in your own terminal. | Nothing is deployed until the upload succeeds, so do not wait for a link before then. On Windows, ask for PowerShell versions that call `curl.exe` and `tar.exe`. |
+| **The app on macOS or Linux** | The Default preset runs terminal commands in a sandbox with no network access. A command that needs the network runs outside the sandbox and asks for your approval, unless an allow rule covers it. | When the agent asks to run the upload outside the sandbox, read the command and approve it. |
+| **The app on Windows** | Windows uses Google's previous permission system, where commands you haven't allowed ask for approval. Terminal sandboxing is a preview option. | Read the upload command and approve it. |
+| **The CLI** | The sandbox is off by default (`enableTerminalSandbox` is `false`). With it on, sandboxed commands get no network access by default. | Approve the command if the agent asks. With the sandbox on, approve the run outside the sandbox. |
+| **The IDE** | Sandboxing is off by default. **Terminal command auto execution** decides whether the agent asks first. | If you turned on terminal sandboxing, also turn on its network access setting, or run the upload in your own terminal. Strict mode turns the sandbox on with network access denied. |
 
-For the CLI, the rules go in a `permissions` object:
+In the app on macOS and Linux, Google's permission presets are **Default**, **Request Review** and **Turbo**, set under **Settings → General → Permission Settings**. Under Request Review the sandbox is off and terminal commands always ask. In the IDE, **Terminal command auto execution** has two options, **Request Review** and **Always Proceed**, which control whether the agent asks before running terminal commands.
 
-```json
-{
-  "permissions": {
-    "allow": ["read_url(embarko.ai)", "read_url(embarko.app)"]
-  }
-}
-```
+You have three ways to get the upload through:
 
-Google's docs do not say where to type individual `read_url` rules in the 2.0 desktop app, so approve the domain from the prompt card there. If you edit the target in the card, keep it to the domain.
+| Option | What to do | What to know |
+|---|---|---|
+| **Approve the command** (recommended) | When Antigravity asks to run the upload, read the command and approve it. | Check that it only sends your project to `ship.embarko.ai`. A command approved to run outside the sandbox has no sandbox protection. |
+| **Allow Embarko's domains** | In the CLI, Google's docs say domains allowed under `read_url` are added to the sandbox's outbound allowlist. Allow `embarko.ai`, `ship.embarko.ai` and `*.embarko.app`. | Google's sandbox page doesn't show the exact rule format, so check its [CLI permissions](https://www.antigravity.google/docs/sandbox?tab=cli) for the current syntax. |
+| **Run it yourself** | Ask the agent for the deploy commands and run them in your own terminal. | Nothing is deployed until the upload succeeds, so don't wait for a link before then. On Windows, ask for PowerShell versions that call `curl.exe` and `tar.exe`. |
 
-> Setting names and defaults are from Google's [Antigravity permissions](https://www.antigravity.google/docs/permissions), [sandbox](https://www.antigravity.google/docs/sandbox?tab=cli) and [settings](https://www.antigravity.google/docs/settings?tab=ide) pages as of October 2026. Check them if your version differs.
+> Setting names and defaults are from Google's [Antigravity permissions](https://www.antigravity.google/docs/permissions), [sandbox](https://www.antigravity.google/docs/sandbox?tab=cli) and [settings](https://www.antigravity.google/docs/settings?tab=ide) pages as of October 2026. Check those pages if your version differs.
+
+## [What you can deploy](#fit)
+
+Embarko suits small web apps. Here's how common Antigravity projects line up, and what to do if yours needs something else.
+
+| What Antigravity built | Fits? | What to know |
+|---|---|---|
+| A plain website | Yes | Keep `index.html` at the top of the folder. Published as [static files](/docs/capabilities#static-sites), usually live straight away. |
+| A Node.js app | Yes | `package.json` at the top. Read the port from `PORT` and listen on `0.0.0.0`. |
+| A Python app | Yes | `requirements.txt` or `pyproject.toml` at the top. |
+| A site with a build step (Vite, Create React App) | Yes | Built first, then run as a server app. |
+| A small database | Yes, SQLite | Save the file under `DATA_DIR`, [the folder that survives redeploys](/docs/capabilities#file-storage). Keep your own copy of important data. |
+| A frontend and a backend in one project | Two apps | [One deploy is one app](/docs/troubleshoot#422-app_nested_in_subdirectory). Deploy each folder as its own app. |
+| Postgres or MySQL | Another route | Embarko has [no managed database](/docs/capabilities#database). Use SQLite for small data, or host that app where its database lives. |
+| Live updates ([WebSockets](/docs/capabilities#http-endpoints)) | Another route | Use regular HTTP polling instead. |
+| [Scheduled jobs](/docs/capabilities#scheduled-jobs) | Another route | Run them elsewhere and have them call your site. |
+| Heavy processing or a GPU | Another route | Run that part elsewhere. Apps get [256MB of memory and no GPU](/docs/limitations#compute-isolation). |
+
+**Delete any Dockerfile** Antigravity added. Embarko builds the site itself and [rejects an upload that includes one](/docs/limitations#build-runtime-customization).
 
 ## [How to deploy from Antigravity, step by step](#steps)
 
+**Before you start:** your site runs locally, and Antigravity's agent can run terminal commands in your project.
+
 ### [1. Open the project in Antigravity](#step-1)
 
-Open the folder that holds your site and make sure it runs locally. That folder is what gets uploaded.
+Open the folder that holds your site. That folder is what gets uploaded.
 
 ### [2. Copy the deployment prompt and paste it into the agent](#step-2)
 
-Open [embarko.ai](/), copy the deployment prompt, and paste it into a new agent chat. Then add one line:
+Open [embarko.ai](/) and click the button that copies the prompt (**Host your app** on the home page, **Copy deployment prompt** on [pricing](/pricing)). Paste it into a new agent chat, then add one line:
 
 ```text
 I built a website, help me get it live on Embarko
 ```
 
-**What happens next:** the agent may ask how you want to sign in. Skip the connector option, because Antigravity does not have one. Pick **token by email** (give your email, then paste the token from your inbox), or create a token at [embarko.ai/app/tokens](/app/tokens). With a token, the app goes into your account and is kept from the start. If you skip, the app works but is deleted after 24 hours unless you claim it ([step 5](#step-5)). The [three ways in](/docs/capabilities#agent-auth) explains each option.
+The agent may ask how you want to sign in. Skip the connector option, because Antigravity doesn't have one. Pick **token by email** (give your email, then paste the token from your inbox), or create a token at [embarko.ai/app/tokens](/app/tokens). With a token, the app goes into your account and is kept from the start. If you skip, the app still works for 24 hours. [Authentication: three ways in](/docs/capabilities#agent-auth) explains each option.
 
 ### [3. Approve the upload](#step-3)
 
-The agent packages the project as a `.tar.gz` (leaving out `node_modules`, `.git` and `.env` files), uploads it to Embarko's deploy API, and checks the status about every 10 seconds until it reaches `live`. A static site is usually live in the first reply. A server app has to build first, so it takes longer.
+Antigravity may ask before running the upload. Read the command, check that it only sends your project to `ship.embarko.ai`, and approve it. [The table above](#sandbox) shows when to expect the prompt.
 
-The app name becomes your address: 3-63 characters (lowercase letters, numbers and dashes, no dash at the start or end), unique across Embarko. If it is taken, the agent picks another. See [app names](/docs/capabilities#identity).
+The agent packs the project (leaving out `node_modules`, `.git` and `.env` files), uploads it, and checks the status about every 10 seconds until it reaches `live`. A static site is usually live in the first reply, and a server app builds first, so it takes longer.
 
-- **A first reply of `202 Accepted` is not the finish line.** It only means the build started. See [202 Accepted is not live](/docs/troubleshoot#202-accepted-misread-as-live-deploy).
-- **The upload fails with a network error?** The sandbox is blocking it and nothing was deployed. Allow the domains or approve the command ([above](#sandbox)), or run the commands yourself.
+The app name becomes your address: 3 to 63 characters (lowercase letters, numbers and dashes, no dash at the start or end), unique across Embarko. If it's taken, the agent picks another. See [app names](/docs/capabilities#identity).
 
-### [4. Open your link](#step-4)
+- A first reply of "202 Accepted" only means the build has started. See [202 Accepted is not live](/docs/troubleshoot#202-accepted-misread-as-live-deploy).
+- If the upload fails with a network error, the sandbox is blocking it and nothing was deployed. See [if something goes wrong](#errors).
 
-When it is live, the agent gives you the address, `your-app-name.embarko.app`. Open it and click around. Until you claim it, an HTML page shows a [countdown banner](/docs/troubleshoot#the-in-app-will-be-deleted-banner-doesnt-show-up).
+### [4. Open your link and keep it](#step-4)
 
-### [5. Claim it within 24 hours](#step-5)
-
-An app deployed without a token is deleted after 24 hours, with no reminder email. Ask the agent to [make it permanent](/docs/agent-playbook#claim). It asks for your email, Embarko emails you a token, you paste the token into the chat, and the agent redeploys the same name. The link stays the same.
-
-**What success looks like:** the agent tells you the app is now permanent.
+The agent gives you the address, `your-app-name.embarko.app`. Open it and click around. A link made without a token lasts 24 hours with no reminder email, though an HTML page shows a [countdown banner](/docs/troubleshoot#the-in-app-will-be-deleted-banner-doesnt-show-up). The agent's first reply includes a claim link. Open it, sign in or sign up, pick a workspace and press **Keep**, and the app stays at the same address. The link works once and only until the deadline, so keep that message. If you've lost it, ask the agent to [make it permanent with a token](/docs/agent-playbook#claim).
 
 ## [Changing the site later](#later)
 
-Ask the agent to [redeploy](/docs/capabilities#redeploy) with the same name. A claimed app keeps [deployment history](/docs/capabilities#history) and can [roll back](/docs/agent-playbook#rollback) to a recent build. Only the last 5 builds are kept, and rollback restores code, never data. For an API key, claim the app, then ask the agent to set an [environment variable](/docs/agent-playbook#add-secret) and apply it, because a write alone [does not reach the running app](/docs/troubleshoot#env-var-changes-need-a-redeploy-to-reach-the-running-app). Static sites cannot have environment variables.
+Ask the agent to [redeploy](/docs/capabilities#redeploy) with the same name. A kept app needs your deploy token for every later deploy. If you pressed **Keep** on the claim link, the page you land on gives you a prompt that carries a token, so paste it into the agent's chat once. If you kept the app with a token, the agent already has it. You can also create one at [embarko.ai/app/tokens](/app/tokens). A kept app keeps [deployment history](/docs/capabilities#history) and can [roll back](/docs/agent-playbook#rollback) to a recent build. Rollback restores code, never data.
 
-> **No repo means no safety net.** With no GitHub, Embarko is not where your code lives, and it has [no automatic backups](/docs/capabilities#backups) yet. Its docs recommend you [keep your own source history](/docs/limitations#persistence). A local Git repository or a copy of the folder both work.
+To use an API key, keep the app first, then ask the agent to set it as an [environment variable](/docs/agent-playbook#add-secret) and apply it. A write alone [doesn't reach the running app](/docs/troubleshoot#env-var-changes-need-a-redeploy-to-reach-the-running-app). Static sites can't have environment variables. If your site saves anything, such as form entries or a SQLite file, it must write under `DATA_DIR`, because everything else is wiped on each redeploy. Since Embarko isn't where your code lives, [keep your own copy](/docs/limitations#rollback) too. A local Git repository is enough.
 
 ## [If something goes wrong](#errors)
 
+Failed deploys often come down to a blocked upload, a missing key or setting, or a site listening on the wrong port. Here's what you might see:
+
 | What you see | Likely cause | Fix |
 |---|---|---|
-| A network or connection error on the upload | Antigravity's sandbox blocks Embarko's domains. Nothing was deployed. | Allow `embarko.ai` and `embarko.app` ([how](#sandbox)), approve the command, or run it in your own terminal. |
+| A network or connection error on the upload | Antigravity's sandbox blocks Embarko's domains. Nothing was deployed. | Approve the command to run outside the sandbox, allow the domains ([how](#sandbox)), or run it in your own terminal. |
 | [`403 host_not_allowed`](/docs/agent-playbook#no-connectivity) | A network sandbox blocks the upload. Nothing was deployed. | Same fix as above. |
-| The agent keeps asking before every command | **Terminal command auto execution** is on Request Review | Approve each command, or add the deploy commands to the allowlist. |
-| [Exit code 137](/docs/troubleshoot#oom-killed) | The app went over 256MB, often a dev server | Use the production start command. |
-| [`422 no_manifest_at_root`](/docs/troubleshoot#422-no_manifest_at_root) | The manifest is in a subfolder | Repackage so it is at the top of the archive. |
-| [App gone after a day](/docs/troubleshoot#your-app-disappears-24-hours-after-an-anonymous-deploy) | It was never claimed | Deploy it again with a token so it is kept. |
+| The agent keeps asking before every command | Your permission preset or **Terminal command auto execution** is on Request Review | Approve each command, or add the deploy commands to your allowlist. |
+| [Exit code 137](/docs/troubleshoot#oom-killed) | The site went over 256MB, often because it runs a dev server | Use the production start command, such as `npm start` after a build, not `vite dev`. |
+| [`422 no_manifest_at_root`](/docs/troubleshoot#422-no_manifest_at_root) | The manifest is in a subfolder | Repackage so it's at the top of the archive. |
+| [App gone after a day](/docs/troubleshoot#your-app-disappears-24-hours-after-an-anonymous-deploy) | It was never kept | Deploy it again and press **Keep** this time. |
+| The link doesn't open, or the status says failed or crashed | The site is listening on the wrong port or only on localhost | Ask the agent: "Make my site read its port from the PORT environment variable and listen on 0.0.0.0, then redeploy." |
 
-Other codes, such as [`409 app_name_taken`](/docs/troubleshoot#409-app_name_taken), are in the [troubleshooting reference](/docs/troubleshoot#quick-lookup-by-code). Do not retry a 409 or 422 unchanged.
-
-## [When this is not the right route](#limits)
-
-Embarko is built for small request-and-response apps. The overview explains [when Embarko is the wrong choice](/docs/overview#not-right-when).
-
-**Good fit**
-
-- Landing pages and portfolios
-- Internal tools and dashboards
-- Forms and MVPs
-- Small AI chat apps or document Q&A tools
-- Small games and calculators
-
-**Not a fit**
-
-- WebSockets or realtime push
-- [Scheduled jobs](/docs/capabilities#scheduled-jobs) and [background workers](/docs/capabilities#workers)
-- A managed database such as Postgres or MySQL
-- GPU workloads and heavy processing
-
-Every app is public to anyone with the URL, and there is no [private-app option](/docs/capabilities#access-protection) yet. Embarko is in beta.
+Other codes, such as [`409 app_name_taken`](/docs/troubleshoot#409-app_name_taken), are in the [troubleshooting reference](/docs/troubleshoot#quick-lookup-by-code). Don't retry a 409 or 422 unchanged.
 
 ## [FAQ](#faq)
+
+### [What is Antigravity's terminal sandbox?](#faq-sandbox)
+
+It's a restricted space where Antigravity can run the agent's terminal commands. By default in the app on macOS and Linux, commands run there with no network access, so a command that needs the network, such as an upload, runs outside it and asks for your approval. The CLI and IDE have the sandbox off by default.
 
 ### [Can Antigravity deploy my website?](#faq-can-antigravity)
 
@@ -153,26 +169,30 @@ Yes, if its agent can run terminal commands in your project. It follows Embarko'
 
 ### [Does Embarko officially support Antigravity?](#faq-support)
 
-Embarko's pages say that if an AI tool built your app, Embarko can host it, and the deployment prompt works from any agent that can run commands. Antigravity is not named on Embarko's pages, and it has no dedicated connector. Only Claude does.
+Not by name. Antigravity isn't mentioned on Embarko's pages and has no Embarko connector. Only Claude has one. Embarko's [connectors page](/docs/connectors) says every AI tool can still deploy by pasting the deployment prompt, and that works in Antigravity when its agent can run terminal commands.
 
 ### [Why does Antigravity ask permission before deploying?](#faq-permission)
 
-The upload is a terminal command that makes a network call. With **Terminal command auto execution** on Request Review, the agent asks before any command not on your allowlist. If the sandbox is on, it also blocks network access until you approve a domain. Allow `embarko.ai` and `embarko.app`, or approve the command.
+By default, the app on macOS and Linux runs commands in a sandbox with no network access, so the agent asks to run the upload outside it. Read the command, check that it only sends your project to `ship.embarko.ai`, and approve it. On Request Review, it asks before any terminal command.
 
 ### [Do I need GitHub to deploy from Antigravity?](#faq-github)
 
-No. Embarko takes the project folder directly, so there is no repo to create or connect. Without a repo, [keep your own copy](/docs/limitations#persistence) of the code.
+No. Embarko takes the project folder directly: the agent packs it and uploads it, so there's no repo to create or connect. Embarko isn't where your code lives, so [keep your own copy](/docs/limitations#rollback), such as a local Git repository or a copy of the folder, so you can redeploy an older version later.
 
 ### [Will my site stay online?](#faq-stay-online)
 
-Not automatically. An app deployed without a token is deleted 24 hours after its first deploy. Ask the agent to [claim it](/docs/agent-playbook#claim): you paste an emailed token into the chat and the agent redeploys the same name. The link stays the same.
+Once you press **Keep**, yes. An app deployed without a token is deleted 24 hours after its first deploy. Open the claim link from the agent's first reply and sign in to keep it, or ask the agent to [claim it with a token](/docs/agent-playbook#claim). The link stays the same.
+
+### [Is it safe to put my Antigravity site online?](#faq-safe)
+
+Keep secret keys out of your project files. The agent leaves `.env` files out of the archive, and once you've pressed **Keep** you can add keys as [environment variables](/docs/capabilities#secrets), which Embarko stores encrypted and nobody can read back. Also remember that anyone with your link can open the site, so if it uses your AI key, set a spending limit with your AI provider if they offer one.
 
 ### [Is it free?](#faq-free)
 
-There is a Free plan with unlimited static websites and **1 dynamic app**. Creator is $9/month billed yearly for up to 5 dynamic apps, and Team is $23/month billed yearly for up to 20. Prices are from [embarko.ai/pricing](/pricing) and can change.
+There's a Free plan with unlimited static websites and **1 dynamic app**. Creator is $9/month billed yearly for up to 5 dynamic apps, and Team is $23/month billed yearly for up to 20. Prices are from [embarko.ai/pricing](/pricing) and can change.
 
 ## [Built something with AI? Ask it to deploy to Embarko.](#deploy)
 
 Copy the prompt, paste it into Antigravity's agent, and get a live link without creating a repo. [Get the deployment prompt →](/)
 
-**Keep reading:** [Agent quickstart](/docs/agent-quickstart) · [Troubleshooting reference](/docs/troubleshoot) · [Antigravity permissions](https://www.antigravity.google/docs/permissions) · [Pricing](/pricing)
+**Keep reading:** [How to deploy an AI app](/guides/how-to-deploy-ai-app) · [Deploy from Cursor](/guides/deploy-from-cursor) · [Agent quickstart](/docs/agent-quickstart) · [Troubleshooting reference](/docs/troubleshoot) · [Antigravity permissions](https://www.antigravity.google/docs/permissions) · [Pricing](/pricing)
