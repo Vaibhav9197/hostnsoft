@@ -1,10 +1,10 @@
-import { SITE } from "./site";
+import { SITE, appUrl } from "./site";
 
 /** The canonical "copy prompt for agent" text, shared by the landing page,
  *  the docs and the console so they never drift apart.
  *
  *  Two lines: the intent and the quickstart URL. Everything else (access,
- *  packaging, polling, errors) lives in /docs/agent-quickstart.md, which is
+ *  packaging, polling, errors) lives in /docs/quickstart.md, which is
  *  maintained with the platform. The raw markdown URL, not the rendered page,
  *  so the agent gets the prose without the HTML.
  *
@@ -35,7 +35,7 @@ function build({ appName, token, signedIn }: PromptContext = {}): string {
   const lines = [
     "Deploy this app to Embarko — cloud hosting for small apps. No Dockerfile, no signup.",
     "",
-    `Read ${SITE}/docs/agent-quickstart.md and follow it. Nothing to install.`,
+    `Read ${SITE}/docs/quickstart.md and follow it. Nothing to install.`,
   ];
   if (appName) lines.push(`Redeploy it as the existing Embarko app "${appName}" — that exact name, so it updates that app instead of standing up a second one on a second subdomain.`);
   const useSavedToken = "use DEPLOY_TOKEN or ~/.embarko/credentials if either is already set";
@@ -92,7 +92,7 @@ export function consoleDeployPromptWithToken(token: string): string {
 export function consoleKeepPrompt(appName: string): string {
   return `Keep my Embarko app "${appName}" (https://${appName}.embarko.app). It was deployed without an account, so it will be deleted unless it's claimed.
 
-Read ${SITE}/docs/agent-playbook.md#claim and follow it: redeploy this same app, with the same name "${appName}", using my deploy token — DEPLOY_TOKEN or ~/.embarko/credentials if either is set; if neither is, ask me for one from ${SITE}/app/tokens and save it to ~/.embarko/credentials.
+Read ${SITE}/docs/claim.md and follow it: redeploy this same app, with the same name "${appName}", using my deploy token — DEPLOY_TOKEN or ~/.embarko/credentials if either is set; if neither is, ask me for one from ${SITE}/app/tokens and save it to ~/.embarko/credentials.
 
 Then confirm the deploy succeeded and tell me the app is now permanent.`;
 }
@@ -106,12 +106,28 @@ Then confirm the deploy succeeded and tell me the app is now permanent.`;
 export function consoleKeepPromptWithToken(token: string): string {
   return `Keep the Embarko app you deployed for me without an account. It will be deleted after 24 hours unless it's claimed.
 
-Read ${SITE}/docs/agent-playbook.md#claim and follow it: redeploy that same app with the exact same name, using this Embarko deploy token: ${token}
+Read ${SITE}/docs/claim.md and follow it: redeploy that same app with the exact same name, using this Embarko deploy token: ${token}
 Set it as DEPLOY_TOKEN and save it to ~/.embarko/credentials so later deploys reuse it. Don't print the token back to me.
 
 If you haven't deployed an app to Embarko in this project, tell me instead of deploying a new one.
 
 Then confirm the deploy succeeded and tell me the app is now permanent.`;
+}
+
+/**
+ * After the claim link has done its job: the app is permanent, and the
+ * agent that deployed it needs the account's token for every later deploy
+ * of that name — an anonymous redeploy of a claimed name is refused. Made
+ * on the claim page's success screen with a token created on the spot, so
+ * the person has nothing to look up. Nothing is deployed by this prompt.
+ */
+export function consoleClaimedPromptWithToken(appName: string, token: string): string {
+  return `My Embarko app "${appName}" (${appUrl(appName)}) is claimed now: it's permanent and belongs to my account, so nothing needs redeploying for that.
+
+From now on every deploy of it needs my deploy token — an anonymous redeploy of that name is refused. Use this Embarko deploy token: ${token}
+Set it as DEPLOY_TOKEN and save it to ~/.embarko/credentials (chmod 600) so later deploys reuse it. Don't print the token back to me.
+
+When I ask for changes, redeploy it as the existing app "${appName}", that exact name, with that token. Read ${SITE}/docs/quickstart.md if you need the deploy steps.`;
 }
 
 /** "my-app.embarko.app", "https://my-app.embarko.app/x" or "my-app" → "my-app". */

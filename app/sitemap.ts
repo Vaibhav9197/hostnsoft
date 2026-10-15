@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
+import { GUIDE_TOPICS } from "./lib/guide/site";
 import { POSTS } from "./lib/guides";
-import { DOCS } from "./lib/docs";
 import { categorySlug, listApps, tagSlug } from "./lib/showcase";
 import { SITE } from "./lib/site";
 
@@ -65,13 +65,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // The static pages carry no lastModified: the only date available for them
   // is "now", which would mark every page changed on every request. Showcase
   // entries have a real date and use it.
-  // The docs are the pages we most want indexed, and three of the four are
-  // linked from nowhere in the site chrome — the sitemap is how they are found.
-  const docs = DOCS.map((doc) => ({
-    url: `${SITE}${doc.path}`,
-    changeFrequency: "weekly" as const,
-    priority: 0.9,
-  }));
+  // The agent guide: its home, then one page per topic. /docs/quickstart is
+  // left out because /docs is the same page and is its canonical.
+  const docs = [
+    { url: `${SITE}/docs`, changeFrequency: "weekly" as const, priority: 0.9 },
+    ...GUIDE_TOPICS.filter((t) => t.topic !== "quickstart").map((t) => ({
+      url: `${SITE}/docs/${t.topic}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    })),
+  ];
 
   /* Real dates, so these are the one kind of page here that gets lastModified. */
   const blog = POSTS.map((post) => ({
@@ -87,6 +90,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ["/guides", 0.8, "weekly"],
     ["/showcase", 0.9, "daily"],
     ["/pages", 0.8, "weekly"],
+    ["/hackathons", 0.7, "monthly"],
     ["/use-cases", 0.8, "weekly"],
     ["/status", 0.6, "daily"],
     ["/support", 0.5, "monthly"],

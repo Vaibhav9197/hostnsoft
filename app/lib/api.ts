@@ -401,6 +401,15 @@ export async function currentUser(): Promise<Identity | null> {
   return identity;
 }
 
+// The signed-in user, whoever they are — no admin allowlist. For routes any
+// customer may call (feature votes), where currentUser() would wrongly lock
+// people out the moment ADMIN_EMAILS is set.
+export async function sessionUser(): Promise<Identity | null> {
+  const proxyToken = await readProxyToken();
+  if (!proxyToken) return null;
+  return msg91GetDetails(proxyToken);
+}
+
 // Who am I? Used at app boot. Identity comes from hostnsoft-api when reachable
 // (so we also get companies), otherwise from the MSG91 proxy session — so the
 // user stays logged in and in the app even when hostnsoft-api is down.

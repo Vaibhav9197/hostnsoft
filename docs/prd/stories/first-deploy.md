@@ -8,7 +8,7 @@
 - **Wants to:** get the app their AI built online
 - **Ends with:** The app is live at its own embarko.app address and shows in Your apps.
 - **Steps:** 10 · 1 by AI · 7 can go wrong
-- **Last change to its code:** v190, 10 Oct 2026 — feat(console): deploy steps with live status, shared by dialog and empty state
+- **Last change to its code:** v175, 10 Oct 2026 — feat(console): deploy steps with live status, shared by dialog and empty state
 
 [← All stories](../README.md)
 
@@ -180,7 +180,7 @@ flowchart TD
 - **What happens:** The AI reads the quickstart and the rules, then sends the app's files to Embarko.
 - **If it goes wrong:** not written down yet — open question.
 - **Parts:** Your AI agent (`ai-agent`), Agent docs (`docs`), Deploy intake (`intake`)
-- **Code:** `page:/docs/agent-quickstart` → `app/docs/agent-quickstart/page.tsx`, `lib:@deploy/capabilities` → `@deploy/capabilities.js`, `api:@deploy/apps` → `@deploy/server.js`
+- **Code:** `page:/docs/[slug]` → `app/docs/[slug]/page.tsx`, `api:@deploy/apps` → `@deploy/server.js`
 - **Outside services:** Docker, Nomad, Railpack
 
 ### 6. Check key and name
@@ -195,7 +195,7 @@ flowchart TD
   - If another workspace owns the name → refused (app_name_taken).
   - If the account service can't be reached → "Could not verify app name availability" (502).
 - **Parts:** Deploy intake (`intake`), Deploy keys (`tokens`), App records (`app-records`), Apps and deploys (`apps-data`)
-- **Keeps:** `DeployToken`, `Project`
+- **Keeps:** `Company`, `DeployToken`, `Project`
 - **Looks up:** `Domain`, `EnvVar`
 - **Code:** `lib:@deploy/deploy-credential` → `@deploy/deploy-credential.js`, `lib:@deploy/validate-deploy-token` → `@deploy/validate-deploy-token.js`, `api:@api/internal/deploy-tokens/validate` → `@api/src/routes/internalTokens.routes.ts`, `lib:@deploy/claim-project` → `@deploy/claim-project.js`, `api:@api/internal/projects/claim` → `@api/src/routes/internalProjects.routes.ts`, `lib:@api/src/services/projectClaim` → `@api/src/services/projectClaim.ts`
 - **Outside services:** Lago, Redis, Stripe
@@ -280,6 +280,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 ## Tables
 
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
+- **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `DeployToken` — Company-wide deploy token.
 - **Keeps** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
@@ -292,11 +293,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v190 (a6658fd) | 10 Oct 2026 | feat(console): deploy steps with live status, shared by dialog and empty state | copy-prompt, make-token, watch, app-appears |
-| v189 (b866cf3) | 9 Oct 2026 | docs(showcase): tell the agent contributors get an invite and a name credit (#25) | ai-deploys |
-| v188 (67cbcf0) | 8 Oct 2026 | feat(showcase): custom HTML on event pages- #15 (#15) | make-token |
-| v187 (fc85ee2) | 8 Oct 2026 | feat(panel): "Host new app" dialog tells the deploy as three steps | copy-prompt, app-appears |
-| v186 (67eadd2) | 8 Oct 2026 | feat(panel): top bar with workspace and plan; prompt-first showcase actions | copy-prompt, app-appears |
+| v175 (a6658fd) | 10 Oct 2026 | feat(console): deploy steps with live status, shared by dialog and empty state | copy-prompt, make-token, watch, app-appears |
+| v174 (67cbcf0) | 8 Oct 2026 | feat(showcase): custom HTML on event pages- #15 (#15) | make-token |
+| v173 (fc85ee2) | 8 Oct 2026 | feat(panel): "Host new app" dialog tells the deploy as three steps | copy-prompt, app-appears |
+| v172 (67eadd2) | 8 Oct 2026 | feat(panel): top bar with workspace and plan; prompt-first showcase actions | copy-prompt, app-appears |
+| v171 (3f8de6c) | 7 Oct 2026 | reverting to old copy deployment prompt | copy-prompt |
 
 ## Open questions
 

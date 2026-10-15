@@ -1,8 +1,8 @@
 /**
  * What the deploy endpoint will accept as an app name.
  *
- * Mirrors the `limits` block of https://ship.embarko.ai/capabilities/all, which is
- * the authoritative list — checked here as well so a name that can't work is
+ * Mirrors the deploy service's own name check, which is authoritative (the
+ * rules agents read are in the guide, /docs/deploy) — checked here as well so a name that can't work is
  * refused while the person is still looking at the field, rather than after an
  * upload has been packed and sent.
  *

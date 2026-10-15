@@ -4,7 +4,7 @@ import { Activity, CalendarClock, Database, FolderOpen, Globe, HardDrive, Histor
    (FeatureShowcase) and the tiles on /v1 and /v2 (FeatureTiles) both read it,
    so the pages can never disagree about what works.
 
-   Every line is checked against content/docs/capabilities.md: a feature is
+   Every line is checked against the agent guide (app/lib/guide/content.js): a feature is
    listed as working only if an agent can do it today. "Upcoming" marks what
    Embarko can't do yet — don't promise it. Shipped first, then upcoming: a
    list that opens on something the owner can't have yet sells the wrong

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AdminNav } from '../../components/AdminNav';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../../components/ui/sheet';
 import { formatDate } from '../../lib/format';
+import { FEATURES } from '../../lib/features';
 
 /* Customer queries arrive by several routes — the signed-in dashboard, the
  * public form, an agent posting to ship.embarko.ai — and all of them land in
@@ -63,7 +64,34 @@ export default function Queries() {
      one (the table already falls back to the index as a key). */
   const [selected, setSelected] = useState<number | null>(null);
 
+  /* query id → labels of the features upvoted alongside that message. Votes
+     live in their own table and carry the id of the message sent with them;
+     votes cast without a message only show on the Feature Votes page. A
+     failed read only blanks the column; the queries still load. */
+  const [votesBy, setVotesBy] = useState<Map<string, string[]>>(new Map());
+
+  const loadVotes = useCallback(async () => {
+    try {
+      const res = await fetch('/api/feature-votes/summary');
+      if (!res.ok) return;
+      const data = (await res.json()) as { votes?: { feature_id: string; query_id: string | null }[] };
+      const label = (id: string) => FEATURES.find((f) => f.id === id)?.label ?? id;
+      const map = new Map<string, string[]>();
+      for (const v of data.votes ?? []) {
+        if (!v.query_id) continue;
+        map.set(v.query_id, [...(map.get(v.query_id) ?? []), label(v.feature_id)]);
+      }
+      for (const list of map.values()) list.sort((a, b) => a.localeCompare(b));
+      setVotesBy(map);
+    } catch {
+      // Leave the column as it was.
+    }
+  }, []);
+
+  const votesOf = (q: CustomerQuery) => (q.id != null ? votesBy.get(String(q.id))?.join(', ') : undefined);
+
   const load = useCallback(async () => {
+    loadVotes();
     try {
       // No `source` param: take whatever the store holds, whatever it's
       // tagged with.
@@ -87,7 +115,7 @@ export default function Queries() {
       setError('Network error');
       setRows([]);
     }
-  }, []);
+  }, [loadVotes]);
 
   useEffect(() => {
     load();
@@ -186,7 +214,7 @@ export default function Queries() {
                 <table className="w-full">
                   <thead className="bg-elevated border-b">
                     <tr>
-                      {['Source', 'Type', 'Message', 'From', 'Workspace', 'Project', 'Agent', 'When'].map((h) => (
+                      {['Source', 'Type', 'Message', 'Feature votes', 'From', 'Workspace', 'Project', 'Agent', 'When'].map((h) => (
                         <th
                           key={h}
                           className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap"
@@ -223,7 +251,8 @@ export default function Queries() {
                         <td className="max-w-md px-6 py-4">
                           <p className="truncate text-foreground">{q.message ?? '—'}</p>
                         </td>
-                        <td className="px-6 py-4 text-muted-foreground text-sm break-all">{q.email ?? '—'}</td>
+                        <td className="px-6 py-4 text-sm text-foreground">{votesOf(q) ?? '—'}</td>
+                        <td className="px-6 py-4 text-muted-foreground text-sm whitespace-nowrap">{q.email ?? '—'}</td>
                         <td className="px-6 py-4 text-muted-foreground text-sm">{q.companyId ?? '—'}</td>
                         <td className="px-6 py-4 text-muted-foreground text-sm break-all">{q.projectSlug ?? '—'}</td>
                         <td className="px-6 py-4 text-muted-foreground text-sm break-all">{q.agentName ?? '—'}</td>
@@ -259,6 +288,7 @@ export default function Queries() {
               <div className="shrink-0 grid grid-cols-2 gap-x-4 gap-y-3 px-5 pb-4">
                 {([
                   ['Type', detail.type],
+                  ['Feature votes', votesOf(detail)],
                   ['From', detail.email],
                   ['Company', detail.companyId],
                   ['Project', detail.projectSlug],

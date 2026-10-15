@@ -222,7 +222,8 @@ Read it before adding or changing a public page.
 
 ## Docs writing
 
-Every page in `content/docs/` must follow [docs/WRITING.md](docs/WRITING.md):
+Every page of the agent guide (`app/lib/guide/content.js`, served at `/docs`)
+and in `content/docs/` must follow [docs/WRITING.md](docs/WRITING.md):
 answer first, question headings, numbered steps, one home per topic, and keep
 the limits and retry rules agents need. Read it before writing or editing a
 doc.

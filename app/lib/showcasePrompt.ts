@@ -6,8 +6,8 @@ import type { ShowcaseListing } from "./types";
    showcase capability's (which owns the fields, the flow and the approval
    rules), so nothing here can go stale in a chat history. */
 const SHOWCASE_STEPS = `If it isn't deployed to Embarko yet, deploy it first.
-Read ${SITE}/docs/agent-quickstart.md and follow it.
-Then list it: read https://ship.embarko.ai/capabilities/showcase
+Read ${SITE}/docs/quickstart.md and follow it.
+Then list it: read ${SITE}/docs/showcase.md
 Faster, if your tools let you install one: npx skills add embarko-ai/skill --skill embarko-deploy -g`;
 
 /**
@@ -81,7 +81,7 @@ It is listed there already, but without a screenshot it doesn't show on the page
 
 Use my deploy token — DEPLOY_TOKEN or ~/.embarko/credentials if either is set; if neither is, ask me for one from ${SITE}/app/tokens.
 
-Read ${SITE}/docs/api.md#showcase: listing the app again on page slug "${page.slug}" updates its existing listing. Send these details unchanged, plus a screenshot URL — a public image of the app's main screen. If you can't make one, ask me for it.
+Read ${SITE}/docs/showcase.md: listing the app again on page slug "${page.slug}" updates its existing listing. Send these details unchanged, plus a screenshot URL — a public image of the app's main screen. If you can't make one, ask me for it.
 ${details.join("\n")}
 
 When it's done, give me the link to its Showcase page.`;
@@ -104,5 +104,5 @@ export function buildSimilarPrompt(app: { name: string; appUrl: string; prd: str
 ${app.prd.trim()}
 --- end PRD ---
 
-When it's built, deploy it with Embarko: read ${SITE}/docs/agent-quickstart.md and follow it, then give me the live link.`;
+When it's built, deploy it with Embarko: read ${SITE}/docs/quickstart.md and follow it, then give me the live link.`;
 }

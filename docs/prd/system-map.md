@@ -208,17 +208,17 @@ Pricing, use cases, events, status, support and the legal pages.
 
 The instructions an AI agent reads before it deploys.
 
-- **How it works:** Markdown in content/docs/, served as pages and raw .md files, plus the deploy service's /capabilities contract (limits, supported stacks, what isn't supported).
+- **How it works:** The agent guide: one topic per page at /docs, built from app/lib/guide. A browser gets the page; an agent gets the same topic as Markdown or JSON, plus llms.txt, OpenAPI and the .well-known files. The deploy service's old /capabilities URLs redirect to it.
 - **Receives from:** Your AI agent (reads the rules)
 - **Stories:** [First Deploy](stories/first-deploy.md)
-- **Code files:** `@api/src/routes/publicDocs.routes.ts`, `@deploy/capabilities.js`, `app/content/docs/[file]/route.ts`, `app/docs/DocView.tsx`, `app/docs/[file]/route.ts`, `app/docs/agent-playbook/page.tsx`, `app/docs/agent-quickstart/page.tsx`, `app/docs/api/page.tsx`, `app/docs/capabilities/page.tsx`, `app/docs/connectors/page.tsx`, `app/docs/escalation/page.tsx`, `app/docs/limitations/page.tsx`, `app/docs/overview/page.tsx`, `app/docs/renderDoc.tsx`, `app/docs/troubleshoot/page.tsx`, `app/lib/docs.ts`
+- **Code files:** `@api/src/routes/publicDocs.routes.ts`, `app/agent.json/route.ts`, `app/docs/DocView.tsx`, `app/docs/[slug]/page.tsx`, `app/docs/renderDoc.tsx`, `app/guide-raw/[file]/route.ts`, `app/lib/docs.ts`, `app/lib/guide/content.js`, `app/lib/guide/discovery.js`, `app/lib/guide/markdown.js`, `app/lib/guide/respond.ts`, `app/lib/guide/site.ts`, `app/llms-full.txt/route.ts`, `app/llms.txt/route.ts`, `app/openapi.json/route.ts`
 
 ### Guides (`guides`)
 
 Step-by-step articles that bring people from search to their first deploy.
 
-- **How it works:** Markdown with frontmatter in content/guides/, served at /guides and /guides/<slug> with cover images from public/assets/guides/ (drawn by scripts/guide-covers.mjs). Only posts with status "published" are built.
-- **Code files:** `app/guides/BlogArticle.tsx`, `app/guides/BlogShare.tsx`, `app/guides/ContinueReading.tsx`, `app/guides/[slug]/llms.txt/route.ts`, `app/guides/[slug]/page.tsx`, `app/guides/llms.txt/route.ts`, `app/guides/page.tsx`, `app/guides/prose.tsx`, `app/lib/guides.ts`
+- **How it works:** Markdown with frontmatter in content/guides/, served at /guides and /guides/<slug> with cover images from public/assets/guides/ (drawn by scripts/guide-covers.mjs). Only posts with status "published" are built. Guides with their own interactive design (app/guides/_interactive/ registry) render it instead of the standard article.
+- **Code files:** `app/guides/BlogArticle.tsx`, `app/guides/BlogShare.tsx`, `app/guides/ContinueReading.tsx`, `app/guides/GuidesIndex.tsx`, `app/guides/[slug]/llms.txt/route.ts`, `app/guides/[slug]/page.tsx`, `app/guides/_interactive/InteractiveGuide.tsx`, `app/guides/_interactive/engines.ts`, `app/guides/_interactive/registry.ts`, `app/guides/llms.txt/route.ts`, `app/guides/page.tsx`, `app/guides/prose.tsx`, `app/lib/guides.ts`
 
 ### Sign-in (`sign-in`)
 

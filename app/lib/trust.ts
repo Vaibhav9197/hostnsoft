@@ -136,7 +136,7 @@ export const INFRA_TRUST = {
       /* Deliberately scoped to filesystem and storage isolation, which is real.
          It used to end "...and nothing else on the platform", which is a
          NETWORK isolation claim — and
-         content/docs/limitations-and-recommendations.md says in as many words
+         the old limitations doc said in as many words
          that container-to-container network isolation "has not been tested
          either way" and must not be relied on as a security boundary. Do not
          put that sentence back until the platform team has verified it. */

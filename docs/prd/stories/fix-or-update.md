@@ -103,10 +103,10 @@ flowchart TD
   - If the deploy service can't take it → the new version is removed and "Couldn't re-deploy that."
   - If one is already running → the other buttons wait.
 - **Parts:** Your apps panel (`console`), Deploy history (`deploy-history`), App runner (`runner`)
-- **Keeps:** `AuditLog`, `Deployment`, `Domain`, `Project`
+- **Keeps:** `AuditLog`, `Company`, `Deployment`, `Domain`, `Project`
 - **Looks up:** `EnvVar`
 - **Code:** `page:/app/projects/[projectId]/deployments` → `app/app/projects/[projectId]/deployments/page.tsx`, `api:@api/companies/:companyId/projects/:projectId/deployments/:deploymentId/rollback` → `@api/src/routes/deployments.routes.ts`, `lib:@api/src/services/redeploy` → `@api/src/services/redeploy.ts`, `api:@deploy/internal/apps/:appName/config` → `@deploy/server.js`
-- **Outside services:** Docker, Redis, Traefik
+- **Outside services:** Docker, Lago, Redis, Stripe, Traefik
 
 ### 4. Confirm it worked
 
@@ -150,6 +150,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 ## Tables
 
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
+- **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Keeps** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.

@@ -86,7 +86,7 @@ flowchart TD
   s5c3 --> s5f
   s5f1["If switching fails on the server<br/>→ it is ignored the choice is kept in this browser."]:::fail
   s5f -.->|no| s5f1
-  s5f2["If they are not a member<br/>→ Company not found 404."]:::fail
+  s5f2["If they are not a member<br/>→ Workspace not found 404."]:::fail
   s5f -.->|no| s5f2
   s5f3["If creating a workspace fails<br/>→ Couldn’t create the workspace."]:::fail
   s5f -.->|no| s5f3
@@ -158,7 +158,7 @@ flowchart TD
 - **Choices:** Keep the last one · Switch workspace · Create a workspace
 - **If it goes wrong:**
   - If switching fails on the server → it is ignored; the choice is kept in this browser.
-  - If they are not a member → "Company not found" (404).
+  - If they are not a member → "Workspace not found" (404).
   - If creating a workspace fails → "Couldn't create the workspace."
 - **Parts:** Your apps panel (`console`), Session (`session`), Account checks (`accounts`)
 - **Keeps:** `AuditLog`

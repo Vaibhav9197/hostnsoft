@@ -10,7 +10,7 @@ import {
 /* "Need more? You already have it." — the capability tiles, shared by the
    v1 landing scene and the v2 story's last scene. */
 
-/* Every line here is checked against content/docs/capabilities.md. "Not yet"
+/* Every line here is checked against the agent guide (app/lib/guide/content.js). "Not yet"
    marks what Embarko can't do today: don't promise it. */
 const NEEDS: { name: string; icon: LucideIcon; what: string; say?: string; notYet?: boolean }[] = [
   { name: 'Database', icon: Database, what: 'Your AI adds a database that lives with the app and keeps its data across updates.', say: 'Add a database to my app.' },

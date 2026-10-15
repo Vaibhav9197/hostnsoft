@@ -4,7 +4,16 @@
    (app/docs/DocView.tsx), so guides never depend on, or change, the docs. */
 
 import { useEffect, useState, type ReactNode } from "react";
-import { localizeDocHref, slugify, type TocEntry } from "../lib/docs";
+import { slugify, type TocEntry } from "../lib/docs";
+
+/* A link to a doc's source file (`capabilities.md#status`) goes to its page
+   instead. The docs moved to /docs/<topic>, and old doc names redirect there,
+   so the guides keep their own copy of this rather than reach into the docs. */
+function localizeDocHref(href: string | undefined): string | undefined {
+  if (!href) return href;
+  const m = /^(?:https?:\/\/[^/]+(?:\/[^/]*)*\/)?([a-z0-9-]+)\.md(#.*)?$/i.exec(href);
+  return m ? `/docs/${m[1]}${m[2] ?? ""}` : href;
+}
 
 function textOf(node: ReactNode): string {
   if (node == null || typeof node === "boolean") return "";

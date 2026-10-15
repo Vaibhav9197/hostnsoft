@@ -46,7 +46,7 @@ some other engines still read it, but do not expect it to move rankings.
 Do not spend time optimizing keyword lists; a short, honest list is enough.
 See existing pages (`app/pricing/page.tsx`, `app/security/page.tsx`, etc.)
 for the pattern. Docs pages get keywords from the `keywords` field in
-`app/lib/docs.ts`, not inline.
+`app/lib/guide/site.ts` (`KEYWORDS`), not inline.
 
 ## 3. Canonical URL is automatic — don't fight it
 
@@ -187,7 +187,7 @@ with `permanent: true` (308). Do not solve a moved-page problem with a
 client-side `router.push`, a meta-refresh, or a "click here" interstitial —
 none of those pass link equity to the new URL and all of them read as soft
 404s to crawlers. See the existing `/doc` → `/docs` and
-`/limitations-and-recommendations` → `/docs/limitations` entries for the
+`/limitations-and-recommendations` → `/docs/prerequisites` entries for the
 pattern, including the comments explaining *why* each one has to keep
 working (deploy tooling and old shared links reference the old path
 directly and can't be edited after the fact).

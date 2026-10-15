@@ -1,9 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MessageSquare, X } from "lucide-react";
+import { Check, ChevronRight, MessageSquare, Triangle, X } from "lucide-react";
 
 import { Button } from "../ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 import {
   Popover,
   PopoverClose,
@@ -14,6 +24,8 @@ import {
 } from "../ui/popover";
 import { DictationButton, DictationStatus, useDictation } from "../ui/dictation";
 import { HnsError } from "../../lib/client";
+import { FEATURES } from "../../lib/features";
+import { useFeatureBubble } from "../FeatureTiles";
 import { customerQueryApi } from "../../lib/hnsApi";
 import { useSession } from "../../lib/session";
 
@@ -33,14 +45,212 @@ const TYPES = [
 
 type QueryType = (typeof TYPES)[number]["value"];
 
+// Shipped features can't be voted for, so the list is only what's still
+// marked upcoming — the same list the landing pages promise nothing about.
+const UPCOMING = FEATURES.filter((f) => f.upcoming);
+
+// Votes live in their own table (feature_votes), not the customer-query
+// inbox: a message is something someone wrote, a vote is a tally. The server
+// keys them by the signed-in user, so each feature takes one vote per person.
+async function votesRequest(init?: RequestInit): Promise<string[]> {
+  const res = await fetch("/api/feature-votes", {
+    ...init,
+    headers: init?.body ? { "Content-Type": "application/json" } : undefined,
+  });
+  const data = (await res.json().catch(() => null)) as { voted?: string[]; error?: string } | null;
+  if (!res.ok) throw new Error(data?.error ?? "Couldn’t send your votes. Please try again.");
+  return Array.isArray(data?.voted) ? data.voted : [];
+}
+
+function UpcomingVotes({
+  companyId,
+  userId,
+  onVoted,
+}: {
+  companyId: string | null;
+  userId: string | null;
+  /** The features just cast, so the message sent next can carry them. */
+  onVoted: (ids: string[]) => void;
+}) {
+  // userId only re-reads the votes when the signed-in person changes.
+  const [open, setOpen] = useState(false);
+  const [voted, setVoted] = useState<string[]>([]);
+  const [picked, setPicked] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [justSent, setJustSent] = useState(0);
+  // Hovering a tile opens the same "what it does" bubble as the website's
+  // feature tiles; a click still only picks the tile.
+  const { hoverProps, bubble, close: closeBubble } = useFeatureBubble();
+
+  useEffect(() => {
+    if (!userId) return setVoted([]);
+    let live = true;
+    votesRequest()
+      .then((ids) => live && setVoted(ids))
+      .catch(() => {
+        // Unknown votes just leave every tile pickable; the server still
+        // ignores a repeat, so nothing is double-counted.
+      });
+    return () => {
+      live = false;
+    };
+  }, [userId]);
+
+  const left = UPCOMING.filter((f) => !voted.includes(f.id));
+
+  function handleOpenChange(next: boolean) {
+    if (next) {
+      setPicked([]);
+      setError(null);
+    } else {
+      closeBubble();
+    }
+    setOpen(next);
+  }
+
+  function toggle(id: string) {
+    setPicked((current) =>
+      current.includes(id) ? current.filter((x) => x !== id) : [...current, id],
+    );
+  }
+
+  async function send() {
+    if (!userId || picked.length === 0) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const ids = await votesRequest({
+        method: "POST",
+        body: JSON.stringify({ features: picked, companyId }),
+      });
+      setVoted(ids);
+      setJustSent(picked.length);
+      onVoted(picked);
+      closeBubble();
+      setOpen(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn’t send your votes. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const status =
+    justSent > 0
+      ? `Thanks — ${justSent} vote${justSent === 1 ? "" : "s"} sent`
+      : left.length === 0
+        ? "You’ve voted for all of them"
+        : null;
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger
+        render={
+          <button
+            type="button"
+            className="flex w-full items-center gap-3 border border-border px-3 py-2.5 text-left transition-colors hover:bg-accent"
+          />
+        }
+      >
+        <Triangle aria-hidden="true" fill="currentColor" className="size-3.5 shrink-0 text-success" />
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-medium text-foreground">Upvote upcoming features</span>
+          {status && <span className="block text-xs text-muted-foreground">{status}</span>}
+        </span>
+        <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+      </DialogTrigger>
+
+      <DialogContent className="max-w-[560px]">
+        <DialogHeader>
+          <DialogTitle className="text-xl">Upvote upcoming features</DialogTitle>
+          <DialogDescription>Pick what you want next. You can choose more than one.</DialogDescription>
+        </DialogHeader>
+
+        {error && <div className="text-sm font-medium text-destructive">{error}</div>}
+
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {UPCOMING.map(({ id, label, Icon }) => {
+            const done = voted.includes(id);
+            const on = picked.includes(id);
+            return (
+              <li key={id} className="min-w-0" {...hoverProps(id)}>
+                <button
+                  type="button"
+                  data-feature
+                  aria-pressed={done || on}
+                  disabled={done || busy}
+                  onClick={() => toggle(id)}
+                  className={`flex h-24 w-full flex-col justify-between rounded-xl border p-3.5 text-left transition-colors disabled:cursor-default ${
+                    on
+                      ? "border-foreground bg-card"
+                      : done
+                        ? "border-border bg-accent"
+                        : "border-border bg-card hover:border-[color:color-mix(in_srgb,var(--ink)_45%,transparent)]"
+                  }`}
+                >
+                  <span className="flex items-start justify-between gap-2">
+                    <Icon
+                      aria-hidden="true"
+                      strokeWidth={1.75}
+                      className={`size-5 ${done ? "text-muted-foreground" : "text-foreground"}`}
+                    />
+                    {done ? (
+                      <span className="rounded-full bg-card px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                        Voted
+                      </span>
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className={`flex size-5 items-center justify-center rounded-full border ${
+                          on ? "border-foreground bg-foreground text-card" : "border-control"
+                        }`}
+                      >
+                        {on && <Check className="size-3" strokeWidth={3} />}
+                      </span>
+                    )}
+                  </span>
+                  <span
+                    className={`text-[15px] font-semibold leading-tight ${done ? "text-muted-foreground" : "text-foreground"}`}
+                  >
+                    {label}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+
+        <DialogFooter>
+          <DialogClose render={<Button type="button" variant="outline" disabled={busy} />}>
+            Cancel
+          </DialogClose>
+          <Button type="button" onClick={send} disabled={busy || picked.length === 0}>
+            {busy
+              ? "Sending…"
+              : picked.length > 0
+                ? `Upvote ${picked.length}`
+                : "Upvote"}
+          </Button>
+        </DialogFooter>
+        {bubble}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function FeedbackWidget() {
-  const { activeCompanyId } = useSession();
+  const { activeCompanyId, user } = useSession();
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<QueryType>("feature");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Votes cast since the last message. Sending a message ties them to it, so
+  // the admin sees them on that message rather than on every one this person
+  // ever sent.
+  const [unsentVotes, setUnsentVotes] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const doneRef = useRef<HTMLButtonElement>(null);
 
@@ -87,8 +297,19 @@ export function FeedbackWidget() {
     setBusy(true);
     setError(null);
     try {
-      await customerQueryApi.create(activeCompanyId, type, message.trim());
+      const { id } = await customerQueryApi.create(activeCompanyId, type, message.trim());
       setSent(true);
+      if (id && unsentVotes.length > 0) {
+        const features = unsentVotes;
+        setUnsentVotes([]);
+        // Best effort: the message is in either way, and the votes still
+        // count on the Feature Votes page if the link doesn't land.
+        fetch("/api/feature-votes", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ queryId: String(id), features }),
+        }).catch(() => {});
+      }
     } catch (err) {
       setError(err instanceof HnsError ? err.message : "Couldn’t send that. Please try again.");
       setBusy(false);
@@ -179,6 +400,12 @@ export function FeedbackWidget() {
                 </button>
               ))}
             </div>
+
+            <UpcomingVotes
+              companyId={activeCompanyId}
+              userId={user?.id ?? null}
+              onVoted={(ids) => setUnsentVotes((current) => [...new Set([...current, ...ids])])}
+            />
 
             <label htmlFor="contact-message" className="sr-only">
               Message

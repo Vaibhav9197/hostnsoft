@@ -160,10 +160,10 @@ flowchart TD
   - If the router can't be updated → the domain goes back to waiting for DNS (502).
   - If the app was never deployed → the domain is marked active and used on the first deploy.
 - **Parts:** Settings and domains (`app-config`), App runner (`runner`), Traffic router (`router`)
-- **Keeps:** `AuditLog`, `Domain`
+- **Keeps:** `AuditLog`, `Company`, `Domain`
 - **Looks up:** `Deployment`, `EnvVar`, `Project`
 - **Code:** `api:@api/companies/:companyId/projects/:projectId/domains/:domain/verify` → `@api/src/routes/domains.routes.ts`, `lib:@api/src/lib/dnsVerify` → `@api/src/lib/dnsVerify.ts`, `lib:@api/src/services/customDomainActivation` → `@api/src/services/customDomainActivation.ts`, `api:@deploy/internal/apps/:appName/config` → `@deploy/server.js`
-- **Outside services:** Docker, Redis, Traefik
+- **Outside services:** Docker, Lago, Redis, Stripe, Traefik
 
 ### 3. Re-check every day
 
@@ -218,10 +218,10 @@ flowchart TD
   - If the address was changed in the last 7 days → refused (slug_change_cooldown) with when to retry.
   - If A deploy is running → refused (deploy_in_progress).
 - **Parts:** Your apps panel (`console`), App records (`app-records`)
-- **Keeps:** `AppDetails`, `AuditLog`, `Deployment`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`
+- **Keeps:** `AppDetails`, `AuditLog`, `Company`, `Deployment`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`
 - **Looks up:** `Domain`, `EnvVar`
 - **Code:** `page:/app/projects/[projectId]/settings` → `app/app/projects/[projectId]/settings/page.tsx`, `api:@api/companies/:companyId/projects/:projectId/slug` → `@api/src/routes/projects.routes.ts`, `lib:@api/src/services/slugChangeFlow` → `@api/src/services/slugChangeFlow.ts`
-- **Outside services:** Redis, viaSocket webhook
+- **Outside services:** Lago, Redis, Stripe, viaSocket webhook
 
 ### 7. Move the app
 
@@ -259,6 +259,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 
 - **Keeps** `AppDetails` — Public-facing details of a deployed app.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
+- **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Keeps** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
 - **Keeps** `EnvVar`

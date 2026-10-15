@@ -6,6 +6,8 @@ import { SITE } from "./lib/site";
  *
  * Everything public is crawlable; the disallow list is the signed-in console,
  * the admin tools, and the API — pages with nothing to offer a search result.
+ * /guide-raw/ is where middleware sends /docs/*.md: crawlers should only ever
+ * see it under its /docs address.
  *
  * The /v1../v4 landing variants are deliberately NOT listed. They are the same
  * page as `/` behind middleware and must stay out of the index, but middleware
@@ -19,7 +21,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/app/", "/admin/", "/api/", "/connector/"],
+      disallow: ["/app/", "/admin/", "/api/", "/connector/", "/guide-raw/"],
     },
     sitemap: `${SITE}/sitemap.xml`,
     host: SITE,

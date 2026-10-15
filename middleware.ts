@@ -16,8 +16,55 @@ import { VARIANTS, VARIANT_NAMES, isVariant } from "@/app/lib/variants";
 const COOKIE = "lp_variant";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 90; // 90 days
 
+/* The agent guide answers in three formats at one address. A browser gets the
+   HTML page; an agent gets Markdown or JSON, the same content without the
+   site around it. An explicit .md / .json always wins over the Accept header,
+   so a pasted URL gives the same answer to everyone.
+
+   Agent fetch tools ask for Markdown first ("text/markdown, text/html, *\/*"),
+   so Markdown is checked before HTML; only a client that asks for HTML and
+   not Markdown — a browser — gets the page. */
+function guideFormat(request: NextRequest): "md" | "json" | null {
+  const format = request.nextUrl.searchParams.get("format");
+  if (format === "md" || format === "markdown") return "md";
+  if (format === "json") return "json";
+  /* Next's own page fetches (client navigation, prefetch) are not agents. */
+  if (request.headers.has("rsc") || request.headers.has("next-router-prefetch")) return null;
+  const accept = request.headers.get("accept") ?? "";
+  if (accept.includes("text/x-component")) return null;
+  if (accept.includes("application/json")) return "json";
+  if (accept.includes("text/markdown")) return "md";
+  if (accept.includes("text/html")) return null;
+  return "md";
+}
+
+function guide(request: NextRequest): NextResponse {
+  const { pathname } = request.nextUrl;
+  const rest = pathname.replace(/^\/docs/, "").replace(/^\/+|\/+$/g, "");
+
+  /* "/docs.md" leaves ".md", which is the contents page like "/docs/index.md". */
+  const explicit = /^([a-z0-9-]*)\.(md|json)$/i.exec(rest);
+  let file: string | null = null;
+  if (explicit) file = `${explicit[1] || "index"}.${explicit[2].toLowerCase()}`;
+  else if (/^[a-z0-9-]*$/i.test(rest)) {
+    const fmt = guideFormat(request);
+    if (fmt) file = `${rest || "index"}.${fmt}`;
+  }
+
+  /* Vary on every answer, the HTML page included: one address, two bodies. */
+  const response = file
+    ? NextResponse.rewrite(new URL(`/guide-raw/${file}`, request.url))
+    : NextResponse.next();
+  response.headers.set("Vary", "Accept");
+  return response;
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (pathname === "/docs" || pathname.startsWith("/docs/") || pathname === "/docs.md" || pathname === "/docs.json") {
+    return guide(request);
+  }
 
   /* Direct hits on /v1../v4 stay reachable for QA and for sharing a
      specific version, but must not be indexed — otherwise they compete with
@@ -59,5 +106,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/v1", "/v2", "/v3", "/v4"],
+  matcher: ["/", "/v1", "/v2", "/v3", "/v4", "/docs", "/docs/:path*", "/docs.md", "/docs.json"],
 };
