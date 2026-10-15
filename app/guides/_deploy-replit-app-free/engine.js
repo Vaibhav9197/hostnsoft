@@ -1234,7 +1234,7 @@ export function initDeployGuide(host) {
     }, .6);
   }
 
-  /* 04 · Step 3. The extra line types itself; the agent asks how to sign in.
+  /* 04 · Step 3. The extra line types itself; the agent deploys first, then offers to keep the app.
      The reader's answer carries over to step 5. */
   let claimMode = () => {};
   const chat = $('[data-rp-chat]');
@@ -1244,17 +1244,17 @@ export function initDeployGuide(host) {
     const opts = $$('[data-rp-auth]', chat);
     const reply = $('[data-rp-reply]', chat);
     const REPLIES = {
-      email: ['Give your email, then paste the token from your inbox. With a token the app goes into your account from the start.', false],
-      paste: ['Create a token at embarko.ai/app/tokens and paste it here. With a token the app goes into your account from the start.', false],
-      connector: ['Skip the connector, even in Claude: it deploys from a public link, not from a folder on your computer.', true],
-      skip: ['The app still works for 24 hours. Press Keep in step 5 so it stays.', true],
+      email: ['Tell me your email. Embarko mails you a token, you paste it here, and the app becomes permanent at the same address.', false],
+      paste: ['Paste it here. I redeploy the same name with it, and the app becomes permanent at the same address.', false],
+      connector: ['Apps the connector deploys go straight into your account, so there is nothing to keep.', false],
+      skip: ['No problem. The app stays live for 24 hours, then it is deleted unless you keep it in step 5.', true],
     };
     const answer = (k, byReader) => {
       opts.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.rpAuth === k)));
       reply.textContent = REPLIES[k][0];
       reply.classList.toggle('is-warn', REPLIES[k][1]);
       chat.classList.add('is-answered');
-      if (byReader && k !== 'connector') claimMode(k === 'skip' ? 'skip' : 'token');
+      if (byReader) claimMode(k === 'skip' ? 'skip' : 'token');
     };
     const finish = () => { typed.textContent = full; chat.classList.add('is-typed', 'is-asked'); };
     opts.forEach(b => b.addEventListener('click', () => { finish(); answer(b.dataset.rpAuth, true); }));

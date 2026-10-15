@@ -64,7 +64,7 @@ Building the app with AI took an afternoon. Putting it online is a different kin
 - **Pick a hosting service and sign up.** Vercel, Netlify, DigitalOcean and others all work differently, and each has its own dashboard and vocabulary.
 - **Tell it how to build and start your app.** That means build commands, start commands, a framework preset, and sometimes a Dockerfile you didn't ask for.
 - **Get the port and the address right.** An app that listens on `localhost:3000` builds fine and then shows nothing online, and the error doesn't tell you why.
-- **Handle secret keys.** Your ChatGPT, Gemini or Claude key must live in "[environment variables](/docs/capabilities#secrets)" on the host, never in the code, or it can leak.
+- **Handle secret keys.** Your ChatGPT, Gemini or Claude key must live in "[environment variables](/docs/env-vars)" on the host, never in the code, or it can leak.
 - **Read the build logs when it fails.** They're written for developers, and one small error can stop the whole deploy.
 
 None of this is hard for a developer. For everyone else, it can be a lot to take in, and the thing you built stays on your laptop until it's done.
@@ -90,8 +90,8 @@ Embarko is hosting that your AI tool runs for you. The tool that built your app 
 | The usual route | With Embarko |
 | --- | --- |
 | Create a GitHub account and push a repository | No repository. Your tool [uploads the project folder directly](/guides/deploy-app-without-github). |
-| Sign up and learn a hosting dashboard | Your [first link](/docs/capabilities#anonymous) doesn't need an account. |
-| Set build commands and write a Dockerfile | No Dockerfile. [Embarko builds the app itself](/docs/limitations#build-runtime-customization). |
+| Sign up and learn a hosting dashboard | Your [first link](/docs/claim) doesn't need an account. |
+| Set build commands and write a Dockerfile | No Dockerfile. [Embarko builds the app itself](/docs/deploy). |
 | Watch the build and decode the logs | Your tool checks that it's live and sends you the link. |
 | Learn the hosting terms first | Paste one prompt, then approve and keep. |
 
@@ -107,7 +107,7 @@ Embarko suits small web apps. Here's how common AI-built apps line up, and what 
 | A Node.js app | Yes | `package.json` at the top. Read the port from `PORT` and listen on `0.0.0.0`. |
 | A Python app | Yes | `requirements.txt` or `pyproject.toml` at the top. |
 | A React or Vite app | Yes | Built first, then run as a server app. |
-| A small database | Yes, SQLite | Save the SQLite file under `DATA_DIR`, the folder that [survives redeploys](/docs/capabilities#file-storage). Keep your own copy of important data. |
+| A small database | Yes, SQLite | Save the SQLite file under `DATA_DIR`, the folder that [survives redeploys](/docs/data). Keep your own copy of important data. |
 | A frontend and a backend in one project | Two apps | Deploy each folder as its own app. If you see `422 app_nested_in_subdirectory`, deploy the folder it names. |
 | A Claude artifact that uses `window.storage` | Swap it | Replace `window.storage` with SQLite under `DATA_DIR`. |
 | Postgres or MySQL | Another route | Use SQLite for small data, or host that app where its database lives. |
@@ -197,7 +197,7 @@ No problem. Chat code just needs a home on your computer first.
 
 **5. Confirm it worked.** Your tool reports that the app is live and gives you a link ending in `.embarko.app`. Open it, click the main pages, and try any form or button that talks to a server. A first reply of "202 Accepted" only means the build has started.
 
-**6. Keep it.** A link made without signing in lasts 24 hours, with no reminder email, so press **Keep** on the "[keep this app](/docs/agent-playbook#claim)" link your tool shares (or tell it "Make my Embarko app permanent") and it stays at the same address. After you press Keep, Embarko gives you a prompt that carries your token. Paste it into your tool once, and "Update my Embarko app." works from then on.
+**6. Keep it.** A link made without signing in lasts 24 hours, with no reminder email, so press **Keep** on the "[keep this app](/docs/claim)" link your tool shares (or tell it "Make my Embarko app permanent") and it stays at the same address. After you press Keep, Embarko gives you a prompt that carries your token. Paste it into your tool once, and "Update my Embarko app." works from then on.
 
 ## [If something goes wrong](#fix)
 
@@ -220,7 +220,7 @@ Most failed deploys come from three things:
 
 > Make my app read its port from the PORT environment variable and listen on 0.0.0.0, then redeploy.
 
-Every code is explained in the [troubleshooting reference](/docs/troubleshoot).
+Every code is explained in the [troubleshooting reference](/docs/errors).
 
 ## [After it's live](#after)
 
@@ -258,7 +258,7 @@ There is a Free plan: $0 a month for unlimited simple websites and 1 app that ru
 
 ### [Where do I put my AI key?](#faq-api-key)
 
-Not in your project files. Once you've pressed Keep, ask your AI tool to add the key to your Embarko app as a [secret](/docs/capabilities#secrets) and apply it. Embarko keeps it encrypted and nobody can read it back, so keep your own copy of the key. Plain websites can't use secrets, so keep their settings in the site's files.
+Not in your project files. Once you've pressed Keep, ask your AI tool to add the key to your Embarko app as a [secret](/docs/env-vars) and apply it. Embarko keeps it encrypted and nobody can read it back, so keep your own copy of the key. Plain websites can't use secrets, so keep their settings in the site's files.
 
 ### [What kinds of apps can I deploy to Embarko?](#faq-kinds)
 
@@ -278,10 +278,10 @@ Keep secret keys, such as a ChatGPT, Gemini or Claude key, out of your project f
 
 ### [How do I update my app later?](#faq-update)
 
-Ask your AI tool: "Update my Embarko app." It [uploads the new version](/docs/capabilities#redeploy) to the same link. After you press Keep, Embarko gives you a prompt that carries your token. Paste it into your tool once, and updates work from then on.
+Ask your AI tool: "Update my Embarko app." It [uploads the new version](/docs/deploy) to the same link. After you press Keep, Embarko gives you a prompt that carries your token. Paste it into your tool once, and updates work from then on.
 
 ## [Ready to get your app a link?](#next)
 
 Copy the prompt, paste it into your AI tool and share what you built.
 
-**Keep reading:** [Agent quickstart](/docs/agent-quickstart): the steps your AI tool follows to deploy. · [Troubleshooting reference](/docs/troubleshoot): every error code, explained. · [Pricing](/pricing): what each plan includes.
+**Keep reading:** [Agent quickstart](/docs/quickstart): the steps your AI tool follows to deploy. · [Troubleshooting reference](/docs/errors): every error code, explained. · [Pricing](/pricing): what each plan includes.
