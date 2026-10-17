@@ -522,10 +522,12 @@ function topics(base) {
         any: [
           'Write anything that must last under DATA_DIR, creating folders on startup. Node: path.join(process.env.DATA_DIR, "app.db"). Python: os.path.join(os.environ["DATA_DIR"], "app.db").',
           'For a database use SQLite with its file under DATA_DIR (including the -wal and -shm files).',
+          'Leave Embarko\'s two bookkeeping tables, _litestream_seq and _litestream_lock, alone. Every SQLite file under DATA_DIR has them.',
         ],
       },
       limits: [
         'Data is not backed up. Tell the person.',
+        'A startup step that diffs the live database against the app\'s schema and changes it to match (any ORM or migration tool can do this) will refuse to start or try to drop those two tables. Apply committed migration files instead, or declare the two tables in the schema. Never force past it.',
         'No managed database. window.storage (Claude Artifacts) is rejected at deploy time: use SQLite.',
         'Static sites have no DATA_DIR. PORT, APP_NAME, APP_VERSION and DATA_DIR are set by Embarko and cannot be overridden.',
       ],
@@ -705,7 +707,7 @@ function topics(base) {
         http_api: ['GET https://ship.embarko.ai/apps/{app-name}/logs?stream=stderr, with the token once the app is claimed.'],
       },
       examples: [{ title: 'Runtime logs', command: "curl -sS 'https://ship.embarko.ai/apps/my-app/logs?stream=stderr'", response_status: 200, response: { available: true, stream: 'stderr', logs: '...tail of recent output...' } }],
-      limits: ['About the last 8KB; a snapshot, not a stream.', 'After a failed build the reply has source "build" and the build output.', 'Static sites have no logs (available: false).'],
+      limits: ['About the last 8KB; a snapshot, not a stream.', 'After a failed build the reply has source "build" and the build output.', 'Static sites have no logs (available: false).', 'If the log names _litestream_seq or _litestream_lock as unknown or about to be dropped, the start command runs a schema sync against a database Embarko keeps those tables in: see the data topic. Do not add a force flag.'],
       say_to_user: { failed: EXAMPLES.failed },
       prerequisites: prerequisites(base, [r('status', 'Logs explain a failed or crashed status')]),
       next: 'Fix what the log names and redeploy. Do not paste the log to the person unless they ask.',
