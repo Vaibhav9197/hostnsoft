@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowRight, Check, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowRight, Check, Pencil, Plus } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { CompanyDialog, type CompanyDialogMode } from "../../components/console/CompanyDialog";
 import { EmptyState, PageHeader } from "../../components/console/kit";
@@ -93,8 +93,8 @@ export default function SwitchCompanyPage() {
                     {isActive ? "Back to your apps" : "Switch"}
                     <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                   </span>
-                  {/* Rename and delete are parked for now — the dialog and its
-                      handlers stay wired up, only the entry points are hidden.
+                  {/* Rename is parked for now — the dialog and its handler stay
+                      wired up, only the entry point is hidden.
                   <div className="flex items-center gap-0.5 opacity-60 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
                     <Button
                       variant="ghost"
@@ -104,15 +104,6 @@ export default function SwitchCompanyPage() {
                       onClick={() => open("rename", c)}
                     >
                       <Pencil />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-9 hover:bg-destructive/12 hover:text-destructive"
-                      aria-label={`Delete ${c.companyName}`}
-                      onClick={() => open("delete", c)}
-                    >
-                      <Trash2 />
                     </Button>
                   </div>
                   */}

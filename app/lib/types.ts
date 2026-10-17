@@ -58,7 +58,6 @@ export interface CompanyWithMembership extends Company {
 
 // GET /companies/:id — detail with counts.
 export interface CompanyDetail extends Company {
-  memberCount: number;
   projectCount: number;
 }
 

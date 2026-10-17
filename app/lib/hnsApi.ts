@@ -58,10 +58,6 @@ export const companiesApi = {
   // PATCH /companies/:companyId — rename.
   rename: (companyId: string, name: string) =>
     hns<Company>(`/companies/${companyId}`, { method: "PATCH", body: { name } }),
-
-  // DELETE /companies/:companyId — delete (409 if projects exist).
-  remove: (companyId: string) =>
-    hns<null>(`/companies/${companyId}`, { method: "DELETE" }),
 };
 
 // ------------------------------------------------------------------ Members
