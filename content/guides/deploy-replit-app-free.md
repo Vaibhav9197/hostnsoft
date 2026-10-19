@@ -9,15 +9,15 @@ cover: "/assets/guides/deploy-replit-app-free.png"
 cover_alt: "A Replit project is downloaded as a zip, unzipped into my-app, and deployed by an AI agent to a live link at your-app-name.embarko.app."
 read_minutes: 12
 datePublished: "2026-10-12"
-dateModified: "2026-10-14"
-last_verified: "2026-10-14"
+dateModified: "2026-10-19"
+last_verified: "2026-10-19"
 author: "The Embarko team"
 status: "published"
 ---
 
 # How to deploy a Replit app for free
 
-**To deploy a Replit app for free, download it from Replit as a zip, open the folder in an AI agent that can run commands, and paste Embarko's deployment prompt.** The agent uploads the project and hands you a live HTTPS link at `your-app-name.embarko.app`. Embarko's Free plan lists [unlimited static websites and 1 dynamic app](/pricing), and you press **Keep** within 24 hours so the link stays. [Check that your app fits](#fit) first.
+**To deploy a Replit app for free, download it from Replit as a zip, open the folder in an AI agent that can run commands, and paste Embarko's deployment prompt.** The agent uploads the project and hands you a live HTTPS link at `your-app-name.embarko.app`. Embarko's Free plan lists [unlimited static websites and 1 dynamic app](/pricing). To keep the link past 24 hours, say yes when the agent offers to keep the app. [Check that your app fits](#fit) first.
 
 ## [Key takeaways](#takeaways)
 
@@ -65,14 +65,15 @@ Embarko hosts small request-and-response apps: one process, [256MB of memory](/d
 | Static site (HTML, CSS, JavaScript) | Yes | Published as files, usually live in the first reply. No logs and no [environment variables](/docs/static-sites). |
 | Small Node.js app, such as Express | Yes | `package.json` at the top of the folder. Read the port from `PORT` and listen on `0.0.0.0`. |
 | Small Python app, such as Flask or FastAPI | Yes | `requirements.txt` or `pyproject.toml` at the top of the folder. |
-| React or Vite app with a build step | Yes, as a server app | Built first, then run as a [server app](/docs/static-sites). On the Free plan, this is your one dynamic app. |
+| React or Vite app with a build step | Yes | Send the project with its `package.json`, not a built `dist` folder. Embarko [builds it and serves it as a website](/docs/deploy), and inner pages load. Values the build reads (`VITE_...`) can't come from Replit Secrets or `.env`: put public ones in a committed config file. |
 | App that stores data in a database set up inside Replit | Another route | Embarko has [no managed database](/docs/data). A SQLite file under `DATA_DIR` is the built-in option. [Export the data](#data) before you download the zip, then delete the dump from the project. |
 | Uses Replit Auth or App Storage | Swap them | App Storage buckets don't move with a project, and Replit Auth is Replit's own sign-in. Embarko has no built-in login or object store, so ask your agent to build the app's own sign-in and to keep uploaded files under `DATA_DIR` (download them from App Storage first). |
 | Live updates ([WebSockets](/docs/prerequisites)) | Another route | Use regular HTTP polling instead. |
-| [Scheduled jobs](/docs/prerequisites) or [background workers](/docs/prerequisites) | Another route | Run them elsewhere and have them call your app. |
-| Heavy processing or more than 256MB | Another route | Run that part elsewhere. Going over 256MB is an [out-of-memory kill](/docs/deploy), and the limit [can't be raised](/docs/deploy). |
+| [Scheduled jobs](/docs/schedules) (such as `node-cron` or APScheduler) | Yes, as a schedule | Move the job into a route of the app and list it under `schedules` in `embarko.json`. Embarko calls that route on time. Schedules start once the app is kept. |
+| [Background workers](/docs/prerequisites) | Another route | Run the work inside the main app, for example right after the request that needs it. |
+| Heavy processing or more than 256MB | Another route | Run that part elsewhere. Each app gets [256MB of memory](/docs/deploy), and that limit can't be raised. |
 
-**Delete any Dockerfile** in the export. Embarko builds the app itself and [rejects an upload that includes one](/docs/deploy).
+**Delete any Dockerfile** in the export. Embarko [builds the app itself](/docs/deploy) and doesn't use one.
 
 ## [How to deploy a Replit app to Embarko, step by step](#steps)
 
@@ -88,21 +89,21 @@ In your Replit project, select the three-dot menu at the top of the file tree an
 
 ### [2. Open the folder in an AI agent](#step-2)
 
-Use any agent that can run terminal commands in your project folder. Embarko's pages name Claude Code and Cursor, and say that if an AI tool built your app, Embarko can host it. Only Claude has an [Embarko connector](/docs/connectors), and the connector deploys from a public `.tar.gz` link, so it can't upload a folder from your laptop. For a Replit export, use the deployment prompt.
+Use any agent that can run terminal commands in your project folder. Embarko's pages name Claude Code and Cursor, and say that if an AI tool built your app, Embarko can host it. Only Claude has an [Embarko connector](/docs/connectors). It sends the files directly and the app goes straight into your account. A very large export may not fit in one tool call; then use Claude Code or Cursor with the deployment prompt.
 
 ### [3. Paste the deployment prompt](#step-3)
 
-Open [embarko.ai](/) and click **Host your app**. It copies the deployment prompt. Paste it into the agent, then add one line:
+Open [embarko.ai](/) and click **Copy deployment prompt**. Paste it into the agent, then add one line:
 
 ```text
 I exported this from Replit, help me get it live on Embarko
 ```
 
-The agent may ask how you want to sign in. Pick **token by email** (give your email, then paste the token from your inbox) or create a token at [embarko.ai/app/tokens](/app/tokens) and paste it. Skip the connector option, even in Claude, because it deploys from a public link, not from a folder on your computer. With a token the app goes into your account from the start. If you skip, the app still works for 24 hours. [Authentication: three ways in](/docs/claim) explains each option.
+The agent deploys first and asks later. Once the app is live, it gives you the link and offers to keep it. Say yes and give your email: Embarko mails you a token, you paste it back, and the app becomes permanent at the same address. Prefer a token? Create one under **Deploy tokens** at [embarko.ai/app/tokens](/app/tokens) and paste it instead. Using the Claude connector? Apps it deploys go straight into your account, so there is nothing to keep. If you say not now, the app still works for 24 hours. [Keep a temporary app](/docs/claim) explains the steps.
 
 ### [4. Let the agent upload it](#step-4)
 
-The agent packs the folder as a `.tar.gz`, leaving out `node_modules`, `.git` and `.env` files. It then uploads the archive and checks the status about every 10 seconds until it reads `live`. A static site is usually live in the first reply, and a server app builds first.
+The agent packs the folder as a `.tar.gz`, leaving out `node_modules`, `.git` and `.env` files. It then uploads the archive and checks the status about every 10 seconds until it reads `live`. With the Claude connector, it sends the files instead of an archive. A static site is usually live in the first reply, and a server app builds first.
 
 The app name becomes your address: lowercase letters, numbers and dashes, 3 to 63 characters, unique across all of Embarko. If it's taken, the agent picks another.
 
@@ -111,7 +112,7 @@ The app name becomes your address: lowercase letters, numbers and dashes, 3 to 6
 
 ### [5. Open your link and keep it](#step-5)
 
-When the status is `live`, the agent gives you `your-app-name.embarko.app`. Open it and click around. If you used a token in step 3, the app is already in your account. Otherwise a link made without a token lasts 24 hours, so open the claim link your agent gave you and press **Keep**, or ask the agent to [make it permanent with a token](/docs/claim). The address doesn't change. From then on your agent needs your deploy token to redeploy, and the page you land on after pressing **Keep** gives you a prompt that carries it. Paste that into your agent once.
+When the status is `live`, the agent gives you `your-app-name.embarko.app`. Open it and click around. If you kept the app in step 3, or used a token or the Claude connector, it's already in your account. Otherwise it's deleted 24 hours after its first deploy, with no reminder email. When the agent offers to [keep it](/docs/claim), give your email, paste the token Embarko mails you, and the agent redeploys the same name. The address doesn't change. Keep the token: your agent needs it for every later update.
 
 ## [Move your data and secrets by hand](#data)
 
@@ -124,11 +125,11 @@ If your Replit app kept data in Replit's database, that data isn't in the zip. E
 
 Also move these by hand:
 
-- **Load the data.** Ask your agent how to load the exported rows into a SQLite file under `DATA_DIR`. That folder exists only on the running app, so the agent needs a one-time import that runs inside the app, and any data file it ships in the upload holds real user data too. `DATA_DIR` survives redeploys, so keep your own copy of important data. Large or busy databases are a sign the app should stay where its database lives.
-- **Secrets.** Once you've pressed **Keep**, add each API key as an [environment variable](/docs/env-vars): write the value, then apply it. A write alone [doesn't reach the running app](/docs/env-vars). Static sites can't have environment variables.
+- **Load the data.** Ask your agent how to load the exported rows into a SQLite file under `DATA_DIR`. That folder exists only on the running app, so the agent needs a one-time import that runs inside the app, and any data file it ships in the upload holds real user data too. `DATA_DIR` survives redeploys; keep your own copy of important data too. Large or busy databases are a sign the app should stay where its database lives.
+- **Secrets.** Once the app is kept (connector apps already are), add each API key as an [environment variable](/docs/env-vars): write the value, then apply it. A write alone [doesn't reach the running app](/docs/env-vars). Static sites can't have environment variables. Values a frontend build reads (`VITE_...`) can't come from Replit Secrets or `.env`: put public ones, such as an API address, in a [committed config file](/docs/deploy), and never put a secret key in frontend code.
 - **Logins and uploaded files.** Replit's docs say App Storage buckets don't move with a project, and Replit Auth is Replit's own sign-in. If your app uses either, ask your agent to build the app's own sign-in and to store uploads under `DATA_DIR`.
 
-Since Embarko isn't where your code lives, [keep your own copy](/docs/rollback) too. Keep the zip, or put the folder in a local Git repository.
+Since Embarko isn't where your code lives, keep your own copy too. Keep the zip, or put the folder in a local Git repository.
 
 ## [If something goes wrong](#errors)
 
@@ -138,10 +139,10 @@ Failed deploys often come down to a blocked upload, a missing key or setting, or
 |---|---|---|
 | A network error, or [`403 host_not_allowed`](/docs/connectors) | The agent's sandbox blocks Embarko. Nothing was deployed. | Allow `embarko.ai`, `ship.embarko.ai` and `*.embarko.app` in the agent's network settings, or ask for the commands and run them in your own terminal. On Windows, ask for PowerShell versions that call `curl.exe` and `tar.exe`. |
 | [`422 no_manifest_at_root`](/docs/errors) | The manifest is in a subfolder of the zip | Repackage so `package.json` or `requirements.txt` is at the top of the archive. |
-| [Exit code 137](/docs/deploy) | The app went over 256MB, often because it runs a dev server | Use the production start command, not `vite dev`. |
+| The status says [crashed](/docs/status) | The app built but stopped running, for example because it went over 256MB of memory (a limit that can't be raised) or listens on the wrong port | Ask your agent to read the [logs](/docs/logs), fix what they name and redeploy. |
 | [`409 app_name_taken`](/docs/errors) | Someone else already uses that name | Pick a different name. Don't retry it. |
 | The app loads but its data is empty | Replit data didn't come with the zip | Export it from Replit (see [move your data](#data)) and load it into SQLite under `DATA_DIR`. |
-| [App gone after a day](/docs/claim) | It was never kept | Deploy it again with a token, or press **Keep** this time. |
+| [App gone after a day](/docs/claim) | It was never kept | Deploy it again, and say yes when the agent offers to keep it. |
 | The link doesn't open, or the status says failed or crashed | The app is listening on the wrong port or only on localhost | Ask your agent: "Make my app read its port from the PORT environment variable and listen on 0.0.0.0, then redeploy." |
 
 Other codes are in the [troubleshooting reference](/docs/errors).
@@ -158,19 +159,19 @@ Yes, if it fits. Download the project as a zip from Replit, open the folder in a
 
 ### [Do I need GitHub to move a Replit app?](#faq-github)
 
-No. Embarko takes the project folder directly: your agent packs it and uploads it, so there's no repo to create or connect and no Dockerfile to write. Embarko isn't where your code lives, so [keep your own copy](/docs/rollback), such as the zip or a local Git repository, so you can redeploy an older version later.
+No. Embarko takes the project folder directly: your agent packs it and uploads it, so there's no repo to create or connect and no Dockerfile to write. Embarko isn't where your code lives, so keep your own copy, such as the zip or a local Git repository, so you can redeploy an older version later.
 
 ### [Will my Replit database and secrets move over?](#faq-data)
 
-Not by themselves. A zip holds your files. Export a Replit database with `pg_dump` and load it into SQLite under `DATA_DIR`, and re-enter the values from Replit's Secrets tool as [environment variables](/docs/env-vars) once you've pressed **Keep**. Embarko has [no managed database](/docs/data), so an app that needs Postgres or MySQL stays where its database lives.
+Not by themselves. A zip holds your files. Export a Replit database with `pg_dump` and load it into SQLite under `DATA_DIR`, and re-enter the values from Replit's Secrets tool as [environment variables](/docs/env-vars) once the app is kept. Embarko has [no managed database](/docs/data), so an app that needs Postgres or MySQL stays where its database lives.
 
 ### [Does Embarko have a Replit integration?](#faq-integration)
 
-Embarko's docs describe no Replit-specific integration. Only Claude has an [Embarko connector](/docs/connectors), and it deploys from a public `.tar.gz` link, not from a folder on your computer. For a Replit export, use the deployment prompt in an agent that can run commands, or deploy with a token by email.
+Embarko's docs describe no Replit-specific integration. Only Claude has an [Embarko connector](/docs/connectors). It sends the files directly and the app goes straight into your account. For a very large export, or in another tool, use the deployment prompt in an agent that can run commands, then keep the app with the token Embarko mails you.
 
 ### [Will the app stay online?](#faq-stay-online)
 
-Once you press **Keep**, yes. An app deployed without a token is deleted 24 hours after its first deploy, with no reminder email. Open the claim link in your agent's deploy message and sign in, and it stays at the same address. No link? Ask your agent to [make it permanent with a token](/docs/claim). Apps deployed with a token are already in your account.
+Once it's kept, yes. An app deployed without a token is deleted 24 hours after its first deploy, with no reminder email. When the agent offers to [keep it](/docs/claim), give your email and paste the token Embarko mails you, and it stays at the same address. Apps deployed with a token or the Claude connector are already in your account.
 
 ### [Is it safe to host my Replit app on Embarko?](#faq-safe)
 

@@ -1,5 +1,5 @@
 ---
-title: "How to Host a Website Built with Claude in 60 Seconds"
+title: "How to Host a Website Built with Claude (Free, No GitHub)"
 meta_description: "Built a website with Claude? Deploy it with Claude Code or the Embarko connector and get a live HTTPS link. No GitHub or Vercel. Steps, setups and fixes."
 slug: "host-website-built-with-claude"
 primary_keyword: "host a website built with claude"
@@ -9,8 +9,8 @@ cover: "/assets/guides/host-website-built-with-claude.png"
 cover_alt: "Claude is asked to deploy a portfolio to Embarko, and the portfolio site goes live at your-site-name.embarko.app."
 read_minutes: 14
 datePublished: "2026-10-07"
-dateModified: "2026-10-15"
-last_verified: "2026-10-15"
+dateModified: "2026-10-19"
+last_verified: "2026-10-19"
 author: "The Embarko team"
 status: "published"
 ---
@@ -25,7 +25,7 @@ status: "published"
 - The usual route to a host asks for a GitHub repository, a hosting account, build settings and secret keys.
 - You have two main routes with Embarko: the **Claude connector** (add it once, then ask Claude to deploy) or **Claude Code** (paste the deployment prompt or install the skill).
 - With the connector, the site is permanent from the start. With Claude Code, the agent deploys first and asks for your email only after the site is live, then Embarko emails you a token to keep it.
-- Anyone with your link can open the site, because Embarko doesn't provide login or private apps yet.
+- Anyone with your link can open the site, because Embarko doesn't provide [login or private apps](/docs/app-login) yet.
 
 ## [Why your Claude website isn't online yet](#why)
 
@@ -150,7 +150,7 @@ If your site needs something else, here's the route:
 |---|---|
 | A database | Embarko has no managed database. Use SQLite with its file under [`DATA_DIR`](/docs/data), and keep your own copy because data isn't backed up. |
 | Live updates (WebSockets) | Not supported. Use regular HTTP requests, with the browser polling. |
-| Scheduled jobs | Not supported. Put the job behind an HTTP route protected by a secret, and call it from an outside scheduler. |
+| [Scheduled jobs](/docs/schedules) | Supported with a schedule. Claude puts the job in a route of your site and lists it under `schedules` in [`embarko.json`](/docs/embarko-json), and Embarko calls that route on time. It works for a server app in your account, not a static site. Don't use a timer library such as `node-cron` inside the app. |
 | A frontend and a backend | They're [two apps](/docs/two-apps). Deploy the backend first, point the frontend at its address, and allow the frontend in the backend's CORS. |
 | Sign-in or a private site | Embarko doesn't provide [login or private apps](/docs/app-login) yet. Build sign-in into the app itself. |
 | More than 256MB of memory | Each app gets 256MB, which can't be raised, so a site that needs more has to stay on a host built for it. |
@@ -183,7 +183,7 @@ Failed deploys often come down to a blocked upload, a missing key or setting, or
 | `422 unsupported_storage_pattern` | The site uses `window.storage` (a Claude Artifact feature) | Switch to SQLite with the file under `DATA_DIR`. |
 | `413 source_too_large` or `too_many_files` | A connector or JSON upload is over 25MB or 2,000 files | Trim the upload, or use Claude Code's `.tar.gz` upload. |
 | The site was deleted after a day | It was never kept | Deploy it again and keep it this time. |
-| The link opens but the page doesn't work | The site isn't reading `PORT`, isn't listening on `0.0.0.0`, saves data outside `DATA_DIR`, or needs WebSockets or scheduled jobs | Fix the cause, then redeploy with the same name. |
+| The link opens but the page doesn't work | The site isn't reading `PORT`, isn't listening on `0.0.0.0`, saves data outside `DATA_DIR`, needs WebSockets, or uses a timer library instead of a [schedule](/docs/schedules) | Fix the cause, then redeploy with the same name. |
 
 ## [FAQ](#faq)
 

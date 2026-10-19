@@ -628,7 +628,7 @@ export function initDeployGuide(host) {
   const DEFS = {
     repo: ['Repository', 'A project folder kept on a service like GitHub, with a history of every change. Many hosts watch one and rebuild your app when it changes.'],
     targz: ['.tar.gz file', 'One compressed file that holds a whole folder, like a .zip. Your AI tool packs your project into one before it uploads it.'],
-    dockerfile: ['Dockerfile', 'A recipe file some hosts use to build and run an app. Embarko builds the app itself and rejects an upload that includes one.'],
+    dockerfile: ['Dockerfile', 'A recipe file some hosts use to build and run an app. Embarko builds the app itself, so you don’t need one, and leaving one in is a common reason a deploy fails.'],
     subdomain: ['Subdomain', 'The first part of an address, like your-app-name in your-app-name.embarko.app. It is your app’s name, so it must be unique.'],
   };
   const tip = $('#term-tip');
@@ -951,9 +951,9 @@ export function initDeployGuide(host) {
       cap.textContent = 'Uploading the archive straight to Embarko…';
       await pause(520);
       if (!alive()) return;
-      const fail = async (lineA, fix, msg) => {
-        station(1, 'fail');
-        await typeLine(id, 'upload', lineA, 'sim__l--bad');
+      const fail = async (lineA, fix, msg, at = 1, label = 'upload') => {
+        station(at, 'fail');
+        await typeLine(id, label, lineA, 'sim__l--bad');
         if (!alive()) return;
         await typeLine(id, 'fix', fix, 'sim__l--fix');
         if (!alive()) return;
@@ -961,10 +961,6 @@ export function initDeployGuide(host) {
         sim.classList.add('is-fail');
         cap.textContent = msg;
       };
-      if (opts.docker) {
-        return fail('rejected: the upload includes a Dockerfile', 'delete the Dockerfile. Embarko builds the app itself.',
-          'Turned away. Embarko builds the app itself, so it rejects an upload that includes a Dockerfile.');
-      }
       if (opts.nest) {
         return fail('422 no_manifest_at_root', 'package.json is in a subfolder. Repackage so it’s at the top level.',
           'Stopped. Embarko looks for package.json at the top of the folder, and this one is inside app/.');
@@ -976,6 +972,10 @@ export function initDeployGuide(host) {
       cap.textContent = 'Building. Embarko works out the language from your files…';
       await pause(700);
       if (!alive()) return;
+      if (opts.docker) {
+        return fail('failed: the folder has a Dockerfile', 'delete the Dockerfile. Embarko builds the app itself.',
+          'It didn’t go live. Embarko builds the app itself, and a Dockerfile is a common reason a deploy fails.', 2, 'build');
+      }
       await typeLine(id, 'build', 'package.json found → Node.js');
       await pause(380);
       if (!alive()) return;
@@ -1098,62 +1098,14 @@ export function initDeployGuide(host) {
     });
   }
 
-  /* 04 · Step 4: the 24-hour clock runs down with the scroll. Keep stops it. */
-  const keep = $('[data-keep]');
-  if (keep) {
-    const hEl = $('[data-keep-h]', keep);
-    const note = $('[data-keep-note]', keep);
-    const cap = $('[data-keep-caption]', keep);
-    const btn = $('[data-keep-btn]', keep);
-    const btnLabel = $('span', btn);
-    const defaults = { note: note.textContent, cap: cap.textContent };
-    let revived = false;
-    let lastH = -1;
-
-    const render = () => {
-      if (state.steps[3]) return;
-      const p = keep._p ?? 0;
-      const hours = reduced || revived ? 24 : Math.max(0, Math.round(24 * (1 - clamp(p / .92))));
-      keep.style.setProperty('--left', (hours / 24).toFixed(3));
-      if (hours === lastH) return;
-      lastH = hours;
-      hEl.textContent = String(hours);
-      const gone = hours === 0;
-      keep.classList.toggle('is-gone', gone);
-      keep.classList.toggle('is-low', hours > 0 && hours <= 6);
-      btnLabel.textContent = gone ? 'Deploy again' : 'Keep';
-      note.textContent = gone ? 'Never kept. The link is gone.' : defaults.note;
-      cap.textContent = gone ? 'No email came. Deploy it again, and press Keep this time.'
-        : hours <= 6 ? 'A few hours left, and no email will remind you.'
-        : defaults.cap;
-    };
-    const syncKept = () => {
-      const kept = !!state.steps[3];
-      keep.classList.toggle('is-kept', kept);
-      if (kept) {
-        keep.classList.remove('is-gone', 'is-low');
-        keep.style.setProperty('--left', '1');
-        btnLabel.textContent = 'Kept';
-        note.textContent = 'Kept. It stays at the same address.';
-        cap.textContent = 'That’s the whole trip: a folder on your laptop to a live link, with no repo.';
-      } else {
-        lastH = -1;
-        render();
-      }
-    };
-    btn.addEventListener('click', () => {
-      if (keep.classList.contains('is-gone')) {
-        revived = true;
-        lastH = -1;
-        render();
-        cap.textContent = 'Deployed again: a fresh 24 hours. Press Keep now.';
-        return;
-      }
-      setStep(3, !state.steps[3]);
+  /* 04 · Step 4: keeping the app, as a short chat with your AI tool. Each message
+     appears as you scroll and then stays; reduced motion shows them all at once. */
+  const keepChat = $('[data-keepchat]');
+  if (keepChat) {
+    const msgs = $$('[data-at]', keepChat);
+    onScrub(keepChat, p => {
+      msgs.forEach(el => { if (p >= +el.dataset.at) el.classList.add('is-in'); });
     });
-    stepHooks.push(syncKept);
-    onScrub(keep, render);
-    syncKept();
   }
 
   /* 05 · Deploy history. v3 ships and breaks the menu; the live pin rolls back to v2.

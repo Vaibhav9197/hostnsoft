@@ -19,6 +19,10 @@
     "dir": "_free-hosting-for-students",
     "scenes": true
   },
+  "host-portfolio-website-free": {
+    "dir": "_host-portfolio-website-free",
+    "scenes": true
+  },
   "host-website-built-with-claude": {
     "dir": "_host-website-built-with-claude",
     "scenes": true

@@ -5,6 +5,7 @@ import { ARTICLE_HTML as deploy_app_without_github_html, GUIDE_SCHEMAS as deploy
 import { ARTICLE_HTML as deploy_from_cursor_html, GUIDE_SCHEMAS as deploy_from_cursor_schemas } from "../_deploy-from-cursor/article";
 import { ARTICLE_HTML as deploy_replit_app_free_html, GUIDE_SCHEMAS as deploy_replit_app_free_schemas } from "../_deploy-replit-app-free/article";
 import { ARTICLE_HTML as free_hosting_for_students_html, GUIDE_SCHEMAS as free_hosting_for_students_schemas } from "../_free-hosting-for-students/article";
+import { ARTICLE_HTML as host_portfolio_website_free_html, GUIDE_SCHEMAS as host_portfolio_website_free_schemas } from "../_host-portfolio-website-free/article";
 import { ARTICLE_HTML as host_website_built_with_claude_html, GUIDE_SCHEMAS as host_website_built_with_claude_schemas } from "../_host-website-built-with-claude/article";
 import { ARTICLE_HTML as how_to_deploy_ai_app_html, GUIDE_SCHEMAS as how_to_deploy_ai_app_schemas } from "../_deploy-ai-app/article";
 
@@ -16,6 +17,7 @@ export const INTERACTIVE_GUIDES: Record<string, InteractiveGuideEntry> = {
   "deploy-from-cursor": { html: deploy_from_cursor_html, schemas: deploy_from_cursor_schemas },
   "deploy-replit-app-free": { html: deploy_replit_app_free_html, schemas: deploy_replit_app_free_schemas },
   "free-hosting-for-students": { html: free_hosting_for_students_html, schemas: free_hosting_for_students_schemas },
+  "host-portfolio-website-free": { html: host_portfolio_website_free_html, schemas: host_portfolio_website_free_schemas },
   "host-website-built-with-claude": { html: host_website_built_with_claude_html, schemas: host_website_built_with_claude_schemas },
   "how-to-deploy-ai-app": { html: how_to_deploy_ai_app_html, schemas: how_to_deploy_ai_app_schemas },
 };

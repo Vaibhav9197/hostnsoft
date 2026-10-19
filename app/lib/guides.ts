@@ -14,6 +14,7 @@ import deployFromCursorMd from "../../content/guides/deploy-from-cursor.md";
 import studentsMd from "../../content/guides/free-hosting-for-students.md";
 import replitMd from "../../content/guides/deploy-replit-app-free.md";
 import antigravityMd from "../../content/guides/deploy-antigravity-website.md";
+import portfolioMd from "../../content/guides/host-portfolio-website-free.md";
 import { headingId } from "./docs";
 
 export interface BlogPost {
@@ -35,7 +36,7 @@ export interface BlogPost {
 }
 
 /** Every post we have a file for. Order does not matter; the list is sorted by date. */
-const SOURCES: string[] = [deployWithoutGithubMd, hostClaudeWebsiteMd, deployAiAppMd, deployFromCursorMd, studentsMd, replitMd, antigravityMd];
+const SOURCES: string[] = [deployWithoutGithubMd, hostClaudeWebsiteMd, deployAiAppMd, deployFromCursorMd, studentsMd, replitMd, antigravityMd, portfolioMd];
 
 /**
  * Reads the `key: value` lines of a frontmatter block. Values are JSON

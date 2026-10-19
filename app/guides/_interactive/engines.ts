@@ -7,6 +7,7 @@ import "../_deploy-app-without-github/scenes.css";
 import "../_deploy-from-cursor/scenes.css";
 import "../_deploy-replit-app-free/scenes.css";
 import "../_free-hosting-for-students/scenes.css";
+import "../_host-portfolio-website-free/scenes.css";
 import "../_host-website-built-with-claude/scenes.css";
 
 export type GuideEngine = { initDeployGuide: (host: HTMLElement) => () => void };
@@ -17,6 +18,7 @@ export const ENGINES: Record<string, () => Promise<GuideEngine>> = {
   "deploy-from-cursor": () => import("../_deploy-from-cursor/engine").then((m) => m as unknown as GuideEngine),
   "deploy-replit-app-free": () => import("../_deploy-replit-app-free/engine").then((m) => m as unknown as GuideEngine),
   "free-hosting-for-students": () => import("../_free-hosting-for-students/engine").then((m) => m as unknown as GuideEngine),
+  "host-portfolio-website-free": () => import("../_host-portfolio-website-free/engine").then((m) => m as unknown as GuideEngine),
   "host-website-built-with-claude": () => import("../_host-website-built-with-claude/engine").then((m) => m as unknown as GuideEngine),
   "how-to-deploy-ai-app": () => import("../_deploy-ai-app/engine").then((m) => m as unknown as GuideEngine),
 };

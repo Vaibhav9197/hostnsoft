@@ -1246,26 +1246,29 @@ export function initDeployGuide(host) {
     if (state.steps[0]) { pick(dirs[1]); openEl.classList.add('is-opened'); say.textContent = FOLDERS[1].open; }
   }
 
-  /* 06 · Step 2: the agent asks how to sign in; each answer follows the copy. */
+  /* 06 · Step 4: the app is live and the agent offers to keep it; each answer follows the copy. */
   const signin = $('[data-signin]');
   if (signin) {
     const opts = $$('[data-signin-opt]', signin);
     const reply = $('[data-signin-reply]', signin);
     const R = {
-      connector: ['off', 'Skip this one. Antigravity doesn’t have a connector.'],
-      email: ['ok', 'Give your email, then paste the token from your inbox. With a token, the app goes into your account and is kept from the start.'],
-      token: ['ok', 'Create a token at embarko.ai/app/tokens and paste it into the chat. With a token, the app goes into your account and is kept from the start.'],
-      skip: ['wait', 'The app still works for 24 hours. Keep it with the claim link in step 4.'],
+      keep: ['ok', 'Give the agent your email. Embarko emails you a token (check spam too). Paste it into the chat and the agent redeploys the same name. Your site is permanent at the same address.'],
+      token: ['ok', 'Paste your deploy token into the chat. You can create one at embarko.ai/app/tokens. The agent redeploys the same name and your site is permanent at the same address.'],
+      later: ['wait', 'The site stays online until the time the agent gave you, 24 hours after the first deploy. There is no reminder email, so ask the agent to keep it before then.'],
     };
     const choose = b => {
       opts.forEach(x => x.setAttribute('aria-pressed', String(x === b)));
       const [st, text] = R[b.dataset.signinOpt];
       signin.dataset.state = st;
       reply.textContent = text;
-      if (st === 'off') b.classList.add('is-struck');
     };
     let autoId = 0;
-    opts.forEach(b => b.addEventListener('click', () => { autoId++; cursor.hide(); choose(b); }));
+    opts.forEach(b => b.addEventListener('click', () => {
+      autoId++;
+      cursor.hide();
+      choose(b);
+      if (signin.dataset.state === 'ok') setStep(3, true);
+    }));
     const cursor = makeCursor(signin);
     onceInView(signin, async () => {
       if (reduced) return;
@@ -1278,12 +1281,6 @@ export function initDeployGuide(host) {
       if (!alive()) return;
       await cursor.press(alive);
       choose(opts[0]);
-      await wait(2200);
-      if (!alive()) return;
-      await cursor.moveTo(opts[1], alive, 600);
-      if (!alive()) return;
-      await cursor.press(alive);
-      choose(opts[1]);
       await wait(900);
       cursor.hide();
     }, .7);
@@ -1360,36 +1357,6 @@ export function initDeployGuide(host) {
       await wait(1700);
       if (!read.classList.contains('is-approved')) checked();
     }, .6);
-  }
-
-  /* 06 · Step 4: the claim link. Sign in, pick a workspace, press Keep. */
-  const claim = $('[data-claim]');
-  if (claim) {
-    const panes = $$('[data-pane]', claim);
-    const dots = $$('.ag-claim__dots i', claim);
-    const say = $('[data-claim-say]', claim);
-    const defaultSay = say.textContent;
-    const SAY = ['Step 1 of 3: sign in or sign up.', 'Step 2 of 3: pick a workspace.', 'Step 3 of 3: press Keep.', 'Kept. Your site stays at the same address.'];
-    let at = -1;
-    const show = (i, focus = false) => {
-      at = i;
-      claim.classList.toggle('is-open', i >= 0);
-      claim.classList.toggle('is-kept', i === 3);
-      panes.forEach((p, k) => { p.hidden = k !== i; });
-      dots.forEach((d, k) => d.classList.toggle('on', k < Math.min(i + 1, 3) && i >= 0));
-      say.textContent = i < 0 ? defaultSay : SAY[i];
-      if (focus) $('button', panes[i])?.focus();
-      if (i === 3) setStep(3, true);
-    };
-    $('[data-claim-open]', claim).addEventListener('click', () => show(state.steps[3] ? 3 : 0, true));
-    $$('[data-claim-next]', claim).forEach(b => b.addEventListener('click', () => show(at + 1, at + 1 < 3)));
-    stepHooks.push((i, done) => {
-      if (i !== 3) return;
-      if (done && at !== 3) show(3);
-      if (!done && at === 3) show(-1);
-    });
-    claim.classList.add('is-ready');
-    show(state.steps[3] ? 3 : -1);
   }
 
   /* 07 · The redeploy machine. Saving next to the code is wiped on redeploy;

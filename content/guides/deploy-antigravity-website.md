@@ -9,8 +9,8 @@ cover: "/assets/guides/deploy-antigravity-website.png"
 cover_alt: "Antigravity's agent asks permission to run the Embarko upload, the user allows it, and the website goes live at your-site-name.embarko.app."
 read_minutes: 13
 datePublished: "2026-10-12"
-dateModified: "2026-10-14"
-last_verified: "2026-10-14"
+dateModified: "2026-10-19"
+last_verified: "2026-10-19"
 author: "The Embarko team"
 status: "published"
 ---
@@ -25,7 +25,7 @@ status: "published"
 - The usual route asks for a GitHub repository, a hosting account, build settings and secret keys.
 - With Embarko, the "one prompt" is the deployment prompt copied from [embarko.ai](/). The agent packs the folder, [uploads it](/docs/deploy) and [checks the status](/docs/status) until the site is `live`.
 - Antigravity's terminal sandbox can block network access, so expect it to ask before it runs the upload. Read the command and approve it.
-- Your first link needs no account. Press **Keep** within 24 hours and it stays at the same address.
+- Your first link needs no account. To keep it past 24 hours, give the agent your email and paste the token Embarko sends you. It stays at the same address.
 
 ## [Why your Antigravity website isn't online yet](#why)
 
@@ -91,16 +91,16 @@ Embarko suits small web apps. Here's how common Antigravity projects line up, an
 |---|---|---|
 | A plain website | Yes | Keep `index.html` at the top of the folder. Published as [static files](/docs/static-sites), usually live straight away. |
 | A Node.js app | Yes | `package.json` at the top. Read the port from `PORT` and listen on `0.0.0.0`. |
-| A Python app | Yes | `requirements.txt` or `pyproject.toml` at the top. |
-| A site with a build step (Vite, Create React App) | Yes | Built first, then run as a server app. |
+| A Python app | Yes | `requirements.txt` at the top, and a `main.py` that starts the server on `PORT` and `0.0.0.0`. |
+| A site with a build step (Vite, Create React App) | Yes | Send the project with its `package.json`, not a built `dist` folder. Embarko builds it and serves it as a website, and links to inner pages load. Build-time values (`VITE_...`) go in a committed config file, not `.env`. |
 | A small database | Yes, SQLite | Save the file under `DATA_DIR`, [the folder that survives redeploys](/docs/data). Keep your own copy of important data. |
 | A frontend and a backend in one project | Two apps | [One deploy is one app](/docs/two-apps). Deploy each folder as its own app. |
 | Postgres or MySQL | Another route | Embarko has [no managed database](/docs/data). Use SQLite for small data, or host that app where its database lives. |
 | Live updates ([WebSockets](/docs/prerequisites)) | Another route | Use regular HTTP polling instead. |
-| [Scheduled jobs](/docs/prerequisites) | Another route | Run them elsewhere and have them call your site. |
+| [Scheduled jobs](/docs/schedules) | Yes, as a schedule | List the route under `schedules` in `embarko.json` and Embarko calls it on time. Works on a kept server app. |
 | Heavy processing or a GPU | Another route | Run that part elsewhere. Apps get [256MB of memory and no GPU](/docs/deploy). |
 
-**Delete any Dockerfile** Antigravity added. Embarko builds the site itself and [rejects an upload that includes one](/docs/deploy).
+**Delete any Dockerfile** Antigravity added. Embarko builds the site itself and [doesn't use one](/docs/deploy).
 
 ## [How to deploy from Antigravity, step by step](#steps)
 
@@ -112,13 +112,13 @@ Open the folder that holds your site. That folder is what gets uploaded.
 
 ### [2. Copy the deployment prompt and paste it into the agent](#step-2)
 
-Open [embarko.ai](/) and click the button that copies the prompt (**Host your app** on the home page, **Copy deployment prompt** on [pricing](/pricing)). Paste it into a new agent chat, then add one line:
+Click **Copy deployment prompt** on [embarko.ai/pricing](/pricing). Paste it into a new agent chat, then add one line:
 
 ```text
 I built a website, help me get it live on Embarko
 ```
 
-The agent may ask how you want to sign in. Skip the connector option, because Antigravity doesn't have one. Pick **token by email** (give your email, then paste the token from your inbox), or create a token at [embarko.ai/app/tokens](/app/tokens). With a token, the app goes into your account and is kept from the start. If you skip, the app still works for 24 hours. [Authentication: three ways in](/docs/claim) explains each option.
+The agent deploys first and asks later. When the site is live, it gives you the link and the time it will be deleted, and offers to keep it. Already have a deploy token (create one at [embarko.ai/app/tokens](/app/tokens))? Paste it into the chat and the site is permanent from the first deploy. [Keep a temporary app](/docs/claim) explains how keeping works.
 
 ### [3. Approve the upload](#step-3)
 
@@ -133,13 +133,13 @@ The app name becomes your address: 3 to 63 characters (lowercase letters, number
 
 ### [4. Open your link and keep it](#step-4)
 
-The agent gives you the address, `your-app-name.embarko.app`. Open it and click around. A link made without a token lasts 24 hours with no reminder email, though an HTML page shows a [countdown banner](/docs/claim). The agent's first reply includes a claim link. Open it, sign in or sign up, pick a workspace and press **Keep**, and the app stays at the same address. The link works once and only until the deadline, so keep that message. If you've lost it, ask the agent to [make it permanent with a token](/docs/claim).
+The agent gives you the address, `your-app-name.embarko.app`. Open it and click around. A link made without a token lasts 24 hours, with no reminder email, so the agent tells you the exact time. When it offers to keep the site, give your email, paste the token Embarko emails you, and the agent redeploys the same name. The address doesn't change. [Keep a temporary app](/docs/claim) has the details.
 
 ## [Changing the site later](#later)
 
-Ask the agent to [redeploy](/docs/deploy) with the same name. A kept app needs your deploy token for every later deploy. If you pressed **Keep** on the claim link, the page you land on gives you a prompt that carries a token, so paste it into the agent's chat once. If you kept the app with a token, the agent already has it. You can also create one at [embarko.ai/app/tokens](/app/tokens). A kept app keeps [deployment history](/docs/rollback) and can [roll back](/docs/rollback) to a recent build. Rollback restores code, never data.
+Ask the agent to [redeploy](/docs/deploy) with the same name. A kept site needs your deploy token for every later deploy, and the agent saves it the first time. You can also create one at [embarko.ai/app/tokens](/app/tokens). A kept app keeps [deployment history](/docs/rollback) and can [roll back](/docs/rollback) to a recent build. Rollback restores code, never data.
 
-To use an API key, keep the app first, then ask the agent to set it as an [environment variable](/docs/env-vars) and apply it. A write alone [doesn't reach the running app](/docs/env-vars). Static sites can't have environment variables. If your site saves anything, such as form entries or a SQLite file, it must write under `DATA_DIR`, because everything else is wiped on each redeploy. Since Embarko isn't where your code lives, [keep your own copy](/docs/rollback) too. A local Git repository is enough.
+To use an API key, keep the app first, then ask the agent to set it as an [environment variable](/docs/env-vars) and apply it. A write alone [doesn't reach the running app](/docs/env-vars). Static sites can't have environment variables. If your site saves anything, such as form entries or a SQLite file, it must write under `DATA_DIR`, because everything else is wiped on each redeploy. Since Embarko isn't where your code lives, keep your own copy too. A local Git repository is enough.
 
 ## [If something goes wrong](#errors)
 
@@ -150,9 +150,9 @@ Failed deploys often come down to a blocked upload, a missing key or setting, or
 | A network or connection error on the upload | Antigravity's sandbox blocks Embarko's domains. Nothing was deployed. | Approve the command to run outside the sandbox, allow the domains ([how](#sandbox)), or run it in your own terminal. |
 | [`403 host_not_allowed`](/docs/connectors) | A network sandbox blocks the upload. Nothing was deployed. | Same fix as above. |
 | The agent keeps asking before every command | Your permission preset or **Terminal command auto execution** is on Request Review | Approve each command, or add the deploy commands to your allowlist. |
-| [Exit code 137](/docs/deploy) | The site went over 256MB, often because it runs a dev server | Use the production start command, such as `npm start` after a build, not `vite dev`. |
+| [The status says crashed](/docs/logs) | The site built but stopped running | Ask the agent: "Read the logs, fix what they name, and redeploy." |
 | [`422 no_manifest_at_root`](/docs/errors) | The manifest is in a subfolder | Repackage so it's at the top of the archive. |
-| [App gone after a day](/docs/claim) | It was never kept | Deploy it again and press **Keep** this time. |
+| [App gone after a day](/docs/claim) | It was never kept | Deploy it again, then keep it when the agent offers: give your email and paste the token Embarko sends you. |
 | The link doesn't open, or the status says failed or crashed | The site is listening on the wrong port or only on localhost | Ask the agent: "Make my site read its port from the PORT environment variable and listen on 0.0.0.0, then redeploy." |
 
 Other codes, such as [`409 app_name_taken`](/docs/errors), are in the [troubleshooting reference](/docs/errors). Don't retry a 409 or 422 unchanged.
@@ -169,7 +169,7 @@ Yes, if its agent can run terminal commands in your project. It follows Embarko'
 
 ### [Does Embarko officially support Antigravity?](#faq-support)
 
-Not by name. Antigravity isn't mentioned on Embarko's pages and has no Embarko connector. Only Claude has one. Embarko's [connectors page](/docs/connectors) says every AI tool can still deploy by pasting the deployment prompt, and that works in Antigravity when its agent can run terminal commands.
+Not by name. Antigravity isn't named in Embarko's docs and has no Embarko connector. Only Claude has one. Embarko's [connectors page](/docs/connectors) says a tool without a connector deploys over the internet instead, when its agent can reach `ship.embarko.ai`. That works in Antigravity when its agent can run terminal commands and you approve the upload.
 
 ### [Why does Antigravity ask permission before deploying?](#faq-permission)
 
@@ -177,15 +177,15 @@ By default, the app on macOS and Linux runs commands in a sandbox with no networ
 
 ### [Do I need GitHub to deploy from Antigravity?](#faq-github)
 
-No. Embarko takes the project folder directly: the agent packs it and uploads it, so there's no repo to create or connect. Embarko isn't where your code lives, so [keep your own copy](/docs/rollback), such as a local Git repository or a copy of the folder, so you can redeploy an older version later.
+No. Embarko takes the project folder directly: the agent packs it and uploads it, so there's no repo to create or connect. Embarko isn't where your code lives, so keep your own copy, such as a local Git repository or a copy of the folder, so you can redeploy an older version later.
 
 ### [Will my site stay online?](#faq-stay-online)
 
-Once you press **Keep**, yes. An app deployed without a token is deleted 24 hours after its first deploy. Open the claim link from the agent's first reply and sign in to keep it, or ask the agent to [claim it with a token](/docs/claim). The link stays the same.
+Once you keep it, yes. An app deployed without a token is deleted 24 hours after its first deploy. When the agent offers to keep it, give your email and paste the token Embarko emails you, and the agent [redeploys it as yours](/docs/claim). The link stays the same.
 
 ### [Is it safe to put my Antigravity site online?](#faq-safe)
 
-Keep secret keys out of your project files. The agent leaves `.env` files out of the archive, and once you've pressed **Keep** you can add keys as [environment variables](/docs/env-vars), which Embarko stores encrypted and nobody can read back. Also remember that anyone with your link can open the site, so if it uses your AI key, set a spending limit with your AI provider if they offer one.
+Keep secret keys out of your project files. The agent leaves `.env` files out of the archive, and once you've kept the site you can add keys as [environment variables](/docs/env-vars), which Embarko [stores encrypted](/security) and nobody can read back. Also remember that anyone with your link can open the site, so if it uses your AI key, set a spending limit with your AI provider if they offer one.
 
 ### [Is it free?](#faq-free)
 

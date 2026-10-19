@@ -9,8 +9,8 @@ cover: "/assets/guides/deploy-app-without-github.png"
 cover_alt: "A project folder with package.json and server.js is packed as a .tar.gz and becomes a live app at your-app-name.embarko.app, with no git repo needed."
 read_minutes: 9
 datePublished: "2026-10-07"
-dateModified: "2026-10-14"
-last_verified: "2026-10-14"
+dateModified: "2026-10-19"
+last_verified: "2026-10-19"
 author: "Pushpendra Agrawal"
 status: "published"
 ---
@@ -23,7 +23,7 @@ status: "published"
 
 - Many hosts build your app from a Git repository. That means a GitHub account, a few Git commands and a connection to set up before anything goes live.
 - You can skip all of it. Your AI tool packs the project folder and [uploads it to Embarko's API](/docs/deploy) directly.
-- Your first link needs no account. Press **Keep** within 24 hours and it stays at the same address.
+- Your first link needs no account. To keep it past 24 hours, give your tool your email and paste back the token Embarko sends you.
 - Embarko isn't where your code lives, so keep your own copy somewhere safe. A local Git repository is enough.
 
 ## [Why many hosts ask for a GitHub repo](#why)
@@ -69,17 +69,17 @@ Embarko suits small web apps. Here's how common AI-built apps line up, and what 
 | A plain website | Yes | Keep `index.html` at the top of the folder. Usually live straight away. |
 | A Node.js app | Yes | `package.json` at the top. Read the port from `PORT` and listen on `0.0.0.0`. |
 | A Python app | Yes | `requirements.txt` or `pyproject.toml` at the top. |
-| A React or Vite app | Yes | [Built first, then run as a server app](/docs/static-sites). |
+| A React or Vite app | Yes | Send the project with its `package.json` and build script, not a built `dist` folder. Embarko [builds it and serves it as a website](/docs/deploy), and links to inner pages load. Values the build reads (`VITE_…`) go in a committed config file, not `.env`. |
 | A small database | Yes, SQLite | Save the file under `DATA_DIR`, [the folder that survives redeploys](/docs/data). Keep your own copy of important data. |
+| [Scheduled jobs](/docs/schedules) | Yes, with a schedule | Skip timer libraries like node-cron. Your tool lists the job in `embarko.json` and Embarko calls that route of your app on time ([schedules](/docs/schedules)). Over HTTP the app must be kept first. |
 | A frontend and a backend in one project | Two apps | [One deploy is one app](/docs/two-apps). Deploy each folder as its own app. |
 | Postgres or MySQL | Another route | Embarko has [no managed database](/docs/data). Use SQLite for small data, or host that app where its database lives. |
 | Live updates ([WebSockets](/docs/prerequisites)) | Another route | Use regular HTTP polling instead. |
-| [Scheduled jobs](/docs/prerequisites) | Another route | Run them elsewhere and have them call your app. |
 | Your own AI model, or heavy processing | Another route | Host the model, or run the heavy job, elsewhere and let your app call it. Apps get [256MB of memory and no GPU](/docs/deploy). |
 
 Embarko also detects Go, Ruby, PHP, Rust and Java. Each app runs as one process with [256MB of memory](/docs/deploy), which can't be raised.
 
-**Delete any Dockerfile your AI tool added.** Embarko builds the app itself and [rejects an upload that includes one](/docs/deploy).
+**Delete any Dockerfile your AI tool added.** Embarko builds the app itself, and a Dockerfile is a common reason a deploy fails ([quickstart](/docs/quickstart)).
 
 ## [Step by step: from folder to live link](#steps)
 
@@ -95,7 +95,7 @@ Open your project in Claude Code, Cursor, Codex or another AI tool and paste the
 
 **Using Claude Code?** You can install the open [Embarko skill](/skill) once, then simply ask your tool to deploy.
 
-**Using Claude in the browser or desktop app?** Add the [Embarko connector](https://claude.ai/directory/embarko) ([how to connect](/docs/connectors)). Apps it deploys are saved to your account from the start, so there's nothing to keep. It deploys from a public `.tar.gz` link, not from a folder on your computer.
+**Using Claude in the browser or desktop app?** Add the [Embarko connector](https://claude.ai/directory/embarko) ([how to connect](/docs/connectors)). Apps it deploys go straight into your account, so there's nothing to keep. Claude sends your app's files in the chat, so it works even where a sandbox blocks Embarko. Very large apps may not fit in one call: use Claude Code or the [upload page](/docs/prerequisites) instead.
 
 Here's an example of what to ask:
 
@@ -112,11 +112,11 @@ It packs the project (leaving out `node_modules`, `.git` and `.env` files), uplo
 
 ### [4. Open your link and keep it](#step-4)
 
-Open the address your tool gives you and click around. A link made without signing in lasts 24 hours with no reminder email, so press **Keep** on the "keep this app" link your tool shares (or ask it to [make the app permanent](/docs/claim)) and it stays at the same address.
+Open the address your tool gives you and click around. A link made without signing in is deleted 24 hours after the first deploy, and no reminder email comes, so your tool tells you the exact time. When it offers to keep the app, say yes and give your email. Embarko emails you a token. Paste it back into the chat, and your tool redeploys under the same name, so the app stays at the same address for good ([how keeping works](/docs/claim)).
 
 ## [Changing the app later](#later)
 
-Ask your tool to redeploy with the same app name. Embarko keeps [deployment history](/docs/rollback), and you can [roll back](/docs/rollback) to a recent successful build. Since your project folder is the only copy of your code, keep your own source history too. A local Git repository, a copy in cloud storage or a regular backup of the folder all work, and none of them need GitHub.
+Ask your tool to redeploy with the same app name. Embarko keeps [deployment history](/docs/rollback), and you can [roll back](/docs/rollback) to a recent successful build. Embarko keeps your last 5 builds, and a rollback keeps today's settings and data. Over HTTP the app must be kept first. Since your project folder is the only copy of your code, keep your own source history too. A local Git repository, a copy in cloud storage or a regular backup of the folder all work, and none of them need GitHub.
 
 ## [If something goes wrong](#errors)
 
@@ -124,12 +124,12 @@ Failed deploys often come down to three things: the app listens on a fixed port 
 
 | What you see | Likely cause | Fix |
 |---|---|---|
-| [`403 host_not_allowed`](/docs/connectors) or a network error | Your tool's safety settings are blocking the upload. Nothing was deployed. | Allow `embarko.ai`, `ship.embarko.ai` and `*.embarko.app`, use the Claude connector, or run the deploy commands in your own terminal. |
+| [`403 host_not_allowed`](/docs/errors) or a network error | Your tool's safety settings are blocking the upload. Nothing was deployed. | Allow `embarko.ai`, `ship.embarko.ai` and `*.embarko.app`, use the Claude connector, or run the deploy commands in your own terminal. |
 | [`409 app_name_taken`](/docs/errors) | Someone already uses that name, which becomes the subdomain | Pick another app name. |
 | [`422 no_manifest_at_root`](/docs/errors) | `package.json` (or similar) is in a subfolder | Repackage so it's at the top level. |
 | [Build exit code 127](/docs/status) | A tool the build calls is missing, or the dependencies live in a subfolder | Add the tool to `dependencies` or `devDependencies`, or deploy the subfolder as its own app. |
-| [Exit code 137](/docs/deploy) | The app went over 256MB, often because it runs a dev server | Use the production start command, such as `npm start` after a build, not `vite dev` or `next dev`. |
-| [App gone after a day](/docs/claim) | It was never kept | Deploy it again, press **Keep** this time. |
+| [Status says `crashed`](/docs/logs) | It built but stopped running (for example it needed more than 256MB of memory) | Ask your tool to read the logs ([logs](/docs/logs)), fix the cause and redeploy. |
+| [App gone after a day](/docs/claim) | It was never kept | Deploy it again, then say yes when your tool offers to keep it. |
 | The link doesn't open, or the status says failed or crashed | The app is listening on the wrong port or only on localhost | Ask your tool: "Make my app read its port from the PORT environment variable and listen on 0.0.0.0, then redeploy." |
 
 Every code is explained in the [troubleshooting reference](/docs/errors).
@@ -146,11 +146,11 @@ No. Embarko doesn't need a Git repository, and your tool uploads the folder dire
 
 ### [Do I need an account?](#faq-account)
 
-Not for the first deploy. You can [deploy anonymously](/docs/claim) and press **Keep** within 24 hours to make the link permanent. [Keeping an app](/docs/claim) needs only an email address.
+Not for the first deploy. You can [deploy anonymously](/docs/claim), then keep it by giving your email: Embarko emails a token that your tool uses to make the app permanent. [Keeping an app](/docs/claim) needs only an email address.
 
 ### [Will my .env file be uploaded?](#faq-env)
 
-No. Your tool leaves `.env` files out of the archive. Keep secret keys out of your project files and, once you've pressed **Keep**, ask your tool to add them as [environment variables](/docs/env-vars). Embarko stores them encrypted and nobody can read them back. Environment variables work on server apps only, because [static sites](/docs/static-sites) have no process to read them. After setting one, [apply it or redeploy](/docs/env-vars). Your tool can follow [how to add a secret](/docs/env-vars).
+No. Your tool leaves `.env` files out of the archive. Keep secret keys out of your project files and, once the app is kept (or right away if you use the Claude connector), ask your tool to add them as [environment variables](/docs/env-vars). Embarko stores them encrypted and nobody can read them back. Environment variables work on server apps only, because [static sites](/docs/static-sites) have no process to read them. After setting one, [apply it or redeploy](/docs/env-vars). Your tool can follow [how to add a secret](/docs/env-vars).
 
 ### [Is it safe to put my app online without a repo?](#faq-safe)
 
