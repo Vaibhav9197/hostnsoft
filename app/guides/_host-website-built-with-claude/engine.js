@@ -628,7 +628,7 @@ export function initDeployGuide(host) {
     localhost: ['Localhost', 'The name your computer uses for itself. A localhost link only works on the machine that made it.'],
     server: ['Server', 'A computer in a data center that stays on all the time, so the sites on it are always reachable.'],
     hosting: ['Hosting', 'A server, your site’s files on it and a public address, all together.'],
-    dockerfile: ['Dockerfile', 'A recipe file some hosts use to build and run an app. Embarko builds the site itself and rejects an upload that includes one.'],
+    dockerfile: ['Dockerfile', 'A recipe file some hosts use to build and run an app. Embarko builds the site itself and doesn’t use one.'],
     env: ['Environment variables', 'Settings kept on the host, outside your code. Secret keys go here: your site can read them, visitors can’t.'],
     subdomain: ['Subdomain', 'The first part of an address, like your-site-name in your-site-name.embarko.app. It is your site’s name, so it must be unique.'],
     dns: ['DNS record', 'An entry at your domain’s DNS provider that tells browsers where your domain points.'],
@@ -1405,42 +1405,56 @@ export function initDeployGuide(host) {
     }, .5);
   }
 
-  /* 06 · Step 4: the live site. Click around its pages; the 24-hour banner
-     counts down for real until the reader presses Keep (which ticks the step). */
+  /* 06 · Step 4: the live site. Click around its pages, then answer Claude's
+     offer to keep it: say yes, paste the emailed code, and the site is
+     permanent at the same link (which ticks the step). */
   const site = $('[data-site]');
   if (site) {
     const navBtns = $$('[data-site-page]', site);
     const views = $$('.cl-site__view', site);
-    const leftEl = $('[data-site-left]', site);
+    const sayEl = $('[data-site-say]', site);
     const cap = $('[data-site-caption]', site);
     const keepBtn = $('[data-site-keep]', site);
     const keepLabel = $('span', keepBtn);
     const PAGES = ['Projects', 'About', 'Contact'];
     const defaultCap = cap.textContent;
     const visited = new Set([0]);
+    let until = 'this time tomorrow';
+    let stage = 0; /* 0: Claude offers to keep it, 1: code sent, waiting for the paste */
     const go = (i, say = true) => {
       navBtns.forEach((b, k) => b.setAttribute('aria-pressed', String(k === i)));
       views.forEach((v, k) => v.classList.toggle('is-on', k === i));
       visited.add(i);
       if (!say || state.steps[3]) return;
-      cap.textContent = visited.size === PAGES.length ? 'All three pages open, so it works. Now keep it, and it stays at the same address.'
+      cap.textContent = visited.size === PAGES.length ? 'All three pages open, so it works. Now say yes, and it stays at the same address.'
         : `${PAGES[i]} opens. ${PAGES.length - visited.size} more to try.`;
     };
-    let end = 0;
-    let timer = 0;
-    const pad = n => String(n).padStart(2, '0');
-    const tick = () => {
-      if (!site.isConnected) { clearInterval(timer); return; }
-      const s = Math.max(0, Math.round((end - Date.now()) / 1000));
-      leftEl.textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}`;
+    const offer = () => {
+      sayEl.innerHTML = '<b>Claude:</b> Your site is live. It stays online until <b class="mono"></b>. Want to keep it? Tell me your email and I’ll set it up.';
+      $('b.mono', sayEl).textContent = until;
+    };
+    const askCode = () => {
+      sayEl.innerHTML = '<b>Claude:</b> I’ve sent a code to <b class="mono">you@example.com</b> (check spam too). Paste it here and your site becomes permanent.';
     };
     const sync = () => {
       const kept = !!state.steps[3];
       site.classList.toggle('is-kept', kept);
-      keepLabel.textContent = kept ? 'Kept' : 'Keep';
-      cap.textContent = kept ? 'Kept. Same address, and the countdown banner is gone.' : defaultCap;
+      if (!kept) { stage = 0; offer(); }
+      keepLabel.textContent = kept ? 'Kept' : 'Yes, keep it';
+      cap.textContent = kept ? 'Done: your site is permanent. Same link, and nothing to keep any more.' : defaultCap;
     };
-    keepBtn.addEventListener('click', () => { stopAuto(); setStep(3, !state.steps[3]); });
+    keepBtn.addEventListener('click', () => {
+      stopAuto();
+      if (state.steps[3]) { setStep(3, false); return; }
+      if (stage === 0) {
+        stage = 1;
+        askCode();
+        keepLabel.textContent = 'Paste the code';
+        cap.textContent = 'Embarko emailed you a token. Paste it back to Claude.';
+        return;
+      }
+      setStep(3, true);
+    });
     stepHooks.push(i => { if (i === 3) sync(); });
     let autoId = 0;
     const cursor = makeCursor(site);
@@ -1462,14 +1476,15 @@ export function initDeployGuide(host) {
       }
       cursor.hide();
       go(0, false);
-      if (!state.steps[3]) cap.textContent = 'Your turn: click around, then press Keep.';
+      if (!state.steps[3]) cap.textContent = 'Your turn: click around, then say yes when Claude offers to keep it.';
       site.classList.add('is-played');
     }
     sync();
     onceInView(site, () => {
-      end = Date.now() + 24 * 3600 * 1000;
-      tick();
-      timer = setInterval(tick, 1000);
+      try {
+        until = new Date(Date.now() + 24 * 3600 * 1000).toLocaleString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+      } catch (e) {}
+      if (!state.steps[3] && stage === 0) offer();
       if (!reduced && !state.steps[3]) autoplay();
     }, .5);
   }

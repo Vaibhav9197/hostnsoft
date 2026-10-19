@@ -631,7 +631,7 @@ export function initDeployGuide(host) {
   const DEFS = {
     manifest: ['Manifest', 'The file that tells a host what your app is: package.json for Node.js, requirements.txt or pyproject.toml for Python, index.html for a static site. Embarko looks for it at the top of the folder.'],
     targz: ['.tar.gz file', 'One compressed file that holds a whole folder, like a .zip. Your agent packs your project into one before it uploads it.'],
-    dockerfile: ['Dockerfile', 'A recipe file some hosts use to build and run an app. Embarko builds the app itself and rejects an upload that includes one.'],
+    dockerfile: ['Dockerfile', 'A recipe file some hosts use to build and run an app. Embarko builds the app itself and doesn’t use one, so delete it.'],
     pgdump: ['pg_dump', 'The export tool for a Postgres database. It writes the database into one file you can download, here called backup.dump.'],
     datadir: ['DATA_DIR', 'A folder on your running Embarko app whose files survive redeploys. It exists only on the running app, so it isn’t part of your upload.'],
   };
@@ -1207,7 +1207,7 @@ export function initDeployGuide(host) {
       code: ['Claude Code', 'in your folder', AGENT],
       cursor: ['Cursor', 'in your folder', AGENT],
       other: ['Your agent', 'in your folder', 'Any agent that can run terminal commands in your project folder works. Use the deployment prompt.'],
-      connector: ['Embarko connector', 'in Claude, not on your laptop', 'The connector deploys from a public .tar.gz link, so it can’t upload a folder from your laptop. For a Replit export, use the deployment prompt.'],
+      connector: ['Embarko connector', 'in Claude', 'It sends the files directly and the app goes straight into your account. A very large export may not fit in one tool call; then use Claude Code or Cursor with the deployment prompt.'],
     };
     const pick = (k, persist) => {
       reach.dataset.tool = k;
@@ -1222,7 +1222,7 @@ export function initDeployGuide(host) {
     btns.forEach(b => b.addEventListener('click', () => { touched = true; pick(b.dataset.rpTool, true); }));
     const saved = store.get('embarko-replit-tool');
     if (saved && TOOLS[saved]) { touched = true; pick(saved, false); }
-    /* Shown once: the connector can't see the laptop, then back to an agent that can. */
+    /* Shown once: the connector card, then back to an agent that runs commands in the folder. */
     onceInView(reach, async () => {
       if (reduced || touched) return;
       await wait(900);
@@ -1399,17 +1399,19 @@ export function initDeployGuide(host) {
     if (!reduced) idle();
   }
 
-  /* 04 · Step 5. The claim page. With a token the app is already yours; without
-     one, Keep saves it and hands you the prompt that carries the deploy token. */
+  /* 04 · Step 5. Keeping the app happens in the chat: email, the token Embarko
+     mails you, then the agent redeploys the same name. Kept or connector apps
+     are already in the account. */
   const claim = $('[data-rp-claim]');
   if (claim) {
     const modes = $$('[data-rp-mode]', claim);
     const note = $('[data-rp-claim-note]', claim);
     const cap = $('[data-rp-claim-cap]', claim);
-    const addr = $('[data-rp-claim-addr]', claim);
     const btn = $('[data-rp-keep]', claim);
     const label = $('span', btn);
+    const bubbles = $$('[data-rp-k]', claim);
     let mode = store.get('embarko-replit-auth') === 'token' ? 'token' : 'skip';
+    const show = keys => bubbles.forEach(b => { b.style.display = keys.includes(b.dataset.rpK) ? '' : 'none'; });
     const render = () => {
       const done = !!state.steps[4];
       claim.dataset.mode = mode;
@@ -1417,17 +1419,17 @@ export function initDeployGuide(host) {
       claim.classList.toggle('is-kept', done && mode === 'skip');
       claim.classList.toggle('is-open', done && mode === 'token');
       if (mode === 'token') {
-        addr.textContent = 'your app, in your account';
-        note.textContent = 'Deployed with a token, so it’s already in your account. Nothing to keep.';
+        show(['owned']);
+        note.textContent = 'Kept with a token, or deployed with the Claude connector, so it’s already in your account. Nothing to keep.';
         label.textContent = done ? 'Opened' : 'Open your link';
         cap.textContent = done ? 'Opened and clicked around. It stays at this address.' : 'Open it and click around.';
       } else {
-        addr.textContent = 'the claim link from your agent';
-        note.textContent = done ? 'Kept. The address doesn’t change.' : 'Made without a token, so it lasts 24 hours.';
-        label.textContent = done ? 'Kept' : 'Keep';
+        show(done ? ['offer', 'done'] : ['offer']);
+        note.textContent = done ? 'Kept. The address doesn’t change.' : 'Not kept yet, so it’s deleted 24 hours after its first deploy. No email will remind you.';
+        label.textContent = done ? 'Kept' : 'Paste the token';
         cap.textContent = done
-          ? 'From now on your agent needs your deploy token to redeploy. This page gives you a prompt that carries it.'
-          : 'Press Keep within 24 hours, or the app is deleted. No email will remind you.';
+          ? 'Kept: the same address. Keep the token: your agent needs it for every later update.'
+          : 'Give your email, paste the token Embarko mails you, and the agent redeploys the same name.';
       }
     };
     claimMode = m => { mode = m; store.set('embarko-replit-auth', m); render(); };

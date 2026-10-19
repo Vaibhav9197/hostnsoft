@@ -1,6 +1,6 @@
 ---
 title: "Free Hosting for Students: Put Your Project Online"
-meta_description: "Free hosting for students: put a portfolio, college project or hackathon demo online for $0 with your AI agent. Claim it within 24 hours. Limits explained."
+meta_description: "Free hosting for students: put a portfolio, college project or hackathon demo online for $0 with your AI agent, then keep it with your email."
 slug: "free-hosting-for-students"
 primary_keyword: "free hosting for students"
 secondary_keywords: ["free web hosting for students", "free backend hosting for students", "host college project free", "host student project online", "free server for students"]
@@ -9,15 +9,15 @@ cover: "/assets/guides/free-hosting-for-students.png"
 cover_alt: "A student portfolio and a college project deploy for $0 on the Free plan: unlimited static websites and one dynamic app, live at your-app-name.embarko.app."
 read_minutes: 12
 datePublished: "2026-10-12"
-dateModified: "2026-10-14"
-last_verified: "2026-10-14"
+dateModified: "2026-10-19"
+last_verified: "2026-10-19"
 author: "The Embarko team"
 status: "published"
 ---
 
 # Free hosting for students: put your project online for $0
 
-**Students can host a project for free on Embarko's Free plan, which lists unlimited static websites and 1 dynamic app.** You build with an AI tool, paste Embarko's deployment prompt into it, and the agent uploads the project and returns a live link at `your-app-name.embarko.app`. Press **Keep** within 24 hours so the project stays online. There's no GitHub repo and no Dockerfile to deal with.
+**Students can host a project for free on Embarko's Free plan, which lists unlimited static websites and 1 dynamic app.** You build with an AI tool, paste Embarko's deployment prompt into it, and the agent uploads the project and returns a live link at `your-app-name.embarko.app`. When the agent offers to keep it, give your email: Embarko mails you a token, you paste it back, and the project stays at the same link. There's no GitHub repo and no Dockerfile to deal with.
 
 ## [Key takeaways](#takeaways)
 
@@ -25,7 +25,7 @@ status: "published"
 - The Free plan is $0 a month. It lists unlimited static websites and 1 dynamic app, and Embarko branding stays on. Prices are from [embarko.ai/pricing](/pricing) and can change.
 - It's the same Free plan for everyone. The pricing page lists no student verification and no separate student plan.
 - Your AI agent does the deploy. Paste the deployment prompt from [embarko.ai](/) into the tool that built your project.
-- Your first link needs no account. Press **Keep** within 24 hours, and do it before your demo or submission.
+- Your first link needs no account. Keep it within 24 hours by giving your email, and do it before your demo or submission.
 
 ## [What "free hosting" means for a student project](#what)
 
@@ -89,16 +89,15 @@ Embarko hosts small request-and-response apps: one process, [256MB of memory](/d
 |---|---|---|
 | Portfolio or personal website (HTML, CSS, JavaScript) | Yes | Published as [static files](/docs/static-sites), usually live in the first reply. Listed as unlimited on Free. |
 | Mini project in Node.js (Express) or Python (Flask, FastAPI) | Yes | The manifest (`package.json`, `requirements.txt` or `pyproject.toml`) goes at the top of the folder. It runs a server, so it uses your one dynamic app. |
-| React or Vite project | Yes, as a server app | Uploaded as source, it needs a build step, so it runs as a [server app](/docs/static-sites) and uses your one dynamic app. To keep that slot free, see the tip below. |
+| React or Vite project | Yes | Send the project with its `package.json`, not `dist`. Embarko [builds it and serves it as a website](/docs/deploy), and inner pages load. Values the build reads (`VITE_...`) go in a committed config file, not `.env`. |
 | Project with a small database | Yes, with SQLite | Keep a SQLite file under `DATA_DIR`, [the folder that survives redeploys](/docs/data). Keep your own copy of important data. |
 | Project that needs MySQL, Postgres or MongoDB | Another route | Embarko has [no managed database](/docs/data). Use SQLite for small data, or keep that project where its database lives. |
 | Chat app or game that needs live updates ([WebSockets](/docs/prerequisites)) | Another route | Use regular HTTP polling instead. |
-| A bot or job that runs on a schedule | Another route | [Scheduled jobs](/docs/prerequisites) and [workers](/docs/prerequisites) aren't available. Put the work behind an HTTP route that an outside scheduler calls. |
-| Machine learning that needs a GPU or more than 256MB | Another route | Run that part elsewhere. There are [no GPUs](/docs/deploy), and going over 256MB is an [out-of-memory kill](/docs/deploy). |
+| A job that runs on a schedule | Yes | Put it behind a route and list it under `schedules` in `embarko.json`. Embarko [calls it on time](/docs/schedules) once the app is kept (not `node-cron` inside the app). |
+| Background workers | Another route | [Workers](/docs/prerequisites) aren't available. Run the work inside the main app. |
+| Machine learning that needs a GPU or more than 256MB | Another route | Run that part elsewhere. Each app runs as one process with [256MB of memory](/docs/deploy), which can't be raised. |
 
-**Delete any Dockerfile** your AI tool added. Embarko builds the app itself and [rejects an upload that includes one](/docs/deploy).
-
-**Keep a React or Vite project static.** Ask your agent to build it first and upload only the build output folder (`dist` in Vite). It's published as a static site and doesn't use your dynamic app. Test your page links after deploying, because Embarko's docs don't say whether client-side routes work on a static site.
+**Delete any Dockerfile** your AI tool added. Embarko builds the app itself and [doesn't use one](/docs/deploy).
 
 ## [Is this a free VPS or a free server?](#vps)
 
@@ -114,27 +113,27 @@ Use the tool you already work in. Open the project folder and make sure it runs 
 
 ### [2. Copy the deployment prompt](#step-2)
 
-Open [embarko.ai](/) and click the button that copies the prompt (**Host your app** on the home page, **Copy deployment prompt** on [pricing](/pricing)), then paste it into your AI agent. Add one line:
+Open [embarko.ai](/) and click **Copy deployment prompt** (on the home page or [pricing](/pricing)), then paste it into your AI agent. Add one line:
 
 ```text
 I built a project for college, help me get it live on Embarko
 ```
 
-### [3. Choose how to sign in](#step-3)
+### [3. Let the agent deploy first](#step-3)
 
-The agent may ask how you want to sign in. Pick **token by email**: give your email and paste the token from your inbox. Or sign in at [embarko.ai/app/tokens](/app/tokens), create a token and paste it to your agent.
+The agent deploys first and asks later. When the project is live, it gives you the link and the time it will be deleted, and offers to keep it (step 5). Already have a deploy token from [embarko.ai/app/tokens](/app/tokens)? Paste it to your agent and the project goes into your account from the start.
 
-If you use Claude, you can add the [Embarko connector](/docs/connectors). Claude is the only AI tool that has one. Apps it deploys go straight into your account, so there's nothing to keep later. It deploys from a public `.tar.gz` link (a compressed archive of your code that anyone can download), not from a folder on your computer, so for a project on your laptop the token by email is usually simpler. If you skip signing in, the project still goes live for 24 hours. [Authentication: three ways in](/docs/claim) explains each option.
+If you use Claude, you can add the [Embarko connector](/docs/connectors). Claude is the only AI tool that has one. It sends your files directly, and apps it deploys go straight into your account, so there's nothing to keep. Very large projects may not fit in one tool call; then use the deployment prompt in Claude Code. [Keep a temporary app](/docs/claim) explains how keeping works.
 
 ### [4. Wait until the status says live](#step-4)
 
 The agent packs the folder, uploads it and checks the status about every 10 seconds. A static site is usually live in the first reply, and a server app builds first. A first reply of "202 Accepted" only means the build has started, so wait for `live`. See [202 Accepted is not live](/docs/status). When it says `live`, your agent gives you the link, for example `https://your-app-name.embarko.app`. Open it to check.
 
-If the upload fails with a network error or `403 host_not_allowed`, your tool's sandbox is blocking Embarko and nothing was deployed. Allow `embarko.ai`, `ship.embarko.ai` and `*.embarko.app` in your tool's network settings, or ask your agent for a deploy script and run it in your computer's own terminal. See [what to do when the API is unreachable](/docs/connectors).
+If the upload fails with a network error or `403 host_not_allowed`, your tool's sandbox is blocking Embarko and nothing was deployed. Allow `embarko.ai`, `ship.embarko.ai` and `*.embarko.app` in your tool's network settings, or ask your agent for a deploy script and run it in your computer's own terminal. See [which route to use](/docs/prerequisites).
 
 ### [5. Keep it, and keep a copy](#step-5)
 
-If you signed in with a token or the connector in step 3, your project is already kept. Otherwise, a link made without signing in lasts 24 hours with no reminder email, so open the claim link your agent gave you, sign in or sign up, pick a workspace and press **Keep**. If you've lost it, ask your agent to [make it permanent with a token](/docs/claim). The address doesn't change, and the page you land on after pressing **Keep** gives you a prompt that carries a token, so paste it to your agent once to update the app later. Then keep your own copy of the code, for example a local Git repository.
+If you deployed with a token or the connector, the project is already kept. Otherwise it's deleted 24 hours after its first deploy (no reminder email; the agent tells you the exact time). Say yes when the agent offers to keep it, give your email, and paste the token Embarko mails you. The agent redeploys the same name, so the address doesn't change, and it saves the token for later updates. Lost the token? Ask for a new one with the same email; old tokens keep working. See [keep a temporary app](/docs/claim). Then keep your own copy of the code, for example a local Git repository.
 
 ## [Hosting a hackathon or college project demo](#demo)
 
@@ -142,7 +141,7 @@ Before demo day or submission:
 
 - **Make sure the project is in your account.** An unkept app disappears 24 hours after its first deploy, with no reminder email.
 - **Open the live link on another device.** If it loads there, other people can open it too.
-- **Add API keys as environment variables, after pressing Keep.** Ask your agent to set each key and apply it. A write alone [doesn't reach the running app](/docs/env-vars). Never leave keys in your code, because the agent leaves `.env` files out of the upload. Static sites can't have environment variables.
+- **Add API keys as environment variables, once the app is kept.** Ask your agent to set each key and apply it. A write alone [doesn't reach the running app](/docs/env-vars). Never leave keys in your code, because the agent leaves `.env` files out of the upload. Static sites can't have environment variables.
 - **List it on Showcase if you want people to find it.** A kept app can be added to the public Showcase gallery with a tagline and your name. See [listing on Showcase](/docs/showcase). On your event's own Showcase page, it appears once the organiser approves it, or straight away if the organiser gave you the page's code. [Hackathon organisers](/hackathons) can apply for an event page.
 
 ## [If something goes wrong](#errors)
@@ -150,10 +149,10 @@ Before demo day or submission:
 | What you see | Likely cause | Fix |
 |---|---|---|
 | A network error, or [`403 host_not_allowed`](/docs/connectors) | Your tool's sandbox blocks Embarko. Nothing was deployed. | Allow `embarko.ai`, `ship.embarko.ai` and `*.embarko.app`, or ask your agent for a deploy script and run it in your own terminal. |
-| [Exit code 137](/docs/deploy) | The project went over 256MB, often because it runs a dev server | Ask your agent to use the production start command, not a dev server. |
+| [Status says crashed](/docs/logs) | It built but stopped running, often over 256MB of memory or the wrong port | Ask your agent to read the logs, fix the cause and redeploy. |
 | [`422 no_manifest_at_root`](/docs/errors) | The manifest is in a subfolder | Repackage so it's at the top of the archive. |
 | [`409 app_name_taken`](/docs/errors) | Someone else already uses that name | Pick a different name. Don't retry it. |
-| [Project gone after a day](/docs/claim) | It was never kept | Deploy it again and press **Keep** this time. |
+| [Project gone after a day](/docs/claim) | It was never kept | Deploy it again and keep it this time (give your email when the agent offers). |
 | The link doesn't open, or the status says failed or crashed | The project is listening on the wrong port or only on localhost | Ask your agent: "Make my app read its port from the PORT environment variable and listen on 0.0.0.0, then redeploy." |
 
 Other codes are in the [troubleshooting reference](/docs/errors).
@@ -170,7 +169,7 @@ Yes, within the Free plan: $0 a month for unlimited static websites and 1 dynami
 
 ### [Do I need to prove I'm a student?](#faq-proof)
 
-The pricing page lists no student verification, and the Free plan is the same for everyone. You do need to sign in or sign up to keep your project: without a token it's deleted after 24 hours, unless you keep it with the claim link from your agent's first reply or with a token sent to your email.
+The pricing page lists no student verification, and the Free plan is the same for everyone. To keep your project, give your email when the agent offers: Embarko mails you a token and you paste it back. Without that, or a token or the Claude connector from the start, it's deleted 24 hours after its first deploy.
 
 ### [Can I host a college project that uses MySQL or MongoDB?](#faq-database)
 
@@ -182,7 +181,7 @@ No. The pricing page lists your own domain under Creator, not Free. On Free your
 
 ### [Will my project stay online after the demo?](#faq-stay-online)
 
-Yes, if it's in your account: deployed with a token or the Claude connector, or kept within 24 hours with your agent's claim link or a token. Otherwise it's deleted 24 hours after its first deploy. After you [keep it](/docs/claim) the link stays the same. Keep your own copy of the code too.
+Yes, if it's kept: deployed with a token or the Claude connector, or kept within 24 hours by giving your email and pasting the token Embarko mails you. Otherwise it's deleted 24 hours after its first deploy. After you [keep it](/docs/claim) the link stays the same. Keep your own copy of the code too.
 
 ### [Is there a free VPS for students?](#faq-vps)
 
@@ -190,7 +189,7 @@ Embarko isn't a VPS. Your agent uploads the app, Embarko builds it and serves it
 
 ### [Is it safe to host my student project online?](#faq-safe)
 
-Keep secret keys out of your project files. The agent leaves `.env` files out of the archive, and once you've pressed **Keep** you can add keys as [environment variables](/docs/env-vars), which Embarko stores encrypted and nobody can read back. Also remember that anyone with your link can open your project, so if it uses your AI key, set a spending limit with your AI provider if they offer one.
+Keep secret keys out of your project files. The agent leaves `.env` files out of the archive, and once the app is kept you can add keys as [environment variables](/docs/env-vars), which can't be read back once stored. Also remember that anyone with your link can open your project, so if it uses your AI key, set a spending limit with your AI provider if they offer one.
 
 ## [Built something with AI? Ask it to deploy to Embarko.](#deploy)
 

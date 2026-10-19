@@ -630,7 +630,7 @@ export function initDeployGuide(host) {
     localhost: ['Localhost', 'The name your computer uses for itself. A link that starts with localhost only works on the machine that made it.'],
     server: ['Server', 'A computer that stays on all the time, so the apps on it are always reachable.'],
     hosting: ['Hosting', 'A server that stays on, your app’s files on it and a public address, all together.'],
-    dockerfile: ['Dockerfile', 'A recipe file some hosts use to build and run an app. Embarko builds the app itself and rejects an upload that includes one.'],
+    dockerfile: ['Dockerfile', 'A recipe file some hosts use to build and run an app. Embarko builds the app itself and doesn’t use one.'],
     env: ['Environment variables', 'Settings kept on the host, outside your code. Secret keys go here, not in your project files.'],
     sandbox: ['Cursor’s sandbox', 'A restricted space where Cursor runs agent commands. Network access inside it is blocked by default and opened by your network mode and sandbox.json.'],
   };
@@ -1004,7 +1004,7 @@ export function initDeployGuide(host) {
       [.22, 'packing', 'Pack', 'The agent runs a command in your terminal: it packs the folder, leaving out node_modules, .git and .env.'],
       [.44, 'uploading', 'Upload', 'It uploads the archive to Embarko and sends cursor as its agent name. “202 Accepted” only means the build has started.'],
       [.6, 'checking every 10 s', 'Check', 'It checks the status about every 10 seconds until it says live.'],
-      [.94, 'live', 'Live', 'It reports the live link. Once you keep the app, its deploy history shows that cursor made this deploy.'],
+      [.94, 'live', 'Live', 'It reports the live link and the time a temporary app will be deleted, then offers to keep it.'],
     ];
     let t = 0;
     let lastZone = -1;
@@ -1288,16 +1288,15 @@ export function initDeployGuide(host) {
     sync();
   }
 
-  /* 06 · Step 2: what each sign-in answer leads to. */
+  /* 06 · Step 2: what each answer to the agent's keep offer leads to. */
   const signin = $('[data-cu-signin]');
   if (signin) {
     const opts = $$('[data-signin]', signin);
     const outEl = $('[data-signin-out]', signin);
     const SAY = {
-      connector: ['no', 'Skip this one. Cursor doesn’t have an Embarko connector; Claude is the only AI tool with one.'],
-      email: ['yes', 'Give your email, then paste the token from your inbox. With a token, the app goes into your account and is kept from the start.'],
-      token: ['yes', 'Create a token at embarko.ai/app/tokens and paste it into the chat. The app goes into your account and is kept from the start.'],
-      skip: ['wait', 'The app still works for 24 hours. Keep it in step 4 so it stays.'],
+      email: ['yes', 'Tell it your email. Embarko mails you a token, you paste it into the chat, and the agent redeploys the same name. The app becomes permanent at the same address.'],
+      token: ['yes', 'Paste it into the chat. The agent redeploys the same name with it, and the app becomes permanent at the same address. You can create one under Deploy tokens at embarko.ai/app/tokens.'],
+      skip: ['wait', 'No problem. The app stays live for 24 hours, then it is deleted unless you keep it.'],
     };
     opts.forEach(b => b.addEventListener('click', () => {
       const [kind, text] = SAY[b.dataset.signin];

@@ -9,8 +9,8 @@ cover: "/assets/guides/deploy-from-cursor.png"
 cover_alt: "Cursor's agent pastes the Embarko deployment prompt, sandbox.json allows embarko.ai, ship.embarko.ai and *.embarko.app, and the app goes live at your-app-name.embarko.app."
 read_minutes: 11
 datePublished: "2026-10-12"
-dateModified: "2026-10-14"
-last_verified: "2026-10-14"
+dateModified: "2026-10-19"
+last_verified: "2026-10-19"
 author: "The Embarko team"
 status: "published"
 ---
@@ -25,7 +25,7 @@ status: "published"
 - The usual route asks for a GitHub repository, a hosting account, build settings and secret keys.
 - With Embarko, the "one prompt" is the deployment prompt copied from [embarko.ai](/). Cursor's agent packs the folder, [uploads it](/docs/deploy) and [checks the status](/docs/status) until the app is `live`.
 - Cursor's sandbox blocks network access by default. If the upload is blocked, add three Embarko hosts to your `sandbox.json` allowlist, or approve the command.
-- Your first link needs no account. Press **Keep** within 24 hours and it stays at the same address.
+- Your first link needs no account and lasts 24 hours. To keep it, give the agent your email: Embarko mails you a token, you paste it back, and the app stays at the same address.
 
 ## [Why your Cursor app isn't online yet](#why)
 
@@ -58,7 +58,7 @@ Embarko is hosting that your AI tool runs for you. Cursor's agent packs the app,
 
 ## [What "one prompt" means in Cursor](#prompt)
 
-The one prompt is Embarko's deployment prompt, a ready-made message that tells the agent how to deploy. It works because Cursor's agent can run commands: Cursor's own docs say it "runs shell commands directly in your terminal" ([Cursor terminal docs](https://cursor.com/docs/agent/tools/terminal)). The agent reads the prompt, packs the folder, uploads it and reports the live link. It should also send `cursor` as its agent name, so once you keep the app, its [deploy history](/docs/rollback) shows which agent made each deploy.
+The one prompt is Embarko's deployment prompt, a ready-made message that tells the agent how to deploy. It works because Cursor's agent can run commands: Cursor's own docs say it "runs shell commands directly in your terminal" ([Cursor terminal docs](https://cursor.com/docs/agent/tools/terminal)). The agent reads the prompt, packs the folder, uploads it and reports the live link. It also sends `cursor` as its agent name.
 
 ## [Let Cursor's agent reach Embarko](#sandbox)
 
@@ -95,15 +95,15 @@ Embarko suits small web apps. Here's how common Cursor projects line up, and wha
 | A plain website | Yes | Keep `index.html` at the top of the folder. Usually live straight away. |
 | A Node.js app | Yes | `package.json` at the top. Read the port from `PORT` and listen on `0.0.0.0`. |
 | A Python app | Yes | `requirements.txt` or `pyproject.toml` at the top. |
-| A React or Vite app | Yes | [Built first, then run as a server app](/docs/static-sites). |
+| A React or Vite app | Yes | Send the project with its `package.json`, not a built `dist` folder. Embarko [builds it and serves it as a website](/docs/deploy), and inner pages load. Values the build reads (`VITE_...`) go in a committed config file, not `.env`. |
 | A small database | Yes, SQLite | Save the file under `DATA_DIR`, [the folder that survives redeploys](/docs/data). Keep your own copy of important data. |
 | A frontend and a backend in one project | Two apps | [One deploy is one app](/docs/two-apps). Deploy each folder as its own app. |
 | Postgres or MySQL | Another route | Embarko has [no managed database](/docs/data). Use SQLite for small data, or host that app where its database lives. |
 | Live updates ([WebSockets](/docs/prerequisites)) | Another route | Use regular HTTP polling instead. |
-| [Scheduled jobs](/docs/prerequisites) | Another route | Run them elsewhere and have them call your app. |
+| [Scheduled jobs](/docs/schedules) | Yes, as a schedule | Put the job behind a route and list it under `schedules` in `embarko.json`. Embarko calls it on time. A timer library inside the app (`node-cron`) isn't supported. |
 | Heavy processing or a GPU | Another route | Run that part elsewhere. Apps get [256MB of memory and no GPU](/docs/deploy). |
 
-**Delete any Dockerfile** Cursor added. Embarko builds the app itself and [rejects an upload that includes one](/docs/deploy).
+**Delete any Dockerfile** Cursor added. Embarko builds the app itself and [doesn't use one](/docs/deploy).
 
 ## [How to deploy from Cursor, step by step](#steps)
 
@@ -121,7 +121,7 @@ Open [embarko.ai](/), copy the deployment prompt, and paste it into a new agent 
 I built a web app, help me get it live on Embarko
 ```
 
-The agent may first ask how you want to sign in. Skip the connector option, because Cursor doesn't have one. Pick **token by email** (give your email, then paste the token from your inbox), or create a token at [embarko.ai/app/tokens](/app/tokens). With a token, the app goes into your account and is kept from the start. If you skip, the app still works for 24 hours. The [three ways to sign in](/docs/claim) explains each option.
+The agent deploys first and asks later. Once the app is live, it gives you the link and the time it will be deleted, and offers to keep it. See [Keep a temporary app](/docs/claim). Want the app in your account from the start? Create a token under **Deploy tokens** at [embarko.ai/app/tokens](/app/tokens) and paste it into the chat.
 
 ### [3. Let the agent do the deploy](#step-3)
 
@@ -134,11 +134,11 @@ The app name becomes your address. It must be 3 to 63 characters (lowercase lett
 
 ### [4. Open your link and keep it](#step-4)
 
-The agent gives you the address, `your-app-name.embarko.app`. Open it and click around. A link made without a token lasts 24 hours with no reminder email, though an HTML page shows a [countdown banner](/docs/claim). Ask Cursor to [make it permanent](/docs/claim): it asks for your email, Embarko emails you a token, you paste it into the chat, and the agent redeploys the same name. The link stays the same.
+The agent gives you the address, `your-app-name.embarko.app`. Open it and click around. A link made without a token lasts 24 hours with no reminder email, and the agent tells you the exact deletion time. Ask Cursor to [make it permanent](/docs/claim): it asks for your email, Embarko emails you a token, you paste it into the chat, and the agent redeploys the same name. The link stays the same.
 
 ## [Changing the app later](#later)
 
-Ask Cursor to [redeploy](/docs/deploy) with the same name. Embarko keeps [deployment history](/docs/rollback), and a kept app can [roll back](/docs/rollback) to a recent successful build. Rollback restores code, never data. Since Embarko isn't where your code lives, [keep your own copy](/docs/data) too. A local Git repository is enough.
+Ask Cursor to [redeploy](/docs/deploy) with the same name. Embarko keeps [deployment history](/docs/rollback), and a kept app can [roll back](/docs/rollback) to a recent successful build. Only the last 5 builds are kept. Rollback restores code, never data. Since Embarko isn't where your code lives, [keep your own copy](/docs/data) too. A local Git repository is enough.
 
 To use an API key, keep the app first, then ask the agent to set it as an [environment variable](/docs/env-vars) with your Embarko deploy token and apply it. A write alone [doesn't reach the running app](/docs/env-vars). Static sites can't have environment variables, only server apps can.
 
@@ -149,9 +149,9 @@ Failed deploys often come down to a blocked upload, a missing key or setting, or
 | What you see | Likely cause | Fix |
 |---|---|---|
 | A network or connection error on the upload | Cursor's sandbox blocks Embarko's hosts. Nothing was deployed. | Allow `embarko.ai`, `ship.embarko.ai` and `*.embarko.app` in `sandbox.json` ([how](#sandbox)), approve the command, or run it in Cursor's terminal. |
-| [`403 host_not_allowed`](/docs/connectors) | A network sandbox blocks the upload. Nothing was deployed. | Same fix as above. |
-| [Exit code 137](/docs/deploy) | The app went over 256MB, often because it runs a dev server | Use the production start command, such as `npm start` after a build, not `vite dev` or `next dev`. |
-| [App gone after a day](/docs/claim) | It was never kept | Deploy it again and press **Keep** this time. |
+| [`403 host_not_allowed`](/docs/errors) | A network sandbox blocks the upload. Nothing was deployed. | Same fix as above. |
+| [The status says crashed](/docs/logs) | The app built but then stopped running. The logs name the reason. | Ask Cursor to read the logs, fix what they name and redeploy. Apps get [256MB of memory](/docs/deploy), which can't be raised. |
+| [App gone after a day](/docs/claim) | It was never kept | Deploy it again, then give the agent your email when it offers to keep it. |
 | The link doesn't open, or the status says failed or crashed | The app is listening on the wrong port or only on localhost | Ask Cursor: "Make my app read its port from the PORT environment variable and listen on 0.0.0.0, then redeploy." |
 | Other deploy errors, such as [`409 app_name_taken`](/docs/errors) or a [`422`](/docs/deploy) | The reply's `code` field names the cause | Look the code up in the [troubleshooting reference](/docs/errors). Don't retry a 409 or 422 unchanged. |
 
@@ -179,11 +179,11 @@ No. Embarko takes the project folder directly, so there's no repo to create or c
 
 ### [Will my app stay online?](#faq-stay-online)
 
-Once you press **Keep**, yes. An app deployed without a token is deleted 24 hours after its first deploy. Ask Cursor to [make it permanent](/docs/claim): Embarko emails you a token, you paste it into the chat, and the agent redeploys the same name with it. The link stays the same.
+Once it's kept, yes. An app deployed without a token is deleted 24 hours after its first deploy. Ask Cursor to [make it permanent](/docs/claim): Embarko emails you a token, you paste it into the chat, and the agent redeploys the same name with it. The link stays the same.
 
 ### [Is it safe to put my Cursor app online?](#faq-safe)
 
-Keep secret keys out of your project files. The agent leaves `.env` files out of the archive, and once you've pressed **Keep** you can add keys as [environment variables](/docs/env-vars), which Embarko stores encrypted and nobody can read back. Also remember that anyone with your link can open the app, so if it uses your AI key, set a spending limit with your AI provider if they offer one.
+Keep secret keys out of your project files. The agent leaves `.env` files out of the archive, and once the app is kept you can add keys as [environment variables](/docs/env-vars), which Embarko [stores encrypted](/security) and nobody can read back. Also remember that anyone with your link can open the app, so if it uses your AI key, set a spending limit with your AI provider if they offer one.
 
 ### [Is it free?](#faq-free)
 

@@ -633,7 +633,7 @@ export function initDeployGuide(host) {
     static: ['Static website', 'Plain files (HTML, CSS, JavaScript). No server code runs; the host just serves the files.'],
     dynamic: ['Dynamic app', 'Anything that runs a server, such as Express, Flask or FastAPI. The Free plan has room for one.'],
     vps: ['VPS', 'A virtual private server: a machine you log into and manage yourself, including installing and updating things.'],
-    dockerfile: ['Dockerfile', 'A recipe file some hosts use to build and run an app. Embarko builds the app itself and rejects an upload that includes one.'],
+    dockerfile: ['Dockerfile', 'A recipe file some hosts use to build and run an app. Embarko builds the app itself and doesn’t use one.'],
     envvar: ['Environment variable', 'A setting, such as an API key, stored on the host instead of in your code. The running app reads it.'],
     manifest: ['Manifest', 'The file that says what your project needs: package.json for Node.js, requirements.txt or pyproject.toml for Python.'],
   };
@@ -832,9 +832,9 @@ export function initDeployGuide(host) {
     projectHooks.forEach(fn => fn(p));
   };
 
-  /* How the reader signs in (step 3) decides whether step 5 still needs Keep. */
+  /* How the agent deploys (step 3) decides whether step 5 still needs keeping. */
   const SIGNIN_KEY = 'embarko-student-signin';
-  const KEPT_WAYS = ['email', 'tokens', 'connector'];
+  const KEPT_WAYS = ['tokens', 'connector'];
   let signinWay = store.get(SIGNIN_KEY) || '';
   const signinHooks = [];
   const keptBySignin = () => KEPT_WAYS.includes(signinWay);
@@ -994,7 +994,7 @@ export function initDeployGuide(host) {
       ctabs[rowsC.length]?.classList.toggle('is-kept', done);
       closeEl.classList.toggle('is-done', done);
       const left = ctabs.length - k;
-      note.textContent = done ? 'Four tabs closed. Still yours: API keys, added as environment variables after you press Keep.'
+      note.textContent = done ? 'Four tabs closed. Still yours: API keys, added as environment variables once the app is kept.'
         : `${left} tabs open`;
     });
   }
@@ -1007,8 +1007,6 @@ export function initDeployGuide(host) {
     const zones = { static: $('[data-st-zone="static"]', plan), dynamic: $('[data-st-zone="dynamic"]', plan) };
     const cap = $('[data-st-plan-cap]', plan);
     const items = $$('.st-plan__item', plan);
-    const build = $('[data-st-build]', plan);
-    const reactSub = $('[data-st-react-sub]', plan);
     const item = key => $(`[data-st-item="${key}"]`, plan);
     const chipOf = it => $('.st-chip', it);
     const nameOf = it => $('b', it).textContent;
@@ -1036,9 +1034,7 @@ export function initDeployGuide(host) {
           flash(zones.dynamic, 'is-reject');
           flash(chipOf(it), 'is-bounce');
           move(it, 'tray');
-          cap.textContent = it.dataset.stItem === 'react'
-            ? `The dynamic slot is taken by the ${nameOf(occupant).toLowerCase()}. Build the React app first and upload dist, and it goes on the static shelf instead.`
-            : `Your one dynamic app is already the ${nameOf(occupant).toLowerCase()}. Tap it to take it off first.`;
+          cap.textContent = `Your one dynamic app is already the ${nameOf(occupant).toLowerCase()}. Tap it to take it off first.`;
           return false;
         }
       }
@@ -1058,18 +1054,6 @@ export function initDeployGuide(host) {
       move(it, 'tray');
       cap.textContent = `The ${nameOf(it).toLowerCase()} is off the plan.`;
     }
-    function setBuild(on, quiet = false) {
-      const react = item('react');
-      build.setAttribute('aria-pressed', String(on));
-      chipOf(react).dataset.kind = on ? 'static' : 'dynamic';
-      reactSub.textContent = on ? 'Vite · build output (dist)' : 'Vite · uploaded as source';
-      if (quiet) return;
-      const at = whereOf(react);
-      if (at !== 'tray' && at !== kindOf(react) && !place(react, null)) return;
-      cap.textContent = on
-        ? 'Built first and uploaded as dist, the React app is published as a static site and doesn’t use your dynamic app.'
-        : 'Uploaded as source, the React app needs a build step, so it runs as a server app and uses your one dynamic app.';
-    }
 
     let swallow = false;
     items.forEach(it => chipOf(it).addEventListener('click', () => {
@@ -1077,7 +1061,6 @@ export function initDeployGuide(host) {
       stopAuto();
       if (whereOf(it) === 'tray') place(it, null); else unplace(it);
     }));
-    build.addEventListener('click', () => { stopAuto(); setBuild(build.getAttribute('aria-pressed') !== 'true'); });
 
     /* Drag with a pointer (mouse or touch); the chip leaves a ghost that follows. */
     const local = (x, y) => { const r = plan.getBoundingClientRect(); return [x - r.left, y - r.top]; };
@@ -1154,7 +1137,6 @@ export function initDeployGuide(host) {
       plan.classList.add('is-played');
     }
     const reset = () => {
-      setBuild(false, true);
       items.forEach(it => tray.append(it));
       syncZones();
     };
@@ -1186,7 +1168,7 @@ export function initDeployGuide(host) {
       const alive = () => my === autoId;
       plan.classList.remove('is-played');
       reset();
-      cap.textContent = 'Watch: four student projects, one Free plan.';
+      cap.textContent = 'Watch: three student projects, one Free plan.';
       cursor.show(item('portfolio'), 80, 70);
       await wait(500);
       if (!alive()) return;
@@ -1198,23 +1180,12 @@ export function initDeployGuide(host) {
       if (!alive()) return;
       await wait(1700);
       if (!alive()) return;
-      await demoDrag(item('react'), 'dynamic', alive);
+      await demoDrag(item('demo'), 'dynamic', alive);
       if (!alive()) return;
-      await wait(2600);
-      if (!alive()) return;
-      await cursor.moveTo(build, alive, 700);
-      if (!alive()) return;
-      await cursor.press(alive);
-      if (!alive()) return;
-      setBuild(true);
-      await wait(900);
-      if (!alive()) return;
-      place(item('react'), null);
-      cap.textContent = 'Built first and uploaded as dist, the React app is a static site. The dynamic slot stays with the college project.';
       await wait(2600);
       if (!alive()) return;
       cursor.hide();
-      cap.textContent = 'Your turn: drag a project onto the plan, or tap it. Try adding the hackathon demo.';
+      cap.textContent = 'Your turn: drag a project onto the plan, or tap it. Tap the college project to free the dynamic slot.';
       plan.classList.add('is-played');
     }
     $('[data-st-plan-replay]', plan)?.addEventListener('click', () => { if (!reduced) autoplay(); });
@@ -1306,7 +1277,7 @@ export function initDeployGuide(host) {
     sync();
   }
 
-  /* 07 · Step 3: four ways to sign in, and what each means for keeping the project. */
+  /* 07 · Step 3: how the agent deploys, and what each way means for keeping the project. */
   const signin = $('[data-st-signin]');
   if (signin) {
     const ways = $$('[role="radio"]', signin);
@@ -1314,10 +1285,9 @@ export function initDeployGuide(host) {
     const result = $('[data-st-signin-result]', signin);
     const KEPT = 'Kept from the start, so there’s nothing to keep later.';
     const WAYS = {
-      email: { flow: ['Give your agent your email', 'Paste the token from your inbox', 'Your agent deploys into your account'], result: KEPT },
-      tokens: { flow: ['Sign in at embarko.ai/app/tokens', 'Create a token', 'Paste it to your agent'], result: KEPT },
-      connector: { flow: ['Add the Embarko connector in Claude', 'Claude deploys from a public .tar.gz link', 'The app goes straight into your account'], result: `${KEPT} For a project on your laptop, the token by email is usually simpler.` },
-      skip: { flow: ['Your agent deploys without a token', 'You get a live link and a claim link'], result: 'Live for 24 hours. Press Keep in step 5, or it’s deleted.' },
+      first: { flow: ['Your agent deploys without a token', 'You get the live link and the time it will be deleted', 'Your agent offers to keep it'], result: 'Live for 24 hours. Give your email in step 5 to keep it, or it’s deleted.' },
+      tokens: { flow: ['Paste your deploy token to your agent', 'Your agent deploys with it', 'The app goes into your account'], result: KEPT },
+      connector: { flow: ['Add the Embarko connector in Claude', 'Claude sends your files directly', 'The app goes straight into your account'], result: KEPT },
     };
     const select = (way, { focus = false, persist = true } = {}) => {
       ways.forEach(b => {
@@ -1384,7 +1354,7 @@ export function initDeployGuide(host) {
     });
   }
 
-  /* 07 · Step 5: the demo-day week. An unkept link lives 24 hours; Keep turns the week green. */
+  /* 07 · Step 5: the demo-day week. An unkept link lives 24 hours; keeping it turns the week green. */
   const week = $('[data-st-week]');
   if (week) {
     const grid = $('[data-st-week-grid]', week);
@@ -1418,7 +1388,7 @@ export function initDeployGuide(host) {
       if (verdict.textContent !== text) verdict.textContent = text;
       week.classList.toggle('is-ok', ok === true);
       week.classList.toggle('is-bad', ok === false);
-      keepLabel.textContent = !kept ? 'Keep' : state.steps[4] ? 'Kept' : 'Kept at sign-in';
+      keepLabel.textContent = !kept ? 'Give my email' : state.steps[4] ? 'Kept' : 'Kept from the start';
     };
     const dayAt = x => { const r = grid.getBoundingClientRect(); return clamp(Math.floor((x - r.left) / r.width * 7), 0, 6); };
     const setDay = d => { if (d !== day) { day = d; render(); } };
@@ -1461,7 +1431,7 @@ export function initDeployGuide(host) {
       stopAuto();
       setStep(4, !state.steps[4]);
       cap.textContent = state.steps[4]
-        ? 'Kept. The address doesn’t change. Now keep your own copy of the code too.'
+        ? 'Kept: you gave your email and pasted the token. The address doesn’t change. Now keep your own copy of the code too.'
         : 'Not kept: the link would be deleted 24 hours after its first deploy.';
     });
     stepHooks.push(render);
@@ -1488,7 +1458,7 @@ export function initDeployGuide(host) {
       }
       life = 0;
       render();
-      cap.textContent = 'Monday, 10:00: deployed without signing in. The 24 hours start.';
+      cap.textContent = 'Monday, 10:00: deployed without a token. The 24 hours start.';
       await wait(600);
       if (!alive()) return;
       await tween(2600, k => { life = k; render(); }, alive);
@@ -1512,7 +1482,7 @@ export function initDeployGuide(host) {
       if (!alive()) return;
       week.classList.remove('is-dragging');
       cursor.hide();
-      cap.textContent = 'Your turn: press Keep, or drag the demo-day flag to any day.';
+      cap.textContent = 'Your turn: give your email to keep it, or drag the demo-day flag to any day.';
       week.classList.add('is-played');
     }
     $('[data-st-week-replay]', week)?.addEventListener('click', () => { if (!reduced) autoplay(); });
@@ -1547,7 +1517,7 @@ export function initDeployGuide(host) {
         if (!reduced) { stateEl.classList.remove('is-swap'); void stateEl.offsetWidth; stateEl.classList.add('is-swap'); }
       }
       stateEl.textContent = TEXT[s];
-      storedText.textContent = k.static ? 'not available' : k.set ? 'stored, encrypted' : 'not set';
+      storedText.textContent = k.static ? 'not available' : k.set ? 'stored, write-only' : 'not set';
       stored.classList.toggle('is-stored', k.set && !k.static);
       setBtn.disabled = k.static;
       applyBtn.disabled = k.static || !k.set || k.applied;

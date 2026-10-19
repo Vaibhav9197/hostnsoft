@@ -1,8 +1,6 @@
 /* ==========================================================================
    Embarko · Guide article: interaction layer
    Progressive enhancement only. The article is complete and readable
-   without this file; everything here adds motion, state and delight.
-   ========================================================================== */
 /* eslint-disable */
 export function initDeployGuide(host) {
   'use strict';
