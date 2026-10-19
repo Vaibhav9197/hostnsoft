@@ -32,6 +32,9 @@ export const LANDING_METADATA: Metadata = {
     "instant live URL",
     "no config app hosting",
   ],
+  // The root layout's "./" would resolve to the arm's own path (/v2), which
+  // middleware marks noindex, so Google would index neither. Pin it to "/".
+  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     siteName: "Embarko",
