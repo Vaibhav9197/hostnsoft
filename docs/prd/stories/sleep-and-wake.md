@@ -8,7 +8,7 @@
 - **Wants to:** open an app that nobody has used for hours
 - **Ends with:** The app wakes in seconds and answers; while asleep it used nothing.
 - **Steps:** 5 · 0 by AI · 4 can go wrong
-- **Last change to its code:** v39, 9 Oct 2026 — bugfix: unable to activate sleeping application after litestream
+- **Last change to its code:** v44, 19 Oct 2026 — Let webhooks from HTTP client libraries wake sleeping apps
 
 [← All stories](../README.md)
 
@@ -164,11 +164,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v39 (9dc5b15) | 9 Oct 2026 | bugfix: unable to activate sleeping application after litestream | wake, answer |
-| v38 (faec0f1) | 1 Oct 2026 | fixed traefik configuration when no app in scale to zero | sleep |
-| v37 (fe4569a) | 28 Sept 2026 | scale to zero checks removed | sleep, wake, answer |
-| v36 (7099155) | 26 Sept 2026 | App slug name change funcationality deploy service (#14) | sleep |
-| v35 (f3a13f4) | 26 Sept 2026 | Merge pull request #11 from Walkover-Web-Solution/feat/agent-slug-change | sleep |
+| v44 (164654d) | 19 Oct 2026 | Let webhooks from HTTP client libraries wake sleeping apps | sleep |
+| v43 (b3e21dd) | 14 Oct 2026 | feat: add zero-downtime graceful shutdown, unref intervals, and live migration script | record |
+| v42 (802c949) | 14 Oct 2026 | issue with stuck sleeping app due to livestream backup check | sleep, wake, answer |
+| v41 (bbde1e1) | 12 Oct 2026 | Close the 502 window after a scale-to-zero stop | sleep, wake, answer |
+| v40 (ed34a72) | 12 Oct 2026 | write wake routers on deploy; never stop an app without one | sleep |
 
 ## Open questions
 

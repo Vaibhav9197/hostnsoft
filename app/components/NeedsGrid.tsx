@@ -21,7 +21,7 @@ const NEEDS: { name: string; icon: LucideIcon; what: string; say?: string; notYe
   { name: 'Email', icon: Mail, what: 'Your AI connects an email service you choose. You paste its key once.', say: 'Send a welcome email when someone signs up.' },
   { name: 'Private sharing', icon: Lock, what: 'Apps are public by default. Your AI can add a password gate so only your people get in.', say: 'Add a password so only my team can open it.' },
   { name: 'Logs & recovery', icon: History, what: 'Your AI reads the logs to fix problems, and can roll back to the last good version in seconds.', say: 'My app broke. Find out why and fix it.' },
-  { name: 'Schedules', icon: CalendarClock, what: 'Not built in yet. For now, your AI can trigger the app from an outside scheduler.', notYet: true },
+  { name: 'Schedules', icon: CalendarClock, what: 'Your AI sets a time, and Embarko calls your app then to do the job. You get an email if a run fails.', say: 'Send me the sales report every Monday at 9.' },
   { name: 'Background jobs', icon: Workflow, what: 'Not available yet. Short tasks run inside the app; long jobs need to run elsewhere for now.', notYet: true },
 ];
 

@@ -8,7 +8,7 @@
 - **Wants to:** set up their app's domain, settings and web address
 - **Ends with:** The app runs with its own domain and settings, at the address they chose.
 - **Steps:** 7 · 0 by AI · 7 can go wrong
-- **Last change to its code:** v116, 6 Oct 2026 — feat(showcase): organiser custom HTML on event pages
+- **Last change to its code:** v129, 19 Oct 2026 — Read embarko.json on deploy for schedules, warn about in-process timers
 
 [← All stories](../README.md)
 
@@ -273,11 +273,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v116 (23a0fb8) | 6 Oct 2026 | feat(showcase): organiser custom HTML on event pages | — |
-| v115 (3ae7dff) | 5 Oct 2026 | Now Checking with exact name not from prefixes (#20) | check-dns, apply, move |
-| v114 (f298654) | 3 Oct 2026 | feat: accepting multiple email for the app contibutors | — |
-| v113 (0a4cace) | 1 Oct 2026 | API - Showcase version 2 (#26) | — |
-| v112 (b7ede50) | 29 Sept 2026 | Wait up to 5 seconds for a static site to publish | check-dns, apply, move |
+| v129 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | check-dns, apply, move |
+| v128 (b3e21dd) | 14 Oct 2026 | feat: add zero-downtime graceful shutdown, unref intervals, and live migration script | check-dns, apply, move |
+| v127 (a4059fd) | 14 Oct 2026 | feat: add zero-downtime graceful shutdown, unref intervals, and live migration script | recheck |
+| v126 (1b7b79b) | 14 Oct 2026 | Redirect /capabilities to the agent guide | check-dns, apply, move |
+| v125 (6fd5e0c) | 13 Oct 2026 | fix(orphan): refuse an orphan-cleanup teardown while a deploy is in flight | check-dns, apply, move |
 
 ## Open questions
 

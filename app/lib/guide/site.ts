@@ -100,6 +100,8 @@ const KEYWORDS: Record<string, string[]> = {
   errors: ["Embarko deploy errors", "fix failed deployment", "deploy error codes", "retry rules"],
   "static-sites": ["host static website", "deploy static site", "free static hosting", "index.html hosting"],
   data: ["persistent storage for apps", "SQLite hosting", "DATA_DIR", "save data across deploys"],
+  "embarko-json": ["embarko.json", "app config file", "schedules config", "Embarko settings file"],
+  schedules: ["cron jobs for hosted app", "scheduled tasks", "run app on a timer", "CRON_SECRET"],
   "two-apps": ["deploy frontend and backend", "separate API hosting", "monorepo deploy", "frontend backend apps"],
   "app-login": ["app login", "private app hosting", "password protect app", "user sign-in"],
   claim: ["keep temporary app", "claim app", "deploy token", "make app permanent"],

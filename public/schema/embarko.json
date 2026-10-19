@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://embarko.ai/schema/embarko.json",
+  "title": "embarko.json",
+  "description": "Optional settings file in the app's top folder (next to package.json). Embarko reads it on every deploy. Never put secrets here: it is part of the code. Guide: https://embarko.ai/docs/embarko-json",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Optional. https://embarko.ai/schema/embarko.json"
+    },
+    "schedules": {
+      "type": "array",
+      "description": "The app's full set of timed calls, matched by path. [] removes all. Leave the key out to keep the schedules as they are. Guide: https://embarko.ai/docs/schedules",
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["cron", "path"],
+        "properties": {
+          "cron": {
+            "type": "string",
+            "description": "Five fields: minute hour day-of-month month day-of-week, e.g. \"0 9 * * 1-5\". @hourly, @daily, @weekly, @monthly and @yearly also work. At most once every 5 minutes."
+          },
+          "path": {
+            "type": "string",
+            "pattern": "^/",
+            "description": "The route of the app to call with GET, starting with /. One schedule per path."
+          },
+          "timezone": {
+            "type": "string",
+            "default": "UTC",
+            "description": "IANA time zone name, such as Asia/Kolkata or Europe/London."
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Optional label, shown in failure alerts."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": true
+}

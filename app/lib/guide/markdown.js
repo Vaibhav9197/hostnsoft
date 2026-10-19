@@ -170,7 +170,7 @@ function topicMd(base, tp, { standalone = true } = {}) {
   if (tp.statuses) out.push('**Statuses**', '', bullet(Object.entries(tp.statuses).map(([k, v]) => `${code(k)}: ${v}`)), '');
   if (tp.types) out.push('**Types**', '', bullet(Object.entries(tp.types).map(([k, v]) => `${code(k)}: ${v}`)), '');
   if (tp.steps) {
-    const label = { connector: 'With the connector', http_api: 'Over HTTP', dashboard: 'In the dashboard', any: 'Steps' };
+    const label = { connector: 'With the connector', http_api: 'Over HTTP', dashboard: 'In the dashboard', any: 'Steps', manage: 'Change, pause or delete' };
     for (const [k, v] of Object.entries(tp.steps)) out.push(`**${label[k] || k}**`, '', numbered(v), '');
   }
   if (tp.examples) {
@@ -178,6 +178,8 @@ function topicMd(base, tp, { standalone = true } = {}) {
       out.push(`**Example: ${ex.title}**`, '');
       if (ex.body) out.push('body.json:', '', '```json', JSON.stringify(ex.body), '```', '');
       if (ex.command) out.push('```bash', ex.command, '```', '');
+      // App code to copy, as opposed to a command to run.
+      if (ex.code) out.push('```' + (ex.lang || ''), ex.code, '```', '');
       if (ex.note) out.push(ex.note, '');
       // The all-in-one file names the reply but leaves its body to the topic
       // page, which keeps it small enough for fetch tools.
@@ -200,6 +202,9 @@ function topicMd(base, tp, { standalone = true } = {}) {
   }
   if (tp.large_apps) out.push('**Large apps**', '', tp.large_apps.problem, '', bullet(tp.large_apps.what_to_do), '');
   if (tp.fields) out.push('**Fields**', '', bullet(Object.entries(tp.fields).map(([k, v]) => `${code(k)}: ${v}`)), '');
+  if (tp.receives) out.push('**What the app receives**', '', bullet(tp.receives), '');
+  if (tp.run_outcomes) out.push('**Run outcomes**', '', bullet(Object.entries(tp.run_outcomes).map(([k, v]) => `${code(k)}: ${v}`)), '');
+  if (tp.alerts) out.push('**Failure alerts**', '', bullet(tp.alerts), '');
   if (tp.limits) out.push('**Limits**', '', bullet(tp.limits), '');
   if (tp.errors_pointer) out.push(tp.errors_pointer.replace('see errors', `see [errors](${base}/docs/errors)`), '');
   if (tp.errors) {

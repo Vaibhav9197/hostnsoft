@@ -8,7 +8,7 @@
 - **Wants to:** get the app their AI built online
 - **Ends with:** The app is live at its own embarko.app address and shows in Your apps.
 - **Steps:** 10 · 1 by AI · 7 can go wrong
-- **Last change to its code:** v175, 10 Oct 2026 — feat(console): deploy steps with live status, shared by dialog and empty state
+- **Last change to its code:** v198, 19 Oct 2026 — Read embarko.json on deploy for schedules, warn about in-process timers
 
 [← All stories](../README.md)
 
@@ -195,10 +195,10 @@ flowchart TD
   - If another workspace owns the name → refused (app_name_taken).
   - If the account service can't be reached → "Could not verify app name availability" (502).
 - **Parts:** Deploy intake (`intake`), Deploy keys (`tokens`), App records (`app-records`), Apps and deploys (`apps-data`)
-- **Keeps:** `Company`, `DeployToken`, `Project`
-- **Looks up:** `Domain`, `EnvVar`
+- **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`
+- **Looks up:** `Domain`
 - **Code:** `lib:@deploy/deploy-credential` → `@deploy/deploy-credential.js`, `lib:@deploy/validate-deploy-token` → `@deploy/validate-deploy-token.js`, `api:@api/internal/deploy-tokens/validate` → `@api/src/routes/internalTokens.routes.ts`, `lib:@deploy/claim-project` → `@deploy/claim-project.js`, `api:@api/internal/projects/claim` → `@api/src/routes/internalProjects.routes.ts`, `lib:@api/src/services/projectClaim` → `@api/src/services/projectClaim.ts`
-- **Outside services:** Lago, Redis, Stripe
+- **Outside services:** Lago, Redis, Stripe, viaSocket webhook
 
 ### 7. Check the files
 
@@ -237,9 +237,10 @@ flowchart TD
   - If two versions are numbered at once → the number is retried up to 5 times.
   - If recording fails → the history row is lost and the panel can stay at "in progress".
 - **Parts:** Deploy history (`deploy-history`), Apps and deploys (`apps-data`)
-- **Keeps:** `AuditLog`, `DeployToken`, `Deployment`, `Project`
+- **Keeps:** `AppDetails`, `AuditLog`, `DeployToken`, `Deployment`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`
+- **Looks up:** `Domain`
 - **Code:** `lib:@deploy/record-deployment` → `@deploy/record-deployment.js`, `api:@api/internal/deployments/record` → `@api/src/routes/internalDeployments.routes.ts`, `lib:@api/src/services/deploymentVersioning` → `@api/src/services/deploymentVersioning.ts`
-- **Outside services:** Redis
+- **Outside services:** Redis, viaSocket webhook
 
 ### 10. App appears
 
@@ -279,13 +280,17 @@ See [system-map.md](../system-map.md) for how the parts connect.
 
 ## Tables
 
+- **Keeps** `AppDetails` — Public-facing details of a deployed app.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `DeployToken` — Company-wide deploy token.
 - **Keeps** `Deployment` — Versioned deploy history — one row per deploy attempt.
+- **Keeps** `EnvVar`
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
+- **Keeps** `Schedule` — A timed HTTP call into the app — see docs/schedules.md.
+- **Keeps** `ShowcaseEvent` — An event page, /showcase/<slug>: a hackathon, a demo day.
+- **Keeps** `ShowcaseEventListing` — One app shown on one event page.
 - **Looks up** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
-- **Looks up** `EnvVar`
 
 See [tables.md](../tables.md).
 
@@ -293,11 +298,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v175 (a6658fd) | 10 Oct 2026 | feat(console): deploy steps with live status, shared by dialog and empty state | copy-prompt, make-token, watch, app-appears |
-| v174 (67cbcf0) | 8 Oct 2026 | feat(showcase): custom HTML on event pages- #15 (#15) | make-token |
-| v173 (fc85ee2) | 8 Oct 2026 | feat(panel): "Host new app" dialog tells the deploy as three steps | copy-prompt, app-appears |
-| v172 (67eadd2) | 8 Oct 2026 | feat(panel): top bar with workspace and plan; prompt-first showcase actions | copy-prompt, app-appears |
-| v171 (3f8de6c) | 7 Oct 2026 | reverting to old copy deployment prompt | copy-prompt |
+| v198 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | ai-deploys, check-key, record |
+| v197 (4602272) | 19 Oct 2026 | Add schedules: timed calls into apps | check-key, record |
+| v196 (01836d2) | 17 Oct 2026 | feat(settings): drop workspace deletion, simplify workspace panel | make-token |
+| v195 (b3e21dd) | 14 Oct 2026 | feat: add zero-downtime graceful shutdown, unref intervals, and live migration script | ai-deploys |
+| v194 (1b7b79b) | 14 Oct 2026 | Redirect /capabilities to the agent guide | ai-deploys |
 
 ## Open questions
 

@@ -20,7 +20,7 @@ const SHIP = 'https://ship.embarko.ai';
 const API = `${SHIP}/api`;
 const SITE = 'https://embarko.ai';
 
-const VERSION = '2026-10-09';
+const VERSION = '2026-10-17';
 
 const SECTIONS = [
   { n: 1, id: 'start', name: 'Start', blurb: 'What Embarko is, how to reply to the person, and connecting Embarko to their AI tool.' },
@@ -172,6 +172,12 @@ const POLLING = {
   auth: 'Send the same Authorization header you deployed with. A claimed app answers 404 without it.',
 };
 
+// The embarko.json example, shared by the embarko-json and schedules topics.
+const EMBARKO_JSON_EXAMPLE = JSON.stringify({
+  $schema: 'https://embarko.ai/schema/embarko.json',
+  schedules: [{ cron: '0 9 * * 1-5', path: '/tasks/daily-digest', timezone: 'Asia/Kolkata', name: 'daily digest' }],
+}, null, 2);
+
 // Every error a deploy can return. The deploy topic shows the common ones;
 // the errors topic has them all, with the retry rules.
 const DEPLOY_ERRORS = [
@@ -189,6 +195,11 @@ const DEPLOY_ERRORS = [
   { code: 'no_manifest_at_root', status: 422, retry: 'No', do: 'Read foundNestedAt and package from that folder.' },
   { code: 'app_nested_in_subdirectory', status: 422, retry: 'No', do: 'Deploy the folder named in deployThisInstead.' },
   { code: 'unsupported_storage_pattern', status: 422, retry: 'No', do: 'The app uses window.storage. Switch to SQLite under DATA_DIR.' },
+  { code: 'invalid_embarko_json', status: 400, retry: 'No', do: 'embarko.json is not valid JSON (the message gives the line and column), not one object, has "schedules" that is not a list, or is over 64 KB. Fix the file and deploy again (see embarko-json).' },
+  { code: 'secrets_in_embarko_json', status: 400, retry: 'No', do: 'embarko.json looks like it holds a secret. Remove it and set it as an env var instead (see env-vars).' },
+  { code: 'invalid_schedules / invalid_cron / schedule_too_frequent / invalid_timezone / invalid_path / duplicate_schedule_path / schedule_limit_reached', status: 400, retry: 'No', do: 'A schedule in embarko.json is wrong; the message names the entry, e.g. "Schedule 1: ...". Fix it and deploy again (see schedules).' },
+  { code: 'in_process_timer (warning, deploy goes ahead)', status: 202, retry: 'No', do: 'The app uses a timer library (node-cron, APScheduler...). Those jobs stop when the app sleeps. Move each job into a route, list it under "schedules" in embarko.json (see schedules), then deploy again.' },
+  { code: 'embarko_json_not_at_top / embarko_json_misnamed / embarko_json_unknown_keys / schedules_unchanged / schedules_on_static_site (warnings, deploy goes ahead)', status: 202, retry: 'No', do: 'Read warnings[].detail and do what it says: move or rename the file, drop keys Embarko ignores, or use [] to remove schedules (see embarko-json).' },
   { code: 'app_kind_changed', status: 422, retry: 'No', do: 'A static site cannot become a server app. Use a new name.' },
   { code: '(rate limited)', status: 429, retry: 'Later', do: 'Wait retryAfterMs, or a few minutes, then retry once.' },
   { code: 'deploy_failed / publish_failed', status: 500, retry: 'Once', do: 'Check status first, then redeploy once. If it repeats, report it.' },
@@ -249,7 +260,7 @@ function topics(base) {
         fits: 'A web app or website, one process, up to 256MB of memory.',
         does_not_fit: [
           { feature: 'WebSockets / live push (Socket.IO, ws)', instead: 'Plain HTTP requests, polling from the browser.' },
-          { feature: 'Cron jobs and scheduled tasks', instead: 'An HTTP route that does the job, protected by a secret env var, called by an outside scheduler (for example cron-job.org or a GitHub Actions schedule). Tell the person they need to set that up, or set it up with them.' },
+          { feature: 'A crontab or a timer library inside the app (node-cron, APScheduler) for timed jobs', instead: 'A schedule: Embarko calls a route of the app at the times you set, and wakes the app if it is asleep (see schedules).' },
           { feature: 'Background workers or several processes', instead: 'Run the work inside the main app, for example right after the request that needs it. Separate apps cannot share files: each has its own DATA_DIR. Only split into two apps when the parts talk over HTTP, like a frontend and a backend (see two-apps).' },
           { feature: 'Managed database or backups', instead: 'SQLite under DATA_DIR. Tell the person it is not backed up.' },
         ],
@@ -323,7 +334,7 @@ function topics(base) {
           command: "tar -czf /tmp/app.tar.gz --exclude=node_modules --exclude=.git --exclude='.env*' --exclude=dist --exclude=.next --exclude=venv --exclude=.venv --exclude=__pycache__ --exclude='*.db' -C /path/to/app .\ncurl -sS -X POST 'https://ship.embarko.ai/apps' -H 'X-App-Name: my-app' -H 'X-Agent-Name: {your-name}' -F 'source=@/tmp/app.tar.gz'",
           poll: "curl -sS 'https://ship.embarko.ai/apps/my-app/status'   # once the app is kept, add --oauth2-bearer $DEPLOY_TOKEN",
           then: 'Poll every 10s (2s for a static site) until final: live, failed, crashed or not_deployed. Open https://my-app.embarko.app yourself, then give the person the link and app.expiresAt in their local time.',
-          if_it_fails: 'Follow the reply\'s next and code. Usual causes: not reading PORT or binding 0.0.0.0; a Dockerfile; manifest not at the top of the folder; WebSockets or cron; data saved next to the code instead of DATA_DIR. Fix and deploy again, same name. 409 name taken: use a close variant (their name, or -site / -app) and mention it with the link.',
+          if_it_fails: 'Follow the reply\'s next and code. Usual causes: not reading PORT or binding 0.0.0.0; a Dockerfile; manifest not at the top of the folder; WebSockets; a crontab or timer library (use schedules); data saved next to the code instead of DATA_DIR. Fix and deploy again, same name. 409 name taken: use a close variant (their name, or -site / -app) and mention it with the link.',
           read_more: [r('deploy', 'Requirements and common errors'), r('errors', 'Every error code and retry rule'), r('logs', 'Why a build failed')],
           blocked: 'No reply, or 403 host_not_allowed from your sandbox: nothing was deployed, do not retry. Use the last row of step 0.',
           done_when: 'You opened the link and its main feature works (a 200 alone is not enough).',
@@ -356,6 +367,7 @@ function topics(base) {
             ['"Add my API key"', 'env-vars', 'The feature that uses the key works.'],
             ['"Use my domain"', 'custom-domain', 'https://their-domain opens the app.'],
             ['"Let my team log in" / "Make it private"', 'app-login', 'The right people get in and others are refused.', 'Not on Embarko yet: build it in the app'],
+            ['"Do this every morning"', 'schedules', 'A run you started now finished ok, and they know when it runs next.'],
             ['"Undo that update"', 'rollback', 'The previous version is serving.'],
             ['"How is it doing?"', 'analytics', 'You told them visits and errors in one sentence.'],
             ['"Change the address"', 'rename', 'They said yes first, and the new address opens the app.'],
@@ -424,6 +436,7 @@ function topics(base) {
           'Package the folder as .tar.gz (first example).',
           'POST https://ship.embarko.ai/apps as multipart with the field source and the headers X-App-Name and X-Agent-Name (your own name, e.g. codex).',
           'Optional headers: Authorization: Bearer {token} (permanent at once), X-App-Version (a git SHA), X-App-Type (what the app is for, e.g. portfolio).',
+          'Settings such as timed jobs go in an optional embarko.json file in the app\'s top folder, sent with the other files (see embarko-json).',
           'Or POST https://ship.embarko.ai/apps with Content-Type: application/json and { appName, agentName, files } (second example).',
           'A server app replies 202 "building". A plain static site usually replies 200 "live" at once. Then poll as described in polling.',
         ],
@@ -537,6 +550,59 @@ function topics(base) {
       links: {},
     },
 
+    {
+      topic: 'embarko-json',
+      section: 'deploy',
+      title: 'The embarko.json file',
+      covers: 'The optional settings file in the app\'s top folder: what goes in it, its rules, and its errors and warnings',
+      summary: 'embarko.json is an optional file in the app\'s top folder, next to package.json. Embarko reads it on every deploy. Today it holds one setting: schedules, the timed calls into the app. Most apps never need one.',
+      done_when: 'The deploy reply has no embarko.json error or warning, and its schedules facts match the file.',
+      available: true,
+      who: { connector: 'deploy_app: embarko.json is one of the files', api: 'POST https://ship.embarko.ai/apps (the file travels in the upload)', dashboard: null, needs_human: null },
+      steps: {
+        any: [
+          'Create embarko.json in the app\'s top folder, next to package.json (or requirements.txt, go.mod...).',
+          'Write one JSON object. Put the settings in it, such as "schedules" (see schedules).',
+          'Optional: add "$schema": "https://embarko.ai/schema/embarko.json" so editors can check it.',
+          'Deploy as usual: skill, HTTP .tar.gz, JSON files list or connector. The file goes with the other files; there is no special field.',
+          'Read the reply. A 400 names what is wrong; fix the file and deploy again. Read warnings[] and fix those too before telling the person it is done.',
+        ],
+      },
+      examples: [
+        {
+          title: 'embarko.json with one schedule',
+          lang: 'json',
+          code: EMBARKO_JSON_EXAMPLE,
+          note: 'Only "schedules" is used today. Its fields: see schedules.',
+        },
+      ],
+      limits: [
+        'Optional. No file means no change.',
+        'The file is the source of truth. A setting changed through the API is set back by the next deploy whose file lists it.',
+        '"schedules" is the app\'s full set, matched by path. [] removes all. A file without a "schedules" key leaves them as they are.',
+        'Never put secrets in it. It is part of the code and is never private. Use env vars (see env-vars).',
+        'Only the top folder is read. A copy in a subfolder is ignored.',
+        'Only the exact name embarko.json is read. Not .embarko, embarko.yaml, embarko.config.json or embarko.jsonc.',
+        'Plain JSON: no comments, no trailing commas.',
+        'Unknown keys are ignored, with a warning.',
+        'At most 64 KB.',
+      ],
+      errors: [
+        { code: 'invalid_embarko_json', status: 400, retry: 'No', do: 'Not valid JSON (the message gives line and column), not one object, "schedules" is not a list, or over 64 KB. Fix the file and deploy again.' },
+        { code: 'secrets_in_embarko_json', status: 400, retry: 'No', do: 'A key named like secret, token, password, api key, private key or credential, or a value that looks like a key or a URL with ?token=. Remove it and set it as an env var.' },
+        { code: 'invalid_schedules / invalid_cron / schedule_too_frequent / invalid_timezone / invalid_path / duplicate_schedule_path / schedule_limit_reached', status: 400, retry: 'No', do: 'A schedule entry is wrong. The message names it, e.g. "Schedule 1: ...". Fixes: see schedules.' },
+        { code: 'embarko_json_not_at_top (warning)', status: 202, retry: 'No', do: 'Found in a subfolder; only the top folder is read. Move it next to package.json and deploy again.' },
+        { code: 'embarko_json_misnamed (warning)', status: 202, retry: 'No', do: 'A file like .embarko or embarko.yaml was found. Rename it to embarko.json, as JSON, and deploy again.' },
+        { code: 'embarko_json_unknown_keys (warning)', status: 202, retry: 'No', do: 'Keys Embarko does not use were ignored. Remove them, or check the spelling of "schedules".' },
+        { code: 'in_process_timer (warning)', status: 202, retry: 'No', do: 'The code uses a timer library (node-cron, APScheduler...) and the file lists no schedules. Move each job into a route and list it under "schedules".' },
+        { code: 'schedules_unchanged (warning)', status: 202, retry: 'No', do: 'The app has schedules and this upload declares none, so they were kept. To remove them, deploy with "schedules": [].' },
+        { code: 'schedules_on_static_site (warning)', status: 202, retry: 'No', do: 'A static site runs no code, so its schedules were not applied. Deploy it as a server app to use them.' },
+      ],
+      prerequisites: prerequisites(base, [r('deploy', 'The deploy that reads the file')]),
+      next: 'Add embarko.json only if the app needs a setting in it, then deploy and read the reply\'s warnings.',
+      related: [r('schedules', 'The one setting it holds today'), r('env-vars', 'Where secrets go instead'), r('errors', 'Every deploy error')],
+      links: { schema: `${SITE}/schema/embarko.json`, deploy: `${SHIP}/apps` },
+    },
     {
       topic: 'two-apps',
       section: 'deploy',
@@ -755,6 +821,137 @@ function topics(base) {
       next: 'Set the variables with apply, then check the app still works.',
       related: [r('status', 'Confirm it restarted fine'), r('logs', 'If it crashed after the change')],
       links: { list: `${API}/apps/{app-name}/env-vars`, apply: `${API}/apps/{app-name}/env-vars/apply`, secretsPage: `${SITE}/app/projects/{project-id}/environment` },
+    },
+    {
+      topic: 'schedules',
+      section: 'manage',
+      title: 'Run something on a timer',
+      covers: 'Daily reports, nightly clean-ups and reminders: Embarko calls a route of the app at the times you set',
+      summary: 'List the schedules in the app\'s embarko.json file and Embarko calls those routes of the app on time, for example GET /tasks/daily-digest every weekday at 9:00. The job is normal app code in that route. Embarko wakes the app if it is asleep, keeps a record of each run, and emails the owner if a schedule starts failing.',
+      done_when: 'Each schedule ran once with outcome "ok", and the person knows when it runs next.',
+      available: true,
+      who: { connector: 'deploy_app with embarko.json among the files. Running them once now is HTTP only, with a deploy token; the person can create one at https://embarko.ai/app/tokens', api: 'https://ship.embarko.ai/apps (embarko.json in the upload)', dashboard: null, needs_human: 'Only their time zone, if you cannot tell it.' },
+      steps: {
+        any: [
+          'Put the job in a GET route of the app, for example /tasks/daily-digest. Answer 2xx when it worked.',
+          'First thing in that route: answer 401 unless the Authorization header is "Bearer " plus the CRON_SECRET env var. Embarko creates CRON_SECRET for the app; you never set or see it.',
+          'Save anything the job must remember under DATA_DIR. The app can sleep between runs.',
+          'List the job under "schedules" in embarko.json, in the app\'s top folder (see the first example and embarko-json).',
+          'Deploy as usual, any way. A bad schedule refuses the deploy before it builds; the error names the entry, e.g. "Schedule 1: ...".',
+          'Check the test run. The skill runs each schedule once when the app is live and prints ok or the error. Over HTTP: POST links.runSchedules from the deploy reply, then poll each statusUrl until terminal is true.',
+          'If a run failed, fix the route and deploy again.',
+          'Tell the person when it runs, in their time zone.',
+        ],
+        manage: [
+          'Change: edit embarko.json and deploy again. The list is the app\'s full set. A schedule keeps its history while its path stays the same.',
+          'Remove one: delete it from the list and deploy. Remove all: "schedules": [].',
+          'No embarko.json, or one without a "schedules" key: the schedules stay as they are.',
+          'See runs: GET https://ship.embarko.ai/api/apps/{app-name}/schedules, then each schedule\'s links.runs.',
+          'Pause one without a deploy: PATCH https://ship.embarko.ai/api/apps/{app-name}/schedules/{schedule-id} with {"enabled": false}. The next deploy that lists it turns it back on.',
+          'Failure alerts to Slack or another webhook: PATCH the schedule with {"alertWebhookUrl": "https://..."}.',
+        ],
+      },
+      fields: {
+        cron: 'Required. Five fields: minute hour day-of-month month day-of-week. "0 9 * * 1-5" is 9:00 on weekdays. @hourly, @daily, @weekly, @monthly and @yearly also work.',
+        path: 'Required. The route to call, starting with /. A query string is allowed: /tasks/cleanup?days=30. One schedule per path.',
+        timezone: 'IANA name, such as Asia/Kolkata or Europe/London. Default UTC. Daylight saving is handled.',
+        name: 'Optional, up to 100 characters. Shown in alert emails.',
+      },
+      receives: [
+        'GET {path} on the app\'s own address, at each due time.',
+        'If the app is asleep, the call wakes it first.',
+        'Authorization: Bearer {CRON_SECRET}.',
+        'X-Embarko-Schedule-Id and X-Embarko-Run-Id headers, and a User-Agent starting with Embarko-Scheduler/1.0.',
+      ],
+      run_outcomes: {
+        running: 'The call is in progress. Keep polling.',
+        ok: 'Final. The app answered 2xx.',
+        failed: 'Final. Another status, no answer, a redirect, or no full answer within 5 minutes. error says which; responseExcerpt has the start of the app\'s reply.',
+        skipped: 'Final. The previous run was still going when this one was due.',
+      },
+      alerts: [
+        'The app\'s owner gets one email when a schedule starts failing, and one when it works again. Not one per failed run.',
+        'Test runs count too: a failing test run can send that email.',
+        'With alertWebhookUrl set, the same two events also go there as JSON (see the example).',
+      ],
+      examples: [
+        {
+          title: 'embarko.json, in the app\'s top folder',
+          lang: 'json',
+          code: EMBARKO_JSON_EXAMPLE,
+          note: 'Next to package.json (or requirements.txt, go.mod...). Only the top folder is read.',
+        },
+        {
+          title: 'Deploy with a schedule (skill)',
+          command: './scripts/deploy.sh ./my-app my-app',
+          note: 'Write embarko.json first. When the app is live the script prints a line per schedule, for example "/tasks/daily-digest: ok (200) Digest sent to 12 people", and any warnings. It exits 1 if a test run failed.',
+        },
+        {
+          title: 'Deploy with a schedule (HTTP) → 202',
+          command: "tar -czf /tmp/app.tar.gz --exclude=node_modules --exclude=.git --exclude='.env*' -C ./my-app .\ncurl -sS -X POST 'https://ship.embarko.ai/apps' --oauth2-bearer $DEPLOY_TOKEN -H 'X-App-Name: my-app' -H 'X-Agent-Name: {your-name}' -F 'source=@/tmp/app.tar.gz'",
+          note: 'The normal deploy. embarko.json travels inside the .tar.gz; in a JSON upload it is one of the files.',
+          response_status: 202,
+          response: { success: true, status: 'building', app: { name: 'my-app', kind: 'service', claimed: true }, schedules: { declared: 1, appliesWhen: 'live' }, next: 'Building: poll links.status every 10 seconds until it says "live", "failed" or "crashed". Once live, its schedule runs on time; POST links.runSchedules (deploy token) to run it once now, and tell the user it works only when each run\'s outcome is "ok".', links: { status: 'https://ship.embarko.ai/apps/my-app/status', feedback: 'https://ship.embarko.ai/apps/my-app/customer-query', runSchedules: 'https://ship.embarko.ai/api/apps/my-app/schedules/run' } },
+        },
+        {
+          title: 'Run them once now (HTTP) → 202, then poll',
+          command: "curl -sS -X POST 'https://ship.embarko.ai/api/apps/my-app/schedules/run' --oauth2-bearer $DEPLOY_TOKEN\ncurl -sS 'https://ship.embarko.ai{statusUrl}' --oauth2-bearer $DEPLOY_TOKEN",
+          note: 'Poll each statusUrl every 5 seconds until terminal is true. Done looks like {"outcome": "ok", "httpStatus": 200, "responseExcerpt": "Digest sent to 12 people", "terminal": true}.',
+          response_status: 202,
+          response: { runs: [{ scheduleId: 'cmgv2k8w0000108l4schd7x2a', path: '/tasks/daily-digest', id: 'cmgv2m1qa000308l4run9f3kd', trigger: 'manual', outcome: 'running', terminal: false, httpStatus: null, error: null, responseExcerpt: null, startedAt: '2026-10-17T10:01:00.000Z', finishedAt: null, durationMs: null, statusUrl: '/api/apps/my-app/schedules/cmgv2k8w0000108l4schd7x2a/runs/cmgv2m1qa000308l4run9f3kd' }] },
+        },
+        {
+          title: 'The route, with the CRON_SECRET check (Node, Express)',
+          lang: 'js',
+          code: [
+            "app.get('/tasks/daily-digest', async (req, res) => {",
+            "  if (req.get('authorization') !== 'Bearer ' + process.env.CRON_SECRET) return res.sendStatus(401);",
+            '  const sent = await sendDailyDigests(); // keep progress under DATA_DIR',
+            "  res.send('Digest sent to ' + sent + ' people'); // kept as responseExcerpt",
+            '});',
+          ].join('\n'),
+          note: 'Any other language: compare the Authorization header with "Bearer " plus CRON_SECRET and answer 401 if they differ. For work longer than 5 minutes, answer 202 at once and carry on in the background.',
+        },
+        {
+          title: 'Alert webhook payload',
+          lang: 'json',
+          code: JSON.stringify({ event: 'schedule.failed', app: { name: 'my-app', url: 'https://my-app.embarko.app' }, schedule: { id: 'cmgv2k8w0000108l4schd7x2a', name: 'daily digest', cron: '0 9 * * 1-5', timezone: 'Asia/Kolkata', path: '/tasks/daily-digest' }, run: { id: 'cmgv3a7pe000508l4run2h6qz', trigger: 'schedule', outcome: 'failed', terminal: true, httpStatus: 500, error: 'HTTP 500', responseExcerpt: 'Error: SMTP login failed', startedAt: '2026-10-19T03:30:00.412Z', finishedAt: '2026-10-19T03:30:01.224Z', durationMs: 812 }, consecutiveFailures: 1, sentAt: '2026-10-19T03:30:01.300Z' }),
+          note: 'event is schedule.failed or schedule.recovered.',
+        },
+      ],
+      limits: [
+        'Up to 5 schedules per app, at most once every 5 minutes each.',
+        'Each call has 5 minutes to finish, waking the app included.',
+        'Redirects are not followed and count as failed.',
+        'The first 2KB of each reply and the last 100 runs of each schedule are kept.',
+        'A time missed during an Embarko outage runs once when it can. Missed times are not replayed.',
+        'Needs a kept app and a deploy token. A temporary app deploys, but its schedules are not applied; the reply says so.',
+        'Static sites cannot have schedules. A static site deploys, with the warning schedules_on_static_site.',
+        'Schedules apply only when the deploy succeeds.',
+        'embarko.json is the source of truth: a schedule paused or changed through the API is set back by the next deploy whose embarko.json lists it.',
+        'A deploy with no schedules in embarko.json whose code lists a timer library (node-cron, node-schedule, APScheduler, rufus-scheduler...) goes ahead with the warning in_process_timer, and quotes any timing it found in the code. Move those jobs here.',
+        'If the app has schedules and the upload declares none, the reply warns schedules_unchanged: they were kept.',
+      ],
+      errors: [
+        { code: 'invalid_embarko_json', status: 400, retry: 'No', do: 'The file is not valid JSON (the message gives line and column), not one object, "schedules" is not a list, or it is over 64 KB. Fix it and deploy again.' },
+        { code: 'secrets_in_embarko_json', status: 400, retry: 'No', do: 'The file looks like it holds a secret. Remove it; use an env var. The route checks CRON_SECRET, which Embarko creates.' },
+        { code: 'invalid_schedules', status: 400, retry: 'No', do: 'An entry in "schedules" has the wrong shape: cron or path missing, or a field of the wrong type. The message names it, e.g. (0.path: Required). Fix it and deploy again.' },
+        { code: 'invalid_cron', status: 400, retry: 'No', do: 'Use five fields (minute hour day-of-month month day-of-week), or @daily and the like.' },
+        { code: 'schedule_too_frequent', status: 400, retry: 'No', do: 'Two runs would be less than 5 minutes apart. Space them out.' },
+        { code: 'invalid_timezone', status: 400, retry: 'No', do: 'Use an IANA name such as UTC or Asia/Kolkata.' },
+        { code: 'invalid_path', status: 400, retry: 'No', do: 'A path on the app starting with /, with no host, spaces or #.' },
+        { code: 'duplicate_schedule_path', status: 400, retry: 'No', do: 'Two schedules call the same path. Give each its own route.' },
+        { code: 'schedule_limit_reached', status: 400, retry: 'No', do: 'More than 5 schedules. Combine some jobs into one route.' },
+        { code: 'no_schedules', status: 404, retry: 'Yes, once', do: 'On run-now right after going live: wait 5 seconds and try again. Still 404: the deploy\'s embarko.json listed no schedules.' },
+        { code: 'run_in_progress', status: 409, retry: 'Later', do: 'That schedule\'s last run has not finished. Poll it, then try again.' },
+        { code: 'invalid_alert_webhook', status: 400, retry: 'No', do: 'alertWebhookUrl must be a public https:// address.' },
+        { code: 'not_supported_for_static', status: 409, retry: 'No', do: 'A static site has no server to call. Deploy it as a server app under a new name.' },
+      ],
+      say_to_user: { done: 'Done: every weekday at 9:00 your app sends the digest. I ran it once just now and it worked. If it ever stops working, Embarko emails you.' },
+      prerequisites: prerequisites(base, [claimFirst]),
+      next: 'Write the route with the CRON_SECRET check, list it in embarko.json, deploy, and check the test run.',
+      related: [r('embarko-json', 'The file the schedules are listed in'), r('deploy', 'The deploy that reads it'), r('logs', 'When a run fails'), r('static-sites', 'Why a static site cannot have one')],
+      links: { deploy: `${SHIP}/apps`, runSchedules: `${API}/apps/{app-name}/schedules/run`, schedules: `${API}/apps/{app-name}/schedules`, tokensPage: `${SITE}/app/tokens` },
     },
     {
       topic: 'custom-domain',
@@ -998,6 +1195,8 @@ const ALIASES = {
   state: 'resume', continue: 'resume', handoff: 'resume',
   domains: 'custom-domain', domain: 'custom-domain', dns: 'custom-domain',
   secrets: 'env-vars', env: 'env-vars', 'api-keys': 'env-vars',
+  'embarko.json': 'embarko-json', embarko: 'embarko-json', config: 'embarko-json', 'embarko-config': 'embarko-json',
+  schedule: 'schedules', cron: 'schedules', 'cron-jobs': 'schedules', 'scheduled-tasks': 'schedules', timer: 'schedules',
   database: 'data', sqlite: 'data', files: 'data', storage: 'data',
   keep: 'claim', token: 'claim', permanent: 'claim',
   undo: 'rollback', 'change-address': 'rename', 'slug-change': 'rename',

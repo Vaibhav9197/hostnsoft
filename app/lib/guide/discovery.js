@@ -23,6 +23,7 @@ function agentJson(base) {
       'Deploy without an account: the app is live at once and kept for 24 hours unless claimed.',
       'Check status and read build and runtime logs.',
       'Set secrets and config (env vars) without redeploying.',
+      'Call a route of the app on a cron schedule, listed in the app\'s embarko.json file, with run history and failure alerts.',
       'Connect a custom domain with automatic HTTPS.',
       'Roll back to any of the last 5 successful builds.',
       'Read traffic and usage analytics.',
@@ -30,12 +31,13 @@ function agentJson(base) {
       'List the app on the public Showcase gallery or an event page.',
       'Send bug reports and feature requests to the Embarko team.',
     ],
-    not_supported: ['WebSockets', 'Cron jobs and scheduled tasks', 'Background workers or several processes per app', 'Managed databases', 'Backups'],
+    not_supported: ['WebSockets', 'Background workers or several processes per app', 'Managed databases', 'Backups'],
     use_cases: [
       'Put an app or website an AI just built online at a shareable link.',
       'Update a live app after changing its code.',
       'Find out why an app is down and fix it.',
       'Use the person\'s own domain for their app.',
+      'Run a job in the app at set times, such as a daily report: list the schedule in the app\'s embarko.json and deploy.',
       'Show the app in a public gallery or at a hackathon.',
     ],
     how_to_connect: [
@@ -101,7 +103,7 @@ function agentCard(base) {
     securitySchemes: { deployToken: { type: 'http', scheme: 'bearer' } },
     skills: [
       skill('deploy', 'Deploy an app', 'Put a website or one-process server app online with no Dockerfile.', ['deploy', 'hosting'], ['Deploy this app to Embarko', 'Put my site online']),
-      skill('manage', 'Manage a live app', 'Status, logs, env vars, custom domains, rollback, analytics, rename, delete.', ['logs', 'domains', 'secrets'], ['Why is my app down?', 'Use my own domain']),
+      skill('manage', 'Manage a live app', 'Status, logs, env vars, schedules, custom domains, rollback, analytics, rename, delete.', ['logs', 'domains', 'secrets', 'schedules'], ['Why is my app down?', 'Use my own domain', 'Send the report every Monday at 9']),
       skill('showcase', 'Showcase', 'List the app in the public gallery or on an event page.', ['showcase', 'gallery'], ['Put my app on the Embarko Showcase']),
       skill('feedback', 'Feedback', 'Report a bug or request a feature.', ['support'], ['Tell Embarko this is broken']),
     ],
@@ -188,7 +190,25 @@ function openapi() {
             status: { $ref: '#/components/schemas/Status' },
             app: { $ref: '#/components/schemas/App' },
             next: { type: 'string', description: 'The one thing to do now.' },
-            links: { type: 'object', additionalProperties: { type: 'string' } },
+            schedules: { $ref: '#/components/schemas/DeploySchedules' },
+            warnings: {
+              type: 'array',
+              description: 'Problems that do not stop the deploy but should be fixed before telling the user it is done.',
+              items: {
+                type: 'object',
+                properties: {
+                  code: {
+                    type: 'string',
+                    enum: ['in_process_timer', 'schedules_unchanged', 'schedules_on_static_site', 'embarko_json_not_at_top', 'embarko_json_misnamed', 'embarko_json_unknown_keys'],
+                    description: 'in_process_timer: the code uses a timer library whose jobs stop when the app sleeps; list them under schedules in embarko.json. schedules_unchanged: the app has schedules and the upload declares none, so they were kept. schedules_on_static_site: a static site cannot run schedules; not applied. embarko_json_not_at_top: found in a subfolder; only the top folder is read. embarko_json_misnamed: a near-miss name (.embarko, embarko.yaml...); only embarko.json is read. embarko_json_unknown_keys: keys Embarko does not use were ignored.',
+                  },
+                  libraries: { type: 'array', items: { type: 'string' } },
+                  expressions: { type: 'array', items: { type: 'object', properties: { cron: { type: 'string' }, file: { type: 'string' } } } },
+                  detail: { type: 'string' },
+                },
+              },
+            },
+            links: { type: 'object', properties: { runSchedules: { type: 'string', description: 'POST here once the app is live to run every schedule once.' } }, additionalProperties: { type: 'string' } },
           },
         },
         StatusReply: {
@@ -199,6 +219,62 @@ function openapi() {
         File: { type: 'object', required: ['path', 'content'], properties: { path: { type: 'string', description: 'Relative to the app root.' }, content: { type: 'string' }, encoding: { type: 'string', enum: ['utf8', 'base64'], default: 'utf8' } } },
         EnvVar: { type: 'object', required: ['key', 'value'], properties: { key: { type: 'string', pattern: '^[A-Za-z_][A-Za-z0-9_]*$' }, value: { type: 'string' } } },
         Accepted: { type: 'object', properties: { accepted: { type: 'boolean' }, deploymentId: { type: 'string' }, statusUrl: { type: 'string' }, terminal: { type: 'boolean' } } },
+        Run: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            trigger: { type: 'string', enum: ['schedule', 'manual'] },
+            outcome: { type: 'string', enum: ['running', 'ok', 'failed', 'skipped'] },
+            terminal: { type: 'boolean', description: 'False only while running.' },
+            httpStatus: { type: ['integer', 'null'] },
+            error: { type: ['string', 'null'] },
+            responseExcerpt: { type: ['string', 'null'], description: 'First 2KB of the app\'s reply.' },
+            startedAt: { type: 'string', format: 'date-time' },
+            finishedAt: { type: ['string', 'null'], format: 'date-time' },
+            durationMs: { type: ['integer', 'null'] },
+          },
+        },
+        Schedule: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            name: { type: ['string', 'null'] },
+            cron: { type: 'string', description: 'Five fields, stored expanded (@daily becomes 0 0 * * *).' },
+            timezone: { type: 'string' },
+            path: { type: 'string' },
+            url: { type: 'string', description: 'The address that is called.' },
+            enabled: { type: 'boolean' },
+            nextRunAt: { type: ['string', 'null'], format: 'date-time', description: 'Null while paused.' },
+            failing: { type: 'boolean' },
+            consecutiveFailures: { type: 'integer' },
+            alertWebhook: { type: 'object', properties: { set: { type: 'boolean' }, host: { type: ['string', 'null'] } }, description: 'The URL itself is never returned.' },
+            lastRun: { oneOf: [{ $ref: '#/components/schemas/Run' }, { type: 'null' }] },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+            links: { type: 'object', properties: { runNow: { type: 'string', description: 'POST to run it once now.' }, runs: { type: 'string', description: 'GET for past runs.' } } },
+          },
+        },
+        ScheduleInput: {
+          type: 'object',
+          properties: {
+            cron: { type: 'string', maxLength: 100, description: 'minute hour day-of-month month day-of-week, or @hourly, @daily, @weekly, @monthly, @yearly. At most once every 5 minutes.' },
+            path: { type: 'string', maxLength: 512, description: 'Path on the app, starting with /. Called with GET.' },
+            timezone: { type: 'string', default: 'UTC', description: 'IANA name.' },
+            name: { type: ['string', 'null'], maxLength: 100 },
+            enabled: { type: 'boolean', default: true },
+            alertWebhookUrl: { type: ['string', 'null'], format: 'uri', description: 'Public https:// URL that gets a JSON POST on schedule.failed and schedule.recovered.' },
+          },
+        },
+        DeploySchedules: {
+          type: 'object',
+          description: 'What happens to the schedules listed in this upload\'s embarko.json.',
+          properties: {
+            declared: { type: 'integer', description: 'How many embarko.json lists.' },
+            appliesWhen: { type: 'string', enum: ['live'], description: 'They take effect when this deploy goes live.' },
+            applied: { type: 'boolean', description: 'false when they will not be applied, e.g. a temporary app.' },
+            reason: { type: 'string', description: 'Why they will not be applied.' },
+          },
+        },
         FeedbackType: { type: 'string', enum: ['platform_bug', 'missing_capability', 'docs_issue', 'unexpected_behavior', 'other'] },
       },
     },
@@ -207,7 +283,7 @@ function openapi() {
         post: {
           operationId: 'deployApp',
           summary: 'Deploy or redeploy an app',
-          description: 'Without a token the app is temporary (deleted at app.expiresAt unless claimed). With a token it is owned, or claimed if it was temporary.',
+          description: 'Without a token the app is temporary (deleted at app.expiresAt unless claimed). With a token it is owned, or claimed if it was temporary. An optional embarko.json in the app\'s top folder (in the .tar.gz, or as one of the JSON files) holds settings; today only schedules, the app\'s full set of timed calls (matched by path, [] removes all, file or key absent leaves them unchanged). Schema: https://embarko.ai/schema/embarko.json. Guide: https://embarko.ai/docs/embarko-json. Checked before the build; schedules apply only when the deploy succeeds, and not for a temporary app. Embarko creates a CRON_SECRET env var and sends it as Authorization: Bearer on each scheduled call. Never put secrets in embarko.json.',
           security: optionalToken,
           parameters: [
             { name: 'X-App-Name', in: 'header', schema: { type: 'string' }, description: 'Required for multipart. JSON bodies may use appName instead.' },
@@ -225,7 +301,7 @@ function openapi() {
           responses: {
             200: ok('Static site already live', { $ref: '#/components/schemas/DeployReply' }),
             202: ok('Accepted: building or publishing. Poll links.status.', { $ref: '#/components/schemas/DeployReply' }),
-            400: err('invalid_app_name, app_name_too_short, app_name_too_long, invalid_app_version, invalid_app_type, invalid_agent_name, missing_source_file, invalid_file_path, invalid_file_content, invalid_file_encoding, invalid_json'),
+            400: err('invalid_app_name, app_name_too_short, app_name_too_long, invalid_app_version, invalid_app_type, invalid_agent_name, missing_source_file, invalid_file_path, invalid_file_content, invalid_file_encoding, invalid_json, invalid_embarko_json, secrets_in_embarko_json, invalid_schedules, invalid_cron, schedule_too_frequent, invalid_timezone, invalid_path, duplicate_schedule_path, schedule_limit_reached'),
             401: err('unauthorized'),
             409: err('app_name_taken, app_name_reserved, rename_in_progress'),
             413: err('source_too_large, too_many_files'),
@@ -284,6 +360,27 @@ function openapi() {
       },
       '/api/apps/{appName}/env-vars/apply': {
         post: { operationId: 'applyEnvVars', summary: 'Make the running app see stored values', security: token, parameters: [appName, agentHeader], responses: { 202: ok('Applying', { $ref: '#/components/schemas/Accepted' }), 422: err('no_current_deployment'), ...common } },
+      },
+      '/api/apps/{appName}/schedules': {
+        get: { operationId: 'listSchedules', summary: 'The app\'s schedules', security: token, parameters: [appName], responses: { 200: ok('Schedules and the per-app limit', { type: 'object', properties: { schedules: { type: 'array', items: { $ref: '#/components/schemas/Schedule' } }, limit: { type: 'integer' } } }), ...common } },
+        post: { operationId: 'createSchedule', summary: 'Call a route of the app on a schedule', description: 'At each due time Embarko sends GET {path} to the app, with Authorization: Bearer {CRON_SECRET} when the app has that env var. 2xx is success; 5 minutes to answer. Run it once with runSchedule to check it works. Creates a CRON_SECRET env var if missing; it reaches the running app on its next deploy or env-var apply. Prefer listing schedules in the app\'s embarko.json: a deploy whose embarko.json has a schedules key replaces the app\'s full set.', security: token, parameters: [appName, agentHeader], requestBody: body({ allOf: [{ $ref: '#/components/schemas/ScheduleInput' }], required: ['cron', 'path'] }), responses: { 201: ok('Created', { $ref: '#/components/schemas/Schedule' }), 400: err('invalid_cron, schedule_too_frequent, invalid_timezone, invalid_path, invalid_alert_webhook, validation_failed'), 409: err('schedule_limit_reached, not_supported_for_static'), ...common } },
+      },
+      '/api/apps/{appName}/schedules/run': {
+        post: { operationId: 'runAllSchedules', summary: 'Run every schedule once now', description: 'Use after a deploy goes live to check each one works. A schedule already running comes back with started: false and code run_in_progress. Poll each statusUrl until terminal is true.', security: token, parameters: [appName, agentHeader], responses: { 202: ok('Started', { type: 'object', properties: { runs: { type: 'array', items: { allOf: [{ $ref: '#/components/schemas/Run' }], properties: { scheduleId: { type: 'string' }, path: { type: 'string' }, statusUrl: { type: 'string', description: 'Path on ship.embarko.ai to poll.' }, started: { type: 'boolean', description: 'false when it was already running.' }, code: { type: 'string', description: 'run_in_progress when started is false.' } } } } } }), 404: err('no_schedules, or unknown app'), 409: err('not_supported_for_static'), 401: common[401] } },
+      },
+      '/api/apps/{appName}/schedules/{scheduleId}': {
+        get: { operationId: 'getSchedule', summary: 'One schedule', security: token, parameters: [appName, p('scheduleId')], responses: { 200: ok('The schedule', { $ref: '#/components/schemas/Schedule' }), 404: err('schedule_not_found'), 401: common[401] } },
+        patch: { operationId: 'updateSchedule', summary: 'Change, pause or resume a schedule (a merge)', description: 'Send only the fields to change. enabled: false pauses it. name and alertWebhookUrl take null to clear.', security: token, parameters: [appName, p('scheduleId'), agentHeader], requestBody: body({ $ref: '#/components/schemas/ScheduleInput' }), responses: { 200: ok('Updated', { $ref: '#/components/schemas/Schedule' }), 400: err('invalid_cron, schedule_too_frequent, invalid_timezone, invalid_path, invalid_alert_webhook, validation_failed'), 404: err('schedule_not_found'), 409: err('not_supported_for_static'), 401: common[401] } },
+        delete: { operationId: 'deleteSchedule', summary: 'Delete a schedule and its runs', security: token, parameters: [appName, p('scheduleId')], responses: { 204: ok('Deleted'), 404: err('schedule_not_found'), 401: common[401] } },
+      },
+      '/api/apps/{appName}/schedules/{scheduleId}/run': {
+        post: { operationId: 'runSchedule', summary: 'Run a schedule once now', description: 'Works on a paused schedule too. Poll statusUrl until terminal is true.', security: token, parameters: [appName, p('scheduleId'), agentHeader], responses: { 202: ok('Started', { allOf: [{ $ref: '#/components/schemas/Run' }], properties: { statusUrl: { type: 'string', description: 'Path on ship.embarko.ai to poll.' } } }), 404: err('schedule_not_found'), 409: err('run_in_progress, not_supported_for_static'), 401: common[401] } },
+      },
+      '/api/apps/{appName}/schedules/{scheduleId}/runs': {
+        get: { operationId: 'listScheduleRuns', summary: 'Past runs, newest first (the last 100 are kept)', security: token, parameters: [appName, p('scheduleId'), { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 100, default: 20 } }], responses: { 200: ok('Runs', { type: 'object', properties: { runs: { type: 'array', items: { $ref: '#/components/schemas/Run' } } } }), 404: err('schedule_not_found'), 401: common[401] } },
+      },
+      '/api/apps/{appName}/schedules/{scheduleId}/runs/{runId}': {
+        get: { operationId: 'getScheduleRun', summary: 'One run; poll a run-now with it', security: token, parameters: [appName, p('scheduleId'), p('runId')], responses: { 200: ok('The run', { $ref: '#/components/schemas/Run' }), 404: err('run_not_found'), 401: common[401] } },
       },
       '/api/apps/{appName}/domains': {
         get: { operationId: 'listDomains', summary: 'Custom domains (status pending_dns, active or failed)', security: token, parameters: [appName], responses: { 200: ok('Domains'), ...common } },

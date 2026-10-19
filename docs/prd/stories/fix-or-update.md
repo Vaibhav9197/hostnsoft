@@ -8,7 +8,7 @@
 - **Wants to:** change a live app, or return to a version that worked
 - **Ends with:** A new or earlier version of the app is live.
 - **Steps:** 5 · 1 by AI · 3 can go wrong
-- **Last change to its code:** v127, 10 Oct 2026 — feat(console): deploy steps with live status, shared by dialog and empty state
+- **Last change to its code:** v142, 19 Oct 2026 — Read embarko.json on deploy for schedules, warn about in-process timers
 
 [← All stories](../README.md)
 
@@ -162,11 +162,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v127 (a6658fd) | 10 Oct 2026 | feat(console): deploy steps with live status, shared by dialog and empty state | choose |
-| v126 (fc85ee2) | 8 Oct 2026 | feat(panel): "Host new app" dialog tells the deploy as three steps | choose |
-| v125 (3f8de6c) | 7 Oct 2026 | reverting to old copy deployment prompt | choose |
-| v124 (f10b4e1) | 5 Oct 2026 | feat(ui): magic wand icon on every copy-prompt button | choose |
-| v123 (a92e66f) | 5 Oct 2026 | feat(prompt): shorten copy prompt to two lines plus one contextual line | choose |
+| v142 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | ai-updates, rollback |
+| v141 (4602272) | 19 Oct 2026 | Add schedules: timed calls into apps | confirm |
+| v140 (b3e21dd) | 14 Oct 2026 | feat: add zero-downtime graceful shutdown, unref intervals, and live migration script | ai-updates, rollback |
+| v139 (1b7b79b) | 14 Oct 2026 | Redirect /capabilities to the agent guide | ai-updates, rollback |
+| v138 (e19113b) | 14 Oct 2026 | Replace the docs with the agent guide | choose |
 
 ## Open questions
 

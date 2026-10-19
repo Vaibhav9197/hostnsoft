@@ -71,6 +71,14 @@ export const FEATURES: Feature[] = [
       linkLabel: "logs",
     },
     {
+      id: "schedules",
+      label: "Schedules",
+      Icon: CalendarClock,
+      headline: "Run things on a timer",
+      body: "Weekly reports, nightly clean-ups. Say when, and Embarko calls your app at that time to do the job. If a run fails, you get an email.",
+      prompts: ["“Send the weekly report every Monday at 9”", "“Clear old carts each night”", "“Did last night’s clean-up run?”"],
+    },
+    {
       id: "email",
       label: "Email",
       Icon: Mail,
@@ -113,15 +121,6 @@ export const FEATURES: Feature[] = [
       headline: "Only your people get in",
       body: "Apps are public to anyone with the link. Soon you can make one private, so only the people you invite can open it.",
       prompts: ["“Only let my team open it”", "“Invite dana@studio.co”"],
-      upcoming: true,
-    },
-    {
-      id: "schedules",
-      label: "Schedules",
-      Icon: CalendarClock,
-      headline: "Run things on a timer",
-      body: "Weekly reports, nightly clean-ups — set a time and your app does the job on its own.",
-      prompts: ["“Email me a report every Monday”", "“Clear old carts each night”"],
       upcoming: true,
     },
     {

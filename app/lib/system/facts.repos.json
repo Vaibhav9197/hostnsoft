@@ -18,6 +18,8 @@
    "tables": [
     "table:api:DeployToken",
     "table:api:Project",
+    "table:api:Schedule",
+    "table:api:ScheduleRun",
     "table:api:Domain",
     "table:api:Deployment",
     "table:api:EnvVar",
@@ -26,7 +28,8 @@
     "table:api:AuditLog",
     "table:api:AppDetails",
     "table:api:ShowcaseEvent",
-    "table:api:ShowcaseEventListing"
+    "table:api:ShowcaseEventListing",
+    "table:api:Company"
    ]
   },
   "screens": [],
@@ -253,6 +256,7 @@
     "tablesWritten": [
      "table:api:AppDetails",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Project",
@@ -260,7 +264,9 @@
      "table:api:ShowcaseEventListing"
     ],
     "services": [
+     "ext:lago",
      "ext:redis",
+     "ext:stripe",
      "ext:viasocket"
     ]
    },
@@ -319,12 +325,16 @@
     ],
     "tablesWritten": [
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
      "table:api:Project"
     ],
-    "services": []
+    "services": [
+     "ext:lago",
+     "ext:stripe"
+    ]
    },
    {
     "id": "api:@api/apps/:appName/env-vars/apply",
@@ -351,11 +361,15 @@
     ],
     "tablesWritten": [
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:Project"
     ],
-    "services": []
+    "services": [
+     "ext:lago",
+     "ext:stripe"
+    ]
    },
    {
     "id": "api:@api/apps/:appName/env-vars/:key",
@@ -369,27 +383,273 @@
     "inbound": false,
     "imports": [
      "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/publicHttpsUrl",
      "lib:@api/src/middleware/refuseForStaticApp",
      "lib:@api/src/services/audit",
-     "lib:@api/src/services/redeploy"
+     "lib:@api/src/services/redeploy",
+     "lib:@api/src/services/schedules"
     ],
     "calls": [
      "api:@deploy/internal/apps/:appName/config"
     ],
     "tablesRead": [
+     "table:api:AppDetails",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
-     "table:api:Project"
+     "table:api:Project",
+     "table:api:Schedule",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
     ],
     "tablesWritten": [
+     "table:api:AppDetails",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
-     "table:api:Project"
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
     ],
-    "services": []
+    "services": [
+     "ext:lago",
+     "ext:redis",
+     "ext:stripe",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/apps/:appName/schedules",
+    "repo": "api",
+    "route": "/apps/:appName/schedules",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "methods": [
+     "GET",
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/publicHttpsUrl",
+     "lib:@api/src/lib/scheduleConfig",
+     "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/scheduleSync",
+     "lib:@api/src/services/schedules"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project",
+     "table:api:Schedule",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:AuditLog",
+     "table:api:EnvVar",
+     "table:api:Project",
+     "table:api:Schedule",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/apps/:appName/schedules/run",
+    "repo": "api",
+    "route": "/apps/:appName/schedules/run",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/scheduleRunner",
+     "lib:@api/src/services/schedules"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project",
+     "table:api:Schedule",
+     "table:api:ScheduleRun",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:AuditLog",
+     "table:api:EnvVar",
+     "table:api:Project",
+     "table:api:Schedule",
+     "table:api:ScheduleRun",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/apps/:appName/schedules/:scheduleId",
+    "repo": "api",
+    "route": "/apps/:appName/schedules/:scheduleId",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "methods": [
+     "DELETE",
+     "GET",
+     "PATCH"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/publicHttpsUrl",
+     "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/schedules"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:AuditLog",
+     "table:api:Project",
+     "table:api:Schedule",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/apps/:appName/schedules/:scheduleId/run",
+    "repo": "api",
+    "route": "/apps/:appName/schedules/:scheduleId/run",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/scheduleRunner",
+     "lib:@api/src/services/schedules"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project",
+     "table:api:Schedule",
+     "table:api:ScheduleRun",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:AuditLog",
+     "table:api:EnvVar",
+     "table:api:Project",
+     "table:api:Schedule",
+     "table:api:ScheduleRun",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/apps/:appName/schedules/:scheduleId/runs",
+    "repo": "api",
+    "route": "/apps/:appName/schedules/:scheduleId/runs",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/schedules"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:ScheduleRun",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/apps/:appName/schedules/:scheduleId/runs/:runId",
+    "repo": "api",
+    "route": "/apps/:appName/schedules/:scheduleId/runs/:runId",
+    "file": "@api/src/routes/agentApps.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/schedules"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:ScheduleRun",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
    },
    {
     "id": "api:@api/apps/:appName/slug-change",
@@ -424,13 +684,16 @@
     "tablesWritten": [
      "table:api:AppDetails",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:Deployment",
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing"
     ],
     "services": [
+     "ext:lago",
      "ext:redis",
+     "ext:stripe",
      "ext:viasocket"
     ]
    },
@@ -499,11 +762,15 @@
     ],
     "tablesWritten": [
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:Project"
     ],
-    "services": []
+    "services": [
+     "ext:lago",
+     "ext:stripe"
+    ]
    },
    {
     "id": "api:@api/apps/:appName/domains",
@@ -559,9 +826,13 @@
     ],
     "tablesWritten": [
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:Domain"
     ],
-    "services": []
+    "services": [
+     "ext:lago",
+     "ext:stripe"
+    ]
    },
    {
     "id": "api:@api/apps/:appName/domains/:domain",
@@ -588,9 +859,13 @@
     ],
     "tablesWritten": [
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:Domain"
     ],
-    "services": []
+    "services": [
+     "ext:lago",
+     "ext:stripe"
+    ]
    },
    {
     "id": "api:@api/apps/:appName/analytics",
@@ -827,7 +1102,8 @@
     "calls": [],
     "tablesRead": [],
     "tablesWritten": [
-     "table:api:AuditLog"
+     "table:api:AuditLog",
+     "table:api:Company"
     ],
     "services": [
      "ext:lago",
@@ -852,7 +1128,9 @@
     ],
     "calls": [],
     "tablesRead": [],
-    "tablesWritten": [],
+    "tablesWritten": [
+     "table:api:Company"
+    ],
     "services": [
      "ext:lago",
      "ext:redis",
@@ -878,7 +1156,8 @@
     "calls": [],
     "tablesRead": [],
     "tablesWritten": [
-     "table:api:AuditLog"
+     "table:api:AuditLog",
+     "table:api:Company"
     ],
     "services": [
      "ext:lago",
@@ -901,7 +1180,9 @@
     ],
     "calls": [],
     "tablesRead": [],
-    "tablesWritten": [],
+    "tablesWritten": [
+     "table:api:Company"
+    ],
     "services": [
      "ext:lago",
      "ext:redis",
@@ -925,7 +1206,9 @@
     ],
     "calls": [],
     "tablesRead": [],
-    "tablesWritten": [],
+    "tablesWritten": [
+     "table:api:Company"
+    ],
     "services": [
      "ext:lago",
      "ext:redis",
@@ -944,15 +1227,87 @@
     "inbound": false,
     "imports": [
      "lib:@api/src/lib/billingUtility",
+     "lib:@api/src/lib/couponConfig",
+     "lib:@api/src/lib/couponTable",
+     "lib:@api/src/lib/lago",
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/rateLimit",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/couponCheck",
+     "lib:@api/src/services/footerResync",
+     "lib:@api/src/validation/billing.validation"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName/config"
+    ],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:Company",
+     "table:api:Domain"
+    ],
+    "services": [
+     "ext:lago",
+     "ext:redis",
+     "ext:stripe"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/billing/coupons",
+    "repo": "api",
+    "route": "/companies/:companyId/billing/coupons",
+    "file": "@api/src/routes/billing.routes.ts",
+    "methods": [
+     "GET",
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/billingUtility",
+     "lib:@api/src/lib/couponTable",
      "lib:@api/src/lib/lago",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/services/audit",
+     "lib:@api/src/services/couponCheck",
      "lib:@api/src/validation/billing.validation"
     ],
     "calls": [],
     "tablesRead": [],
     "tablesWritten": [
-     "table:api:AuditLog"
+     "table:api:AuditLog",
+     "table:api:Company"
+    ],
+    "services": [
+     "ext:lago",
+     "ext:redis",
+     "ext:stripe"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/billing/coupons/:code",
+    "repo": "api",
+    "route": "/companies/:companyId/billing/coupons/:code",
+    "file": "@api/src/routes/billing.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/billingUtility",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/services/couponCheck",
+     "lib:@api/src/validation/billing.validation"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [
+     "table:api:Company"
     ],
     "services": [
      "ext:lago",
@@ -980,7 +1335,9 @@
     "tablesRead": [
      "table:api:Project"
     ],
-    "tablesWritten": [],
+    "tablesWritten": [
+     "table:api:Company"
+    ],
     "services": [
      "ext:lago",
      "ext:redis",
@@ -993,22 +1350,28 @@
     "route": "/companies/:companyId",
     "file": "@api/src/routes/companies.routes.ts",
     "methods": [
-     "GET"
+     "GET",
+     "PATCH"
     ],
     "inbound": false,
     "imports": [
      "lib:@api/src/lib/msg91",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
-     "lib:@api/src/middleware/proxyToken"
+     "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/services/billingCustomer"
     ],
     "calls": [],
     "tablesRead": [
      "table:api:Project"
     ],
-    "tablesWritten": [],
+    "tablesWritten": [
+     "table:api:Company"
+    ],
     "services": [
-     "ext:redis"
+     "ext:lago",
+     "ext:redis",
+     "ext:stripe"
     ]
    },
    {
@@ -1154,12 +1517,15 @@
     ],
     "tablesWritten": [
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:Project"
     ],
     "services": [
-     "ext:redis"
+     "ext:lago",
+     "ext:redis",
+     "ext:stripe"
     ]
    },
    {
@@ -1223,10 +1589,13 @@
     ],
     "tablesWritten": [
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:Domain"
     ],
     "services": [
-     "ext:redis"
+     "ext:lago",
+     "ext:redis",
+     "ext:stripe"
     ]
    },
    {
@@ -1256,10 +1625,13 @@
     ],
     "tablesWritten": [
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:Domain"
     ],
     "services": [
-     "ext:redis"
+     "ext:lago",
+     "ext:redis",
+     "ext:stripe"
     ]
    },
    {
@@ -1335,6 +1707,39 @@
     "services": []
    },
    {
+    "id": "api:@api/internal/billing/lago/webhook",
+    "repo": "api",
+    "route": "/internal/billing/lago/webhook",
+    "file": "@api/src/routes/internalBilling.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": true,
+    "imports": [
+     "lib:@api/src/lib/billingUtility",
+     "lib:@api/src/middleware/requireInternalSecret",
+     "lib:@api/src/services/companyStore",
+     "lib:@api/src/services/footerResync"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName/config"
+    ],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:Company",
+     "table:api:Domain"
+    ],
+    "services": [
+     "ext:lago",
+     "ext:stripe"
+    ]
+   },
+   {
     "id": "api:@api/internal/customer-query",
     "repo": "api",
     "route": "/internal/customer-query",
@@ -1363,27 +1768,43 @@
     ],
     "inbound": true,
     "imports": [
+     "lib:@api/src/lib/logger",
      "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/scheduleConfig",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/deployActor",
      "lib:@api/src/services/deployTokenAuth",
      "lib:@api/src/services/deploymentVersioning",
-     "lib:@api/src/services/projectClaim"
+     "lib:@api/src/services/projectClaim",
+     "lib:@api/src/services/scheduleSync",
+     "lib:@api/src/services/schedules"
     ],
     "calls": [],
     "tablesRead": [
+     "table:api:AppDetails",
      "table:api:DeployToken",
      "table:api:Deployment",
-     "table:api:Project"
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project",
+     "table:api:Schedule",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
     ],
     "tablesWritten": [
+     "table:api:AppDetails",
      "table:api:AuditLog",
      "table:api:DeployToken",
      "table:api:Deployment",
-     "table:api:Project"
+     "table:api:EnvVar",
+     "table:api:Project",
+     "table:api:Schedule",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
     ],
     "services": [
-     "ext:redis"
+     "ext:redis",
+     "ext:viasocket"
     ]
    },
    {
@@ -1421,29 +1842,44 @@
     ],
     "inbound": true,
     "imports": [
-     "lib:@api/src/lib/billingUtility",
      "lib:@api/src/lib/lago",
+     "lib:@api/src/lib/orphanClaim",
      "lib:@api/src/lib/orphanMessage",
      "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/scheduleConfig",
      "lib:@api/src/services/deployActor",
      "lib:@api/src/services/projectClaim",
-     "lib:@api/src/services/renameStatus"
+     "lib:@api/src/services/renameStatus",
+     "lib:@api/src/services/scheduleSync",
+     "lib:@api/src/services/schedules"
     ],
     "calls": [],
     "tablesRead": [
+     "table:api:AppDetails",
      "table:api:DeployToken",
      "table:api:Domain",
      "table:api:EnvVar",
-     "table:api:Project"
+     "table:api:Project",
+     "table:api:Schedule",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
     ],
     "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
-     "table:api:Project"
+     "table:api:EnvVar",
+     "table:api:Project",
+     "table:api:Schedule",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
     ],
     "services": [
      "ext:lago",
      "ext:redis",
-     "ext:stripe"
+     "ext:stripe",
+     "ext:viasocket"
     ]
    },
    {
@@ -1542,6 +1978,49 @@
     ]
    },
    {
+    "id": "api:@api/companies/:companyId/orphans/claim",
+    "repo": "api",
+    "route": "/companies/:companyId/orphans/claim",
+    "file": "@api/src/routes/projects.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/orphanClaim",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/services/appHealth",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/projectClaim",
+     "lib:@api/src/services/projectStatus",
+     "lib:@api/src/services/redeploy"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName/config",
+     "api:@deploy/internal/apps/:appName/status"
+    ],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:AuditLog",
+     "table:api:Company",
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:Project"
+    ],
+    "services": [
+     "ext:lago",
+     "ext:redis",
+     "ext:stripe"
+    ]
+   },
+   {
     "id": "api:@api/companies/:companyId/projects/:projectId",
     "repo": "api",
     "route": "/companies/:companyId/projects/:projectId",
@@ -1610,13 +2089,16 @@
     "tablesWritten": [
      "table:api:AppDetails",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:Deployment",
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing"
     ],
     "services": [
+     "ext:lago",
      "ext:redis",
+     "ext:stripe",
      "ext:viasocket"
     ]
    },
@@ -1663,7 +2145,9 @@
     ],
     "calls": [],
     "tablesRead": [],
-    "tablesWritten": [],
+    "tablesWritten": [
+     "table:api:Company"
+    ],
     "services": [
      "ext:lago",
      "ext:stripe"
@@ -1865,6 +2349,7 @@
     "tablesRead": [],
     "tablesWritten": [
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken"
     ],
     "services": [
@@ -2163,6 +2648,21 @@
   ],
   "modules": [
    {
+    "id": "lib:@api/scripts/check-coupon-rules",
+    "repo": "api",
+    "file": "@api/scripts/check-coupon-rules.ts",
+    "summary": "Self-check for the coupon check rules (no Lago key needed): npx tsx scripts/check-coupon-rules.ts",
+    "imports": [
+     "lib:@api/src/lib/lago",
+     "lib:@api/src/services/couponCheck"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
     "id": "lib:@api/scripts/grant-super-admin",
     "repo": "api",
     "file": "@api/scripts/grant-super-admin.ts",
@@ -2245,6 +2745,35 @@
     "summary": "Config for the AI-connector token endpoints (src/routes/connectorAuth.routes.ts).",
     "imports": [
      "lib:@api/src/lib/env"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/couponConfig",
+    "repo": "api",
+    "file": "@api/src/lib/couponConfig.ts",
+    "summary": "Self-serve coupon config — see docs/billing.md \"Coupons\".",
+    "imports": [
+     "lib:@api/src/lib/env"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/couponTable",
+    "repo": "api",
+    "file": "@api/src/lib/couponTable.ts",
+    "summary": "Coupon metadata that Lago doesn't model, kept in a viasocket table (docs/billing.md \"Coupons\").",
+    "imports": [
+     "lib:@api/src/lib/billingUtility",
+     "lib:@api/src/lib/logger"
     ],
     "endpoints": [],
     "defines": [],
@@ -2388,7 +2917,8 @@
     "summary": "Client for Lago (getlago.com), which owns plans, customers and subscriptions for billing.",
     "imports": [
      "lib:@api/src/lib/billingUtility",
-     "lib:@api/src/lib/logger"
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/services/companyStore"
     ],
     "endpoints": [],
     "defines": [],
@@ -2420,6 +2950,20 @@
     "imports": [
      "lib:@api/src/lib/logger",
      "lib:@api/src/lib/ttlCache"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/orphanClaim",
+    "repo": "api",
+    "file": "@api/src/lib/orphanClaim.ts",
+    "summary": "The claim code behind an orphan's claim link — see docs/Anonymous-deploy-req.md (\"Claim link\", 2026-10-08).",
+    "imports": [
+     "lib:@api/src/lib/frontendOrigin"
     ],
     "endpoints": [],
     "defines": [],
@@ -2473,6 +3017,18 @@
     "repo": "api",
     "file": "@api/src/lib/prismaErrors.ts",
     "summary": null,
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/publicHttpsUrl",
+    "repo": "api",
+    "file": "@api/src/lib/publicHttpsUrl.ts",
+    "summary": "Guards a URL a customer gave us that this service will then call itself (today: a schedule's alert webhook).",
     "imports": [],
     "endpoints": [],
     "defines": [],
@@ -2558,6 +3114,21 @@
     "file": "@api/src/lib/reservedSlugs.ts",
     "summary": "App names nobody may claim, and the shape rules a name must satisfy.",
     "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/lib/scheduleConfig",
+    "repo": "api",
+    "file": "@api/src/lib/scheduleConfig.ts",
+    "summary": "Config for schedules — see docs/schedules.md.",
+    "imports": [
+     "lib:@api/src/lib/customDomainConfig",
+     "lib:@api/src/lib/env"
+    ],
     "endpoints": [],
     "defines": [],
     "tablesRead": [],
@@ -2724,9 +3295,7 @@
     "repo": "api",
     "file": "@api/src/middleware/refuseForStaticApp.ts",
     "summary": null,
-    "imports": [
-     "lib:@api/src/lib/publicTokenConfig"
-    ],
+    "imports": [],
     "endpoints": [],
     "defines": [],
     "tablesRead": [],
@@ -2845,6 +3414,8 @@
      "lib:@api/src/lib/frontendOrigin",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/lib/prismaErrors",
+     "lib:@api/src/lib/publicHttpsUrl",
+     "lib:@api/src/lib/scheduleConfig",
      "lib:@api/src/middleware/deployTokenContext",
      "lib:@api/src/middleware/refuseForStaticApp",
      "lib:@api/src/services/appAnalytics",
@@ -2853,6 +3424,9 @@
      "lib:@api/src/services/customDomainActivation",
      "lib:@api/src/services/projectSlugChange",
      "lib:@api/src/services/redeploy",
+     "lib:@api/src/services/scheduleRunner",
+     "lib:@api/src/services/scheduleSync",
+     "lib:@api/src/services/schedules",
      "lib:@api/src/services/showcase",
      "lib:@api/src/services/slugChangeFlow"
     ],
@@ -2863,6 +3437,12 @@
      "api:@api/apps/:appName/env-vars",
      "api:@api/apps/:appName/env-vars/apply",
      "api:@api/apps/:appName/env-vars/:key",
+     "api:@api/apps/:appName/schedules",
+     "api:@api/apps/:appName/schedules/run",
+     "api:@api/apps/:appName/schedules/:scheduleId",
+     "api:@api/apps/:appName/schedules/:scheduleId/run",
+     "api:@api/apps/:appName/schedules/:scheduleId/runs",
+     "api:@api/apps/:appName/schedules/:scheduleId/runs/:runId",
      "api:@api/apps/:appName/slug-change",
      "api:@api/apps/:appName/deployments",
      "api:@api/apps/:appName/deployments/:deploymentId",
@@ -2876,12 +3456,15 @@
     "tablesRead": [
      "table:api:Deployment",
      "table:api:Domain",
-     "table:api:EnvVar"
+     "table:api:EnvVar",
+     "table:api:Schedule",
+     "table:api:ScheduleRun"
     ],
     "tablesWritten": [
      "table:api:Domain",
      "table:api:EnvVar",
-     "table:api:Project"
+     "table:api:Project",
+     "table:api:Schedule"
     ],
     "services": []
    },
@@ -2943,12 +3526,18 @@
     "summary": null,
     "imports": [
      "lib:@api/src/lib/billingUtility",
+     "lib:@api/src/lib/couponConfig",
+     "lib:@api/src/lib/couponTable",
      "lib:@api/src/lib/lago",
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/rateLimit",
      "lib:@api/src/lib/stripe",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/proxyToken",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/billingCustomer",
+     "lib:@api/src/services/couponCheck",
+     "lib:@api/src/services/footerResync",
      "lib:@api/src/validation/billing.validation"
     ],
     "endpoints": [],
@@ -2958,7 +3547,9 @@
      "api:@api/companies/:companyId/billing/payment-methods/:paymentMethodId",
      "api:@api/companies/:companyId/billing/checkout-url",
      "api:@api/companies/:companyId/billing",
-     "api:@api/companies/:companyId/billing/subscription"
+     "api:@api/companies/:companyId/billing/subscription",
+     "api:@api/companies/:companyId/billing/coupons",
+     "api:@api/companies/:companyId/billing/coupons/:code"
     ],
     "tablesRead": [],
     "tablesWritten": [],
@@ -3142,6 +3733,7 @@
      "lib:@api/src/routes/domains.routes",
      "lib:@api/src/routes/envVars.routes",
      "lib:@api/src/routes/health.routes",
+     "lib:@api/src/routes/internalBilling.routes",
      "lib:@api/src/routes/internalCustomerQuery.routes",
      "lib:@api/src/routes/internalDeployments.routes",
      "lib:@api/src/routes/internalProjects.routes",
@@ -3158,6 +3750,25 @@
     ],
     "endpoints": [],
     "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/internalBilling.routes",
+    "repo": "api",
+    "file": "@api/src/routes/internalBilling.routes.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/billingUtility",
+     "lib:@api/src/middleware/requireInternalSecret",
+     "lib:@api/src/services/companyStore",
+     "lib:@api/src/services/footerResync"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/internal/billing/lago/webhook"
+    ],
     "tablesRead": [],
     "tablesWritten": [],
     "services": []
@@ -3185,13 +3796,17 @@
     "summary": null,
     "imports": [
      "lib:@api/src/lib/deployAttribution",
+     "lib:@api/src/lib/logger",
      "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/scheduleConfig",
      "lib:@api/src/middleware/requireInternalSecret",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/deployActor",
      "lib:@api/src/services/deployTokenAuth",
      "lib:@api/src/services/deploymentVersioning",
-     "lib:@api/src/services/projectClaim"
+     "lib:@api/src/services/projectClaim",
+     "lib:@api/src/services/scheduleSync",
+     "lib:@api/src/services/schedules"
     ],
     "endpoints": [],
     "defines": [
@@ -3213,14 +3828,16 @@
     "file": "@api/src/routes/internalProjects.routes.ts",
     "summary": null,
     "imports": [
-     "lib:@api/src/lib/billingUtility",
      "lib:@api/src/lib/lago",
-     "lib:@api/src/lib/orphanConfig",
+     "lib:@api/src/lib/orphanClaim",
      "lib:@api/src/lib/orphanMessage",
      "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/scheduleConfig",
      "lib:@api/src/services/deployActor",
      "lib:@api/src/services/projectClaim",
-     "lib:@api/src/services/renameStatus"
+     "lib:@api/src/services/renameStatus",
+     "lib:@api/src/services/scheduleSync",
+     "lib:@api/src/services/schedules"
     ],
     "endpoints": [],
     "defines": [
@@ -3230,7 +3847,8 @@
     "tablesRead": [
      "table:api:Domain",
      "table:api:EnvVar",
-     "table:api:Project"
+     "table:api:Project",
+     "table:api:Schedule"
     ],
     "tablesWritten": [
      "table:api:Project"
@@ -3277,6 +3895,8 @@
     "file": "@api/src/routes/projects.routes.ts",
     "summary": null,
     "imports": [
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/orphanClaim",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/lib/reservedSlugs",
      "lib:@api/src/lib/slug",
@@ -3287,12 +3907,15 @@
      "lib:@api/src/services/appHealth",
      "lib:@api/src/services/appTeardown",
      "lib:@api/src/services/audit",
+     "lib:@api/src/services/projectClaim",
      "lib:@api/src/services/projectStatus",
+     "lib:@api/src/services/redeploy",
      "lib:@api/src/services/slugChangeFlow"
     ],
     "endpoints": [],
     "defines": [
      "api:@api/companies/:companyId/projects",
+     "api:@api/companies/:companyId/orphans/claim",
      "api:@api/companies/:companyId/projects/:projectId",
      "api:@api/companies/:companyId/projects/:projectId/slug",
      "api:@api/companies/:companyId/projects/:projectId/memory"
@@ -3476,7 +4099,8 @@
      "lib:@api/src/lib/logger",
      "lib:@api/src/lib/redis",
      "lib:@api/src/services/domainReverification",
-     "lib:@api/src/services/orphanCleanup"
+     "lib:@api/src/services/orphanCleanup",
+     "lib:@api/src/services/scheduleRunner"
     ],
     "endpoints": [],
     "defines": [],
@@ -3525,6 +4149,7 @@
     "summary": "Asks hostnsoft-deploy to move a running app to a new name — its half of a slug change for an app that has actually deployed.",
     "imports": [
      "lib:@api/src/lib/internalDeployClient",
+     "lib:@api/src/lib/lago",
      "lib:@api/src/lib/logger",
      "lib:@api/src/lib/prisma"
     ],
@@ -3581,13 +4206,32 @@
     "imports": [
      "lib:@api/src/lib/lago",
      "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/prisma",
      "lib:@api/src/lib/stripe",
-     "lib:@api/src/lib/ttlCache"
+     "lib:@api/src/lib/ttlCache",
+     "lib:@api/src/services/companyStore"
     ],
     "endpoints": [],
     "defines": [],
     "tablesRead": [],
     "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/companyStore",
+    "repo": "api",
+    "file": "@api/src/services/companyStore.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/prisma"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [
+     "table:api:Company"
+    ],
     "services": []
    },
    {
@@ -3609,12 +4253,29 @@
     "services": []
    },
    {
+    "id": "lib:@api/src/services/couponCheck",
+    "repo": "api",
+    "file": "@api/src/services/couponCheck.ts",
+    "summary": "\"Check\" a coupon code for a company without applying it: a read-only Lago lookup plus local rules that turn Lago's coupon object into blockers (can't apply) and warnings (can apply, but it won't do what you expect).",
+    "imports": [
+     "lib:@api/src/lib/billingUtility",
+     "lib:@api/src/lib/couponTable",
+     "lib:@api/src/lib/lago"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
     "id": "lib:@api/src/services/customDomainActivation",
     "repo": "api",
     "file": "@api/src/services/customDomainActivation.ts",
     "summary": "Pushes a project's current set of *active* custom domains to hostnsoft-deploy so it can regenerate and reapply the app's Nomad job spec with one HTTP-01 router per domain — see docs/Customdomain-req.md \"Activating the ro",
     "imports": [
      "lib:@api/src/lib/internalDeployClient",
+     "lib:@api/src/lib/lago",
      "lib:@api/src/lib/logger",
      "lib:@api/src/lib/prisma"
     ],
@@ -3748,6 +4409,24 @@
     "services": []
    },
    {
+    "id": "lib:@api/src/services/footerResync",
+    "repo": "api",
+    "file": "@api/src/services/footerResync.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/customDomainActivation"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:Project"
+    ],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
     "id": "lib:@api/src/services/orphanCleanup",
     "repo": "api",
     "file": "@api/src/services/orphanCleanup.ts",
@@ -3774,6 +4453,7 @@
     "file": "@api/src/services/projectClaim.ts",
     "summary": null,
     "imports": [
+     "lib:@api/src/lib/orphanClaim",
      "lib:@api/src/lib/orphanConfig",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/lib/prismaErrors",
@@ -3887,6 +4567,90 @@
     "summary": "In-process record of address changes currently being carried out, and how the last one for each project ended.",
     "imports": [
      "lib:@api/src/lib/logger"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/scheduleAlerts",
+    "repo": "api",
+    "file": "@api/src/services/scheduleAlerts.ts",
+    "summary": "Tells someone when a schedule starts failing and when it recovers — one message each way, never one per failed run.",
+    "imports": [
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/publicHttpsUrl",
+     "lib:@api/src/lib/webhooks",
+     "lib:@api/src/services/schedules",
+     "lib:@api/src/services/showcase"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/scheduleRunner",
+    "repo": "api",
+    "file": "@api/src/services/scheduleRunner.ts",
+    "summary": "Makes scheduled calls — see docs/schedules.md.",
+    "imports": [
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/scheduleConfig",
+     "lib:@api/src/services/scheduleAlerts",
+     "lib:@api/src/services/scheduleSync",
+     "lib:@api/src/services/schedules",
+     "lib:@api/src/services/showcase"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:EnvVar",
+     "table:api:Schedule",
+     "table:api:ScheduleRun"
+    ],
+    "tablesWritten": [
+     "table:api:Schedule",
+     "table:api:ScheduleRun"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/scheduleSync",
+    "repo": "api",
+    "file": "@api/src/services/scheduleSync.ts",
+    "summary": "The two pieces of a deploy-declared schedule list (docs/schedules.md \"Declared on deploy\"): - ensureCronSecret: at claim time, before the build, so the secret is in the env block the new container starts with.",
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/schedules"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:EnvVar",
+     "table:api:Schedule"
+    ],
+    "tablesWritten": [
+     "table:api:EnvVar",
+     "table:api:Schedule"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/schedules",
+    "repo": "api",
+    "file": "@api/src/services/schedules.ts",
+    "summary": "Schedules: validation, timing and the response shape — see docs/schedules.md.",
+    "imports": [
+     "lib:@api/src/lib/publicHttpsUrl",
+     "lib:@api/src/lib/scheduleConfig",
+     "lib:@api/src/services/showcase"
     ],
     "endpoints": [],
     "defines": [],
@@ -4014,9 +4778,54 @@
      "updatedAt",
      "isOrphan",
      "orphanExpiresAt",
+     "claimCodeHash",
      "currentDeploymentId",
      "kind",
      "appType"
+    ]
+   },
+   {
+    "id": "table:api:Schedule",
+    "repo": "api",
+    "store": "api",
+    "name": "Schedule",
+    "migration": "@api/prisma/schema.prisma",
+    "note": "A timed HTTP call into the app — see docs/schedules.md.",
+    "columns": [
+     "id",
+     "projectId",
+     "name",
+     "cron",
+     "timezone",
+     "path",
+     "enabled",
+     "alertWebhookUrl",
+     "nextRunAt",
+     "consecutiveFailures",
+     "failing",
+     "createdBy",
+     "createdAt",
+     "updatedAt"
+    ]
+   },
+   {
+    "id": "table:api:ScheduleRun",
+    "repo": "api",
+    "store": "api",
+    "name": "ScheduleRun",
+    "migration": "@api/prisma/schema.prisma",
+    "note": "One call the runner made (or chose not to make).",
+    "columns": [
+     "id",
+     "scheduleId",
+     "trigger",
+     "outcome",
+     "httpStatus",
+     "error",
+     "responseExcerpt",
+     "startedAt",
+     "finishedAt",
+     "durationMs"
     ]
    },
    {
@@ -4199,9 +5008,33 @@
      "isHidden",
      "createdAt"
     ]
+   },
+   {
+    "id": "table:api:Company",
+    "repo": "api",
+    "store": "api",
+    "name": "Company",
+    "migration": "@api/prisma/schema.prisma",
+    "note": "Local mirror of the few company facts the proxy doesn't hold.",
+    "columns": [
+     "id",
+     "planCode",
+     "lagoCustomerId",
+     "stripeCustomerId",
+     "createdAt",
+     "updatedAt"
+    ]
    }
   ],
   "foreignKeys": [
+   {
+    "from": "table:api:Schedule.projectId",
+    "to": "table:api:Project.id"
+   },
+   {
+    "from": "table:api:ScheduleRun.scheduleId",
+    "to": "table:api:Schedule.id"
+   },
    {
     "from": "table:api:Domain.projectId",
     "to": "table:api:Project.id"
@@ -4278,36 +5111,11 @@
      "GET"
     ],
     "inbound": false,
-    "imports": [
-     "lib:@deploy/capabilities"
-    ],
+    "imports": [],
     "calls": [],
     "tablesRead": [],
     "tablesWritten": [],
-    "services": [
-     "ext:docker",
-     "ext:railpack"
-    ]
-   },
-   {
-    "id": "api:@deploy/capabilities/all",
-    "repo": "deploy",
-    "route": "/capabilities/all",
-    "file": "@deploy/server.js",
-    "methods": [
-     "GET"
-    ],
-    "inbound": false,
-    "imports": [
-     "lib:@deploy/capabilities"
-    ],
-    "calls": [],
-    "tablesRead": [],
-    "tablesWritten": [],
-    "services": [
-     "ext:docker",
-     "ext:railpack"
-    ]
+    "services": []
    },
    {
     "id": "api:@deploy/capabilities/:topic",
@@ -4318,7 +5126,9 @@
      "GET"
     ],
     "inbound": false,
-    "imports": [],
+    "imports": [
+     "lib:@deploy/deploy-response"
+    ],
     "calls": [],
     "tablesRead": [],
     "tablesWritten": [],
@@ -4338,10 +5148,13 @@
      "lib:@deploy/build-plan",
      "lib:@deploy/claim-project",
      "lib:@deploy/deploy-credential",
+     "lib:@deploy/deploy-in-flight",
      "lib:@deploy/deploy-response",
      "lib:@deploy/deploy-status",
      "lib:@deploy/detect-manifest-root",
      "lib:@deploy/detect-storage-usage",
+     "lib:@deploy/detect-timers",
+     "lib:@deploy/embarko-config",
      "lib:@deploy/json-source",
      "lib:@deploy/logger",
      "lib:@deploy/nomad-job-spec",
@@ -4495,6 +5308,7 @@
     ],
     "inbound": true,
     "imports": [
+     "lib:@deploy/deploy-in-flight",
      "lib:@deploy/internal-auth",
      "lib:@deploy/logger",
      "lib:@deploy/nomad-job",
@@ -4769,22 +5583,6 @@
     ]
    },
    {
-    "id": "lib:@deploy/capabilities",
-    "repo": "deploy",
-    "file": "@deploy/capabilities.js",
-    "summary": "GET /capabilities — the machine-readable contract an agent reads BEFORE it designs or deploys an app.",
-    "imports": [
-     "lib:@deploy/image-retention"
-    ],
-    "endpoints": [],
-    "defines": [],
-    "tablesRead": [],
-    "tablesWritten": [],
-    "services": [
-     "ext:railpack"
-    ]
-   },
-   {
     "id": "lib:@deploy/claim-project",
     "repo": "deploy",
     "file": "@deploy/claim-project.js",
@@ -4825,6 +5623,18 @@
     "imports": [
      "lib:@deploy/validate-deploy-token"
     ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/deploy-in-flight",
+    "repo": "deploy",
+    "file": "@deploy/deploy-in-flight.js",
+    "summary": "deploy-in-flight.js Which apps have a deploy running in this process right now — from the moment hostnsoft-api has claimed the name for it until the build and Nomad deploy have finished, success or failure.",
+    "imports": [],
     "endpoints": [],
     "defines": [],
     "tablesRead": [],
@@ -4882,6 +5692,34 @@
     "services": []
    },
    {
+    "id": "lib:@deploy/detect-timers",
+    "repo": "deploy",
+    "file": "@deploy/detect-timers.js",
+    "summary": "detect-timers.js Spots apps that run timed jobs from inside the process (node-cron, APScheduler...).",
+    "imports": [
+     "lib:@deploy/logger"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@deploy/embarko-config",
+    "repo": "deploy",
+    "file": "@deploy/embarko-config.js",
+    "summary": "embarko-config.js Reads the app's optional embarko.json from the uploaded archive, before the claim and before anything is extracted or built.",
+    "imports": [
+     "lib:@deploy/logger"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
     "id": "lib:@deploy/idle-report",
     "repo": "deploy",
     "file": "@deploy/idle-report.js",
@@ -4892,7 +5730,8 @@
      "lib:@deploy/nomad-job-spec",
      "lib:@deploy/scale-to-zero-apps",
      "lib:@deploy/scale-to-zero-images",
-     "lib:@deploy/scale-to-zero-registry"
+     "lib:@deploy/scale-to-zero-registry",
+     "lib:@deploy/sqlite-data-check"
     ],
     "endpoints": [],
     "defines": [],
@@ -5177,14 +6016,16 @@
      "lib:@deploy/app-logs",
      "lib:@deploy/build-diagnostics",
      "lib:@deploy/build-plan",
-     "lib:@deploy/capabilities",
      "lib:@deploy/claim-project",
      "lib:@deploy/customer-query",
      "lib:@deploy/deploy-credential",
+     "lib:@deploy/deploy-in-flight",
      "lib:@deploy/deploy-response",
      "lib:@deploy/deploy-status",
      "lib:@deploy/detect-manifest-root",
      "lib:@deploy/detect-storage-usage",
+     "lib:@deploy/detect-timers",
+     "lib:@deploy/embarko-config",
      "lib:@deploy/image-registry",
      "lib:@deploy/image-retention",
      "lib:@deploy/internal-auth",
@@ -5206,7 +6047,6 @@
     "endpoints": [],
     "defines": [
      "api:@deploy/capabilities",
-     "api:@deploy/capabilities/all",
      "api:@deploy/capabilities/:topic",
      "api:@deploy/apps",
      "api:@deploy/apps/:appName/status",

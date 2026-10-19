@@ -8,7 +8,7 @@
 - **Wants to:** understand what Embarko does and try it
 - **Ends with:** The visitor has seen one landing version, copied the prompt, and the visit counts for that version.
 - **Steps:** 5 · 0 by AI · 3 can go wrong
-- **Last change to its code:** v66, 12 Oct 2026 — feat(landing): one feature list for v1–v4 — tiles on v1/v2, tabs on v3/v4
+- **Last change to its code:** v68, 14 Oct 2026 — Replace the docs with the agent guide
 
 [← All stories](../README.md)
 
@@ -155,11 +155,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v66 (a1ec2d4) | 12 Oct 2026 | feat(landing): one feature list for v1–v4 — tiles on v1/v2, tabs on v3/v4 | read-page |
-| v65 (a7e6b9b) | 10 Oct 2026 | feat(landing): trim copy, pill labels, Use cases moves to the footer | read-page, copy-prompt |
-| v64 (a6658fd) | 10 Oct 2026 | feat(console): deploy steps with live status, shared by dialog and empty state | copy-prompt |
-| v63 (3f8de6c) | 7 Oct 2026 | reverting to old copy deployment prompt | copy-prompt |
-| v62 (2e9bdb3) | 6 Oct 2026 | feat(showcase): one-action header, wordmark-only app pages | copy-prompt |
+| v68 (e19113b) | 14 Oct 2026 | Replace the docs with the agent guide | pick-version, copy-prompt |
+| v67 (a1ec2d4) | 12 Oct 2026 | feat(landing): one feature list for v1–v4 — tiles on v1/v2, tabs on v3/v4 | read-page |
+| v66 (a7e6b9b) | 10 Oct 2026 | feat(landing): trim copy, pill labels, Use cases moves to the footer | read-page, copy-prompt |
+| v65 (a6658fd) | 10 Oct 2026 | feat(console): deploy steps with live status, shared by dialog and empty state | copy-prompt |
+| v64 (50ea3f8) | 8 Oct 2026 | feat(claim): /claim page keeps a temporary app with a sign-in | copy-prompt |
 
 ## Open questions
 

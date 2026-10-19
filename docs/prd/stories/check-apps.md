@@ -8,7 +8,7 @@
 - **Wants to:** see at a glance which apps are live and which need attention
 - **Ends with:** Each app shows Live, Not online or Needs attention, and one click opens it.
 - **Steps:** 5 · 0 by AI · 5 can go wrong
-- **Last change to its code:** v140, 10 Oct 2026 — feat(console): deploy steps with live status, shared by dialog and empty state
+- **Last change to its code:** v151, 19 Oct 2026 — Read embarko.json on deploy for schedules, warn about in-process timers
 
 [← All stories](../README.md)
 
@@ -176,11 +176,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v140 (a6658fd) | 10 Oct 2026 | feat(console): deploy steps with live status, shared by dialog and empty state | list, keep-current, open |
-| v139 (fc85ee2) | 8 Oct 2026 | feat(panel): "Host new app" dialog tells the deploy as three steps | list, keep-current, open |
-| v138 (67eadd2) | 8 Oct 2026 | feat(panel): top bar with workspace and plan; prompt-first showcase actions | list, keep-current |
-| v137 (8107360) | 7 Oct 2026 | feat(panel): breadcrumb row replaces the header; calmer app cards | list, label, keep-current, open |
-| v136 (1f4a6a4) | 5 Oct 2026 | feat(apps): rename the empty card to "Host new app" | label, open |
+| v151 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | list, details |
+| v150 (b3e21dd) | 14 Oct 2026 | feat: add zero-downtime graceful shutdown, unref intervals, and live migration script | list, details |
+| v149 (1b7b79b) | 14 Oct 2026 | Redirect /capabilities to the agent guide | list, details |
+| v148 (6fd5e0c) | 13 Oct 2026 | fix(orphan): refuse an orphan-cleanup teardown while a deploy is in flight | list, details |
+| v147 (3f6cbf4) | 13 Oct 2026 | fix(orphan): never let cleanup tear down an app someone just redeployed | list |
 
 ## Open questions
 

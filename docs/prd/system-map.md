@@ -54,6 +54,7 @@ flowchart LR
     sleep_wake["Sleep and wake"]
     traffic_recorder["Traffic recorder"]
     cleanup["Cleanup and re-checks"]
+    schedules["Schedules"]
     trial_banner["Trial banner"]
   end
   subgraph data[Data]
@@ -61,6 +62,7 @@ flowchart LR
     old_messages["Old contact messages"]
     showcase_tables["Unused Showcase tables"]
     apps_data["Apps and deploys"]
+    schedule_data["Schedules and runs"]
     access_data["Keys and audit"]
     showcase_data["Showcase records"]
     feedback_data["Feedback records"]
@@ -142,6 +144,11 @@ flowchart LR
   sleep_wake -->|stop, start| containers
   router -->|visit to a sleeping app| sleep_wake
   runner -->|trial apps| trial_banner
+  ai_agent -->|sets schedules| app_records
+  app_records -->|schedules| schedule_data
+  schedule_data -->|what is due?| schedules
+  schedules -->|timed call to the app| router
+  schedules -->|failure emails| webhook
   cleanup -->|remove expired| runner
   cleanup -->|delete, re-check| apps_data
   admins -->|opens admin| admin
@@ -168,7 +175,7 @@ People who land on embarko.ai, read about it and browse the Showcase.
 People whose AI agent builds an app, who want it online and healthy.
 
 - **Passes to:** Your AI agent (pastes prompt), Sign-in (signs in), Your apps panel (checks apps)
-- **Stories:** [First Deploy](stories/first-deploy.md), [Check Apps](stories/check-apps.md), [Fix Or Update](stories/fix-or-update.md), [Sign In](stories/sign-in.md), [App Settings](stories/app-settings.md), [Connect AI](stories/connect-ai.md), [Showcase Listing](stories/showcase-listing.md), [Ask For Help](stories/ask-for-help.md), [Change Plan](stories/change-plan.md)
+- **Stories:** [First Deploy](stories/first-deploy.md), [Check Apps](stories/check-apps.md), [Fix Or Update](stories/fix-or-update.md), [Sign In](stories/sign-in.md), [App Settings](stories/app-settings.md), [Scheduled Task](stories/scheduled-task.md), [Connect AI](stories/connect-ai.md), [Showcase Listing](stories/showcase-listing.md), [Ask For Help](stories/ask-for-help.md), [Change Plan](stories/change-plan.md)
 
 ### Showcase organisers (`organisers`)
 
@@ -388,9 +395,9 @@ Keeps the list of apps: who owns each, its name and address, and whether it is l
 
 - **How it works:** One Project per app; the slug is its address. Names are claimed platform-wide; trial (orphan) apps expire after 24 hours unless claimed.
 - **Who decides:** a fixed rule
-- **Passes to:** Apps and deploys (apps), App runner (health, rename, remove), Traffic records (traffic charts)
-- **Receives from:** Deploy intake (claim the name), Panel bridge (apps)
-- **Stories:** [First Deploy](stories/first-deploy.md), [Trial App](stories/try-without-account.md), [Check Apps](stories/check-apps.md), [App Settings](stories/app-settings.md)
+- **Passes to:** Apps and deploys (apps), App runner (health, rename, remove), Traffic records (traffic charts), Schedules and runs (schedules)
+- **Receives from:** Deploy intake (claim the name), Panel bridge (apps), Your AI agent (sets schedules)
+- **Stories:** [First Deploy](stories/first-deploy.md), [Trial App](stories/try-without-account.md), [Check Apps](stories/check-apps.md), [App Settings](stories/app-settings.md), [Scheduled Task](stories/scheduled-task.md)
 - **Code files:** `@api/src/lib/orphanConfig.ts`, `@api/src/lib/orphanMessage.ts`, `@api/src/lib/reservedSlugs.ts`, `@api/src/lib/slug.ts`, `@api/src/middleware/projectContext.ts`, `@api/src/middleware/refuseForStaticApp.ts`, `@api/src/routes/agentApps.routes.ts`, `@api/src/routes/analytics.routes.ts`, `@api/src/routes/internalProjects.routes.ts`, `@api/src/routes/projects.routes.ts`, `@api/src/services/appAnalytics.ts`, `@api/src/services/appHealth.ts`, `@api/src/services/appRename.ts`, `@api/src/services/appTeardown.ts`, `@api/src/services/projectClaim.ts`, `@api/src/services/projectSlugChange.ts`, `@api/src/services/projectStatus.ts`, `@api/src/services/renameStatus.ts`, `@api/src/services/slugChangeFlow.ts`
 
 ### Deploy history (`deploy-history`)
@@ -474,12 +481,12 @@ Takes an app from an AI, checks the key and the name, and starts the build.
 
 Checks the files, works out what kind of app it is, builds it and reports the result.
 
-- **How it works:** Finds the app's root, refuses unsupported patterns (window.storage without SQLite, an app hidden in a subfolder), builds with Railpack, keeps the newest 5 images.
+- **How it works:** Finds the app's root, refuses unsupported patterns (window.storage without SQLite, an app hidden in a subfolder), reads the optional embarko.json and warns about in-app timers, builds with Railpack, keeps the newest 5 images.
 - **Who decides:** a fixed rule
 - **Passes to:** Container platform (build and run), Deploy history (result), App runner (start it)
 - **Receives from:** Deploy intake (build it)
 - **Stories:** [First Deploy](stories/first-deploy.md)
-- **Code files:** `@deploy/app-kind.js`, `@deploy/build-diagnostics.js`, `@deploy/build-plan.js`, `@deploy/deploy-status.js`, `@deploy/detect-manifest-root.js`, `@deploy/detect-storage-usage.js`, `@deploy/image-registry.js`, `@deploy/image-retention.js`, `@deploy/old_server.js`, `@deploy/record-deployment.js`, `@deploy/report-config-push.js`
+- **Code files:** `@deploy/app-kind.js`, `@deploy/build-diagnostics.js`, `@deploy/build-plan.js`, `@deploy/deploy-status.js`, `@deploy/detect-manifest-root.js`, `@deploy/detect-storage-usage.js`, `@deploy/detect-timers.js`, `@deploy/embarko-config.js`, `@deploy/image-registry.js`, `@deploy/image-retention.js`, `@deploy/old_server.js`, `@deploy/record-deployment.js`, `@deploy/report-config-push.js`
 
 ### App runner (`runner`)
 
@@ -522,7 +529,7 @@ Stops apps nobody has used for hours, and starts them again on the next visit.
 - **Who decides:** a fixed rule
 - **Passes to:** Container platform (stop, start)
 - **Receives from:** Traffic records (who is idle?), Traffic router (visit to a sleeping app)
-- **Stories:** [Sleep And Wake](stories/sleep-and-wake.md)
+- **Stories:** [Sleep And Wake](stories/sleep-and-wake.md), [Scheduled Task](stories/scheduled-task.md)
 - **Code files:** `@deploy/activator.js`, `@deploy/analytics/bot-filter.js`, `@deploy/idle-report.js`, `@deploy/scale-to-zero-apps.js`, `@deploy/scale-to-zero-images.js`, `@deploy/scale-to-zero-registry.js`, `@deploy/sqlite-data-check.js`
 
 ### Traffic recorder (`traffic-recorder`)
@@ -544,6 +551,17 @@ Deletes trial apps nobody claimed, and re-checks custom domains every day.
 - **Passes to:** App runner (remove expired), Apps and deploys (delete, re-check)
 - **Stories:** [Trial App](stories/try-without-account.md), [App Settings](stories/app-settings.md)
 - **Code files:** `@api/src/services/domainReverification.ts`, `@api/src/services/orphanCleanup.ts`
+
+### Schedules (`schedules`)
+
+Calls a route of an app at the times listed in the app's embarko.json, keeps a record of each run, and emails the owner when a schedule starts failing or recovers.
+
+- **How it works:** The AI lists an app's full set of schedules in the optional embarko.json in the app's top folder; @deploy reads the file from the upload (refusing bad JSON or anything secret-looking) and @api checks the schedules at claim, before the build, creates a CRON_SECRET setting if the app has none, and replaces the app's schedules with the declared set (matched by path, history kept) only when the deploy succeeds. A timer inside @api every 30s takes due schedules and sends GET <path> to the app's own address, with the app's CRON_SECRET as a bearer token when it has one. A sleeping app is woken like any visitor. 2xx is ok; 5 minutes to answer; at most 5 schedules per app, no closer than 5 minutes apart. One alert on the first failure and one on recovery, by email and an optional webhook.
+- **Who decides:** a fixed rule
+- **Passes to:** Traffic router (timed call to the app), viaSocket (failure emails)
+- **Receives from:** Schedules and runs (what is due?)
+- **Stories:** [Scheduled Task](stories/scheduled-task.md)
+- **Code files:** `@api/src/lib/publicHttpsUrl.ts`, `@api/src/lib/scheduleConfig.ts`, `@api/src/services/scheduleAlerts.ts`, `@api/src/services/scheduleRunner.ts`, `@api/src/services/scheduleSync.ts`, `@api/src/services/schedules.ts`
 
 ### Trial banner (`trial-banner`)
 
@@ -587,6 +605,15 @@ Each app, its versions, settings and custom domains.
 - **Stories:** [First Deploy](stories/first-deploy.md), [Trial App](stories/try-without-account.md), [Fix Or Update](stories/fix-or-update.md), [App Settings](stories/app-settings.md)
 - **Tables:** `Deployment`, `Domain`, `EnvVar`, `Project`
 
+### Schedules and runs (`schedule-data`)
+
+Each app's schedules, and the last 100 runs of each with what the app answered.
+
+- **Passes to:** Schedules (what is due?)
+- **Receives from:** App records (schedules)
+- **Stories:** [Scheduled Task](stories/scheduled-task.md)
+- **Tables:** `Schedule`, `ScheduleRun`
+
 ### Keys and audit (`access-data`)
 
 Deploy keys (hashed), who the admins are, and a log of important actions.
@@ -628,9 +655,9 @@ Each app's requests and resource use, for its traffic charts and for sleep decis
 The builder's own AI (Claude, ChatGPT, Cursor…) that builds and deploys the app.
 
 - **Who decides:** AI
-- **Passes to:** Agent docs (reads the rules), Deploy intake (sends the app), Sign-in (connect AI)
+- **Passes to:** Agent docs (reads the rules), Deploy intake (sends the app), Sign-in (connect AI), App records (sets schedules)
 - **Receives from:** App builders (pastes prompt)
-- **Stories:** [First Deploy](stories/first-deploy.md), [Trial App](stories/try-without-account.md), [Fix Or Update](stories/fix-or-update.md), [Connect AI](stories/connect-ai.md), [Ask For Help](stories/ask-for-help.md)
+- **Stories:** [First Deploy](stories/first-deploy.md), [Trial App](stories/try-without-account.md), [Fix Or Update](stories/fix-or-update.md), [Scheduled Task](stories/scheduled-task.md), [Connect AI](stories/connect-ai.md), [Ask For Help](stories/ask-for-help.md)
 
 ### MSG91 (`msg91`)
 
@@ -653,8 +680,8 @@ The tools that build app images and run them as containers.
 Traefik: sends each address to the right app and gets its certificate.
 
 - **Passes to:** Traffic recorder (access log), Sleep and wake (visit to a sleeping app)
-- **Receives from:** App runner (address)
-- **Stories:** [First Deploy](stories/first-deploy.md), [Sleep And Wake](stories/sleep-and-wake.md), [App Settings](stories/app-settings.md)
+- **Receives from:** App runner (address), Schedules (timed call to the app)
+- **Stories:** [First Deploy](stories/first-deploy.md), [Sleep And Wake](stories/sleep-and-wake.md), [App Settings](stories/app-settings.md), [Scheduled Task](stories/scheduled-task.md)
 - **Services:** Traefik
 
 ### Billing providers (`payments`)
@@ -677,8 +704,8 @@ Short-lived memory for sign-in checks, one-time codes and rate limits.
 
 Receives early-access requests and sends Embarko's emails (keys, Showcase notices).
 
-- **Receives from:** Deploy keys (email the key), Showcase service (emails), Messages in (early access)
-- **Stories:** [Trial App](stories/try-without-account.md), [Showcase Listing](stories/showcase-listing.md), [Contact Dev](stories/contact-dev.md)
+- **Receives from:** Deploy keys (email the key), Showcase service (emails), Messages in (early access), Schedules (failure emails)
+- **Stories:** [Trial App](stories/try-without-account.md), [Scheduled Task](stories/scheduled-task.md), [Showcase Listing](stories/showcase-listing.md), [Contact Dev](stories/contact-dev.md)
 - **Services:** viaSocket webhook
 
 ### Google Tag Manager (`gtm`)

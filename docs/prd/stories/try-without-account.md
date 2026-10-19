@@ -8,7 +8,7 @@
 - **Wants to:** put an app online without making an account first
 - **Ends with:** The app is live for 24 hours with a banner, and stays for good once they claim it.
 - **Steps:** 6 · 1 by AI · 5 can go wrong
-- **Last change to its code:** v96, 8 Oct 2026 — fix(orphan-proxy): retry backend connection during app startup instead of returning 502
+- **Last change to its code:** v118, 19 Oct 2026 — Read embarko.json on deploy for schedules, warn about in-process timers
 
 [← All stories](../README.md)
 
@@ -92,10 +92,10 @@ flowchart TD
   - If A workspace already owns the name → refused (app_name_taken).
   - If deploying the same trial app again → it is updated, but the 24 hours do not restart.
 - **Parts:** App records (`app-records`), Apps and deploys (`apps-data`)
-- **Keeps:** `Company`, `DeployToken`, `Project`
-- **Looks up:** `Domain`, `EnvVar`
+- **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`
+- **Looks up:** `Domain`
 - **Code:** `api:@api/internal/projects/claim` → `@api/src/routes/internalProjects.routes.ts`, `lib:@api/src/services/projectClaim` → `@api/src/services/projectClaim.ts`, `lib:@api/src/lib/orphanMessage` → `@api/src/lib/orphanMessage.ts`
-- **Outside services:** Lago, Redis, Stripe
+- **Outside services:** Lago, Redis, Stripe, viaSocket webhook
 
 ### 3. Show the trial banner
 
@@ -128,10 +128,10 @@ flowchart TD
 - **If it goes wrong:**
   - If the key is revoked by then → refused (401), and the app stays a trial.
 - **Parts:** Deploy intake (`intake`), App records (`app-records`)
-- **Keeps:** `Company`, `DeployToken`, `Project`
-- **Looks up:** `Domain`, `EnvVar`
+- **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`
+- **Looks up:** `Domain`
 - **Code:** `api:@api/internal/projects/claim` → `@api/src/routes/internalProjects.routes.ts`, `lib:@api/src/services/projectClaim` → `@api/src/services/projectClaim.ts`
-- **Outside services:** Lago, Redis, Stripe
+- **Outside services:** Lago, Redis, Stripe, viaSocket webhook
 
 ### 6. Delete if unclaimed
 
@@ -166,12 +166,16 @@ See [system-map.md](../system-map.md) for how the parts connect.
 
 ## Tables
 
+- **Keeps** `AppDetails` — Public-facing details of a deployed app.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `DeployToken` — Company-wide deploy token.
+- **Keeps** `EnvVar`
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
+- **Keeps** `Schedule` — A timed HTTP call into the app — see docs/schedules.md.
+- **Keeps** `ShowcaseEvent` — An event page, /showcase/<slug>: a hackathon, a demo day.
+- **Keeps** `ShowcaseEventListing` — One app shown on one event page.
 - **Looks up** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
-- **Looks up** `EnvVar`
 
 See [tables.md](../tables.md).
 
@@ -179,11 +183,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v96 (8641a01) | 8 Oct 2026 | fix(orphan-proxy): retry backend connection during app startup instead of returning 502 | banner |
-| v95 (3d84128) | 7 Oct 2026 | Lower orphan-proxy sidecar reservation to 32MB floor / 64MB maxEnv asking instruction update | banner |
-| v94 (a4b403a) | 6 Oct 2026 | Footer changes | banner |
-| v93 (3ae7dff) | 5 Oct 2026 | Now Checking with exact name not from prefixes (#20) | ai-deploys, cleanup |
-| v92 (79878bf) | 3 Oct 2026 | Added mutationoverserver for footer | banner |
+| v118 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | ai-deploys, cleanup |
+| v117 (4602272) | 19 Oct 2026 | Add schedules: timed calls into apps | trial, claim |
+| v116 (4b84108) | 19 Oct 2026 | footer capsule changes acc to touch screen as well | banner |
+| v115 (9ec8b0e) | 17 Oct 2026 | new capsule footer changes | banner |
+| v114 (f393eec) | 16 Oct 2026 | feat: add size limits and timeouts to prevent OOM errors in orphan proxy | banner |
 
 ## Open questions
 
