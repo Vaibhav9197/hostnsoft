@@ -8,7 +8,7 @@
 - **Wants to:** change a live app, or return to a version that worked
 - **Ends with:** A new or earlier version of the app is live.
 - **Steps:** 5 · 1 by AI · 3 can go wrong
-- **Last change to its code:** v142, 19 Oct 2026 — Read embarko.json on deploy for schedules, warn about in-process timers
+- **Last change to its code:** v143, 19 Oct 2026 — Report the running commit on /health and check it after deploy
 
 [← All stories](../README.md)
 
@@ -162,11 +162,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v143 (0d035d5) | 19 Oct 2026 | Report the running commit on /health and check it after deploy | ai-updates, rollback |
 | v142 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | ai-updates, rollback |
 | v141 (4602272) | 19 Oct 2026 | Add schedules: timed calls into apps | confirm |
 | v140 (b3e21dd) | 14 Oct 2026 | feat: add zero-downtime graceful shutdown, unref intervals, and live migration script | ai-updates, rollback |
 | v139 (1b7b79b) | 14 Oct 2026 | Redirect /capabilities to the agent guide | ai-updates, rollback |
-| v138 (e19113b) | 14 Oct 2026 | Replace the docs with the agent guide | choose |
 
 ## Open questions
 

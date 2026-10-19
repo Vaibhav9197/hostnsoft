@@ -8,7 +8,7 @@
 - **Wants to:** put an app online without making an account first
 - **Ends with:** The app is live for 24 hours with a banner, and stays for good once they claim it.
 - **Steps:** 6 · 1 by AI · 5 can go wrong
-- **Last change to its code:** v118, 19 Oct 2026 — Read embarko.json on deploy for schedules, warn about in-process timers
+- **Last change to its code:** v119, 19 Oct 2026 — Report the running commit on /health and check it after deploy
 
 [← All stories](../README.md)
 
@@ -183,11 +183,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v119 (0d035d5) | 19 Oct 2026 | Report the running commit on /health and check it after deploy | ai-deploys, cleanup |
 | v118 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | ai-deploys, cleanup |
 | v117 (4602272) | 19 Oct 2026 | Add schedules: timed calls into apps | trial, claim |
 | v116 (4b84108) | 19 Oct 2026 | footer capsule changes acc to touch screen as well | banner |
 | v115 (9ec8b0e) | 17 Oct 2026 | new capsule footer changes | banner |
-| v114 (f393eec) | 16 Oct 2026 | feat: add size limits and timeouts to prevent OOM errors in orphan proxy | banner |
 
 ## Open questions
 

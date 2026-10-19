@@ -51,12 +51,18 @@ export function HealthPill({
    *  `health` once the allocation exists, which can be a minute or more after
    *  the deploy starts, so without this the card sits there looking idle. */
   deploying = false,
+  /** How many of the app's scheduled jobs are failing. A running app with a
+   *  failing job "Needs attention": it serves visitors, but a job it was asked
+   *  to do every day isn't getting done, and that is exactly the kind of thing
+   *  nobody notices until it matters. The app's page says which job. */
+  failingJobs = 0,
   variant = "plain",
   labelOnHover = false,
   className,
 }: {
   health: ProjectHealth;
   deploying?: boolean;
+  failingJobs?: number;
   variant?: "plain" | "pill";
   /** Dot only, with the word sliding in to its left when the enclosing
    *  `group` (the app card) is hovered or focused. For grids, where a word on
@@ -67,7 +73,12 @@ export function HealthPill({
   className?: string;
 }) {
   const resolved = TONES[health] ?? TONES.unknown;
-  const { label, tone } = deploying ? { label: "Deploying", tone: "offline" as const } : resolved;
+  const jobsFailing = failingJobs > 0 && health === "running";
+  const { label, tone } = deploying
+    ? { label: "Deploying", tone: "offline" as const }
+    : jobsFailing
+      ? { label: "Needs attention", tone: "attention" as const }
+      : resolved;
   const style = STYLES[tone];
 
   /* Motion is the whole signal for a state that means "wait" — the word alone
@@ -83,6 +94,7 @@ export function HealthPill({
        never be the signal, both for colour-blind readers and because these
        three greys and reds are hard to tell apart at 8px. */
     <span
+      title={jobsFailing ? (failingJobs === 1 ? "A scheduled job is failing" : `${failingJobs} scheduled jobs are failing`) : undefined}
       className={cn(
         "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap",
         variant === "pill"
@@ -113,6 +125,10 @@ export function HealthPill({
         <span className={cn("size-1.5 shrink-0 rounded-full", style.dot)} aria-hidden="true" />
       )}
       {!hideLabel && label}
+      {/* The word is the same as for a crash; what needs attention is said
+          here for screen readers and in the tooltip, and in full on the
+          app's page. */}
+      {jobsFailing && <span className="sr-only">: a scheduled job is failing</span>}
       {/* Says the same thing to a screen reader that the pulse says to a
           sighted reader: this is not a settled state, come back to it. */}
       {working && <span className="sr-only">, in progress</span>}

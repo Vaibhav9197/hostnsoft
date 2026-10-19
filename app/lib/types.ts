@@ -86,7 +86,49 @@ export interface Project {
   /** How that deploy ended. Null before anything has been deployed. */
   status: DeploymentStatus | null;
   health: ProjectHealth;
+  /** Scheduled jobs: how many, and how many are failing right now. A failing
+   *  one makes the app "Needs attention" (HealthPill). Optional so an API
+   *  that predates schedules still type-checks. */
+  schedules?: ScheduleSummary;
   createdBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ScheduleSummary {
+  count: number;
+  failing: number;
+}
+
+/** One run of a scheduled job. `responseExcerpt` is the start of what the
+ *  app replied, often a one-line summary of what the job did. */
+export interface ScheduleRun {
+  id: string;
+  trigger: "schedule" | "manual";
+  outcome: "running" | "ok" | "failed" | "skipped";
+  terminal: boolean;
+  httpStatus: number | null;
+  error: string | null;
+  responseExcerpt: string | null;
+  startedAt: string;
+  finishedAt: string | null;
+  durationMs: number | null;
+}
+
+/** A timed call into the app, declared in its embarko.json. Read-only here:
+ *  the AI changes schedules, the panel shows them. */
+export interface Schedule {
+  id: string;
+  name: string | null;
+  cron: string;
+  timezone: string;
+  path: string;
+  url: string;
+  enabled: boolean;
+  nextRunAt: string | null;
+  failing: boolean;
+  consecutiveFailures: number;
+  lastRun: ScheduleRun | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -3,6 +3,7 @@
 import { use } from "react";
 import { ProjectAnalytics } from "../../../components/console/ProjectAnalytics";
 import { Alert, Page, Skeleton } from "../../../components/console/kit";
+import { ProjectSchedules } from "../../../components/console/ProjectSchedules";
 import { ProjectShowcasePages } from "../../../components/console/showcase/ProjectShowcasePages";
 import { useSession } from "../../../lib/session";
 import { useProject } from "../../../lib/useProject";
@@ -15,7 +16,9 @@ import { useProject } from "../../../lib/useProject";
    about whether the app is serving.
 
    That leaves traffic as the whole page, which is the point: the header answers
-   "is it live?", and this answers "is anyone using it?". */
+   "is it live?", and this answers "is anyone using it?". An app with scheduled
+   jobs also shows them; a failing one goes first, because it is what makes the
+   header say "Needs attention". */
 export default function ProjectOverviewPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = use(params);
   const { activeCompanyId } = useSession();
@@ -24,9 +27,14 @@ export default function ProjectOverviewPage({ params }: { params: Promise<{ proj
   if (error) return <Page><Alert>{error}</Alert></Page>;
   if (!project) return <Page><Skeleton className="h-[120px]" aria-hidden="true" /></Page>;
 
+  const jobs = <ProjectSchedules companyId={activeCompanyId} projectId={projectId} appName={project.slug} />;
+  const jobsFailing = (project.schedules?.failing ?? 0) > 0;
+
   return (
     <Page>
+      {jobsFailing && jobs}
       <ProjectAnalytics companyId={activeCompanyId} projectId={projectId} isStatic={project?.kind === "static"} />
+      {!jobsFailing && jobs}
       <ProjectShowcasePages companyId={activeCompanyId} projectId={projectId} />
     </Page>
   );

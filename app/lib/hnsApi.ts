@@ -29,6 +29,8 @@ import type {
   OrphanClaimResult,
   PaymentMethod,
   Project,
+  Schedule,
+  ScheduleRun,
   ProjectAnalytics,
   ProjectDetail,
   ShowcaseCollection,
@@ -167,6 +169,18 @@ export const envVarsApi = {
   // DELETE .../env-vars/:key — remove one variable by key.
   remove: (companyId: string, projectId: string, key: string) =>
     hns<null>(`/companies/${companyId}/projects/${projectId}/env-vars/${encodeURIComponent(key)}`, { method: "DELETE" }),
+};
+
+// ----------------------------------------------------------- Scheduled jobs
+// Read-only: the panel shows schedules, the AI changes them (embarko.json).
+export const schedulesApi = {
+  // GET .../schedules — every scheduled job of the app, with its last run.
+  list: (companyId: string, projectId: string) =>
+    hns<{ schedules: Schedule[]; limit: number }>(`/companies/${companyId}/projects/${projectId}/schedules`),
+
+  // GET .../schedules/:scheduleId/runs — newest first.
+  runs: (companyId: string, projectId: string, scheduleId: string, limit = 10) =>
+    hns<{ runs: ScheduleRun[] }>(`/companies/${companyId}/projects/${projectId}/schedules/${scheduleId}/runs?limit=${limit}`),
 };
 
 // -------------------------------------------------------------- Deploy tokens

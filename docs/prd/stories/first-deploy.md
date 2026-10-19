@@ -8,7 +8,7 @@
 - **Wants to:** get the app their AI built online
 - **Ends with:** The app is live at its own embarko.app address and shows in Your apps.
 - **Steps:** 10 · 1 by AI · 7 can go wrong
-- **Last change to its code:** v198, 19 Oct 2026 — Read embarko.json on deploy for schedules, warn about in-process timers
+- **Last change to its code:** v199, 19 Oct 2026 — Report the running commit on /health and check it after deploy
 
 [← All stories](../README.md)
 
@@ -168,10 +168,10 @@ flowchart TD
   - If A server app crashes after starting → "started, then stopped".
   - If A server app isn't running 3 minutes after its build → "didn't start".
 - **Parts:** Your apps panel (`console`), Deploy history (`deploy-history`)
-- **Keeps:** `AuditLog`, `Project`
-- **Looks up:** `Deployment`
+- **Keeps:** `AppDetails`, `AuditLog`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`
+- **Looks up:** `Deployment`, `Domain`, `Schedule`
 - **Code:** `lib:app/components/console/DeploySteps` → `app/components/console/DeploySteps.tsx`, `lib:app/components/console/useDeployWatch` → `app/components/console/useDeployWatch.ts`, `api:@api/companies/:companyId/projects/:projectId/deployments` → `@api/src/routes/deployments.routes.ts`, `api:@api/companies/:companyId/projects` → `@api/src/routes/projects.routes.ts`
-- **Outside services:** Redis
+- **Outside services:** Redis, viaSocket webhook
 
 ### 5. AI sends the app
 
@@ -298,11 +298,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v199 (0d035d5) | 19 Oct 2026 | Report the running commit on /health and check it after deploy | ai-deploys |
 | v198 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | ai-deploys, check-key, record |
 | v197 (4602272) | 19 Oct 2026 | Add schedules: timed calls into apps | check-key, record |
 | v196 (01836d2) | 17 Oct 2026 | feat(settings): drop workspace deletion, simplify workspace panel | make-token |
 | v195 (b3e21dd) | 14 Oct 2026 | feat: add zero-downtime graceful shutdown, unref intervals, and live migration script | ai-deploys |
-| v194 (1b7b79b) | 14 Oct 2026 | Redirect /capabilities to the agent guide | ai-deploys |
 
 ## Open questions
 

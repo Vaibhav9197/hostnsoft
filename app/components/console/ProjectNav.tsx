@@ -57,7 +57,7 @@ export function ProjectNav({ projectId }: { projectId: string }) {
               <div className="truncate text-[1.05rem] font-bold leading-tight text-foreground">
                 {project?.name ?? "…"}
               </div>
-              {project && <HealthPill health={project.health} variant="pill" />}
+              {project && <HealthPill health={project.health} failingJobs={project.schedules?.failing} variant="pill" />}
             </div>
             {/* The live URL, not the slug: the address is what the reader
                 recognises their app by, and it's the one piece of identity

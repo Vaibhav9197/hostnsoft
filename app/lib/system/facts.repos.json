@@ -528,6 +528,7 @@
      "table:api:AppDetails",
      "table:api:Domain",
      "table:api:Project",
+     "table:api:Schedule",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing"
     ],
@@ -603,6 +604,7 @@
      "table:api:AppDetails",
      "table:api:Domain",
      "table:api:Project",
+     "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing"
@@ -636,6 +638,7 @@
      "table:api:AppDetails",
      "table:api:Domain",
      "table:api:Project",
+     "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing"
@@ -1700,7 +1703,9 @@
      "GET"
     ],
     "inbound": false,
-    "imports": [],
+    "imports": [
+     "lib:@api/src/lib/buildInfo"
+    ],
     "calls": [],
     "tablesRead": [],
     "tablesWritten": [],
@@ -1960,21 +1965,31 @@
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/services/appHealth",
      "lib:@api/src/services/audit",
-     "lib:@api/src/services/projectStatus"
+     "lib:@api/src/services/projectStatus",
+     "lib:@api/src/services/schedules"
     ],
     "calls": [
      "api:@deploy/internal/apps/:appName/status"
     ],
     "tablesRead": [
+     "table:api:AppDetails",
      "table:api:Deployment",
-     "table:api:Project"
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:Schedule",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
     ],
     "tablesWritten": [
+     "table:api:AppDetails",
      "table:api:AuditLog",
-     "table:api:Project"
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
     ],
     "services": [
-     "ext:redis"
+     "ext:redis",
+     "ext:viasocket"
     ]
    },
    {
@@ -1995,29 +2010,38 @@
      "lib:@api/src/services/audit",
      "lib:@api/src/services/projectClaim",
      "lib:@api/src/services/projectStatus",
-     "lib:@api/src/services/redeploy"
+     "lib:@api/src/services/redeploy",
+     "lib:@api/src/services/schedules"
     ],
     "calls": [
      "api:@deploy/internal/apps/:appName/config",
      "api:@deploy/internal/apps/:appName/status"
     ],
     "tablesRead": [
+     "table:api:AppDetails",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
-     "table:api:Project"
+     "table:api:Project",
+     "table:api:Schedule",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
     ],
     "tablesWritten": [
+     "table:api:AppDetails",
      "table:api:AuditLog",
      "table:api:Company",
      "table:api:Deployment",
      "table:api:Domain",
-     "table:api:Project"
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
     ],
     "services": [
      "ext:lago",
      "ext:redis",
-     "ext:stripe"
+     "ext:stripe",
+     "ext:viasocket"
     ]
    },
    {
@@ -2038,22 +2062,32 @@
      "lib:@api/src/services/appHealth",
      "lib:@api/src/services/appTeardown",
      "lib:@api/src/services/audit",
-     "lib:@api/src/services/projectStatus"
+     "lib:@api/src/services/projectStatus",
+     "lib:@api/src/services/schedules"
     ],
     "calls": [
      "api:@deploy/internal/apps/:appName",
      "api:@deploy/internal/apps/:appName/status"
     ],
     "tablesRead": [
+     "table:api:AppDetails",
      "table:api:Deployment",
-     "table:api:Project"
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:Schedule",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
     ],
     "tablesWritten": [
+     "table:api:AppDetails",
      "table:api:AuditLog",
-     "table:api:Project"
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
     ],
     "services": [
-     "ext:redis"
+     "ext:redis",
+     "ext:viasocket"
     ]
    },
    {
@@ -2356,6 +2390,78 @@
      "ext:lago",
      "ext:redis",
      "ext:stripe",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/projects/:projectId/schedules",
+    "repo": "api",
+    "route": "/companies/:companyId/projects/:projectId/schedules",
+    "file": "@api/src/routes/schedules.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/scheduleConfig",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/services/schedules"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:Schedule",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/projects/:projectId/schedules/:scheduleId/runs",
+    "repo": "api",
+    "route": "/companies/:companyId/projects/:projectId/schedules/:scheduleId/runs",
+    "file": "@api/src/routes/schedules.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/services/schedules"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:Domain",
+     "table:api:Project",
+     "table:api:Schedule",
+     "table:api:ScheduleRun",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "services": [
+     "ext:redis",
      "ext:viasocket"
     ]
    },
@@ -2710,6 +2816,18 @@
      "ext:lago",
      "ext:stripe"
     ]
+   },
+   {
+    "id": "lib:@api/src/lib/buildInfo",
+    "repo": "api",
+    "file": "@api/src/lib/buildInfo.ts",
+    "summary": "Which code this process is running, read once at startup and reported by GET /health.",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
    },
    {
     "id": "lib:@api/src/lib/connectorPendingLogin",
@@ -3705,7 +3823,9 @@
     "repo": "api",
     "file": "@api/src/routes/health.routes.ts",
     "summary": null,
-    "imports": [],
+    "imports": [
+     "lib:@api/src/lib/buildInfo"
+    ],
     "endpoints": [],
     "defines": [
      "api:@api/health"
@@ -3745,6 +3865,7 @@
      "lib:@api/src/routes/publicDocs.routes",
      "lib:@api/src/routes/publicShowcase.routes",
      "lib:@api/src/routes/publicTokens.routes",
+     "lib:@api/src/routes/schedules.routes",
      "lib:@api/src/routes/showcase.routes",
      "lib:@api/src/routes/tokens.routes"
     ],
@@ -3910,6 +4031,7 @@
      "lib:@api/src/services/projectClaim",
      "lib:@api/src/services/projectStatus",
      "lib:@api/src/services/redeploy",
+     "lib:@api/src/services/schedules",
      "lib:@api/src/services/slugChangeFlow"
     ],
     "endpoints": [],
@@ -4024,6 +4146,31 @@
      "api:@api/public/deploy-tokens/request"
     ],
     "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/schedules.routes",
+    "repo": "api",
+    "file": "@api/src/routes/schedules.routes.ts",
+    "summary": "Schedules for the dashboard: read-only.",
+    "imports": [
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/scheduleConfig",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/services/schedules"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/companies/:companyId/projects/:projectId/schedules",
+     "api:@api/companies/:companyId/projects/:projectId/schedules/:scheduleId/runs"
+    ],
+    "tablesRead": [
+     "table:api:Schedule",
+     "table:api:ScheduleRun"
+    ],
     "tablesWritten": [],
     "services": []
    },
@@ -4648,13 +4795,16 @@
     "file": "@api/src/services/schedules.ts",
     "summary": "Schedules: validation, timing and the response shape — see docs/schedules.md.",
     "imports": [
+     "lib:@api/src/lib/prisma",
      "lib:@api/src/lib/publicHttpsUrl",
      "lib:@api/src/lib/scheduleConfig",
      "lib:@api/src/services/showcase"
     ],
     "endpoints": [],
     "defines": [],
-    "tablesRead": [],
+    "tablesRead": [
+     "table:api:Schedule"
+    ],
     "tablesWritten": [],
     "services": []
    },
@@ -5101,6 +5251,23 @@
     "services": [
      "ext:railpack"
     ]
+   },
+   {
+    "id": "api:@deploy/health",
+    "repo": "deploy",
+    "route": "/health",
+    "file": "@deploy/server.js",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@deploy/build-info"
+    ],
+    "calls": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
    },
    {
     "id": "api:@deploy/capabilities",
@@ -5569,6 +5736,18 @@
     "services": []
    },
    {
+    "id": "lib:@deploy/build-info",
+    "repo": "deploy",
+    "file": "@deploy/build-info.js",
+    "summary": "build-info.js Which code this process is running, read once at startup and reported by GET /health.",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
     "id": "lib:@deploy/build-plan",
     "repo": "deploy",
     "file": "@deploy/build-plan.js",
@@ -6015,6 +6194,7 @@
      "lib:@deploy/app-kind",
      "lib:@deploy/app-logs",
      "lib:@deploy/build-diagnostics",
+     "lib:@deploy/build-info",
      "lib:@deploy/build-plan",
      "lib:@deploy/claim-project",
      "lib:@deploy/customer-query",
@@ -6046,6 +6226,7 @@
     ],
     "endpoints": [],
     "defines": [
+     "api:@deploy/health",
      "api:@deploy/capabilities",
      "api:@deploy/capabilities/:topic",
      "api:@deploy/apps",

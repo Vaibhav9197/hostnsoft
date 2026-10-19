@@ -8,7 +8,7 @@
 - **Wants to:** send feedback, report a problem or ask for a feature
 - **Ends with:** The message is saved in the team's inbox, where admins read it.
 - **Steps:** 4 · 0 by AI · 4 can go wrong
-- **Last change to its code:** v98, 19 Oct 2026 — Read embarko.json on deploy for schedules, warn about in-process timers
+- **Last change to its code:** v99, 19 Oct 2026 — Report the running commit on /health and check it after deploy
 
 [← All stories](../README.md)
 
@@ -161,11 +161,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v99 (0d035d5) | 19 Oct 2026 | Report the running commit on /health and check it after deploy | write |
 | v98 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | write |
 | v97 (b3e21dd) | 14 Oct 2026 | feat: add zero-downtime graceful shutdown, unref intervals, and live migration script | write |
 | v96 (1b7b79b) | 14 Oct 2026 | Redirect /capabilities to the agent guide | write |
 | v95 (0bfcba4) | 14 Oct 2026 | feat(admin): show votes per message and counts per feature | write, read |
-| v94 (f160b9b) | 14 Oct 2026 | feat(panel): upvote upcoming features from the "What's missing?" box | write |
 
 ## Open questions
 

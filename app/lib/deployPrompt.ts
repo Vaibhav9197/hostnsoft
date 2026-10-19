@@ -130,6 +130,29 @@ Set it as DEPLOY_TOKEN and save it to ~/.embarko/credentials (chmod 600) so late
 When I ask for changes, redeploy it as the existing app "${appName}", that exact name, with that token. Read ${SITE}/docs/quickstart.md if you need the deploy steps.`;
 }
 
+/**
+ * "Fix with your AI" for a scheduled job that is failing. Carries what the
+ * agent needs to start without asking: which app, which job, and the last
+ * error, plus where the run history is. The agent fixes the route in the
+ * same project and redeploys the same app name, which re-runs the job.
+ */
+export function consoleFixSchedulePrompt(input: {
+  appName: string;
+  job: string;
+  path: string;
+  scheduleId: string;
+  error: string | null;
+  reply: string | null;
+}): string {
+  const { appName, job, path, scheduleId, error, reply } = input;
+  const lastError = [error, reply && reply !== error ? `the app replied: ${reply}` : null].filter(Boolean).join("; ");
+  return `My Embarko app "${appName}" (${appUrl(appName)}) has a scheduled job that is failing: ${job} (GET ${path}).
+Last error: ${lastError || "unknown"}.
+
+Read ${SITE}/docs/schedules.md and fix it. Use my deploy token: DEPLOY_TOKEN or ~/.embarko/credentials if either is set; if neither is, ask me for one from ${SITE}/app/tokens and save it to ~/.embarko/credentials.
+Check the job's recent runs at https://ship.embarko.ai/api/apps/${appName}/schedules/${scheduleId}/runs, fix the route in this app's code, then redeploy it as the existing app "${appName}" — that exact name. Tell me it's fixed only when the job's test run says "ok".`;
+}
+
 /** "my-app.embarko.app", "https://my-app.embarko.app/x" or "my-app" → "my-app". */
 export function appNameFromLink(input: string): string | null {
   const s = input.trim().toLowerCase().replace(/^https?:\/\//, "").split(/[/?#]/)[0];

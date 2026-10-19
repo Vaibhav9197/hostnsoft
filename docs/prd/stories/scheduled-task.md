@@ -8,7 +8,7 @@
 - **Wants to:** have their app do something at set times without anyone visiting it
 - **Ends with:** The app's route is called at each due time; the owner hears only when it starts failing and when it recovers.
 - **Steps:** 6 · 3 by AI · 4 can go wrong
-- **Last change to its code:** v128, 19 Oct 2026 — Read embarko.json on deploy for schedules, warn about in-process timers
+- **Last change to its code:** v131, 19 Oct 2026 — Report the running commit on /health and check it after deploy
 
 [← All stories](../README.md)
 
@@ -224,11 +224,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v131 (0d035d5) | 19 Oct 2026 | Report the running commit on /health and check it after deploy | deploy |
+| v130 (c24def1) | 19 Oct 2026 | Drop wake-up from the schedule timeout error | test, call |
+| v129 (b3adf2c) | 19 Oct 2026 | Stop telling agents about app sleep | deploy |
 | v128 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | deploy |
 | v127 (4602272) | 19 Oct 2026 | Add schedules: timed calls into apps | deploy, test, call, alert |
-| v126 (b3e21dd) | 14 Oct 2026 | feat: add zero-downtime graceful shutdown, unref intervals, and live migration script | deploy |
-| v125 (cb62ebd) | 14 Oct 2026 | Point doc links at the agent guide topics | test |
-| v124 (1b7b79b) | 14 Oct 2026 | Redirect /capabilities to the agent guide | deploy |
 
 ## Open questions
 

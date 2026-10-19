@@ -52,7 +52,7 @@ export function AppTile({ project: p }: { project: Project }) {
             app last deployed (a rollback doesn't touch it), hence "updated". */}
         <div className="ft">
           <span title={formatDateTime(p.updatedAt)}>Updated {relativeTime(p.updatedAt)}</span>
-          <HealthPill health={p.health} deploying={deploying} labelOnHover className="ml-auto flex-none" />
+          <HealthPill health={p.health} deploying={deploying} failingJobs={p.schedules?.failing} labelOnHover className="ml-auto flex-none" />
         </div>
       </div>
     </article>

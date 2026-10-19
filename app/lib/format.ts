@@ -16,6 +16,23 @@ export function relativeTime(iso: string | null): string {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
+/** "in 4m", "in 3h", "in 2d" — for a time that hasn't come yet (a job's next
+ *  run). A time already passed reads "any moment": the runner is about to
+ *  pick it up. */
+export function untilTime(iso: string | null): string {
+  if (!iso) return "—";
+  const s = Math.round((new Date(iso).getTime() - Date.now()) / 1000);
+  if (s <= 0) return "any moment";
+  if (s < 60) return `in ${s}s`;
+  const m = Math.round(s / 60);
+  if (m < 60) return `in ${m}m`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `in ${h}h`;
+  const d = Math.round(h / 24);
+  if (d < 30) return `in ${d}d`;
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
 export function formatBytes(bytes: number | null): string {
   if (bytes == null) return "—";
   if (bytes < 1024) return `${bytes} B`;

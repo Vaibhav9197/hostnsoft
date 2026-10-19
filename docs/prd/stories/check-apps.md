@@ -8,7 +8,7 @@
 - **Wants to:** see at a glance which apps are live and which need attention
 - **Ends with:** Each app shows Live, Not online or Needs attention, and one click opens it.
 - **Steps:** 5 · 0 by AI · 5 can go wrong
-- **Last change to its code:** v151, 19 Oct 2026 — Read embarko.json on deploy for schedules, warn about in-process timers
+- **Last change to its code:** v157, 19 Oct 2026 — Report the running commit on /health and check it after deploy
 
 [← All stories](../README.md)
 
@@ -93,10 +93,10 @@ flowchart TD
   - If A later refresh fails → the screen stays as it was.
   - If the deploy service can't be asked → that app's health shows as Unknown.
 - **Parts:** Your apps panel (`console`), Panel bridge (`bridge`), App records (`app-records`), App runner (`runner`)
-- **Keeps:** `AuditLog`, `Project`
-- **Looks up:** `Deployment`
+- **Keeps:** `AppDetails`, `AuditLog`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`
+- **Looks up:** `Deployment`, `Domain`, `Schedule`
 - **Code:** `page:/app` → `app/app/page.tsx`, `lib:app/lib/lastSeen` → `app/lib/lastSeen.ts`, `lib:app/lib/earlyReads` → `app/lib/earlyReads.ts`, `api:@api/companies/:companyId/projects` → `@api/src/routes/projects.routes.ts`, `lib:@api/src/services/appHealth` → `@api/src/services/appHealth.ts`, `api:@deploy/internal/apps/:appName/status` → `@deploy/server.js`, `lib:@deploy/app-health` → `@deploy/app-health.js`
-- **Outside services:** Docker, Nomad, Redis
+- **Outside services:** Docker, Nomad, Redis, viaSocket webhook
 
 ### 2. Label each app
 
@@ -163,12 +163,17 @@ See [system-map.md](../system-map.md) for how the parts connect.
 
 ## Tables
 
+- **Keeps** `AppDetails` — Public-facing details of a deployed app.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
+- **Keeps** `ShowcaseEvent` — An event page, /showcase/<slug>: a hackathon, a demo day.
+- **Keeps** `ShowcaseEventListing` — One app shown on one event page.
 - **Keeps** `request_log`
 - **Keeps** `resource_sample`
 - **Keeps** `tail_state` — One row, keyed by the log file's own path — lets the tailer resume from where it left off across restarts, and detect rotation (a changed inode, or a file that's now smaller than our last offset).
 - **Looks up** `Deployment` — Versioned deploy history — one row per deploy attempt.
+- **Looks up** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
+- **Looks up** `Schedule` — A timed HTTP call into the app — see docs/schedules.md.
 
 See [tables.md](../tables.md).
 
@@ -176,11 +181,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v151 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | list, details |
-| v150 (b3e21dd) | 14 Oct 2026 | feat: add zero-downtime graceful shutdown, unref intervals, and live migration script | list, details |
-| v149 (1b7b79b) | 14 Oct 2026 | Redirect /capabilities to the agent guide | list, details |
-| v148 (6fd5e0c) | 13 Oct 2026 | fix(orphan): refuse an orphan-cleanup teardown while a deploy is in flight | list, details |
-| v147 (3f6cbf4) | 13 Oct 2026 | fix(orphan): never let cleanup tear down an app someone just redeployed | list |
+| v157 (0d035d5) | 19 Oct 2026 | Report the running commit on /health and check it after deploy | list, details |
+| v156 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | list, details |
+| v155 (4602272) | 19 Oct 2026 | Add schedules: timed calls into apps | — |
+| v154 (b3e21dd) | 14 Oct 2026 | feat: add zero-downtime graceful shutdown, unref intervals, and live migration script | list, details |
+| v153 (1b7b79b) | 14 Oct 2026 | Redirect /capabilities to the agent guide | list, details |
 
 ## Open questions
 
