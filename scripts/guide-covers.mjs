@@ -268,6 +268,33 @@ const COVERS = {
       <circle cx="406" cy="314" r="17" fill="${C.ink}"/><path d="M399 314h14m-6-6 6 6-6 6" fill="none" stroke="${C.bg}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
     `)}
   `),
+  /* A resume whose portfolio link was localhost -> the same line, now a live link. */
+  "host-portfolio-website-free": () => frame(`
+    ${card(60, 110, 450, 420, `
+      <circle cx="58" cy="62" r="30" fill="${C.s3}"/>${text(58, 70, "JD", { size: 20, weight: 700, anchor: "middle" })}
+      ${text(104, 56, "Jane Doe", { size: 26, weight: 700 })}
+      ${text(104, 84, "resume.pdf", { size: 16, font: MONO, fill: C.faint })}
+      ${[["EMAIL", 140], ["PORTFOLIO", 214], ["PROJECTS", 300]].map(([k, y]) => text(28, y, k, { size: 14, font: MONO, fill: C.faint })).join("")}
+      ${bar(150, 130, 200, 12)}
+      <rect x="148" y="186" width="188" height="40" rx="10" fill="${C.s2}" stroke="${C.strong}"/>
+      ${text(242, 212, "localhost:5173", { size: 17, font: MONO, fill: C.faint, anchor: "middle" })}
+      <line x1="160" y1="206" x2="324" y2="206" stroke="${C.faint}" stroke-width="2"/>
+      <rect x="28" y="238" width="394" height="40" rx="10" fill="${C.surface}" stroke="${C.ok}"/>
+      <circle cx="48" cy="258" r="6" fill="${C.ok}"/>
+      ${text(64, 264, "jane-doe-portfolio.embarko.app", { size: 17, font: MONO, weight: 600 })}
+      ${bar(150, 292, 220, 12)}${bar(150, 316, 170, 12)}${bar(150, 340, 190, 12)}
+    `)}
+    ${arrow(525, 330, 630, null)}
+    ${browser(640, 96, 500, 440, "jane-doe-portfolio.embarko.app", `
+      ${text(40, 76, "Jane Doe", { size: 34, weight: 700 })}
+      ${text(40, 106, "PROJECTS", { size: 14, font: MONO, fill: C.faint })}
+      ${[0, 1, 2].map((i) => {
+        const tx = 40 + i * 144;
+        return `<rect x="${tx}" y="128" width="128" height="150" rx="12" fill="${C.s2}"/>${bar(tx + 14, 248, 80, 9)}`;
+      }).join("")}
+      ${bar(40, 304, 300, 12)}${bar(40, 326, 240, 12)}
+    `)}
+  `),
 };
 
 mkdirSync(OUT, { recursive: true });
