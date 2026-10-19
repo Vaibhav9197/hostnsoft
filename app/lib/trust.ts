@@ -19,11 +19,12 @@
  * certified.
  *
  * CORRECTED: this file previously claimed customer apps run in EU
- * datacenters. That is NOT true — the compute provider operates its regions
- * outside the EU, and there is no EU region to place apps in. Every "runs in
- * Europe" claim has been removed from this file and from the docs. Do not
- * reintroduce a location claim of any kind until the platform team confirms,
- * in writing, where apps actually land.
+ * datacenters. That was too strong. Confirmed 2026-10-19: the compute
+ * provider runs apps in India, the United States and Europe, and each user's
+ * data is held by country: India in India; EU, EEA, UK and Switzerland in
+ * Europe; everyone else in the United States. Location is stated only
+ * in the legal pages — the sub-processor table in app/dpa and "Where your data
+ * is held" in app/privacy — and nowhere in this file or the docs.
  *
  * Three sentences we must never write, and why:
  *
@@ -32,19 +33,18 @@
  *       covers their facilities and ISMS, not Embarko's.
  *
  *   "Embarko is a European company."
- *       False. The operating entity is SuperHeroes Inc., Indore, India, and
- *       there is no EU hosting.
+ *       False. The operating entity is SuperHeroes Inc., Indore, India.
  *
  *   "Your data stays in the EU." / "Your app runs in Europe."
- *       False. Customer apps run on infrastructure outside the EU. Scoping
- *       the sentence more narrowly does not rescue it — there is no EU
- *       region. Say nothing about location here; point at app/dpa, which is
- *       where residency has to be stated precisely and reviewed by a human.
+ *       False as a blanket claim. Data is held in India, the United States or
+ *       Europe depending on the user's country. Say nothing about location here;
+ *       point at app/dpa, which is where residency has to be stated precisely
+ *       and reviewed by a human.
  *
  * The provider is intentionally unnamed in customer-facing copy, by product
  * decision. Note that this is a presentational choice only: a DPA has to name
  * its sub-processors, so app/dpa/page.tsx's generic "Cloud infrastructure
- * provider" row still has to be named, with its location, before launch.
+ * provider" row still has to be named before launch.
  */
 
 /** A single "why" pillar. `body` is one sentence; these get read in a row. */

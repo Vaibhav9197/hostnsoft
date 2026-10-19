@@ -12,14 +12,14 @@ export const metadata: Metadata = {
  *  locations we have confirmed — an invented sub-processor row or location is
  *  a compliance problem, not a typo. Unconfirmed locations render as a dash.
  *  GDPR Art. 28(2) still needs the compute provider named and Chapter V needs
- *  its location plus a transfer mechanism; both await written confirmation
- *  (see app/lib/trust.ts). */
+ *  a transfer mechanism; both await written confirmation (see
+ *  app/lib/trust.ts). */
 const SUB_PROCESSORS: { name: string; purpose: string; location?: string }[] = [
   { name: "MSG91", purpose: "Sign-in codes and transactional email", location: "India" },
   { name: "Stripe", purpose: "Card payments and stored payment methods", location: "United States" },
-  { name: "Lago", purpose: "Subscription and usage metering" },
+  { name: "Lago", purpose: "Subscription and usage metering", location: "India, United States, Europe" },
   { name: "Google (Tag Manager)", purpose: "Website and console analytics", location: "United States" },
-  { name: "Cloud infrastructure provider", purpose: "Building, running, and storing customer apps" },
+  { name: "Cloud infrastructure provider", purpose: "Building, running, and storing customer apps", location: "India, United States, Europe" },
 ];
 
 export default function DpaPage() {
@@ -62,8 +62,8 @@ export default function DpaPage() {
             prevention and reliability. Raw request records are deleted after 100 days.
           </Item>
           <Item>
-            <Term>Logs</Term> — build output and your app&apos;s own runtime output, kept for
-            debugging.
+            <Term>Logs</Term> — build output and your app&apos;s own runtime output, kept for 30
+            days for debugging and then deleted.
           </Item>
           <Item>
             <Term>Account and membership data</Term> — the email addresses, roles, and join records of
@@ -80,10 +80,14 @@ export default function DpaPage() {
         <List>
           <Item>We process personal data for as long as your app exists on Embarko.</Item>
           <Item>
-            Deleting an app permanently removes its running instance, its stored data, and its
-            backups. Deleting a workspace does the same for all of its apps.
+            Deleting an app removes its running instance, its stored data, and its backups. Deleting
+            a workspace does the same for all of its apps.
           </Item>
           <Item>Closing an account deletes its apps and their data.</Item>
+          <Item>
+            Every deletion can be undone for 7 days, and after an account is terminated you can ask
+            for a copy of its data for 7 days. After that, deleted data is removed permanently.
+          </Item>
           <Item>We delete or return personal data on your written instruction, subject to any legal retention duty.</Item>
         </List>
       </Section>
@@ -113,9 +117,47 @@ export default function DpaPage() {
           </Item>
           <Item>
             We help you respond to data subject requests and to regulators where the information is
-            within our control, and we make the information in this DPA available for your audits and
-            assessments.
+            within our control.
           </Item>
+          <Item>We make available the information you need to show that this DPA is being met, and we allow audits as set out below.</Item>
+        </List>
+        <P>
+          <Term>Audits.</Term> You can check how we meet this DPA in two steps:
+        </P>
+        <List>
+          <Item>
+            <Term>Documents first.</Term> Once a year, at no cost, we answer your security
+            questionnaire and share our infrastructure provider&apos;s ISO/IEC 27001 certificate. Email{" "}
+            <A href="mailto:pushpendra@walkover.in">pushpendra@walkover.in</A> to ask.
+          </Item>
+          <Item>
+            <Term>Then an inspection, if you still need one.</Term> If the documents do not answer
+            your question, or a regulator requires it, you or an independent auditor may inspect how
+            we process your data.
+          </Item>
+        </List>
+        <P>An inspection has these limits:</P>
+        <List>
+          <Item>You give us at least 30 days&apos; written notice and a proposed scope.</Item>
+          <Item>
+            At most once in any 12 months, unless a regulator requires it or it follows a personal
+            data breach affecting your data.
+          </Item>
+          <Item>It takes place during business hours, remotely where possible, and does not disrupt the service.</Item>
+          <Item>
+            The auditor signs a confidentiality agreement with us and is not a competitor of
+            Embarko.
+          </Item>
+          <Item>
+            It covers only how we process your data. It does not include other customers&apos; data
+            or our infrastructure provider&apos;s facilities, which their ISO/IEC 27001 certificate
+            covers.
+          </Item>
+          <Item>
+            You pay your own costs and the auditor&apos;s. If the time we spend goes beyond one
+            working day, we may charge for it at reasonable rates, agreed before the inspection.
+          </Item>
+          <Item>You share the audit report with us.</Item>
         </List>
       </Section>
 

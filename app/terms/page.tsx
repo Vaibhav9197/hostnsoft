@@ -159,13 +159,19 @@ export default function TermsPage() {
         <P>
           You can delete an app at any time from the console or the API, and you can close your
           account whenever you like. Deleting an app removes its running instance, its stored data,
-          and its backups; deleting a workspace removes all of its apps the same way. Deletion is
-          permanent and we cannot recover it for you afterwards.
+          and its backups; deleting a workspace removes all of its apps the same way.
+        </P>
+        <P>
+          Every deletion can be undone for 7 days. If you delete an app or a workspace, or close
+          your account, email <A href="mailto:pushpendra@walkover.in">pushpendra@walkover.in</A>{" "}
+          within 7 days and we will restore it. After 7 days the deletion is permanent and we cannot
+          recover it.
         </P>
         <P>
           We may suspend or terminate access for a breach of these terms, for non-payment after
           notice, or where we must to protect the platform or other customers. If we terminate your
-          account, we will delete your apps and their data.
+          account, you have 7 days to ask us for a copy of your apps and their data. After that we
+          delete them permanently.
         </P>
       </Section>
 

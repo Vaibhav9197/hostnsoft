@@ -110,20 +110,42 @@ export default function PrivacyPage() {
       <Section title="How long we keep it">
         <List>
           <Item>Account and workspace records: for as long as your account exists.</Item>
-          <Item>Apps, their data, and their backups: until you delete the app or close the account.</Item>
+          <Item>
+            Apps, their data, and their backups: until you delete the app or close the account, plus
+            7 days in which you can ask us to restore them. After that they are deleted permanently.
+          </Item>
           <Item>
             Raw request records and resource usage samples for your live app: 100 days, after which
             they are deleted.
           </Item>
+          <Item>Build, deploy and runtime logs: 30 days, after which they are deleted.</Item>
           <Item>
             Invoices and billing records: for as long as tax and accounting law requires us to keep
             them.
           </Item>
-          <Item>After you close your account, we delete your apps and their data.</Item>
+          <Item>
+            After you close your account, or we terminate it, we delete your apps and their data
+            after 7 days.
+          </Item>
         </List>
       </Section>
 
       <Section title="Where your data is held">
+        <P>
+          We hold your data in the region that matches the country you are in:
+        </P>
+        <List>
+          <Item>If you are in India, it is held in India.</Item>
+          <Item>
+            If you are in the European Union, the EEA, the United Kingdom or Switzerland, it is
+            held in Europe.
+          </Item>
+          <Item>If you are anywhere else, including the United States, it is held in the United States.</Item>
+        </List>
+        <P>
+          This covers your account and console data — your email, workspace, team, billing records
+          and settings — as well as the apps you deploy and the data they store.
+        </P>
         <P>
           Customer apps and the storage they write run on infrastructure certified to ISO/IEC
           27001. The certificate belongs to our infrastructure provider, not to Embarko. The providers

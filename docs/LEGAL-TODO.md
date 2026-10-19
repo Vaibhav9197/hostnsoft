@@ -15,12 +15,10 @@ These are legally required, or leaving them out puts the company at risk.
       "Cloud infrastructure provider". GDPR Art. 28(2) requires each
       sub-processor to be named. Product rule: never name it on any other
       public page.
-- [ ] **Compute and storage location** — the same DPA row (it shows "—" now).
-      `app/lib/trust.ts` forbids any location claim until the platform team
-      confirms it in writing.
-- [ ] **Lago location** — DPA, `SUB_PROCESSORS` row "Lago" (shows "—").
-      Billing runs on our own Lago at `api.billing.gtwy.ai`. Confirm where it
-      is hosted.
+- [x] **Compute and storage location** — the same DPA row. Set to India,
+      United States, Europe on 2026-10-19.
+- [x] **Lago location** — DPA, `SUB_PROCESSORS` row "Lago". Set to India,
+      United States, Europe on 2026-10-19.
 - [ ] **International transfer mechanism** (for example, Standard Contractual
       Clauses plus the UK Addendum). Add back:
   - the DPA section "International transfers" (between sections 7 and 8)
@@ -33,15 +31,19 @@ These are legally required, or leaving them out puts the company at risk.
 
 ## Retention and deletion
 
-- [ ] **Build, deploy and runtime log retention.** Logs are read live from
-      Nomad and have no set retention policy. Pick a period, then add it to:
-  - Privacy, "How long we keep it"
-  - DPA section 2, "Logs".
+- [x] **Build, deploy and runtime log retention.** Set to 30 days on
+      2026-10-19, in Privacy "How long we keep it" and DPA section 2 "Logs".
+      Logs are read live from Nomad, so the platform must actually delete
+      them after 30 days for the pages to stay true.
 - [ ] **Billing record retention period** (the period tax law requires).
       Privacy, "How long we keep it", the item about invoices.
-- [ ] **How soon apps are deleted after account closure.** Add to:
-  - Privacy, "How long we keep it"
-  - DPA section 3.
+- [x] **How soon apps are deleted after account closure.** Set on 2026-10-19:
+      every deletion (app, workspace, account closure, termination) can be
+      undone or exported for 7 days, then is permanent. In Terms section 9,
+      Privacy "How long we keep it" and DPA section 3.
+- [ ] **Build the 7-day restore.** The pages now promise it, but deletion
+      in `hostnsoft-api` and `hostnsoft-deploy` is immediate today — there is
+      no soft delete. Until it exists, restores by email cannot be honoured.
 - [ ] **Backup retention after closure.** Add only once backups exist. As of
       2026-09-22 they did not. Also check the other mentions of backups on
       these pages ("restoring backups", "on the plans that have them").
@@ -55,11 +57,13 @@ These are legally required, or leaving them out puts the company at risk.
       It now says only "we will give notice".
 - [ ] **Sub-processor change notice period.** DPA section 7. It now says only
       "we will give you notice".
-- [ ] **Account termination grace period.** Terms section 9, the last
-      sentence.
+- [x] **Account termination grace period.** Terms section 9: 7 days to ask
+      for a copy of the data. Set on 2026-10-19.
 - [ ] **SLA.** Terms section 8 says there is no uptime guarantee on public
       plans. If any plan gets an SLA, state it there.
-- [ ] **Audit rights.** DPA section 5, the last item.
+- [x] **Audit rights.** DPA section 5, "Audits". Set on 2026-10-19:
+      documents first, then an inspection with 30 days' notice, at most once
+      a year, customer pays. Have legal review before launch.
 
 ## Privacy rights
 
