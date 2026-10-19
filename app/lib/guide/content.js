@@ -198,7 +198,7 @@ const DEPLOY_ERRORS = [
   { code: 'invalid_embarko_json', status: 400, retry: 'No', do: 'embarko.json is not valid JSON (the message gives the line and column), not one object, has "schedules" that is not a list, or is over 64 KB. Fix the file and deploy again (see embarko-json).' },
   { code: 'secrets_in_embarko_json', status: 400, retry: 'No', do: 'embarko.json looks like it holds a secret. Remove it and set it as an env var instead (see env-vars).' },
   { code: 'invalid_schedules / invalid_cron / schedule_too_frequent / invalid_timezone / invalid_path / duplicate_schedule_path / schedule_limit_reached', status: 400, retry: 'No', do: 'A schedule in embarko.json is wrong; the message names the entry, e.g. "Schedule 1: ...". Fix it and deploy again (see schedules).' },
-  { code: 'in_process_timer (warning, deploy goes ahead)', status: 202, retry: 'No', do: 'The app uses a timer library (node-cron, APScheduler...). Those jobs stop when the app sleeps. Move each job into a route, list it under "schedules" in embarko.json (see schedules), then deploy again.' },
+  { code: 'in_process_timer (warning, deploy goes ahead)', status: 202, retry: 'No', do: 'The app uses a timer library (node-cron, APScheduler...). Those jobs are not guaranteed to run on Embarko and can stop with no error. Move each job into a route, list it under "schedules" in embarko.json (see schedules), then deploy again.' },
   { code: 'embarko_json_not_at_top / embarko_json_misnamed / embarko_json_unknown_keys / schedules_unchanged / schedules_on_static_site (warnings, deploy goes ahead)', status: 202, retry: 'No', do: 'Read warnings[].detail and do what it says: move or rename the file, drop keys Embarko ignores, or use [] to remove schedules (see embarko-json).' },
   { code: 'app_kind_changed', status: 422, retry: 'No', do: 'A static site cannot become a server app. Use a new name.' },
   { code: '(rate limited)', status: 429, retry: 'Later', do: 'Wait retryAfterMs, or a few minutes, then retry once.' },
@@ -260,7 +260,7 @@ function topics(base) {
         fits: 'A web app or website, one process, up to 256MB of memory.',
         does_not_fit: [
           { feature: 'WebSockets / live push (Socket.IO, ws)', instead: 'Plain HTTP requests, polling from the browser.' },
-          { feature: 'A crontab or a timer library inside the app (node-cron, APScheduler) for timed jobs', instead: 'A schedule: Embarko calls a route of the app at the times you set, and wakes the app if it is asleep (see schedules).' },
+          { feature: 'A crontab or a timer library inside the app (node-cron, APScheduler) for timed jobs', instead: 'A schedule: Embarko calls a route of the app at the times you set (see schedules).' },
           { feature: 'Background workers or several processes', instead: 'Run the work inside the main app, for example right after the request that needs it. Separate apps cannot share files: each has its own DATA_DIR. Only split into two apps when the parts talk over HTTP, like a frontend and a backend (see two-apps).' },
           { feature: 'Managed database or backups', instead: 'SQLite under DATA_DIR. Tell the person it is not backed up.' },
         ],
@@ -827,7 +827,7 @@ function topics(base) {
       section: 'manage',
       title: 'Run something on a timer',
       covers: 'Daily reports, nightly clean-ups and reminders: Embarko calls a route of the app at the times you set',
-      summary: 'List the schedules in the app\'s embarko.json file and Embarko calls those routes of the app on time, for example GET /tasks/daily-digest every weekday at 9:00. The job is normal app code in that route. Embarko wakes the app if it is asleep, keeps a record of each run, and emails the owner if a schedule starts failing.',
+      summary: 'List the schedules in the app\'s embarko.json file and Embarko calls those routes of the app on time, for example GET /tasks/daily-digest every weekday at 9:00. The job is normal app code in that route. Embarko keeps a record of each run, and emails the owner if a schedule starts failing.',
       done_when: 'Each schedule ran once with outcome "ok", and the person knows when it runs next.',
       available: true,
       who: { connector: 'deploy_app with embarko.json among the files. Running them once now is HTTP only, with a deploy token; the person can create one at https://embarko.ai/app/tokens', api: 'https://ship.embarko.ai/apps (embarko.json in the upload)', dashboard: null, needs_human: 'Only their time zone, if you cannot tell it.' },
@@ -835,7 +835,7 @@ function topics(base) {
         any: [
           'Put the job in a GET route of the app, for example /tasks/daily-digest. Answer 2xx when it worked.',
           'First thing in that route: answer 401 unless the Authorization header is "Bearer " plus the CRON_SECRET env var. Embarko creates CRON_SECRET for the app; you never set or see it.',
-          'Save anything the job must remember under DATA_DIR. The app can sleep between runs.',
+          'Save anything the job must remember under DATA_DIR, not in memory: memory is not kept between runs.',
           'List the job under "schedules" in embarko.json, in the app\'s top folder (see the first example and embarko-json).',
           'Deploy as usual, any way. A bad schedule refuses the deploy before it builds; the error names the entry, e.g. "Schedule 1: ...".',
           'Check the test run. The skill runs each schedule once when the app is live and prints ok or the error. Over HTTP: POST links.runSchedules from the deploy reply, then poll each statusUrl until terminal is true.',
@@ -859,7 +859,6 @@ function topics(base) {
       },
       receives: [
         'GET {path} on the app\'s own address, at each due time.',
-        'If the app is asleep, the call wakes it first.',
         'Authorization: Bearer {CRON_SECRET}.',
         'X-Embarko-Schedule-Id and X-Embarko-Run-Id headers, and a User-Agent starting with Embarko-Scheduler/1.0.',
       ],
@@ -921,7 +920,7 @@ function topics(base) {
       ],
       limits: [
         'Up to 5 schedules per app, at most once every 5 minutes each.',
-        'Each call has 5 minutes to finish, waking the app included.',
+        'Each call has 5 minutes to finish.',
         'Redirects are not followed and count as failed.',
         'The first 2KB of each reply and the last 100 runs of each schedule are kept.',
         'A time missed during an Embarko outage runs once when it can. Missed times are not replayed.',

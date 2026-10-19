@@ -200,7 +200,7 @@ function openapi() {
                   code: {
                     type: 'string',
                     enum: ['in_process_timer', 'schedules_unchanged', 'schedules_on_static_site', 'embarko_json_not_at_top', 'embarko_json_misnamed', 'embarko_json_unknown_keys'],
-                    description: 'in_process_timer: the code uses a timer library whose jobs stop when the app sleeps; list them under schedules in embarko.json. schedules_unchanged: the app has schedules and the upload declares none, so they were kept. schedules_on_static_site: a static site cannot run schedules; not applied. embarko_json_not_at_top: found in a subfolder; only the top folder is read. embarko_json_misnamed: a near-miss name (.embarko, embarko.yaml...); only embarko.json is read. embarko_json_unknown_keys: keys Embarko does not use were ignored.',
+                    description: 'in_process_timer: the code uses a timer library whose jobs are not guaranteed to run on Embarko; list them under schedules in embarko.json. schedules_unchanged: the app has schedules and the upload declares none, so they were kept. schedules_on_static_site: a static site cannot run schedules; not applied. embarko_json_not_at_top: found in a subfolder; only the top folder is read. embarko_json_misnamed: a near-miss name (.embarko, embarko.yaml...); only embarko.json is read. embarko_json_unknown_keys: keys Embarko does not use were ignored.',
                   },
                   libraries: { type: 'array', items: { type: 'string' } },
                   expressions: { type: 'array', items: { type: 'object', properties: { cron: { type: 'string' }, file: { type: 'string' } } } },
