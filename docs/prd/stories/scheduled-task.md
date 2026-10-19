@@ -8,7 +8,7 @@
 - **Wants to:** have their app do something at set times without anyone visiting it
 - **Ends with:** The app's route is called at each due time; the owner hears only when it starts failing and when it recovers.
 - **Steps:** 6 · 3 by AI · 4 can go wrong
-- **Last change to its code:** v131, 19 Oct 2026 — Report the running commit on /health and check it after deploy
+- **Last change to its code:** v132, 19 Oct 2026 — Show schedules to the dashboard
 
 [← All stories](../README.md)
 
@@ -139,7 +139,7 @@ flowchart TD
   - If the code uses a timer library and embarko.json lists no schedules → it deploys with a warning (in_process_timer).
 - **Parts:** Your AI agent (`ai-agent`), App records (`app-records`), Schedules and runs (`schedule-data`)
 - **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`
-- **Looks up:** `Domain`
+- **Looks up:** `Domain`, `ScheduleRun`
 - **Code:** `api:@deploy/apps` → `@deploy/server.js`, `api:@api/internal/projects/claim` → `@api/src/routes/internalProjects.routes.ts`, `api:@api/internal/deployments/record` → `@api/src/routes/internalDeployments.routes.ts`, `lib:@deploy/server` → `@deploy/server.js`, `lib:@deploy/claim-project` → `@deploy/claim-project.js`, `lib:@deploy/record-deployment` → `@deploy/record-deployment.js`, `lib:@deploy/deploy-response` → `@deploy/deploy-response.js`, `lib:@deploy/json-source` → `@deploy/json-source.js`, `lib:@deploy/embarko-config` → `@deploy/embarko-config.js`, `lib:@deploy/detect-timers` → `@deploy/detect-timers.js`, `lib:@api/src/routes/internalProjects.routes` → `@api/src/routes/internalProjects.routes.ts`, `lib:@api/src/routes/internalDeployments.routes` → `@api/src/routes/internalDeployments.routes.ts`, `lib:@api/src/services/deployActor` → `@api/src/services/deployActor.ts`, `lib:@api/src/services/scheduleSync` → `@api/src/services/scheduleSync.ts`, `lib:@api/src/services/schedules` → `@api/src/services/schedules.ts`
 - **Outside services:** Docker, Lago, Nomad, Railpack, Redis, Stripe, Traefik, viaSocket webhook
 
@@ -224,11 +224,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v132 (cbf0640) | 19 Oct 2026 | Show schedules to the dashboard | deploy |
 | v131 (0d035d5) | 19 Oct 2026 | Report the running commit on /health and check it after deploy | deploy |
 | v130 (c24def1) | 19 Oct 2026 | Drop wake-up from the schedule timeout error | test, call |
 | v129 (b3adf2c) | 19 Oct 2026 | Stop telling agents about app sleep | deploy |
 | v128 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | deploy |
-| v127 (4602272) | 19 Oct 2026 | Add schedules: timed calls into apps | deploy, test, call, alert |
 
 ## Open questions
 

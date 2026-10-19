@@ -93,7 +93,7 @@ flowchart TD
   - If deploying the same trial app again → it is updated, but the 24 hours do not restart.
 - **Parts:** App records (`app-records`), Apps and deploys (`apps-data`)
 - **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`
-- **Looks up:** `Domain`
+- **Looks up:** `Domain`, `ScheduleRun`
 - **Code:** `api:@api/internal/projects/claim` → `@api/src/routes/internalProjects.routes.ts`, `lib:@api/src/services/projectClaim` → `@api/src/services/projectClaim.ts`, `lib:@api/src/lib/orphanMessage` → `@api/src/lib/orphanMessage.ts`
 - **Outside services:** Lago, Redis, Stripe, viaSocket webhook
 
@@ -129,7 +129,7 @@ flowchart TD
   - If the key is revoked by then → refused (401), and the app stays a trial.
 - **Parts:** Deploy intake (`intake`), App records (`app-records`)
 - **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`
-- **Looks up:** `Domain`
+- **Looks up:** `Domain`, `ScheduleRun`
 - **Code:** `api:@api/internal/projects/claim` → `@api/src/routes/internalProjects.routes.ts`, `lib:@api/src/services/projectClaim` → `@api/src/services/projectClaim.ts`
 - **Outside services:** Lago, Redis, Stripe, viaSocket webhook
 
@@ -176,6 +176,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `ShowcaseEvent` — An event page, /showcase/<slug>: a hackathon, a demo day.
 - **Keeps** `ShowcaseEventListing` — One app shown on one event page.
 - **Looks up** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
+- **Looks up** `ScheduleRun` — One call the runner made (or chose not to make).
 
 See [tables.md](../tables.md).
 

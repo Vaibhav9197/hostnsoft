@@ -8,7 +8,7 @@
 - **Wants to:** see at a glance which apps are live and which need attention
 - **Ends with:** Each app shows Live, Not online or Needs attention, and one click opens it.
 - **Steps:** 5 · 0 by AI · 5 can go wrong
-- **Last change to its code:** v157, 19 Oct 2026 — Report the running commit on /health and check it after deploy
+- **Last change to its code:** v159, 19 Oct 2026 — Show an app's scheduled jobs in the panel
 
 [← All stories](../README.md)
 
@@ -94,7 +94,7 @@ flowchart TD
   - If the deploy service can't be asked → that app's health shows as Unknown.
 - **Parts:** Your apps panel (`console`), Panel bridge (`bridge`), App records (`app-records`), App runner (`runner`)
 - **Keeps:** `AppDetails`, `AuditLog`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`
-- **Looks up:** `Deployment`, `Domain`, `Schedule`
+- **Looks up:** `Deployment`, `Domain`, `Schedule`, `ScheduleRun`
 - **Code:** `page:/app` → `app/app/page.tsx`, `lib:app/lib/lastSeen` → `app/lib/lastSeen.ts`, `lib:app/lib/earlyReads` → `app/lib/earlyReads.ts`, `api:@api/companies/:companyId/projects` → `@api/src/routes/projects.routes.ts`, `lib:@api/src/services/appHealth` → `@api/src/services/appHealth.ts`, `api:@deploy/internal/apps/:appName/status` → `@deploy/server.js`, `lib:@deploy/app-health` → `@deploy/app-health.js`
 - **Outside services:** Docker, Nomad, Redis, viaSocket webhook
 
@@ -174,6 +174,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Looks up** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Looks up** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
 - **Looks up** `Schedule` — A timed HTTP call into the app — see docs/schedules.md.
+- **Looks up** `ScheduleRun` — One call the runner made (or chose not to make).
 
 See [tables.md](../tables.md).
 
@@ -181,11 +182,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v159 (36b6871) | 19 Oct 2026 | Show an app's scheduled jobs in the panel | label, open |
+| v158 (cbf0640) | 19 Oct 2026 | Show schedules to the dashboard | list |
 | v157 (0d035d5) | 19 Oct 2026 | Report the running commit on /health and check it after deploy | list, details |
 | v156 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | list, details |
 | v155 (4602272) | 19 Oct 2026 | Add schedules: timed calls into apps | — |
-| v154 (b3e21dd) | 14 Oct 2026 | feat: add zero-downtime graceful shutdown, unref intervals, and live migration script | list, details |
-| v153 (1b7b79b) | 14 Oct 2026 | Redirect /capabilities to the agent guide | list, details |
 
 ## Open questions
 

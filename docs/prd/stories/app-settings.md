@@ -8,7 +8,7 @@
 - **Wants to:** set up their app's domain, settings and web address
 - **Ends with:** The app runs with its own domain and settings, at the address they chose.
 - **Steps:** 7 · 0 by AI · 7 can go wrong
-- **Last change to its code:** v130, 19 Oct 2026 — Report the running commit on /health and check it after deploy
+- **Last change to its code:** v131, 19 Oct 2026 — Show schedules to the dashboard
 
 [← All stories](../README.md)
 
@@ -273,11 +273,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v131 (cbf0640) | 19 Oct 2026 | Show schedules to the dashboard | address |
 | v130 (0d035d5) | 19 Oct 2026 | Report the running commit on /health and check it after deploy | check-dns, apply, move |
 | v129 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | check-dns, apply, move |
 | v128 (b3e21dd) | 14 Oct 2026 | feat: add zero-downtime graceful shutdown, unref intervals, and live migration script | check-dns, apply, move |
 | v127 (a4059fd) | 14 Oct 2026 | feat: add zero-downtime graceful shutdown, unref intervals, and live migration script | recheck |
-| v126 (1b7b79b) | 14 Oct 2026 | Redirect /capabilities to the agent guide | check-dns, apply, move |
 
 ## Open questions
 

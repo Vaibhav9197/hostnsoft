@@ -399,6 +399,7 @@
      "table:api:EnvVar",
      "table:api:Project",
      "table:api:Schedule",
+     "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing"
     ],
@@ -446,6 +447,7 @@
      "table:api:EnvVar",
      "table:api:Project",
      "table:api:Schedule",
+     "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing"
     ],
@@ -529,6 +531,7 @@
      "table:api:Domain",
      "table:api:Project",
      "table:api:Schedule",
+     "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing"
     ],
@@ -596,7 +599,6 @@
     ],
     "inbound": false,
     "imports": [
-     "lib:@api/src/lib/prisma",
      "lib:@api/src/services/schedules"
     ],
     "calls": [],
@@ -1793,6 +1795,7 @@
      "table:api:EnvVar",
      "table:api:Project",
      "table:api:Schedule",
+     "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing"
     ],
@@ -1866,6 +1869,7 @@
      "table:api:EnvVar",
      "table:api:Project",
      "table:api:Schedule",
+     "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing"
     ],
@@ -1977,6 +1981,7 @@
      "table:api:Domain",
      "table:api:Project",
      "table:api:Schedule",
+     "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing"
     ],
@@ -2024,6 +2029,7 @@
      "table:api:EnvVar",
      "table:api:Project",
      "table:api:Schedule",
+     "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing"
     ],
@@ -2075,6 +2081,7 @@
      "table:api:Domain",
      "table:api:Project",
      "table:api:Schedule",
+     "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing"
     ],
@@ -2415,6 +2422,7 @@
      "table:api:Domain",
      "table:api:Project",
      "table:api:Schedule",
+     "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing"
     ],
@@ -4168,8 +4176,7 @@
      "api:@api/companies/:companyId/projects/:projectId/schedules/:scheduleId/runs"
     ],
     "tablesRead": [
-     "table:api:Schedule",
-     "table:api:ScheduleRun"
+     "table:api:Schedule"
     ],
     "tablesWritten": [],
     "services": []
@@ -4803,7 +4810,8 @@
     "endpoints": [],
     "defines": [],
     "tablesRead": [
-     "table:api:Schedule"
+     "table:api:Schedule",
+     "table:api:ScheduleRun"
     ],
     "tablesWritten": [],
     "services": []

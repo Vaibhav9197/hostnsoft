@@ -8,7 +8,7 @@
 - **Wants to:** get the app their AI built online
 - **Ends with:** The app is live at its own embarko.app address and shows in Your apps.
 - **Steps:** 10 · 1 by AI · 7 can go wrong
-- **Last change to its code:** v199, 19 Oct 2026 — Report the running commit on /health and check it after deploy
+- **Last change to its code:** v201, 19 Oct 2026 — Show an app's scheduled jobs in the panel
 
 [← All stories](../README.md)
 
@@ -169,7 +169,7 @@ flowchart TD
   - If A server app isn't running 3 minutes after its build → "didn't start".
 - **Parts:** Your apps panel (`console`), Deploy history (`deploy-history`)
 - **Keeps:** `AppDetails`, `AuditLog`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`
-- **Looks up:** `Deployment`, `Domain`, `Schedule`
+- **Looks up:** `Deployment`, `Domain`, `Schedule`, `ScheduleRun`
 - **Code:** `lib:app/components/console/DeploySteps` → `app/components/console/DeploySteps.tsx`, `lib:app/components/console/useDeployWatch` → `app/components/console/useDeployWatch.ts`, `api:@api/companies/:companyId/projects/:projectId/deployments` → `@api/src/routes/deployments.routes.ts`, `api:@api/companies/:companyId/projects` → `@api/src/routes/projects.routes.ts`
 - **Outside services:** Redis, viaSocket webhook
 
@@ -196,7 +196,7 @@ flowchart TD
   - If the account service can't be reached → "Could not verify app name availability" (502).
 - **Parts:** Deploy intake (`intake`), Deploy keys (`tokens`), App records (`app-records`), Apps and deploys (`apps-data`)
 - **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`
-- **Looks up:** `Domain`
+- **Looks up:** `Domain`, `ScheduleRun`
 - **Code:** `lib:@deploy/deploy-credential` → `@deploy/deploy-credential.js`, `lib:@deploy/validate-deploy-token` → `@deploy/validate-deploy-token.js`, `api:@api/internal/deploy-tokens/validate` → `@api/src/routes/internalTokens.routes.ts`, `lib:@deploy/claim-project` → `@deploy/claim-project.js`, `api:@api/internal/projects/claim` → `@api/src/routes/internalProjects.routes.ts`, `lib:@api/src/services/projectClaim` → `@api/src/services/projectClaim.ts`
 - **Outside services:** Lago, Redis, Stripe, viaSocket webhook
 
@@ -238,7 +238,7 @@ flowchart TD
   - If recording fails → the history row is lost and the panel can stay at "in progress".
 - **Parts:** Deploy history (`deploy-history`), Apps and deploys (`apps-data`)
 - **Keeps:** `AppDetails`, `AuditLog`, `DeployToken`, `Deployment`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`
-- **Looks up:** `Domain`
+- **Looks up:** `Domain`, `ScheduleRun`
 - **Code:** `lib:@deploy/record-deployment` → `@deploy/record-deployment.js`, `api:@api/internal/deployments/record` → `@api/src/routes/internalDeployments.routes.ts`, `lib:@api/src/services/deploymentVersioning` → `@api/src/services/deploymentVersioning.ts`
 - **Outside services:** Redis, viaSocket webhook
 
@@ -291,6 +291,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `ShowcaseEvent` — An event page, /showcase/<slug>: a hackathon, a demo day.
 - **Keeps** `ShowcaseEventListing` — One app shown on one event page.
 - **Looks up** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
+- **Looks up** `ScheduleRun` — One call the runner made (or chose not to make).
 
 See [tables.md](../tables.md).
 
@@ -298,11 +299,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v201 (36b6871) | 19 Oct 2026 | Show an app's scheduled jobs in the panel | copy-prompt, make-token, app-appears |
+| v200 (cbf0640) | 19 Oct 2026 | Show schedules to the dashboard | watch |
 | v199 (0d035d5) | 19 Oct 2026 | Report the running commit on /health and check it after deploy | ai-deploys |
 | v198 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | ai-deploys, check-key, record |
 | v197 (4602272) | 19 Oct 2026 | Add schedules: timed calls into apps | check-key, record |
-| v196 (01836d2) | 17 Oct 2026 | feat(settings): drop workspace deletion, simplify workspace panel | make-token |
-| v195 (b3e21dd) | 14 Oct 2026 | feat: add zero-downtime graceful shutdown, unref intervals, and live migration script | ai-deploys |
 
 ## Open questions
 

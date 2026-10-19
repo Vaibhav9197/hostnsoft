@@ -115,6 +115,16 @@ export interface ScheduleRun {
   durationMs: number | null;
 }
 
+/** One page of a job's run history. Runs beyond `kept` (per job) are deleted. */
+export interface ScheduleRunsPage {
+  runs: ScheduleRun[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+  kept: number;
+}
+
 /** A timed call into the app, declared in its embarko.json. Read-only here:
  *  the AI changes schedules, the panel shows them. */
 export interface Schedule {

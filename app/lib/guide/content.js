@@ -846,7 +846,7 @@ function topics(base) {
           'Change: edit embarko.json and deploy again. The list is the app\'s full set. A schedule keeps its history while its path stays the same.',
           'Remove one: delete it from the list and deploy. Remove all: "schedules": [].',
           'No embarko.json, or one without a "schedules" key: the schedules stay as they are.',
-          'See runs: GET https://ship.embarko.ai/api/apps/{app-name}/schedules, then each schedule\'s links.runs.',
+          'See runs: GET https://ship.embarko.ai/api/apps/{app-name}/schedules, then each schedule\'s links.runs. Newest first, 20 a page; add ?page=2, ?outcome=failed or ?trigger=schedule. The reply has total and totalPages. The last 100 runs of each schedule are kept.',
           'Pause one without a deploy: PATCH https://ship.embarko.ai/api/apps/{app-name}/schedules/{schedule-id} with {"enabled": false}. The next deploy that lists it turns it back on.',
           'Failure alerts to Slack or another webhook: PATCH the schedule with {"alertWebhookUrl": "https://..."}.',
         ],

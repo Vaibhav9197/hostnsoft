@@ -31,6 +31,7 @@ import type {
   Project,
   Schedule,
   ScheduleRun,
+  ScheduleRunsPage,
   ProjectAnalytics,
   ProjectDetail,
   ShowcaseCollection,
@@ -178,9 +179,19 @@ export const schedulesApi = {
   list: (companyId: string, projectId: string) =>
     hns<{ schedules: Schedule[]; limit: number }>(`/companies/${companyId}/projects/${projectId}/schedules`),
 
-  // GET .../schedules/:scheduleId/runs — newest first.
-  runs: (companyId: string, projectId: string, scheduleId: string, limit = 10) =>
-    hns<{ runs: ScheduleRun[] }>(`/companies/${companyId}/projects/${projectId}/schedules/${scheduleId}/runs?limit=${limit}`),
+  // GET .../schedules/:scheduleId/runs — one page, newest first, optionally
+  // only one result (ok/failed/skipped) or one trigger (schedule/manual).
+  runs: (
+    companyId: string,
+    projectId: string,
+    scheduleId: string,
+    opts: { page?: number; limit?: number; outcome?: ScheduleRun["outcome"]; trigger?: ScheduleRun["trigger"] } = {},
+  ) => {
+    const q = new URLSearchParams({ page: String(opts.page ?? 1), limit: String(opts.limit ?? 20) });
+    if (opts.outcome) q.set("outcome", opts.outcome);
+    if (opts.trigger) q.set("trigger", opts.trigger);
+    return hns<ScheduleRunsPage>(`/companies/${companyId}/projects/${projectId}/schedules/${scheduleId}/runs?${q}`);
+  },
 };
 
 // -------------------------------------------------------------- Deploy tokens

@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import cronstrue from "cronstrue";
-import { Check } from "lucide-react";
+import { Check, History } from "lucide-react";
 
 import { CopyPromptButton, PromptIcon } from "@/app/components/CopyPromptButton";
 import { Panel } from "@/app/components/console/kit";
+import { ScheduleRunsDialog } from "@/app/components/console/ScheduleRunsDialog";
+import { Button } from "@/app/components/ui/button";
 import { buttonVariants } from "@/app/components/ui/button";
 import { consoleFixSchedulePrompt } from "@/app/lib/deployPrompt";
 import { formatDateTime, relativeTime, untilTime } from "@/app/lib/format";
@@ -72,7 +74,7 @@ export function ProjectSchedules({
       <Panel>
         <ul className="divide-y divide-border">
           {schedules.map((s) => (
-            <JobRow key={s.id} schedule={s} appName={appName} />
+            <JobRow key={s.id} schedule={s} appName={appName} companyId={companyId!} projectId={projectId} />
           ))}
         </ul>
       </Panel>
@@ -92,9 +94,20 @@ function describeTiming(cron: string, timezone: string): string {
   return timezone === "UTC" ? `${words} (UTC)` : `${words} (${timezone.replace(/_/g, " ")})`;
 }
 
-function JobRow({ schedule: s, appName }: { schedule: Schedule; appName: string }) {
+function JobRow({
+  schedule: s,
+  appName,
+  companyId,
+  projectId,
+}: {
+  schedule: Schedule;
+  appName: string;
+  companyId: string;
+  projectId: string;
+}) {
   const last = s.lastRun;
   const job = s.name ?? s.path;
+  const [runsOpen, setRunsOpen] = useState(false);
 
   return (
     <li className={cn("flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-start sm:justify-between", s.failing && "bg-destructive/[0.04]")}>
@@ -122,6 +135,15 @@ function JobRow({ schedule: s, appName }: { schedule: Schedule; appName: string 
         </dl>
       </div>
 
+      <div className="flex shrink-0 flex-wrap items-start gap-2 self-start">
+      {/* Every kept run, a page at a time — for "when did this start failing?"
+          and "did it run last night?". Only once there is a run to show. */}
+      {last && (
+        <Button variant="outline" size="sm" className="h-8" onClick={() => setRunsOpen(true)}>
+          <History aria-hidden="true" />
+          All runs
+        </Button>
+      )}
       {/* The one action for a broken job: hand it to the AI, with the job and
           its last error already in the prompt. */}
       {s.failing && (
@@ -134,7 +156,7 @@ function JobRow({ schedule: s, appName }: { schedule: Schedule; appName: string 
             error: last?.error ?? null,
             reply: last?.responseExcerpt ?? null,
           })}
-          className={cn(buttonVariants({ size: "sm" }), "h-8 shrink-0 self-start")}
+          className={cn(buttonVariants({ size: "sm" }), "h-8")}
           announce="Prompt copied. Paste it into your AI to fix this job."
           copiedChildren={
             <>
@@ -147,6 +169,15 @@ function JobRow({ schedule: s, appName }: { schedule: Schedule; appName: string 
           Fix with your AI
         </CopyPromptButton>
       )}
+      </div>
+      <ScheduleRunsDialog
+        open={runsOpen}
+        onOpenChange={setRunsOpen}
+        companyId={companyId}
+        projectId={projectId}
+        scheduleId={s.id}
+        jobName={job}
+      />
     </li>
   );
 }
