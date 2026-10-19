@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { A, DocumentPage, Fill, Item, List, P, Section, Term } from "../components/DocumentPage";
+import { A, DocumentPage, Item, List, P, Section, Term } from "../components/DocumentPage";
 
 export const metadata: Metadata = {
   title: "Data Processing Agreement",
@@ -8,30 +8,23 @@ export const metadata: Metadata = {
   description: "How Embarko processes personal data on your behalf.",
 };
 
-/** Only the providers the platform actually depends on today. Anything we
- *  haven't confirmed is left as a placeholder rather than guessed at — an
- *  invented sub-processor row is a compliance problem, not a typo. */
-const SUB_PROCESSORS = [
-  { name: "MSG91", purpose: "Sign-in — one-time code delivery and verification", location: "India" },
+/** Only the providers the platform actually depends on today, and only
+ *  locations we have confirmed — an invented sub-processor row or location is
+ *  a compliance problem, not a typo. Unconfirmed locations render as a dash.
+ *  GDPR Art. 28(2) still needs the compute provider named and Chapter V needs
+ *  its location plus a transfer mechanism; both await written confirmation
+ *  (see app/lib/trust.ts). */
+const SUB_PROCESSORS: { name: string; purpose: string; location?: string }[] = [
+  { name: "MSG91", purpose: "Sign-in codes and transactional email", location: "India" },
   { name: "Stripe", purpose: "Card payments and stored payment methods", location: "United States" },
-  { name: "Lago", purpose: "Subscription and usage metering", location: <Fill>region</Fill> },
+  { name: "Lago", purpose: "Subscription and usage metering" },
   { name: "Google (Tag Manager)", purpose: "Website and console analytics", location: "United States" },
-  /* CORRECTED: these rows previously said "European Union". That was wrong —
-     the compute provider does not operate an EU region, so customer apps are
-     not processed in the EU. Both the NAME and the LOCATION are now
-     placeholders a human must resolve before launch: Article 28(2) requires
-     sub-processors to be identified, and Chapter V requires the processing
-     location plus a transfer mechanism where personal data leaves its region
-     of collection. The marketing pages deliberately leave the provider
-     unnamed; this document cannot. */
-  { name: <Fill>compute provider</Fill>, purpose: "Running and building customer apps", location: <Fill>region</Fill> },
-  { name: <Fill>storage provider</Fill>, purpose: "App file storage and backups", location: <Fill>region</Fill> },
-  { name: <Fill>email provider</Fill>, purpose: "Transactional email", location: <Fill>region</Fill> },
+  { name: "Cloud infrastructure provider", purpose: "Building, running, and storing customer apps" },
 ];
 
 export default function DpaPage() {
   return (
-    <DocumentPage title="Data Processing Agreement" updated="September 2026">
+    <DocumentPage title="Data Processing Agreement" updated="October 2026">
       <Section title="1. Scope and roles">
         <P>
           This Data Processing Agreement applies when you use Embarko to run an app that handles
@@ -66,11 +59,11 @@ export default function DpaPage() {
           <Item>
             <Term>Request metadata</Term> — paths, referrers, coarse geography, status codes, and user
             agent classes for requests to your live app, processed for your analytics and for abuse
-            prevention and reliability.
+            prevention and reliability. Raw request records are deleted after 100 days.
           </Item>
           <Item>
-            <Term>Logs</Term> — build output and your app&apos;s own runtime output, retained for
-            debugging for <Fill>retention window</Fill>.
+            <Term>Logs</Term> — build output and your app&apos;s own runtime output, kept for
+            debugging.
           </Item>
           <Item>
             <Term>Account and membership data</Term> — the email addresses, roles, and join records of
@@ -90,10 +83,7 @@ export default function DpaPage() {
             Deleting an app permanently removes its running instance, its stored data, and its
             backups. Deleting a workspace does the same for all of its apps.
           </Item>
-          <Item>
-            Closing an account deletes its apps and their data within <Fill>deletion window</Fill>;
-            backups age out within <Fill>backup window</Fill>.
-          </Item>
+          <Item>Closing an account deletes its apps and their data.</Item>
           <Item>We delete or return personal data on your written instruction, subject to any legal retention duty.</Item>
         </List>
       </Section>
@@ -124,7 +114,7 @@ export default function DpaPage() {
           <Item>
             We help you respond to data subject requests and to regulators where the information is
             within our control, and we make the information in this DPA available for your audits and
-            assessments. Further audit rights: <Fill>audit terms, if any</Fill>.
+            assessments.
           </Item>
         </List>
       </Section>
@@ -146,7 +136,7 @@ export default function DpaPage() {
       <Section title="7. Sub-processors">
         <P>
           We use the providers below to deliver Embarko. Each is bound by data processing terms with
-          us. We will give you <Fill>notice period</Fill> notice before adding or replacing one, and
+          us. We will give you notice before adding or replacing one, and
           you may object on reasonable data protection grounds.
         </P>
         <div className="overflow-x-auto rounded-[12px] border border-border">
@@ -163,7 +153,7 @@ export default function DpaPage() {
                 <tr key={i} className={i !== SUB_PROCESSORS.length - 1 ? "border-b border-border" : ""}>
                   <td className="px-4 py-3 align-top font-medium text-foreground">{row.name}</td>
                   <td className="px-4 py-3 align-top text-muted-foreground">{row.purpose}</td>
-                  <td className="px-4 py-3 align-top text-muted-foreground">{row.location}</td>
+                  <td className="px-4 py-3 align-top text-muted-foreground">{row.location ?? "—"}</td>
                 </tr>
               ))}
             </tbody>
@@ -171,15 +161,7 @@ export default function DpaPage() {
         </div>
       </Section>
 
-      <Section title="8. International transfers">
-        <P>
-          Where personal data leaves the region it was collected in, we rely on{" "}
-          <Fill>transfer mechanism — e.g. Standard Contractual Clauses and the UK Addendum</Fill>,
-          together with the measures in section 6.
-        </P>
-      </Section>
-
-      <Section title="9. Changes and contact">
+      <Section title="8. Changes and contact">
         <P>
           We update this DPA as the service changes, and the date at the top of the page changes with
           it. For questions, a signed copy, or a security review, email{" "}

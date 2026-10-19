@@ -32,9 +32,8 @@
  *       covers their facilities and ISMS, not Embarko's.
  *
  *   "Embarko is a European company."
- *       Not established, and neither is EU hosting. The operating entity is
- *       still unresolved — see the <Fill> placeholders in app/terms and
- *       app/dpa.
+ *       False. The operating entity is SuperHeroes Inc., Indore, India, and
+ *       there is no EU hosting.
  *
  *   "Your data stays in the EU." / "Your app runs in Europe."
  *       False. Customer apps run on infrastructure outside the EU. Scoping
@@ -44,8 +43,8 @@
  *
  * The provider is intentionally unnamed in customer-facing copy, by product
  * decision. Note that this is a presentational choice only: a DPA has to name
- * its sub-processors, so app/dpa/page.tsx still carries an unfilled
- * [compute provider] placeholder that a human has to resolve before launch.
+ * its sub-processors, so app/dpa/page.tsx's generic "Cloud infrastructure
+ * provider" row still has to be named, with its location, before launch.
  */
 
 /** A single "why" pillar. `body` is one sentence; these get read in a row. */

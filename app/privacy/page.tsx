@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { A, DocumentPage, Fill, Item, List, P, Section, Term } from "../components/DocumentPage";
+import { A, DocumentPage, Item, List, P, Section, Term } from "../components/DocumentPage";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <DocumentPage title="Privacy Policy" updated="September 2026">
+    <DocumentPage title="Privacy Policy" updated="October 2026">
       <Section>
         <P>
           This policy covers the data Embarko holds about <em>you</em>, our customer. Data that your
@@ -112,29 +112,22 @@ export default function PrivacyPage() {
           <Item>Account and workspace records: for as long as your account exists.</Item>
           <Item>Apps, their data, and their backups: until you delete the app or close the account.</Item>
           <Item>
-            Build and deploy logs, runtime logs, and raw request records: <Fill>retention window</Fill>,
-            after which analytics survive only as aggregated counts.
+            Raw request records and resource usage samples for your live app: 100 days, after which
+            they are deleted.
           </Item>
           <Item>
             Invoices and billing records: for as long as tax and accounting law requires us to keep
-            them, currently <Fill>retention period</Fill>.
+            them.
           </Item>
-          <Item>
-            After you close your account, we delete your apps and their data within{" "}
-            <Fill>deletion window</Fill>. Backups age out on their own schedule within{" "}
-            <Fill>backup window</Fill>.
-          </Item>
+          <Item>After you close your account, we delete your apps and their data.</Item>
         </List>
       </Section>
 
       <Section title="Where your data is held">
         <P>
           Customer apps and the storage they write run on infrastructure certified to ISO/IEC
-          27001, in <Fill>region(s) where customer apps are processed</Fill>. This website and the
-          console run separately, in <Fill>region(s) for embarko.ai and the console</Fill>. Where
-          personal data
-          moves outside the region it was collected in, we rely on{" "}
-          <Fill>transfer mechanism — e.g. Standard Contractual Clauses</Fill>.
+          27001. The certificate belongs to our infrastructure provider, not to Embarko. The providers
+          we use are listed in our <A href="/dpa">DPA</A>.
         </P>
       </Section>
 
@@ -155,9 +148,8 @@ export default function PrivacyPage() {
         <P>
           Depending on where you live, you may have the right to access the personal data we hold
           about you, correct it, export it, delete it, or object to some uses of it. Email{" "}
-          <A href="mailto:pushpendra@walkover.in">pushpendra@walkover.in</A> and we will respond within{" "}
-          <Fill>response window</Fill>. You can also complain to your local data protection
-          authority; ours is <Fill>lead supervisory authority</Fill>.
+          <A href="mailto:pushpendra@walkover.in">pushpendra@walkover.in</A> and we will respond to your request. You
+          can also complain to your local data protection authority.
         </P>
       </Section>
 

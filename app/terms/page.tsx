@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { A, Code, DocumentPage, Fill, Item, List, P, Section, Term } from "../components/DocumentPage";
+import { A, Code, DocumentPage, Item, List, P, Section, Term } from "../components/DocumentPage";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <DocumentPage title="Terms of Service" updated="September 2026">
+    <DocumentPage title="Terms of Service" updated="October 2026">
       <Section title="1. Acceptance">
         <P>
           These terms govern your use of Embarko. By creating an account, deploying an app, or using
@@ -69,8 +69,8 @@ export default function TermsPage() {
         <P>
           We may adjust rate limits, build limits, storage limits, and resource ceilings to keep the
           platform stable and to prevent abuse. Where a change materially reduces what your current
-          plan includes, we will give notice before it takes effect. Prices may change with{" "}
-          <Fill>notice period</Fill> notice, applied from your next billing period.
+          plan includes, we will give notice before it takes effect. We will also give notice before a
+          price change, and it applies from your next billing period.
         </P>
       </Section>
 
@@ -149,7 +149,7 @@ export default function TermsPage() {
         <P>
           We work to keep Embarko and the apps on it available, and we publish incidents on our{" "}
           <A href="/status">status page</A>. We do not offer a contractual uptime guarantee on the
-          plans listed publicly; <Fill>if an SLA applies to a plan, state it here</Fill>. Deploys,
+          plans listed publicly. Deploys,
           builds, and restarts can interrupt an app briefly, and we may take an app offline
           temporarily where it threatens the stability or security of the platform.
         </P>
@@ -165,7 +165,7 @@ export default function TermsPage() {
         <P>
           We may suspend or terminate access for a breach of these terms, for non-payment after
           notice, or where we must to protect the platform or other customers. If we terminate your
-          account we will delete your apps and their data after <Fill>grace period</Fill>.
+          account, we will delete your apps and their data.
         </P>
       </Section>
 
@@ -173,8 +173,7 @@ export default function TermsPage() {
         <P>
           Embarko is provided as-is, without warranties of any kind, express or implied. We are not
           liable for lost profits, lost data, or indirect or consequential damages arising from your
-          use of the service, and our total liability is limited to{" "}
-          <Fill>liability cap — e.g. fees paid in the previous 12 months</Fill>.
+          use of the service.
         </P>
         <P>
           Keep your own copy of anything you cannot afford to lose. Backups are a convenience — on
@@ -190,12 +189,10 @@ export default function TermsPage() {
         </P>
       </Section>
 
-      <Section title="12. Governing law">
+      <Section title="12. Your legal rights">
         <P>
-          These terms, and any dispute arising out of them or out of your use of Embarko, are governed
-          by the laws of <Fill>governing jurisdiction</Fill>, without regard to conflict-of-law rules,
-          and the courts of <Fill>venue</Fill> have exclusive jurisdiction. Nothing here limits rights
-          you have under consumer protection law that cannot be waived by agreement. Embarko is
+          Nothing here limits rights you have under consumer protection law that cannot be waived by
+          agreement. Embarko is
           operated by SuperHeroes Inc., 5th Floor, Wing B, LIC Tower, 28-29-30, PU-03, Scheme No. 54, Indore, Madhya Pradesh 452011, India.
         </P>
       </Section>
