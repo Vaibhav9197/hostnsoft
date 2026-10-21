@@ -22,11 +22,29 @@ import { tokensApi } from "../../lib/hnsApi";
 import { formatDate, relativeTime } from "../../lib/format";
 import { useSession } from "../../lib/session";
 import { randomTokenName } from "../../lib/tokenName";
-import type { DeployToken, DeployTokenSecret } from "../../lib/types";
+import type { DeployToken, DeployTokenKind, DeployTokenSecret } from "../../lib/types";
+
+/* The two kinds of token, in the words the person would use for the
+   question they're actually answering: "who is this for?". The API's names
+   (user / workspace) say what the token can reach, which is the consequence,
+   not the choice. "Just me" comes first and is preselected: almost every
+   token made here goes into the creator's own AI agent. */
+const KIND_CHOICES: { kind: DeployTokenKind; title: string; body: string }[] = [
+  {
+    kind: "user",
+    title: "Just me",
+    body: "Works on every app you can reach, in any of your workspaces. Stops working wherever you lose access.",
+  },
+  {
+    kind: "workspace",
+    title: "Whole workspace",
+    body: "Works only on this workspace’s apps, and keeps working if you leave. Good for shared machines and automated deploys.",
+  },
+];
 
 
 export default function TokensPage() {
-  const { activeCompanyId } = useSession();
+  const { activeCompanyId, user } = useSession();
   const [tokens, setTokens] = useState<DeployToken[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -34,6 +52,7 @@ export default function TokensPage() {
      it is still one click — typing is only for someone who wants their own. */
   const [naming, setNaming] = useState(false);
   const [name, setName] = useState("");
+  const [kind, setKind] = useState<DeployTokenKind>("user");
   const [secret, setSecret] = useState<DeployTokenSecret | null>(null);
   /* Whether the secret on screen has reached the clipboard at least once. The
      banner can only be dismissed after that: it is the one and only showing of
@@ -66,6 +85,7 @@ export default function TokensPage() {
 
   function openNaming() {
     setName(randomTokenName((tokens ?? []).map((t) => t.label)));
+    setKind("user");
     setNaming(true);
   }
 
@@ -76,7 +96,7 @@ export default function TokensPage() {
     setCreating(true);
     setError(null);
     try {
-      const created = await tokensApi.create(activeCompanyId, label);
+      const created = await tokensApi.create(activeCompanyId, label, kind);
       setNaming(false);
       setSecret(created);
       setSecretCopied(false);
@@ -165,6 +185,30 @@ export default function TokensPage() {
             {/* The page's own alert sits behind the dialog, so a failed create
                 has to say so here. */}
             {error && <div className="text-sm font-medium text-destructive">{error}</div>}
+            <fieldset className="grid gap-2" disabled={creating}>
+              <legend className="mb-2 text-sm font-semibold text-foreground">Who is it for?</legend>
+              {KIND_CHOICES.map((c) => (
+                <label
+                  key={c.kind}
+                  className={`flex cursor-pointer gap-3 rounded-lg border px-3.5 py-3 transition-colors ${
+                    kind === c.kind ? "border-primary bg-primary/5" : "border-input hover:border-foreground/30"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="token-kind"
+                    value={c.kind}
+                    checked={kind === c.kind}
+                    onChange={() => setKind(c.kind)}
+                    className="mt-1 accent-[var(--primary)]"
+                  />
+                  <span>
+                    <span className="block text-[0.9rem] font-semibold text-foreground">{c.title}</span>
+                    <span className="block text-[0.84rem] text-muted-foreground">{c.body}</span>
+                  </span>
+                </label>
+              ))}
+            </fieldset>
             <div className="grid gap-1.5">
               <label htmlFor="token-name" className="text-sm font-semibold text-foreground">
                 Token name
@@ -254,7 +298,7 @@ export default function TokensPage() {
         <Panel>
           <Table>
             <TableHeader>
-              <TableRow><TableHead>Label</TableHead><TableHead>Token</TableHead><TableHead>Last used</TableHead><TableHead>Created</TableHead><TableHead /></TableRow>
+              <TableRow><TableHead>Label</TableHead><TableHead>For</TableHead><TableHead>Token</TableHead><TableHead>Last used</TableHead><TableHead>Created</TableHead><TableHead /></TableRow>
             </TableHeader>
             <TableBody>
               {live.map((t) => {
@@ -262,6 +306,7 @@ export default function TokensPage() {
                 return (
                   <TableRow key={t.id}>
                     <TableCell>{t.label}</TableCell>
+                    <TableCell className="whitespace-nowrap text-[0.84rem] text-muted-foreground">{kindLabel(t, user?.id)}</TableCell>
                     <TableCell className="font-mono">
                       {t.tokenPrefix}…
                       {rotating && <Tag tone="warn">rotating · valid until {new Date(t.revokedAt!).toLocaleTimeString()}</Tag>}
@@ -315,4 +360,13 @@ export default function TokensPage() {
       <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
     </Page>
   );
+}
+
+/* Whose a token is, for the list. Everyone in the workspace sees every token
+   here, so a personal token that isn't yours says so — it reaches that
+   person's other workspaces too, which is worth knowing before revoking or
+   keeping it. */
+function kindLabel(t: DeployToken, myId: string | undefined): string {
+  if (t.kind === "workspace") return "Whole workspace";
+  return t.createdBy === myId ? "Just me" : "A teammate";
 }

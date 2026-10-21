@@ -132,7 +132,7 @@ flowchart TD
 | MSG91 (`msg91`) | Outside | Checks who a person is, holds workspaces and members, and sends email templates. |
 | Account checks (`accounts`) | Engine | Confirms who someone is, which workspaces they belong to, and whether they are an admin. |
 | Redis (`redis`) | Outside | Short-lived memory for sign-in checks, one-time codes and rate limits. |
-| Deploy keys (`tokens`) | Engine | Makes, checks, rotates and revokes the keys an AI uses to deploy as a workspace. |
+| Deploy keys (`tokens`) | Engine | Makes, checks, rotates and revokes the keys an AI uses to deploy, and decides which apps each key may reach. |
 | Keys and audit (`access-data`) | Data | Deploy keys (hashed), who the admins are, and a log of important actions. |
 
 See [system-map.md](../system-map.md) for how the parts connect.
@@ -140,7 +140,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 ## Tables
 
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
-- **Keeps** `DeployToken` — Company-wide deploy token.
+- **Keeps** `DeployToken` — A deploy token.
 
 See [tables.md](../tables.md).
 

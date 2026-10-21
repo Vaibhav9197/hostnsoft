@@ -8,7 +8,7 @@
 - **Wants to:** see at a glance which apps are live and which need attention
 - **Ends with:** Each app shows Live, Not online or Needs attention, and one click opens it.
 - **Steps:** 5 · 0 by AI · 5 can go wrong
-- **Last change to its code:** v159, 19 Oct 2026 — Show an app's scheduled jobs in the panel
+- **Last change to its code:** v162, 21 Oct 2026 — feat: X-App-Id and embarko.json appId on deploy
 
 [← All stories](../README.md)
 
@@ -182,11 +182,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v162 (23a3409) | 21 Oct 2026 | feat: X-App-Id and embarko.json appId on deploy | list, details |
+| v161 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | — |
+| v160 (bffa93d) | 19 Oct 2026 | Report the real cause when an app crashes on startup | list, details |
 | v159 (36b6871) | 19 Oct 2026 | Show an app's scheduled jobs in the panel | label, open |
 | v158 (cbf0640) | 19 Oct 2026 | Show schedules to the dashboard | list |
-| v157 (0d035d5) | 19 Oct 2026 | Report the running commit on /health and check it after deploy | list, details |
-| v156 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | list, details |
-| v155 (4602272) | 19 Oct 2026 | Add schedules: timed calls into apps | — |
 
 ## Open questions
 

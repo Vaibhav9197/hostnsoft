@@ -129,7 +129,8 @@ export function DeploySteps({
     setMaking(true);
     try {
       const label = mode === "keep" ? "Keep my app" : mode === "update" ? `Update ${appSlug}` : "Deploy an app";
-      const created = await tokensApi.create(activeCompanyId, label);
+      // "user": this key is pasted into the person's own AI agent.
+      const created = await tokensApi.create(activeCompanyId, label, "user");
       setToken(created.token);
       /* A prompt copied before had no key in it. Put Copy back as the next
          move, so the one pasted is the one with the key. */

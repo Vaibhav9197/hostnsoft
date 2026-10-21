@@ -147,6 +147,17 @@ export interface Schedule {
  *  reads better at call sites that fetch a single project. */
 export type ProjectDetail = Project;
 
+// POST .../projects/:projectId/move — the app as it now is, in its new
+// workspace (same shape as GET one), and where it went from/to.
+export interface ProjectMoveResult {
+  project: ProjectDetail;
+  from: string;
+  to: string;
+  // True when the two workspaces are on different plans, so the "Hosted on
+  // Embarko" footer is being added or removed on the live app.
+  footerResync: boolean;
+}
+
 /** POST /companies/:companyId/orphans/claim — the app now belongs to the
  *  company and won't be deleted. `applied` says whether the running image
  *  was re-pushed without the temporary-app notice straight away; when it
@@ -190,7 +201,14 @@ export interface EnvVar {
   updatedBy: string | null;
 }
 
+// What a token may reach. "user": acts as the person who made it, in every
+// workspace they're in (shown as "Just me"); this workspace is only where
+// its new apps go. "workspace": this workspace's apps only, whoever made it
+// (shown as "Whole workspace") — for CI and shared machines.
+export type DeployTokenKind = "user" | "workspace";
+
 // List view of a deploy token — the raw secret is never included here.
+// Create and rotate return the same fields plus the secret.
 export interface DeployToken {
   id: string;
   label: string;
@@ -198,14 +216,15 @@ export interface DeployToken {
   createdAt: string;
   revokedAt: string | null;
   lastUsedAt: string | null;
+  source: "dashboard" | "agent" | "connector";
+  kind: DeployTokenKind;
+  // Proxy user id of whoever made it — for a "user" token, who it acts as.
+  createdBy: string;
 }
 
 // Create/rotate response — the one time the raw token is returned.
-export interface DeployTokenSecret {
-  id: string;
-  label: string;
+export interface DeployTokenSecret extends DeployToken {
   prefix: string;
-  createdAt: string;
   token: string;
   // Only present on rotate: how long the old token keeps working.
   oldTokenValidUntil?: string;

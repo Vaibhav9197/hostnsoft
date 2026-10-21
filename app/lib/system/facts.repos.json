@@ -18,6 +18,7 @@
    "tables": [
     "table:api:DeployToken",
     "table:api:Project",
+    "table:api:SlugAlias",
     "table:api:Schedule",
     "table:api:ScheduleRun",
     "table:api:Domain",
@@ -251,7 +252,8 @@
      "table:api:EnvVar",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:SlugAlias"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -261,7 +263,8 @@
      "table:api:Deployment",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:SlugAlias"
     ],
     "services": [
      "ext:lago",
@@ -684,7 +687,8 @@
      "table:api:EnvVar",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:SlugAlias"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -693,7 +697,8 @@
      "table:api:Deployment",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:SlugAlias"
     ],
     "services": [
      "ext:lago",
@@ -1784,11 +1789,17 @@
      "lib:@api/src/services/deploymentVersioning",
      "lib:@api/src/services/projectClaim",
      "lib:@api/src/services/scheduleSync",
-     "lib:@api/src/services/schedules"
+     "lib:@api/src/services/schedules",
+     "lib:@api/src/services/tokenAccess"
     ],
-    "calls": [],
+    "calls": [
+     "api:@deploy/internal/apps/:appName",
+     "api:@deploy/internal/apps/:appName/rename",
+     "api:@deploy/internal/apps/:appName/status"
+    ],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AuditLog",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
@@ -1797,21 +1808,26 @@
      "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:SlugAlias"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:EnvVar",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:SlugAlias"
     ],
     "services": [
+     "ext:lago",
      "ext:redis",
+     "ext:stripe",
      "ext:viasocket"
     ]
    },
@@ -1861,28 +1877,37 @@
      "lib:@api/src/services/scheduleSync",
      "lib:@api/src/services/schedules"
     ],
-    "calls": [],
+    "calls": [
+     "api:@deploy/internal/apps/:appName",
+     "api:@deploy/internal/apps/:appName/rename",
+     "api:@deploy/internal/apps/:appName/status"
+    ],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AuditLog",
      "table:api:DeployToken",
+     "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:SlugAlias"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
      "table:api:AuditLog",
      "table:api:Company",
      "table:api:DeployToken",
+     "table:api:Deployment",
      "table:api:EnvVar",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:SlugAlias"
     ],
     "services": [
      "ext:lago",
@@ -1941,16 +1966,23 @@
     "inbound": true,
     "imports": [
      "lib:@api/src/lib/orphanMessage",
-     "lib:@api/src/services/deployTokenAuth"
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/deployTokenAuth",
+     "lib:@api/src/services/tokenAccess"
     ],
     "calls": [],
     "tablesRead": [
-     "table:api:DeployToken"
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:Deployment",
+     "table:api:Project"
     ],
     "tablesWritten": [
      "table:api:DeployToken"
     ],
-    "services": []
+    "services": [
+     "ext:redis"
+    ]
    },
    {
     "id": "api:@api/companies/:companyId/projects",
@@ -2019,11 +2051,15 @@
      "lib:@api/src/services/schedules"
     ],
     "calls": [
+     "api:@deploy/internal/apps/:appName",
      "api:@deploy/internal/apps/:appName/config",
+     "api:@deploy/internal/apps/:appName/rename",
      "api:@deploy/internal/apps/:appName/status"
     ],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
@@ -2031,17 +2067,20 @@
      "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:SlugAlias"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
      "table:api:AuditLog",
      "table:api:Company",
+     "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:SlugAlias"
     ],
     "services": [
      "ext:lago",
@@ -2125,13 +2164,66 @@
      "table:api:EnvVar",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:SlugAlias"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
      "table:api:AuditLog",
      "table:api:Company",
      "table:api:Deployment",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing",
+     "table:api:SlugAlias"
+    ],
+    "services": [
+     "ext:lago",
+     "ext:redis",
+     "ext:stripe",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/projects/:projectId/move",
+    "repo": "api",
+    "route": "/companies/:companyId/projects/:projectId/move",
+    "file": "@api/src/routes/projects.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/services/appHealth",
+     "lib:@api/src/services/projectMove",
+     "lib:@api/src/services/projectStatus",
+     "lib:@api/src/services/schedules"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName/config",
+     "api:@deploy/internal/apps/:appName/status"
+    ],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:Project",
+     "table:api:Schedule",
+     "table:api:ScheduleRun",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:AuditLog",
+     "table:api:Company",
+     "table:api:DeployToken",
+     "table:api:Domain",
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing"
@@ -3127,6 +3219,20 @@
     "services": []
    },
    {
+    "id": "lib:@api/src/lib/permissions",
+    "repo": "api",
+    "file": "@api/src/lib/permissions.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/msg91"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
     "id": "lib:@api/src/lib/prisma",
     "repo": "api",
     "file": "@api/src/lib/prisma.ts",
@@ -3357,15 +3463,18 @@
     "file": "@api/src/middleware/deployTokenContext.ts",
     "summary": "Authenticating an AI agent (or a CI script) holding a deploy token, against one app addressed by name.",
     "imports": [
+     "lib:@api/src/lib/permissions",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/services/deployTokenAuth",
      "lib:@api/src/services/showcase",
-     "lib:@api/src/services/slugChangeFlow"
+     "lib:@api/src/services/slugChangeFlow",
+     "lib:@api/src/services/tokenAccess"
     ],
     "endpoints": [],
     "defines": [],
     "tablesRead": [
-     "table:api:Project"
+     "table:api:Project",
+     "table:api:SlugAlias"
     ],
     "tablesWritten": [],
     "services": []
@@ -3935,7 +4044,8 @@
      "lib:@api/src/services/deploymentVersioning",
      "lib:@api/src/services/projectClaim",
      "lib:@api/src/services/scheduleSync",
-     "lib:@api/src/services/schedules"
+     "lib:@api/src/services/schedules",
+     "lib:@api/src/services/tokenAccess"
     ],
     "endpoints": [],
     "defines": [
@@ -4008,13 +4118,18 @@
     "summary": null,
     "imports": [
      "lib:@api/src/lib/orphanMessage",
-     "lib:@api/src/services/deployTokenAuth"
+     "lib:@api/src/lib/permissions",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/deployTokenAuth",
+     "lib:@api/src/services/tokenAccess"
     ],
     "endpoints": [],
     "defines": [
      "api:@api/internal/deploy-tokens/validate"
     ],
-    "tablesRead": [],
+    "tablesRead": [
+     "table:api:Project"
+    ],
     "tablesWritten": [],
     "services": []
    },
@@ -4037,6 +4152,7 @@
      "lib:@api/src/services/appTeardown",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/projectClaim",
+     "lib:@api/src/services/projectMove",
      "lib:@api/src/services/projectStatus",
      "lib:@api/src/services/redeploy",
      "lib:@api/src/services/schedules",
@@ -4048,6 +4164,7 @@
      "api:@api/companies/:companyId/orphans/claim",
      "api:@api/companies/:companyId/projects/:projectId",
      "api:@api/companies/:companyId/projects/:projectId/slug",
+     "api:@api/companies/:companyId/projects/:projectId/move",
      "api:@api/companies/:companyId/projects/:projectId/memory"
     ],
     "tablesRead": [
@@ -4224,6 +4341,7 @@
     "summary": null,
     "imports": [
      "lib:@api/src/lib/deployTokens",
+     "lib:@api/src/lib/permissions",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/proxyToken",
@@ -4456,7 +4574,8 @@
     "imports": [
      "lib:@api/src/lib/msg91",
      "lib:@api/src/middleware/requireInternalSecret",
-     "lib:@api/src/services/deployTokenAuth"
+     "lib:@api/src/services/deployTokenAuth",
+     "lib:@api/src/services/tokenAccess"
     ],
     "endpoints": [],
     "defines": [],
@@ -4602,6 +4721,18 @@
     "services": []
    },
    {
+    "id": "lib:@api/src/services/planLimits",
+    "repo": "api",
+    "file": "@api/src/services/planLimits.ts",
+    "summary": null,
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
     "id": "lib:@api/src/services/projectClaim",
     "repo": "api",
     "file": "@api/src/services/projectClaim.ts",
@@ -4611,14 +4742,47 @@
      "lib:@api/src/lib/orphanConfig",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/lib/prismaErrors",
-     "lib:@api/src/lib/reservedSlugs"
+     "lib:@api/src/lib/reservedSlugs",
+     "lib:@api/src/services/slugChangeFlow",
+     "lib:@api/src/services/tokenAccess"
     ],
     "endpoints": [],
     "defines": [],
     "tablesRead": [
+     "table:api:AuditLog",
+     "table:api:Project",
+     "table:api:SlugAlias"
+    ],
+    "tablesWritten": [
+     "table:api:Project"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/projectMove",
+    "repo": "api",
+    "file": "@api/src/services/projectMove.ts",
+    "summary": "Moving an app to another workspace (POST /companies/:companyId/projects/:projectId/move, projects.routes.ts).",
+    "imports": [
+     "lib:@api/src/lib/lago",
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/permissions",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/customDomainActivation",
+     "lib:@api/src/services/planLimits",
+     "lib:@api/src/services/renameStatus",
+     "lib:@api/src/services/tokenAccess"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:Deployment",
      "table:api:Project"
     ],
     "tablesWritten": [
+     "table:api:AppDetails",
      "table:api:Project"
     ],
     "services": []
@@ -4644,12 +4808,14 @@
     "tablesRead": [
      "table:api:AuditLog",
      "table:api:Deployment",
-     "table:api:Project"
+     "table:api:Project",
+     "table:api:SlugAlias"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
      "table:api:Deployment",
-     "table:api:Project"
+     "table:api:Project",
+     "table:api:SlugAlias"
     ],
     "services": []
    },
@@ -4878,7 +5044,29 @@
     "defines": [],
     "tablesRead": [
      "table:api:AuditLog",
-     "table:api:Project"
+     "table:api:Project",
+     "table:api:SlugAlias"
+    ],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/tokenAccess",
+    "repo": "api",
+    "file": "@api/src/services/tokenAccess.ts",
+    "summary": "May this caller act on this app?",
+    "imports": [
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/permissions",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/deployTokenAuth"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:AuditLog",
+     "table:api:Deployment"
     ],
     "tablesWritten": [],
     "services": []
@@ -4903,7 +5091,7 @@
     "store": "api",
     "name": "DeployToken",
     "migration": "@api/prisma/schema.prisma",
-    "note": "Company-wide deploy token.",
+    "note": "A deploy token.",
     "columns": [
      "id",
      "companyId",
@@ -4915,7 +5103,8 @@
      "updatedAt",
      "revokedAt",
      "lastUsedAt",
-     "source"
+     "source",
+     "kind"
     ]
    },
    {
@@ -4940,6 +5129,19 @@
      "currentDeploymentId",
      "kind",
      "appType"
+    ]
+   },
+   {
+    "id": "table:api:SlugAlias",
+    "repo": "api",
+    "store": "api",
+    "name": "SlugAlias",
+    "migration": "@api/prisma/schema.prisma",
+    "note": "A name an app used to have — one row per previous slug, written on every successful address change (services/projectSlugChange.ts).",
+    "columns": [
+     "slug",
+     "projectId",
+     "createdAt"
     ]
    },
    {
@@ -5142,6 +5344,7 @@
      "companyId",
      "createdBy",
      "submitCode",
+     "autoApprove",
      "customHtml",
      "createdAt",
      "updatedAt"
@@ -5185,6 +5388,10 @@
    }
   ],
   "foreignKeys": [
+   {
+    "from": "table:api:SlugAlias.projectId",
+    "to": "table:api:Project.id"
+   },
    {
     "from": "table:api:Schedule.projectId",
     "to": "table:api:Project.id"
@@ -5567,6 +5774,7 @@
     "imports": [
      "lib:@deploy/analytics/bot-filter",
      "lib:@deploy/nomad-job-spec",
+     "lib:@deploy/nomad-task-failure",
      "lib:@deploy/scale-to-zero-images",
      "lib:@deploy/scale-to-zero-registry",
      "lib:@deploy/sqlite-data-check"
@@ -6034,6 +6242,20 @@
     ]
    },
    {
+    "id": "lib:@deploy/nomad-task-failure",
+    "repo": "deploy",
+    "file": "@deploy/nomad-task-failure.js",
+    "summary": "nomad-task-failure.js Explains WHY an app's container is not running, from Nomad's own records: the latest allocation's task events (exit code, restart count, \"Not Restarting\" verdict) plus the tail of the task's stderr/",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:nomad"
+    ]
+   },
+   {
     "id": "lib:@deploy/old_server",
     "repo": "deploy",
     "file": "@deploy/old_server.js",
@@ -6221,6 +6443,7 @@
      "lib:@deploy/logger",
      "lib:@deploy/nomad-job",
      "lib:@deploy/nomad-job-spec",
+     "lib:@deploy/nomad-task-failure",
      "lib:@deploy/project-lookup",
      "lib:@deploy/record-deployment",
      "lib:@deploy/rename-app",

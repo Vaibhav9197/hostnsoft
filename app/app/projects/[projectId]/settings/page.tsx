@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog, type ConfirmRequest } from "../../../../components/console/ConfirmDialog";
-import { Alert, Page, Panel, PanelTitle, Skeleton } from "../../../../components/console/kit";
+import { Alert, NativeSelect, Page, Panel, PanelTitle, Skeleton } from "../../../../components/console/kit";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
 import { HnsError } from "../../../../lib/client";
@@ -16,7 +16,7 @@ import { APP_DOMAIN, appHost } from "../../../../lib/site";
 
 export default function ProjectSettingsPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = use(params);
-  const { activeCompanyId } = useSession();
+  const { activeCompanyId, activeCompany, companies, setActiveCompanyId } = useSession();
   const { project, error, reload } = useProject(activeCompanyId, projectId);
   const router = useRouter();
 
@@ -40,6 +40,14 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
   const [confirmReq, setConfirmReq] = useState<ConfirmRequest | null>(null);
   const [confirm, setConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
+
+  /* Moving to another workspace. Only the person's other workspaces are
+     offered — the API refuses any other target, and a list they can't use
+     would only invite the refusal. */
+  const otherWorkspaces = companies.filter((c) => c.companyId !== activeCompanyId);
+  const [moveTarget, setMoveTarget] = useState("");
+  const [moving, setMoving] = useState(false);
+  const [moveError, setMoveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (project) {
@@ -163,6 +171,55 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
     }
   }
 
+  /* Confirmed because people outside this workspace gain the app and people in
+     it lose it — and because any agent or automated deploy using a "Whole
+     workspace" token from here stops reaching it. Said in those terms; the
+     app itself is untouched, which is the reassuring half. */
+  function askMove() {
+    const target = otherWorkspaces.find((c) => c.companyId === moveTarget);
+    if (!project || !target) return;
+    setMoveError(null);
+    setConfirmReq({
+      title: `Move ${project.name} to ${target.companyName}?`,
+      body: (
+        <>
+          <p>
+            It keeps running at <code className="font-mono">{appHost(project.slug)}</code> with
+            everything it has — nothing is redeployed and nobody visiting it will notice.
+            From now on it is managed in <strong className="font-medium text-foreground">{target.companyName}</strong>,
+            and people who are only in {activeCompany?.companyName ?? "this workspace"} can no longer see it.
+          </p>
+          <p className="mt-2">
+            AI agents using a <strong className="font-medium text-foreground">Whole workspace</strong> token
+            from {activeCompany?.companyName ?? "this workspace"} will stop reaching it. A{" "}
+            <strong className="font-medium text-foreground">Just me</strong> token keeps working for anyone
+            who is in {target.companyName}.
+          </p>
+        </>
+      ),
+      cta: "Move app",
+      onConfirm: () => move(target.companyId, target.companyName),
+    });
+  }
+
+  async function move(targetId: string, targetName: string) {
+    if (!activeCompanyId) return;
+    setMoving(true);
+    setMoveError(null);
+    try {
+      await projectsApi.move(activeCompanyId, projectId, targetId);
+      toast.success(`Moved to ${targetName}`, { description: "Your app is live at the same address." });
+      /* Follow the app: it now only exists in the other workspace, so staying
+         here would leave this page pointing at nothing. Same id there. */
+      setActiveCompanyId(targetId);
+      refreshProjects();
+      router.push(`/app/projects/${projectId}`);
+    } catch (e) {
+      setMoveError(e instanceof Error ? e.message : "Couldn’t move the app.");
+      setMoving(false);
+    }
+  }
+
   async function del() {
     if (!activeCompanyId) return;
     setDeleting(true);
@@ -277,6 +334,37 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
         </Field>
 
       </Panel>
+
+      {/* Only when there is somewhere to move it. Someone in a single
+          workspace has no use for the control, and showing it would just be
+          one more thing on the page to read past. */}
+      {otherWorkspaces.length > 0 && (
+        <Panel padded>
+          <PanelTitle>Move to another workspace</PanelTitle>
+          <p className="mt-1 text-[0.92rem] text-muted-foreground">
+            Hand this app to another workspace you’re in. It stays live at the same
+            address, with its settings, domains and history.
+          </p>
+          <div className="mt-3.5 flex flex-wrap gap-2.5">
+            <NativeSelect
+              className="min-w-[220px] flex-1"
+              aria-label="Workspace to move this app to"
+              value={moveTarget}
+              onChange={(e) => { setMoveTarget(e.target.value); setMoveError(null); }}
+              disabled={moving}
+            >
+              <option value="">Choose a workspace…</option>
+              {otherWorkspaces.map((c) => (
+                <option key={c.companyId} value={c.companyId}>{c.companyName}</option>
+              ))}
+            </NativeSelect>
+            <Button variant="outline" disabled={moving || !moveTarget} onClick={askMove}>
+              {moving ? "Moving…" : "Move app"}
+            </Button>
+          </div>
+          {moveError && <Alert className="mt-2.5">{moveError}</Alert>}
+        </Panel>
+      )}
 
       <Panel padded tone="danger">
         <PanelTitle tone="danger">Remove this app</PanelTitle>

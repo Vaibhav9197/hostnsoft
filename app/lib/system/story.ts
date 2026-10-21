@@ -401,8 +401,8 @@ export const AREAS: Area[] = [
     id: "tokens",
     name: "Deploy keys",
     lane: "engine",
-    plain: "Makes, checks, rotates and revokes the keys an AI uses to deploy as a workspace.",
-    detail: "Keys are emb_ + 64 hex; only a hash is kept. Rotation keeps the old key alive for an hour. Every check updates lastUsedAt.",
+    plain: "Makes, checks, rotates and revokes the keys an AI uses to deploy, and decides which apps each key may reach.",
+    detail: "Keys are emb_ + 64 hex; only a hash is kept. Rotation keeps the old key alive for an hour. Every check updates lastUsedAt. Two kinds: a \"Just me\" key (kind user) acts as the person who made it, in every workspace they are in, checked live with can(); a \"Whole workspace\" key (kind workspace) reaches only its own workspace's apps. Email and connector keys are Just me. A key the app moved away from gets app_moved; a person who lost access gets no_access; strangers see the old 404 / name taken.",
     judge: "rule",
     refs: [
       "lib:@api/src/routes/tokens.routes",
@@ -415,6 +415,8 @@ export const AREAS: Area[] = [
       "lib:@api/src/services/emailToken",
       "lib:@api/src/services/publicTokenRequest",
       "lib:@api/src/middleware/deployTokenContext",
+      "lib:@api/src/services/tokenAccess",
+      "lib:@api/src/lib/permissions",
     ],
   },
   {
@@ -422,7 +424,7 @@ export const AREAS: Area[] = [
     name: "App records",
     lane: "engine",
     plain: "Keeps the list of apps: who owns each, its name and address, and whether it is live.",
-    detail: "One Project per app; the slug is its address and the id is what stays fixed. Names are claimed platform-wide; a renamed app keeps its old names (SlugAlias), so nobody else takes them and a deploy under one reaches the app. Trial (orphan) apps expire after 24 hours unless claimed.",
+    detail: "One Project per app; the slug is its address and the id is what stays fixed. Names are claimed platform-wide; a renamed app keeps its old names (SlugAlias), so nobody else takes them and a deploy under one reaches the app. Trial (orphan) apps expire after 24 hours unless claimed. An app can be moved to another workspace: only its owner changes (Project and AppDetails companyId), with no redeploy, audited in both workspaces.",
     judge: "rule",
     refs: [
       "lib:@api/src/routes/projects.routes",
@@ -438,6 +440,8 @@ export const AREAS: Area[] = [
       "lib:@api/src/services/projectSlugChange",
       "lib:@api/src/services/renameStatus",
       "lib:@api/src/services/appRename",
+      "lib:@api/src/services/projectMove",
+      "lib:@api/src/services/planLimits",
       "lib:@api/src/lib/slug",
       "lib:@api/src/lib/reservedSlugs",
       "lib:@api/src/lib/orphanConfig",
@@ -962,7 +966,7 @@ export const JOURNEYS: Journey[] = [
       {
         id: "make-token",
         title: "Put a key in the prompt",
-        plain: "On a click, the panel makes a deploy key and writes it into the prompt, so the AI can deploy as them. Optional for a new app; required to keep an app deployed before signing in.",
+        plain: "On a click, the panel makes a Just me deploy key and writes it into the prompt, so the AI can deploy as them, in any of their workspaces. Optional for a new app; required to keep an app deployed before signing in.",
         actor: "system",
         failure: [
           "Making the key fails → \"Couldn't create your deploy key.\" with Try again.",
@@ -1548,17 +1552,36 @@ export const JOURNEYS: Journey[] = [
       {
         id: "address",
         title: "Rename or move",
-        plain: "They rename the app, move it to a new web address, or delete it.",
+        plain: "They rename the app, move it to a new web address, hand it to another of their workspaces, or delete it.",
         actor: "user",
-        choices: ["Rename", "Change web address", "Delete app"],
+        choices: ["Rename", "Change web address", "Move to another workspace", "Delete app"],
         failure: [
           "Deleting without typing the exact name → the button stays disabled.",
+          "Moving while a deploy or an address change is running → refused (deploy_in_progress / rename_in_progress), shown under the picker.",
+          "The person can't add apps in the chosen workspace → refused (no_access).",
           "Renaming fails → \"Couldn't rename the app.\"",
           "The address was changed in the last 7 days → refused (slug_change_cooldown) with when to retry.",
           "A deploy is running → refused (deploy_in_progress).",
         ],
         areas: ["console", "app-records"],
-        refs: ["page:/app/projects/[projectId]/settings", "api:@api/companies/:companyId/projects/:projectId/slug", "lib:@api/src/services/slugChangeFlow"],
+        refs: [
+          "page:/app/projects/[projectId]/settings",
+          "api:@api/companies/:companyId/projects/:projectId/slug",
+          "lib:@api/src/services/slugChangeFlow",
+          "api:@api/companies/:companyId/projects/:projectId/move",
+        ],
+      },
+      {
+        id: "hand-over",
+        title: "Hand to a workspace",
+        plain: "Moving to another workspace changes only who owns the app: same address, settings and history, nothing redeployed. Keys of the old workspace stop reaching it.",
+        actor: "system",
+        failure: [
+          "A Whole workspace key of the old workspace deploys it → refused (app_moved), and no copy is made.",
+          "The two workspaces are on different plans → the free-plan footer is re-applied to the live app without a rebuild.",
+        ],
+        areas: ["app-records", "tokens", "access-data"],
+        refs: ["lib:@api/src/services/projectMove", "lib:@api/src/services/tokenAccess", "table:api:Project", "table:api:AuditLog"],
       },
       {
         id: "move",

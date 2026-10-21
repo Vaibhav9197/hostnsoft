@@ -20,7 +20,7 @@ const SHIP = 'https://ship.embarko.ai';
 const API = `${SHIP}/api`;
 const SITE = 'https://embarko.ai';
 
-const VERSION = '2026-10-17';
+const VERSION = '2026-10-21';
 
 const SECTIONS = [
   { n: 1, id: 'start', name: 'Start', blurb: 'What Embarko is, how to reply to the person, and connecting Embarko to their AI tool.' },
@@ -201,12 +201,14 @@ const DEPLOY_ERRORS = [
   { code: 'missing_source_file', status: 400, retry: 'No', do: 'No source field, or an empty files list.' },
   { code: 'invalid_file_path / invalid_file_content / invalid_file_encoding / invalid_json', status: 400, retry: 'No', do: 'JSON upload only: relative paths, string content, encoding utf8 or base64.' },
   { code: 'unauthorized', status: 401, retry: 'No', do: 'The token is invalid or revoked. Leaving the header out is an anonymous deploy, not an error; an empty or made-up token is a 401.' },
-  { code: 'app_not_found', status: 404, retry: 'No', do: 'No app in this token\'s workspace has that appId (X-App-Id or embarko.json). Check the token is the right workspace\'s. If the app should be new, remove "appId" from embarko.json and deploy.' },
+  { code: 'app_not_found', status: 404, retry: 'No', do: 'No app this token can reach has that appId (X-App-Id or embarko.json). Check you are using the right token. If the app should be new, remove "appId" from embarko.json and deploy.' },
+  { code: 'no_access', status: 403, retry: 'No', do: 'The person the token belongs to has no access to the workspace named in the message (they may have been removed). Nothing was deployed. Ask them to get access there, or for a token from that workspace. Never deploy under a new name to get round it.' },
   { code: 'app_deleted', status: 410, retry: 'No', do: 'The app with that appId was deleted. Ask the person before deploying it again. If they want it back as a new app, remove "appId" from embarko.json and deploy.' },
   { code: 'host_not_allowed (from your own sandbox)', status: 403, retry: 'No', do: 'Not Embarko: your environment blocks ship.embarko.ai. Switch route: connector, or ask the person to connect it.' },
   { code: 'app_name_taken', status: 409, retry: 'No', do: 'Another account owns the name. On a first deploy, pick a close variant yourself: add the person\'s or business name if you know it, otherwise a short word (portfolio → portfolio-site, then portfolio-app). Mention the name with the link. Ask only if the exact name matters to them.' },
   { code: 'app_name_reserved', status: 409, retry: 'No', do: 'A platform name. Pick a different one (see name_rules.reserved).' },
   { code: 'rename_in_progress', status: 409, retry: 'Later', do: 'The app\'s address is being changed. Wait, then deploy under the new name.' },
+  { code: 'app_moved', status: 409, retry: 'No', do: 'The app was moved to another workspace this token can\'t reach. Nothing was deployed. Do not deploy it under a new name: that makes a second copy. Ask the person for a "Just me" token (see claim), or for access to the workspace it moved to.' },
   { code: 'source_too_large / too_many_files', status: 413, retry: 'No', do: 'Trim the upload (see large_apps) or use the .tar.gz upload.' },
   { code: 'no_manifest_at_root', status: 422, retry: 'No', do: 'Read foundNestedAt and package from that folder.' },
   { code: 'app_nested_in_subdirectory', status: 422, retry: 'No', do: 'Deploy the folder named in deployThisInstead.' },
@@ -216,6 +218,7 @@ const DEPLOY_ERRORS = [
   { code: 'invalid_schedules / invalid_cron / schedule_too_frequent / invalid_timezone / invalid_path / duplicate_schedule_path / schedule_limit_reached', status: 400, retry: 'No', do: 'A schedule in embarko.json is wrong; the message names the entry, e.g. "Schedule 1: ...". Fix it and deploy again (see schedules).' },
   { code: 'in_process_timer (warning, deploy goes ahead)', status: 202, retry: 'No', do: 'The app uses a timer library (node-cron, APScheduler...). Those jobs are not guaranteed to run on Embarko and can stop with no error. Move each job into a route, list it under "schedules" in embarko.json (see schedules), then deploy again.' },
   { code: 'app_renamed (notice, deploy goes ahead)', status: 202, retry: 'No', do: 'The app was renamed in the dashboard since you last deployed. This deploy reached it under its current name (app.name). Use that name from now on and tell the person the new link.' },
+  { code: 'app_moved (notice, deploy goes ahead)', status: 202, retry: 'No', do: 'The app was moved to another workspace since you last deployed, and this deploy updated it there. Same link, same appId: change nothing. Tell the person in one line, using notices[].detail.' },
   { code: 'embarko_json_not_at_top / embarko_json_misnamed / embarko_json_unknown_keys / schedules_unchanged / schedules_on_static_site (warnings, deploy goes ahead)', status: 202, retry: 'No', do: 'Read warnings[].detail and do what it says: move or rename the file, drop keys Embarko ignores, or use [] to remove schedules (see embarko-json).' },
   { code: 'app_kind_changed', status: 422, retry: 'No', do: 'A static site cannot become a server app. Use a new name.' },
   { code: '(rate limited)', status: 429, retry: 'Later', do: 'Wait retryAfterMs, or a few minutes, then retry once.' },
@@ -604,7 +607,7 @@ function topics(base) {
       ],
       limits: [
         'Optional. No file means no change.',
-        '"appId" decides which app the deploy goes to; the app name you send does not. Keep it after the first deploy and commit it. A deploy with an "appId" never creates a new app: one that is not in the token\'s workspace gets 404 app_not_found, a deleted one 410 app_deleted.',
+        '"appId" decides which app the deploy goes to; the app name you send does not. Keep it after the first deploy and commit it. A deploy with an "appId" never creates a new app: one the token cannot reach gets 404 app_not_found, a deleted one 410 app_deleted, a moved one 409 app_moved.',
         '"appId" is read for token deploys only. A dashboard upload goes to the app the person picked.',
         'The file is the source of truth. A setting changed through the API is set back by the next deploy whose file lists it.',
         '"schedules" is the app\'s full set, matched by path. [] removes all. A file without a "schedules" key leaves them as they are.',
@@ -688,7 +691,7 @@ function topics(base) {
       topic: 'claim',
       section: 'claim',
       title: 'Keep a temporary app',
-      covers: 'The 24-hour deletion, and getting a deploy token to make the app permanent',
+      covers: 'The 24-hour deletion, getting a deploy token to make the app permanent, and which apps a token reaches',
       summary: 'An app deployed over HTTP without a token is deleted 24 hours after its first deploy (the exact time is app.expiresAt). Claiming makes it permanent at the same link. Apps deployed through the connector are already permanent: skip this.',
       done_when: 'The deploy reply says claimed: true.',
       available: true,
@@ -710,8 +713,15 @@ function topics(base) {
         'There is no reminder email. Tell the person the deletion time yourself.',
         'Token requests: 5 per email and 10 per IP per hour. The reply is 202 even when limited, so a retry tells you nothing.',
         'Tokens do not expire. Each request makes a new one; old ones keep working.',
+        'A token from the email or the connector is a "Just me" token: it works on every app its person can reach, in any of their workspaces, and stops working in a workspace they leave. New apps go to the workspace it was made for.',
+        'A "Whole workspace" token (made at https://embarko.ai/app/tokens) works only on that workspace\'s apps, whoever made it. It is for shared machines and automated deploys.',
+        'Moving an app to another workspace is done by the person in the dashboard (the app\'s Settings). The link and appId stay the same. Afterwards a "Whole workspace" token of the old workspace gets 409 app_moved; a "Just me" token of someone in the new workspace keeps working.',
       ],
-      errors: [{ code: 'unauthorized', status: 401, retry: 'No', do: 'The pasted token is wrong or revoked. Ask the person to check they copied all of it.' }],
+      errors: [
+        { code: 'unauthorized', status: 401, retry: 'No', do: 'The pasted token is wrong or revoked. Ask the person to check they copied all of it.' },
+        { code: 'no_access', status: 403, retry: 'No', do: 'The token\'s person can\'t use the workspace named in the message any more. Ask them to get access there, or for a token from that workspace.' },
+        { code: 'app_moved', status: 409, retry: 'No', do: 'The app moved to a workspace this token can\'t reach. Ask for a "Just me" token from someone in that workspace. Never redeploy under a new name.' },
+      ],
       say_to_user: {
         offer: 'Your app is live: {link}. It stays online until {time}. Want to keep it? Tell me your email and I\'ll set it up.',
         ask_token: "I've sent a code to {email} (check spam too). Paste it here and your app becomes permanent.",
@@ -780,7 +790,8 @@ function topics(base) {
       ],
       errors: [
         { code: 'not_found', status: 404, retry: 'No', do: 'No such app, or it is claimed and you sent no token. Check the name and the token.' },
-        { code: 'app_renamed', status: 404, retry: 'No', do: 'The app moved. Use newName from the reply from now on.' },
+        { code: 'app_renamed', status: 404, retry: 'No', do: 'The app has a new name. Use newName from the reply from now on.' },
+        { code: 'app_moved / no_access', status: '409 / 403', retry: 'No', do: 'The app moved to another workspace, or the token\'s person lost access to its workspace. See the deploy errors: ask the person, never redeploy under a new name.' },
         { code: 'unauthorized', status: 401, retry: 'No', do: 'The token was rejected.' },
       ],
       say_to_user: { still_building: EXAMPLES.still_building, live: EXAMPLES.live_owned },
@@ -1234,7 +1245,7 @@ const ALIASES = {
   'embarko.json': 'embarko-json', embarko: 'embarko-json', config: 'embarko-json', 'embarko-config': 'embarko-json',
   schedule: 'schedules', cron: 'schedules', 'cron-jobs': 'schedules', 'scheduled-tasks': 'schedules', timer: 'schedules',
   database: 'data', sqlite: 'data', files: 'data', storage: 'data',
-  keep: 'claim', token: 'claim', permanent: 'claim',
+  keep: 'claim', token: 'claim', permanent: 'claim', tokens: 'claim', 'move-app': 'claim', workspace: 'claim',
   undo: 'rollback', 'change-address': 'rename', 'slug-change': 'rename',
   traffic: 'analytics', retry: 'errors', retries: 'errors', 'error-codes': 'errors', report: 'feedback', bug: 'feedback', 'feature-request': 'feedback',
   static: 'static-sites', frontend: 'two-apps', backend: 'two-apps', monorepo: 'two-apps', api: 'two-apps', listing: 'showcase', errors: 'deploy', polling: 'status',

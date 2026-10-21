@@ -269,7 +269,9 @@ function Claimed({ result }: { result: OrphanClaimResult }) {
     if (started.current || !project.companyId) return;
     started.current = true;
     tokensApi
-      .create(project.companyId, "Keep my app")
+      // "user": it goes into this person's own agent, which should keep
+      // reaching the app if they later move it to another workspace.
+      .create(project.companyId, "Keep my app", "user")
       .then((t) => setToken(t.token))
       .catch((e) => setTokenError(e instanceof Error ? e.message : "Couldn’t prepare the prompt."));
   }, [project.companyId]);
