@@ -138,7 +138,7 @@ flowchart TD
   - If embarko.json is in a subfolder, misnamed or has unknown keys; or the app has schedules and the upload declares none; or it is a static site → it deploys with a warning (embarko_json_not_at_top, embarko_json_misnamed, embarko_json_unknown_keys, schedules_unchanged, schedules_on_static_site).
   - If the code uses a timer library and embarko.json lists no schedules → it deploys with a warning (in_process_timer).
 - **Parts:** Your AI agent (`ai-agent`), App records (`app-records`), Schedules and runs (`schedule-data`)
-- **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`
+- **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`
 - **Looks up:** `Domain`, `ScheduleRun`
 - **Code:** `api:@deploy/apps` → `@deploy/server.js`, `api:@api/internal/projects/claim` → `@api/src/routes/internalProjects.routes.ts`, `api:@api/internal/deployments/record` → `@api/src/routes/internalDeployments.routes.ts`, `lib:@deploy/server` → `@deploy/server.js`, `lib:@deploy/claim-project` → `@deploy/claim-project.js`, `lib:@deploy/record-deployment` → `@deploy/record-deployment.js`, `lib:@deploy/deploy-response` → `@deploy/deploy-response.js`, `lib:@deploy/json-source` → `@deploy/json-source.js`, `lib:@deploy/embarko-config` → `@deploy/embarko-config.js`, `lib:@deploy/detect-timers` → `@deploy/detect-timers.js`, `lib:@api/src/routes/internalProjects.routes` → `@api/src/routes/internalProjects.routes.ts`, `lib:@api/src/routes/internalDeployments.routes` → `@api/src/routes/internalDeployments.routes.ts`, `lib:@api/src/services/deployActor` → `@api/src/services/deployActor.ts`, `lib:@api/src/services/scheduleSync` → `@api/src/services/scheduleSync.ts`, `lib:@api/src/services/schedules` → `@api/src/services/schedules.ts`
 - **Outside services:** Docker, Lago, Nomad, Railpack, Redis, Stripe, Traefik, viaSocket webhook
@@ -217,6 +217,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `ScheduleRun` — One call the runner made (or chose not to make).
 - **Keeps** `ShowcaseEvent` — An event page, /showcase/<slug>: a hackathon, a demo day.
 - **Keeps** `ShowcaseEventListing` — One app shown on one event page.
+- **Keeps** `SlugAlias` — A name an app used to have — one row per previous slug, written on every successful address change (services/projectSlugChange.ts).
 
 See [tables.md](../tables.md).
 

@@ -92,7 +92,7 @@ flowchart TD
   - If A workspace already owns the name → refused (app_name_taken).
   - If deploying the same trial app again → it is updated, but the 24 hours do not restart.
 - **Parts:** App records (`app-records`), Apps and deploys (`apps-data`)
-- **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`
+- **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`
 - **Looks up:** `Domain`, `ScheduleRun`
 - **Code:** `api:@api/internal/projects/claim` → `@api/src/routes/internalProjects.routes.ts`, `lib:@api/src/services/projectClaim` → `@api/src/services/projectClaim.ts`, `lib:@api/src/lib/orphanMessage` → `@api/src/lib/orphanMessage.ts`
 - **Outside services:** Lago, Redis, Stripe, viaSocket webhook
@@ -128,7 +128,7 @@ flowchart TD
 - **If it goes wrong:**
   - If the key is revoked by then → refused (401), and the app stays a trial.
 - **Parts:** Deploy intake (`intake`), App records (`app-records`)
-- **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`
+- **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`
 - **Looks up:** `Domain`, `ScheduleRun`
 - **Code:** `api:@api/internal/projects/claim` → `@api/src/routes/internalProjects.routes.ts`, `lib:@api/src/services/projectClaim` → `@api/src/services/projectClaim.ts`
 - **Outside services:** Lago, Redis, Stripe, viaSocket webhook
@@ -153,7 +153,7 @@ flowchart TD
 | Your AI agent (`ai-agent`) | Outside | The builder's own AI (Claude, ChatGPT, Cursor…) that builds and deploys the app. |
 | Deploy intake (`intake`) | Engine | Takes an app from an AI, checks the key and the name, and starts the build. |
 | App records (`app-records`) | Engine | Keeps the list of apps: who owns each, its name and address, and whether it is live. |
-| Apps and deploys (`apps-data`) | Data | Each app, its versions, settings and custom domains. |
+| Apps and deploys (`apps-data`) | Data | Each app, its versions, settings, custom domains and old names. |
 | Trial banner (`trial-banner`) | Background | Puts a banner on trial and free-plan apps saying how to keep them. |
 | App runner (`runner`) | Engine | Runs each app, gives it its address and domains, and moves or removes it when asked. |
 | Visitors (`visitors`) | People | People who land on embarko.ai, read about it and browse the Showcase. |
@@ -170,11 +170,13 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `DeployToken` — Company-wide deploy token.
+- **Keeps** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Keeps** `EnvVar`
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
 - **Keeps** `Schedule` — A timed HTTP call into the app — see docs/schedules.md.
 - **Keeps** `ShowcaseEvent` — An event page, /showcase/<slug>: a hackathon, a demo day.
 - **Keeps** `ShowcaseEventListing` — One app shown on one event page.
+- **Keeps** `SlugAlias` — A name an app used to have — one row per previous slug, written on every successful address change (services/projectSlugChange.ts).
 - **Looks up** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
 - **Looks up** `ScheduleRun` — One call the runner made (or chose not to make).
 

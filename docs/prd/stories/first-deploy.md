@@ -195,7 +195,7 @@ flowchart TD
   - If another workspace owns the name → refused (app_name_taken).
   - If the account service can't be reached → "Could not verify app name availability" (502).
 - **Parts:** Deploy intake (`intake`), Deploy keys (`tokens`), App records (`app-records`), Apps and deploys (`apps-data`)
-- **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`
+- **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`
 - **Looks up:** `Domain`, `ScheduleRun`
 - **Code:** `lib:@deploy/deploy-credential` → `@deploy/deploy-credential.js`, `lib:@deploy/validate-deploy-token` → `@deploy/validate-deploy-token.js`, `api:@api/internal/deploy-tokens/validate` → `@api/src/routes/internalTokens.routes.ts`, `lib:@deploy/claim-project` → `@deploy/claim-project.js`, `api:@api/internal/projects/claim` → `@api/src/routes/internalProjects.routes.ts`, `lib:@api/src/services/projectClaim` → `@api/src/services/projectClaim.ts`
 - **Outside services:** Lago, Redis, Stripe, viaSocket webhook
@@ -237,10 +237,10 @@ flowchart TD
   - If two versions are numbered at once → the number is retried up to 5 times.
   - If recording fails → the history row is lost and the panel can stay at "in progress".
 - **Parts:** Deploy history (`deploy-history`), Apps and deploys (`apps-data`)
-- **Keeps:** `AppDetails`, `AuditLog`, `DeployToken`, `Deployment`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`
+- **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`
 - **Looks up:** `Domain`, `ScheduleRun`
 - **Code:** `lib:@deploy/record-deployment` → `@deploy/record-deployment.js`, `api:@api/internal/deployments/record` → `@api/src/routes/internalDeployments.routes.ts`, `lib:@api/src/services/deploymentVersioning` → `@api/src/services/deploymentVersioning.ts`
-- **Outside services:** Redis, viaSocket webhook
+- **Outside services:** Lago, Redis, Stripe, viaSocket webhook
 
 ### 10. App appears
 
@@ -269,7 +269,7 @@ flowchart TD
 | Agent docs (`docs`) | Screens | The instructions an AI agent reads before it deploys. |
 | Deploy intake (`intake`) | Engine | Takes an app from an AI, checks the key and the name, and starts the build. |
 | App records (`app-records`) | Engine | Keeps the list of apps: who owns each, its name and address, and whether it is live. |
-| Apps and deploys (`apps-data`) | Data | Each app, its versions, settings and custom domains. |
+| Apps and deploys (`apps-data`) | Data | Each app, its versions, settings, custom domains and old names. |
 | App builder (`builder`) | Engine | Checks the files, works out what kind of app it is, builds it and reports the result. |
 | App runner (`runner`) | Engine | Runs each app, gives it its address and domains, and moves or removes it when asked. |
 | Container platform (`containers`) | Outside | The tools that build app images and run them as containers. |
@@ -290,6 +290,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `Schedule` — A timed HTTP call into the app — see docs/schedules.md.
 - **Keeps** `ShowcaseEvent` — An event page, /showcase/<slug>: a hackathon, a demo day.
 - **Keeps** `ShowcaseEventListing` — One app shown on one event page.
+- **Keeps** `SlugAlias` — A name an app used to have — one row per previous slug, written on every successful address change (services/projectSlugChange.ts).
 - **Looks up** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
 - **Looks up** `ScheduleRun` — One call the runner made (or chose not to make).
 

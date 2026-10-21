@@ -422,7 +422,7 @@ export const AREAS: Area[] = [
     name: "App records",
     lane: "engine",
     plain: "Keeps the list of apps: who owns each, its name and address, and whether it is live.",
-    detail: "One Project per app; the slug is its address. Names are claimed platform-wide; trial (orphan) apps expire after 24 hours unless claimed.",
+    detail: "One Project per app; the slug is its address and the id is what stays fixed. Names are claimed platform-wide; a renamed app keeps its old names (SlugAlias), so nobody else takes them and a deploy under one reaches the app. Trial (orphan) apps expire after 24 hours unless claimed.",
     judge: "rule",
     refs: [
       "lib:@api/src/routes/projects.routes",
@@ -732,9 +732,9 @@ export const AREAS: Area[] = [
     id: "apps-data",
     name: "Apps and deploys",
     lane: "data",
-    plain: "Each app, its versions, settings and custom domains.",
+    plain: "Each app, its versions, settings, custom domains and old names.",
     detail: "API database (SQLite via Prisma). There is no user or workspace table: owners are MSG91 ids stored as text.",
-    refs: ["table:api:Project", "table:api:Deployment", "table:api:EnvVar", "table:api:Domain"],
+    refs: ["table:api:Project", "table:api:Deployment", "table:api:EnvVar", "table:api:Domain", "table:api:SlugAlias"],
   },
   {
     id: "schedule-data",
@@ -1338,7 +1338,7 @@ export const JOURNEYS: Journey[] = [
       {
         id: "ai-updates",
         title: "AI redeploys",
-        plain: "The AI changes the code and deploys it again under the same app name.",
+        plain: "The AI changes the code and deploys it again. The app id it saved in embarko.json after the first deploy finds the same app, even if the person renamed it; the reply says if it was renamed.",
         actor: "ai",
         areas: ["ai-agent", "intake"],
         refs: ["api:@deploy/apps"],

@@ -129,16 +129,28 @@ const ref = (base, topic, why, only) => ({ topic, why, url: t(base, topic), ...(
 const R_BUILDING = {
   success: true,
   status: 'building',
-  app: { name: 'my-app', kind: 'service', claimed: false, expiresAt: '2026-10-10T06:50:46.326Z' },
-  next: 'Building: poll links.status every 10 seconds until it says "live", "failed" or "crashed".',
+  app: { name: 'my-app', kind: 'service', claimed: false, id: 'cmh1q2w3e0001abcdmyapp', expiresAt: '2026-10-10T06:50:46.326Z' },
+  action: 'created',
+  next: 'New app: save app.id as "appId" in embarko.json, so later deploys reach this app even if it is renamed. Building: poll links.status every 10 seconds until it says "live", "failed" or "crashed".',
   links: { status: `${SHIP}/apps/my-app/status`, feedback: `${SHIP}/apps/my-app/customer-query` },
 };
 const R_STATIC_LIVE = {
   success: true,
   status: 'live',
-  app: { name: 'my-site', kind: 'static', claimed: false, expiresAt: '2026-10-10T06:50:46.326Z' },
-  next: 'Live: give the user links.app and tell them it will be deleted at 2026-10-10T06:50:46.326Z unless claimed. To claim it, follow links.help.',
+  app: { name: 'my-site', kind: 'static', claimed: false, id: 'cmh1q2w3e0002abcdmysite', expiresAt: '2026-10-10T06:50:46.326Z' },
+  action: 'created',
+  next: 'New app: save app.id as "appId" in embarko.json, so later deploys reach this app even if it is renamed. Live: give the user links.app and tell them it will be deleted at 2026-10-10T06:50:46.326Z unless claimed. To claim it, follow links.help.',
   links: { app: 'https://my-site.embarko.app', feedback: `${SHIP}/apps/my-site/customer-query`, help: `${SITE}/docs/claim` },
+};
+// A redeploy that reached an app renamed in the dashboard since.
+const R_RENAMED = {
+  success: true,
+  status: 'building',
+  app: { name: 'my-shop', kind: 'service', claimed: true, id: 'cmh1q2w3e0001abcdmyapp' },
+  action: 'updated',
+  notices: [{ code: 'app_renamed', from: 'my-app', to: 'my-shop', detail: 'This app was renamed from "my-app" to "my-shop" outside this deploy, so this deploy updated "my-shop". Use "my-shop" as the app name from now on.' }],
+  next: 'This app was renamed to "my-shop" outside this deploy, so this deploy updated it: use "my-shop" from now on and keep app.id as "appId" in embarko.json. Building: poll links.status every 10 seconds until it says "live", "failed" or "crashed".',
+  links: { status: `${SHIP}/apps/my-shop/status`, feedback: `${SHIP}/apps/my-shop/customer-query` },
 };
 const R_STATUS_LIVE = {
   status: 'live',
@@ -175,6 +187,7 @@ const POLLING = {
 // The embarko.json example, shared by the embarko-json and schedules topics.
 const EMBARKO_JSON_EXAMPLE = JSON.stringify({
   $schema: 'https://embarko.ai/schema/embarko.json',
+  appId: 'cmh1q2w3e0001abcdmyapp',
   schedules: [{ cron: '0 9 * * 1-5', path: '/tasks/daily-digest', timezone: 'Asia/Kolkata', name: 'daily digest' }],
 }, null, 2);
 
@@ -184,9 +197,12 @@ const DEPLOY_ERRORS = [
   { code: 'invalid_app_name', status: 400, retry: 'No', do: 'Name missing or breaks the pattern. Slugify and resend.' },
   { code: 'app_name_too_short / app_name_too_long', status: 400, retry: 'No', do: '3-63 characters.' },
   { code: 'invalid_app_version / invalid_app_type / invalid_agent_name', status: 400, retry: 'No', do: 'Fix or drop that header (printable ASCII, 60 characters max).' },
+  { code: 'invalid_app_id', status: 400, retry: 'No', do: 'X-App-Id must be app.id from an earlier deploy reply, exactly as given. Fix it or leave the header out.' },
   { code: 'missing_source_file', status: 400, retry: 'No', do: 'No source field, or an empty files list.' },
   { code: 'invalid_file_path / invalid_file_content / invalid_file_encoding / invalid_json', status: 400, retry: 'No', do: 'JSON upload only: relative paths, string content, encoding utf8 or base64.' },
   { code: 'unauthorized', status: 401, retry: 'No', do: 'The token is invalid or revoked. Leaving the header out is an anonymous deploy, not an error; an empty or made-up token is a 401.' },
+  { code: 'app_not_found', status: 404, retry: 'No', do: 'No app in this token\'s workspace has that appId (X-App-Id or embarko.json). Check the token is the right workspace\'s. If the app should be new, remove "appId" from embarko.json and deploy.' },
+  { code: 'app_deleted', status: 410, retry: 'No', do: 'The app with that appId was deleted. Ask the person before deploying it again. If they want it back as a new app, remove "appId" from embarko.json and deploy.' },
   { code: 'host_not_allowed (from your own sandbox)', status: 403, retry: 'No', do: 'Not Embarko: your environment blocks ship.embarko.ai. Switch route: connector, or ask the person to connect it.' },
   { code: 'app_name_taken', status: 409, retry: 'No', do: 'Another account owns the name. On a first deploy, pick a close variant yourself: add the person\'s or business name if you know it, otherwise a short word (portfolio → portfolio-site, then portfolio-app). Mention the name with the link. Ask only if the exact name matters to them.' },
   { code: 'app_name_reserved', status: 409, retry: 'No', do: 'A platform name. Pick a different one (see name_rules.reserved).' },
@@ -199,6 +215,7 @@ const DEPLOY_ERRORS = [
   { code: 'secrets_in_embarko_json', status: 400, retry: 'No', do: 'embarko.json looks like it holds a secret. Remove it and set it as an env var instead (see env-vars).' },
   { code: 'invalid_schedules / invalid_cron / schedule_too_frequent / invalid_timezone / invalid_path / duplicate_schedule_path / schedule_limit_reached', status: 400, retry: 'No', do: 'A schedule in embarko.json is wrong; the message names the entry, e.g. "Schedule 1: ...". Fix it and deploy again (see schedules).' },
   { code: 'in_process_timer (warning, deploy goes ahead)', status: 202, retry: 'No', do: 'The app uses a timer library (node-cron, APScheduler...). Those jobs are not guaranteed to run on Embarko and can stop with no error. Move each job into a route, list it under "schedules" in embarko.json (see schedules), then deploy again.' },
+  { code: 'app_renamed (notice, deploy goes ahead)', status: 202, retry: 'No', do: 'The app was renamed in the dashboard since you last deployed. This deploy reached it under its current name (app.name). Use that name from now on and tell the person the new link.' },
   { code: 'embarko_json_not_at_top / embarko_json_misnamed / embarko_json_unknown_keys / schedules_unchanged / schedules_on_static_site (warnings, deploy goes ahead)', status: 202, retry: 'No', do: 'Read warnings[].detail and do what it says: move or rename the file, drop keys Embarko ignores, or use [] to remove schedules (see embarko-json).' },
   { code: 'app_kind_changed', status: 422, retry: 'No', do: 'A static site cannot become a server app. Use a new name.' },
   { code: '(rate limited)', status: 429, retry: 'Later', do: 'Wait retryAfterMs, or a few minutes, then retry once.' },
@@ -400,7 +417,7 @@ function topics(base) {
       section: 'deploy',
       title: 'Requirements, options and errors',
       covers: 'What an app needs to run, every deploy option and reply, polling, and every error',
-      summary: 'Send the app\'s files; Embarko detects the language, builds it and serves it at https://{app-name}.embarko.app. No Dockerfile. Redeploying the same name updates the same app.',
+      summary: 'Send the app\'s files; Embarko detects the language, builds it and serves it at https://{app-name}.embarko.app. No Dockerfile. The first deploy\'s reply has app.id: keep it as "appId" in embarko.json, and every redeploy updates the same app, even after the person renames it.',
       done_when: 'The app opens at https://{app-name}.embarko.app and its main feature works when you try it.',
       available: true,
       who: { connector: 'deploy_app', api: 'POST https://ship.embarko.ai/apps', dashboard: 'Upload file at https://embarko.ai/app (last resort)', needs_human: null },
@@ -435,10 +452,12 @@ function topics(base) {
         http_api: [
           'Package the folder as .tar.gz (first example).',
           'POST https://ship.embarko.ai/apps as multipart with the field source and the headers X-App-Name and X-Agent-Name (your own name, e.g. codex).',
-          'Optional headers: Authorization: Bearer {token} (permanent at once), X-App-Version (a git SHA), X-App-Type (what the app is for, e.g. portfolio).',
+          'Optional headers: Authorization: Bearer {token} (permanent at once), X-App-Version (a git SHA), X-App-Type (what the app is for, e.g. portfolio), X-App-Id (app.id from an earlier reply, if you keep it somewhere other than embarko.json).',
           'Settings such as timed jobs go in an optional embarko.json file in the app\'s top folder, sent with the other files (see embarko-json).',
+          'After the first deploy, write the reply\'s app.id into embarko.json as "appId" and keep the file with the app. Later deploys then reach this app even if the person renamed it in the dashboard.',
           'Or POST https://ship.embarko.ai/apps with Content-Type: application/json and { appName, agentName, files } (second example).',
           'A server app replies 202 "building". A plain static site usually replies 200 "live" at once. Then poll as described in polling.',
+          'Read notices[] in the reply: it says what the person changed in the dashboard since your last deploy, such as a rename. Use app.name from the reply from then on.',
         ],
       },
       large_apps: {
@@ -464,6 +483,11 @@ function topics(base) {
           note: 'Write body to body.json first, then run the command.',
           response_status: 200,
           response: R_STATIC_LIVE,
+        },
+        {
+          title: 'Redeploy after a rename in the dashboard → 202, reached the renamed app',
+          response_status: 202,
+          response: R_RENAMED,
         },
         {
           title: 'Name taken → 409',
@@ -557,14 +581,14 @@ function topics(base) {
       section: 'deploy',
       title: 'The embarko.json file',
       covers: 'The optional settings file in the app\'s top folder: what goes in it, its rules, and its errors and warnings',
-      summary: 'embarko.json is an optional file in the app\'s top folder, next to package.json. Embarko reads it on every deploy. Today it holds one setting: schedules, the timed calls into the app. Most apps never need one.',
-      done_when: 'The deploy reply has no embarko.json error or warning, and its schedules facts match the file.',
+      summary: 'embarko.json is an optional file in the app\'s top folder, next to package.json. Embarko reads it on every deploy. It holds two settings: appId, which app this code deploys to, and schedules, the timed calls into the app.',
+      done_when: 'The deploy reply has no embarko.json error or warning, its app.id matches "appId", and its schedules facts match the file.',
       available: true,
       who: { connector: 'deploy_app: embarko.json is one of the files', api: 'POST https://ship.embarko.ai/apps (the file travels in the upload)', dashboard: null, needs_human: null },
       steps: {
         any: [
           'Create embarko.json in the app\'s top folder, next to package.json (or requirements.txt, go.mod...).',
-          'Write one JSON object. Put the settings in it, such as "schedules" (see schedules).',
+          'Write one JSON object. Put the settings in it: "appId" (app.id from the first deploy reply) and, if the app needs them, "schedules" (see schedules).',
           'Optional: add "$schema": "https://embarko.ai/schema/embarko.json" so editors can check it.',
           'Deploy as usual: skill, HTTP .tar.gz, JSON files list or connector. The file goes with the other files; there is no special field.',
           'Read the reply. A 400 names what is wrong; fix the file and deploy again. Read warnings[] and fix those too before telling the person it is done.',
@@ -575,11 +599,13 @@ function topics(base) {
           title: 'embarko.json with one schedule',
           lang: 'json',
           code: EMBARKO_JSON_EXAMPLE,
-          note: 'Only "schedules" is used today. Its fields: see schedules.',
+          note: '"appId" and "schedules" are the only settings. Fields of a schedule: see schedules.',
         },
       ],
       limits: [
         'Optional. No file means no change.',
+        '"appId" decides which app the deploy goes to; the app name you send does not. Keep it after the first deploy and commit it. A deploy with an "appId" never creates a new app: one that is not in the token\'s workspace gets 404 app_not_found, a deleted one 410 app_deleted.',
+        '"appId" is read for token deploys only. A dashboard upload goes to the app the person picked.',
         'The file is the source of truth. A setting changed through the API is set back by the next deploy whose file lists it.',
         '"schedules" is the app\'s full set, matched by path. [] removes all. A file without a "schedules" key leaves them as they are.',
         'Never put secrets in it. It is part of the code and is never private. Use env vars (see env-vars).',
@@ -590,7 +616,8 @@ function topics(base) {
         'At most 64 KB.',
       ],
       errors: [
-        { code: 'invalid_embarko_json', status: 400, retry: 'No', do: 'Not valid JSON (the message gives line and column), not one object, "schedules" is not a list, or over 64 KB. Fix the file and deploy again.' },
+        { code: 'invalid_embarko_json', status: 400, retry: 'No', do: 'Not valid JSON (the message gives line and column), not one object, "schedules" is not a list, "appId" is not an id, or over 64 KB. Fix the file and deploy again.' },
+        { code: 'app_not_found / app_deleted', status: '404 / 410', retry: 'No', do: '"appId" leads to no app in this workspace, or to a deleted one. Check the token. To deploy as a new app, ask the person, then remove "appId".' },
         { code: 'secrets_in_embarko_json', status: 400, retry: 'No', do: 'A key named like secret, token, password, api key, private key or credential, or a value that looks like a key or a URL with ?token=. Remove it and set it as an env var.' },
         { code: 'invalid_schedules / invalid_cron / schedule_too_frequent / invalid_timezone / invalid_path / duplicate_schedule_path / schedule_limit_reached', status: 400, retry: 'No', do: 'A schedule entry is wrong. The message names it, e.g. "Schedule 1: ...". Fixes: see schedules.' },
         { code: 'embarko_json_not_at_top (warning)', status: 202, retry: 'No', do: 'Found in a subfolder; only the top folder is read. Move it next to package.json and deploy again.' },
@@ -601,8 +628,8 @@ function topics(base) {
         { code: 'schedules_on_static_site (warning)', status: 202, retry: 'No', do: 'A static site runs no code, so its schedules were not applied. Deploy it as a server app to use them.' },
       ],
       prerequisites: prerequisites(base, [r('deploy', 'The deploy that reads the file')]),
-      next: 'Add embarko.json only if the app needs a setting in it, then deploy and read the reply\'s warnings.',
-      related: [r('schedules', 'The one setting it holds today'), r('env-vars', 'Where secrets go instead'), r('errors', 'Every deploy error')],
+      next: 'After the first deploy, save app.id as "appId" in embarko.json. Add schedules only if the app needs them. Deploy and read the reply\'s warnings.',
+      related: [r('schedules', 'Timed calls, the other setting'), r('rename', 'Why appId matters after a rename'), r('env-vars', 'Where secrets go instead'), r('errors', 'Every deploy error')],
       links: { schema: `${SITE}/schema/embarko.json`, deploy: `${SHIP}/apps` },
     },
     {
@@ -708,6 +735,7 @@ function topics(base) {
       steps: {
         connector: ['Call read_app with action "status", then "deployments", "env_vars" and "domains" for the same appName.'],
         http_api: [
+          'An "appId" in the app\'s embarko.json says which app this code is, even if the person has renamed it since. The next deploy reply gives its current name (app.name); use that name in the calls below.',
           'Is it live, failed, or temporary (app.expiresAt)? GET https://ship.embarko.ai/apps/{app-name}/status',
           'The last deploys, their versions, and which agent made each: GET https://ship.embarko.ai/api/apps/{app-name}/deployments',
           'Which secrets are set (names only): GET https://ship.embarko.ai/api/apps/{app-name}/env-vars',
@@ -1053,7 +1081,7 @@ function topics(base) {
       section: 'manage',
       title: 'Change the web address',
       covers: 'Moving the app to a new {name}.embarko.app address',
-      summary: 'Changes the app\'s address. The old address stops working and does not redirect, and someone else can claim it. Custom domains keep working. Changing only the display name is a different, harmless call.',
+      summary: 'Changes the app\'s address. The old address stops working and does not redirect. The old name stays the app\'s: nobody else can take it, and a deploy under it reaches the renamed app. Custom domains keep working. Changing only the display name is a different, harmless call.',
       done_when: 'The new address opens the app, and you use the new name from now on.',
       available: true,
       who: { connector: 'app_danger_zone · rename_app; read_app · rename_status', api: 'POST https://ship.embarko.ai/api/apps/{app-name}/slug-change', dashboard: `${SITE}/app`, needs_human: 'Confirm first: links already shared will stop working.' },
@@ -1073,7 +1101,7 @@ function topics(base) {
         { code: 'rename_failed', status: 502, retry: 'Once', do: 'Nothing changed. Try once more.' },
         { code: 'rename_desynced', status: 500, retry: 'No', do: 'Needs the Embarko team: report it.' },
       ],
-      say_to_user: { confirm: 'Your app will move to {new}.embarko.app. The old link stops working right away with no redirect, and someone else could take the old name. Your custom domain and Showcase listing move with it. You can change the address only once a week. Go ahead?', done: 'Done: your app is now at {link}.' },
+      say_to_user: { confirm: 'Your app will move to {new}.embarko.app. The old link stops working right away with no redirect. Your custom domain and Showcase listing move with it. You can change the address only once a week. Go ahead?', done: 'Done: your app is now at {link}.' },
       prerequisites: prerequisites(base, [claimFirst]),
       next: 'Ask first, then rename.',
       related: [r('showcase', 'A Showcase listing follows the rename'), r('custom-domain', 'A custom domain is unaffected')],
