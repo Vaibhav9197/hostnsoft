@@ -241,7 +241,7 @@ function Hero({ onStory }: { onStory: () => void }) {
       </h1>
 
       <Sub>
-        Your AI built it. Let it put it online too.
+        From simple websites and internal tools to full agentic applications.
       </Sub>
 
       {/* The story leads: a first-time visitor needs the "how" before the

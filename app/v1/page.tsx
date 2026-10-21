@@ -161,6 +161,9 @@ export default function EmbarkoV1() {
             <h1 className={`${H_DISPLAY} text-[44px] sm:text-6xl md:text-[80px]`}>
               Hosting made <Serif grad>ridiculously</Serif> easy.
             </h1>
+            <p className="mx-auto mt-6 max-w-[46ch] text-[16px] leading-relaxed text-[var(--ds-mute)] md:text-[19px]">
+              From simple websites and internal tools to full agentic applications.
+            </p>
 
             <div className="mt-8 sm:mt-10">
               <HeroTimeline />

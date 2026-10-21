@@ -382,6 +382,7 @@ function Hero() {
             Instant hosting for every app you <Serif grad>build</Serif> with AI
           </>
         }
+        sub="From simple websites and internal tools to full agentic applications."
         actions={
           <>
             <CTA />

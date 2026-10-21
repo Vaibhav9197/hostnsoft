@@ -121,7 +121,7 @@ export default function Home() {
         className="v4-hero"
         eyebrow={<><Sparkles aria-hidden="true" /> Hosting for apps already built by your agent</>}
         title={<>Instant hosting for every app you build with <Serif grad>AI</Serif></>}
-        sub="Your agent builds it. Embarko hosts it."
+        sub="From simple websites and internal tools to full agentic applications."
         actions={<Cta size="lg" />}
         steps
       />
