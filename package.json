@@ -9,7 +9,7 @@
     "predev": "npm run system:facts",
     "dev": "next dev",
     "prebuild": "node scripts/check-node.mjs && npm run system:facts",
-    "build": "opennextjs-cloudflare build",
+    "build": "opennextjs-cloudflare build --dangerouslyUseUnsupportedNextVersion",
     "start": "next start",
     "lint": "next lint",
     "prepreview": "npm run system:facts",
