@@ -723,7 +723,7 @@ function topics(base) {
         'Token requests: 5 per email and 10 per IP per hour. The reply is 202 even when limited, so a retry tells you nothing.',
         'Tokens do not expire. Each request makes a new one; old ones keep working.',
         'A token from the email or the connector is a "Just me" token: it works on every app its person can reach, in any of their workspaces, and stops working in a workspace they leave. New apps go to the workspace it was made for.',
-        'A "Whole workspace" token (made at https://embarko.ai/app/tokens) works only on that workspace\'s apps, whoever made it. It is for shared machines and automated deploys.',
+        'A "Whole workspace" token (made at https://embarko.ai/app/tokens) works only on that workspace\'s apps, whoever made it, and keeps working after they leave. It is for shared machines and automated deploys. Only a workspace Owner or Admin can make one; anyone else gets a "Just me" token.',
         'Moving an app to another workspace is done by the person in the dashboard (the app\'s Settings). The link and appId stay the same. Afterwards a "Whole workspace" token of the old workspace gets 409 app_moved; a "Just me" token of someone in the new workspace keeps working.',
       ],
       errors: [
