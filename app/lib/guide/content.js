@@ -96,17 +96,17 @@ const ROUTES = [
   {
     order: 3,
     route: 'connect_first',
-    use_when: 'No connector, and you cannot reach ship.embarko.ai: a chat app with no terminal (ChatGPT, Gemini, Claude.ai without the connector), or a sandbox that blocks the host.',
+    use_when: 'No connector, and you cannot reach ship.embarko.ai, and the person uses Claude (Claude.ai or a sandboxed Claude without the connector). ChatGPT, Gemini and other tools have no connector yet: go to route 4.',
     why: 'Nothing you do from inside the chat can reach Embarko. Connecting takes the person a minute and fixes it for good.',
     say: EXAMPLES.connect_once,
-    which_link: 'Find their AI tool on https://embarko.ai/docs/connectors and use that link. If their tool is not listed, there is no connector for it yet: go to route 4.',
+    which_link: 'Find their AI tool on https://embarko.ai/docs/connectors and use that link. Only Claude has a connector today: for ChatGPT, Gemini or any other tool, go straight to route 4.',
     links: { connectors: `${SITE}/docs/connectors` },
   },
   {
     order: 4,
     route: 'upload',
     use_when: 'Last resort: the person cannot add the connector. Give them the app as a .zip to download.',
-    why: 'They sign in at https://embarko.ai/app (an account is needed for this route), choose Deploy an app, then Upload file. No terminal needed. The app goes into their account: permanent, nothing to claim.',
+    why: 'They sign in at https://embarko.ai/app (signing up is free; an account is needed for this route), choose Host new app, open the Upload file tab, pick the .zip and type an app name. No terminal needed. The app goes into their account: permanent, nothing to claim, and schedules in its embarko.json apply.',
     links: { console: `${SITE}/app` },
   },
 ];
@@ -288,16 +288,16 @@ function topics(base) {
           'Look at your tools. If deploy_app is there, the connector is already added: use it and stop here.',
           'Find the person\'s AI tool in available_for. Give them that link in one line: "Connect Embarko here once, and I can deploy for you directly from now on."',
           'They open it, add Embarko, and sign in. It is the same sign-in as embarko.ai, so they see the apps and workspaces they already have.',
-          'Their tool not listed? There is no connector for it yet. If you can reach ship.embarko.ai, deploy over HTTP (see quickstart). If you cannot, give them the app as a .zip for the upload page (see prerequisites, route 4).',
+          'Their tool not listed (ChatGPT, Gemini, and every tool other than Claude today)? There is no connector for it yet. If you can reach ship.embarko.ai, deploy over HTTP (see quickstart). If you cannot, give them the app as a .zip for the upload page (see prerequisites, route 4).',
         ],
       },
       tools: {
-        deploy_app: 'Deploy or update an app from its files. The app goes straight into the person\'s account: permanent, nothing to claim.',
-        read_app: 'Status, logs, details, analytics.',
-        update_app: 'Env vars, custom domain, rollback, feedback.',
-        app_danger_zone: 'Rename or delete, after the person confirms.',
+        deploy_app: 'Deploy or update an app from its files: { appName, files, appType?, version? }. Send the whole app every time. The app goes straight into the person\'s account: permanent, nothing to claim.',
+        read_app: 'action: "status", "logs", "deployments", "env_vars", "domains", "analytics" or "rename_status", with appName.',
+        update_app: 'action: "set_env_vars", "apply_env_vars", "register_domain", "verify_domain", "rollback" or "submit_feedback", with appName.',
+        app_danger_zone: 'action: "delete_env_var", "delete_domain", "rename_app" or "delete_app", after the person confirms.',
       },
-      limits: ['You cannot add a connector yourself; only the person can.', 'Do not hold up a deploy waiting for it: if HTTP works, deploy now and mention the connector once.'],
+      limits: ['You cannot add a connector yourself; only the person can.', 'Do not hold up a deploy waiting for it: if HTTP works, deploy now and mention the connector once.', 'Each topic\'s connector steps give the arguments. Your tool definitions have the exact shape.', 'No schedule or Showcase actions yet: schedules deploy through embarko.json in deploy_app; running one now and Showcase listing need the person (see schedules, showcase).'],
       say_to_user: { connect: EXAMPLES.connect_once },
       prerequisites: prerequisites(base),
       next: 'Connector in your tools: deploy with deploy_app. Otherwise give the person the link, and carry on with the route that works today.',
@@ -324,7 +324,7 @@ function topics(base) {
           routes: [
             ['Embarko tools (deploy_app, read_app...) are in your tool list', 'Use them. No token, nothing to claim: skip step 2.'],
             ['You can run commands that reach ship.embarko.ai', 'Use the commands in steps 1-2.'],
-            ['You cannot reach ship.embarko.ai (chat app with no terminal, or a blocked sandbox)', 'Do not paste commands. Ask them to add the Embarko connector for their AI tool (https://embarko.ai/docs/connectors), then ask you again. No connector for their tool: give them a .zip with the files at its top level. They sign in at https://embarko.ai/app (signing up is free), choose Deploy an app, then Upload file, pick the zip and type an app name (lowercase letters, numbers, dashes). When it finishes, the app shows in their app list with its link; ask them to paste the link back. That app is theirs and permanent: nothing to claim. A custom domain is added in its Domain tab (see custom-domain).'],
+            ['You cannot reach ship.embarko.ai (chat app with no terminal, or a blocked sandbox)', 'Do not paste commands. Claude: ask them to add the Embarko connector (https://embarko.ai/docs/connectors), then ask you again. Any other tool (ChatGPT, Gemini...) has no connector yet: give them a .zip of the app (a single folder inside it is fine). They sign in at https://embarko.ai/app (signing up is free), choose Host new app, open the Upload file tab, pick the zip and type an app name (lowercase letters, numbers, dashes). The app appears in their app list once it is built; ask them to paste its link back, then open it yourself. That app is theirs and permanent: nothing to claim, and schedules in its embarko.json apply. Keys the app needs go in its App setup tab; a custom domain in its Domain tab (see custom-domain).'],
           ],
         },
         {
@@ -536,13 +536,15 @@ function topics(base) {
           'Write anything that must last under DATA_DIR, creating folders on startup. Node: path.join(process.env.DATA_DIR, "app.db"). Python: os.path.join(os.environ["DATA_DIR"], "app.db").',
           'For a database use SQLite with its file under DATA_DIR (including the -wal and -shm files).',
           'Leave Embarko\'s two bookkeeping tables, _litestream_seq and _litestream_lock, alone. Every SQLite file under DATA_DIR has them.',
+          'Data the app already has (a JSON file, a .db): DATA_DIR starts empty. Ship the file with the code as a seed, and on startup copy it into DATA_DIR only if it is not there yet. Then read and write only the DATA_DIR copy.',
+          'The quickstart tar command leaves out *.db files. To ship a seed database, give it another name (seed.sqlite) or drop that exclude.',
         ],
       },
       limits: [
         'Data is not backed up. Tell the person.',
         'A startup step that diffs the live database against the app\'s schema and changes it to match (any ORM or migration tool can do this) will refuse to start or try to drop those two tables. Apply committed migration files instead, or declare the two tables in the schema. Never force past it.',
         'No managed database. window.storage (Claude Artifacts) is rejected at deploy time: use SQLite.',
-        'Static sites have no DATA_DIR. PORT, APP_NAME, APP_VERSION and DATA_DIR are set by Embarko and cannot be overridden.',
+        'Static sites have no DATA_DIR. PORT, APP_NAME, APP_VERSION and DATA_DIR are set by Embarko and cannot be overridden, and so is CRON_SECRET for an app with schedules.',
       ],
       prerequisites: prerequisites(base),
       next: 'Point the app\'s storage at DATA_DIR before deploying.',
@@ -792,9 +794,10 @@ function topics(base) {
       steps: {
         connector: [
           'Call update_app { action: "set_env_vars", appName, vars: [{ key, value }], apply: true }.',
-          'If the person must type a secret themselves, give them the secrets page, https://embarko.ai/app/projects/{project-id}/environment, rather than asking them to paste it into the chat. {project-id} is the id field of GET https://ship.embarko.ai/api/apps/{app-name}. If they already pasted a key in the chat, use it and suggest they rotate it later.',
+          'If the person must type a secret themselves, send them to the app\'s App setup page rather than asking them to paste it into the chat (see Where the person adds a secret). If they already pasted a key in the chat, use it and suggest they rotate it later.',
         ],
         http_api: [
+          'If the person must type a secret themselves, send them to the app\'s App setup page (see Where the person adds a secret).',
           'PUT https://ship.embarko.ai/api/apps/{app-name}/env-vars with the token and the body in the example below. It merges: keys you leave out stay as they are.',
           'If the person already pasted a key in the chat, use it and suggest they replace it with a new one later.',
           'One key: PUT https://ship.embarko.ai/api/apps/{app-name}/env-vars/{KEY} with {"value": "...", "apply": true}.',
@@ -803,7 +806,11 @@ function topics(base) {
           'Send X-Agent-Name on any call that applies.',
         ],
       },
-      limits: ['Keys match ^[A-Za-z_][A-Za-z0-9_]*$.', 'PORT, APP_NAME, APP_VERSION and DATA_DIR are set by Embarko.', 'Static sites have no env vars (409 not_supported_for_static).', 'Over HTTP, the app must be claimed.'],
+      secrets_page: {
+        any_route: 'Tell them: open https://embarko.ai/app, choose the app, open App setup, and add {KEY} there. This works on every route, chat-only included.',
+        direct_link: 'Over HTTP you can give the exact page: https://embarko.ai/app/projects/{project-id}/environment, where {project-id} is the id field of GET https://ship.embarko.ai/api/apps/{app-name} (with the token). No reply contains this link ready-made.',
+      },
+      limits: ['Keys match ^[A-Za-z_][A-Za-z0-9_]*$.', 'PORT, APP_NAME, APP_VERSION and DATA_DIR are set by Embarko, and so is CRON_SECRET for an app with schedules.', 'Static sites have no env vars (409 not_supported_for_static).', 'Over HTTP, the app must be claimed.'],
       examples: [
         {
           title: 'Set two values and apply them',
@@ -830,7 +837,7 @@ function topics(base) {
       summary: 'List the schedules in the app\'s embarko.json file and Embarko calls those routes of the app on time, for example GET /tasks/daily-digest every weekday at 9:00. The job is normal app code in that route. Embarko keeps a record of each run, and emails the owner if a schedule starts failing.',
       done_when: 'Each schedule ran once with outcome "ok", and the person knows when it runs next.',
       available: true,
-      who: { connector: 'deploy_app with embarko.json among the files. Running them once now is HTTP only, with a deploy token; the person can create one at https://embarko.ai/app/tokens', api: 'https://ship.embarko.ai/apps (embarko.json in the upload)', dashboard: null, needs_human: 'Only their time zone, if you cannot tell it.' },
+      who: { connector: 'deploy_app with embarko.json among the files. Running them once now is HTTP only, with a deploy token; the person can create one at https://embarko.ai/app/tokens', api: 'https://ship.embarko.ai/apps (embarko.json in the upload)', dashboard: `${SITE}/app: the app's Overview lists each scheduled job, its last and next run, and All runs. Read-only: no run-now or pause there.`, needs_human: 'Only their time zone, if you cannot tell it.' },
       steps: {
         any: [
           'Put the job in a GET route of the app, for example /tasks/daily-digest. Answer 2xx when it worked.',
@@ -839,6 +846,7 @@ function topics(base) {
           'List the job under "schedules" in embarko.json, in the app\'s top folder (see the first example and embarko-json).',
           'Deploy as usual, any way. A bad schedule refuses the deploy before it builds; the error names the entry, e.g. "Schedule 1: ...".',
           'Check the test run. The skill runs each schedule once when the app is live and prints ok or the error. Over HTTP: POST links.runSchedules from the deploy reply, then poll each statusUrl until terminal is true.',
+          'No HTTP (connector without a token, chat-only, upload page): you cannot run it now. Say so: the first real run is the test, they get an email if it fails, and they can see each run on the app\'s Overview at https://embarko.ai/app. Or ask for a deploy token (https://embarko.ai/app/tokens) and run it over HTTP if you can reach ship.embarko.ai.',
           'If a run failed, fix the route and deploy again.',
           'Tell the person when it runs, in their time zone.',
         ],
@@ -848,7 +856,8 @@ function topics(base) {
           'No embarko.json, or one without a "schedules" key: the schedules stay as they are.',
           'See runs: GET https://ship.embarko.ai/api/apps/{app-name}/schedules, then each schedule\'s links.runs. Newest first, 20 a page; add ?page=2, ?outcome=failed or ?trigger=schedule. The reply has total and totalPages. The last 100 runs of each schedule are kept.',
           'Pause one without a deploy: PATCH https://ship.embarko.ai/api/apps/{app-name}/schedules/{schedule-id} with {"enabled": false}. The next deploy that lists it turns it back on.',
-          'Failure alerts to Slack or another webhook: PATCH the schedule with {"alertWebhookUrl": "https://..."}.',
+          'Failure alerts to a webhook: PATCH the schedule with {"alertWebhookUrl": "https://..."}. The body is the JSON in the example, with no text field, so a Slack incoming webhook rejects it: point it at something that accepts any JSON.',
+          'The person can see every schedule and run without the API: the app\'s Overview at https://embarko.ai/app, Scheduled jobs.',
         ],
       },
       fields: {
@@ -924,7 +933,7 @@ function topics(base) {
         'Redirects are not followed and count as failed.',
         'The first 2KB of each reply and the last 100 runs of each schedule are kept.',
         'A time missed during an Embarko outage runs once when it can. Missed times are not replayed.',
-        'Needs a kept app and a deploy token. A temporary app deploys, but its schedules are not applied; the reply says so.',
+        'Needs a kept app: claimed over HTTP, deployed through the connector, or uploaded in the dashboard. A temporary app deploys, but its schedules are not applied; the reply says so.',
         'Static sites cannot have schedules. A static site deploys, with the warning schedules_on_static_site.',
         'Schedules apply only when the deploy succeeds.',
         'embarko.json is the source of truth: a schedule paused or changed through the API is set back by the next deploy whose embarko.json lists it.',

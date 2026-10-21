@@ -173,6 +173,7 @@ function topicMd(base, tp, { standalone = true } = {}) {
     const label = { connector: 'With the connector', http_api: 'Over HTTP', dashboard: 'In the dashboard', any: 'Steps', manage: 'Change, pause or delete' };
     for (const [k, v] of Object.entries(tp.steps)) out.push(`**${label[k] || k}**`, '', numbered(v), '');
   }
+  if (tp.secrets_page) out.push('**Where the person adds a secret**', '', bullet(Object.values(tp.secrets_page)), '');
   if (tp.examples) {
     for (const ex of tp.examples) {
       out.push(`**Example: ${ex.title}**`, '');

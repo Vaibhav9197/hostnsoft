@@ -25,13 +25,15 @@ import { useSession } from "@/app/lib/session";
  * apps page shows, so the two never tell it differently.
  *
  * Uploading is for whoever already has the app built and would rather not go
- * through an agent at all. It's hidden for now (SHOW_UPLOAD); the code stays.
+ * through an agent at all, and it is the route the agent guide gives chat-only
+ * AI tools (no terminal, no connector): they hand the person a .zip for it.
  */
 
 type Start = "prompt" | "upload";
 
-/** Upload is parked, not removed: flip this to bring the tab back. */
-const SHOW_UPLOAD = false;
+/** The agent guide's upload route (route 4) points here: hiding it strands
+ *  chat-only agents. */
+const SHOW_UPLOAD = true;
 
 export function DeployPromptDialog({
   open,
