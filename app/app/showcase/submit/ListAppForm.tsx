@@ -195,7 +195,7 @@ export function ListAppForm({
     try {
       const listing = await showcaseApi.submit(activeCompanyId, {
         collectionSlug: target.slug,
-        code: where === "event" ? code.trim() || undefined : undefined,
+        code: where === "event" && !eventPage?.autoApprove ? code.trim() || undefined : undefined,
         projectId,
         name: name.trim(),
         tagline: tagline.trim(),
@@ -514,7 +514,7 @@ export function ListAppForm({
                         aria-label="Showcase page address"
                       />
                     </div>
-                    {eventPage && !foreignCompanyPage && (
+                    {eventPage && !foreignCompanyPage && !eventPage.autoApprove && (
                       <Input
                         value={code}
                         onChange={(e) => setCode(e.target.value.toUpperCase())}
@@ -530,6 +530,7 @@ export function ListAppForm({
                     {eventPage && !foreignCompanyPage && (
                       <p className="text-[0.85rem] text-muted-foreground">
                         Found <b className="text-foreground">{eventPage.title}</b>.
+                        {eventPage.autoApprove && " Apps go on it at once, no code needed."}
                       </p>
                     )}
                     {foreignCompanyPage && (

@@ -1116,7 +1116,7 @@ function topics(base) {
           'Draft name, tagline, description, category and tags from the app itself.',
           'Ask once for what only the person knows: their name or profile link, who else built it, screenshots or a video, and the event page and code if it is for an event. Never invent these.',
           'Show them the draft and get a yes, then send it (example below). Only the fields you send change, so a retry is safe.',
-          'The reply\'s status says what happened. approved: give them https://embarko.ai/showcase/app/{app-name}. pending: the event organiser must approve (a valid code skips this). rejected: next gives the reason.',
+          'The reply\'s status says what happened. approved: give them https://embarko.ai/showcase/app/{app-name}. pending: the event organiser must approve (a valid code skips this; events with auto-approve on never wait). rejected: next gives the reason.',
         ],
       },
       examples: [

@@ -392,8 +392,15 @@ export const showcaseApi = {
   // POST /companies/:companyId/showcase/collections — create a public board. 409 SHOWCASE_SLUG_TAKEN.
   createCollection: (
     companyId: string,
-    body: { slug: string; title: string; intro?: string | null; customHtml?: string | null },
+    body: { slug: string; title: string; intro?: string | null; customHtml?: string | null; autoApprove?: boolean },
   ) => hns<ShowcaseCollection>(`/companies/${companyId}/showcase/collections`, { method: "POST", body }),
+
+  // PATCH .../collections/:collectionId {autoApprove} — turn auto-approve on or off.
+  setAutoApprove: (companyId: string, collectionId: string, autoApprove: boolean) =>
+    hns<ShowcaseCollection>(`/companies/${companyId}/showcase/collections/${collectionId}`, {
+      method: "PATCH",
+      body: { autoApprove },
+    }),
 
   // GET .../collections/:collectionId — plus everything listed under it.
   getCollection: (companyId: string, collectionId: string) =>

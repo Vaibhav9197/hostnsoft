@@ -6,6 +6,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Check, ChevronDown, Loader2 } from "lucide-react";
 
 import { Alert, LinkButton, Panel } from "@/app/components/console/kit";
+import { AutoApproveField } from "@/app/components/console/showcase/AutoApproveField";
 import { CustomHtmlField } from "@/app/components/console/showcase/CustomHtmlField";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
@@ -77,6 +78,7 @@ export function NewShowcaseForm({ onDraftChange }: { onDraftChange?: (draft: Sho
      typed: it is still sent, and the toggle says so. */
   const [html, setHtml] = useState("");
   const [htmlOpen, setHtmlOpen] = useState(false);
+  const [autoApprove, setAutoApprove] = useState(false);
   /* The address follows the name until the person types in it. `typed` only
      means something while `follow` is off. */
   const [follow, setFollow] = useState(true);
@@ -316,6 +318,7 @@ export function NewShowcaseForm({ onDraftChange }: { onDraftChange?: (draft: Sho
         title,
         intro: intro.trim() || null,
         customHtml: html.trim() || null,
+        autoApprove,
       });
       /* Stays on "Creating…" until the manage page takes over, so there is
          no moment where Create can be pressed twice. */
@@ -467,6 +470,9 @@ export function NewShowcaseForm({ onDraftChange }: { onDraftChange?: (draft: Sho
             Shown under the name on your page and poster.
           </p>
         </div>
+
+        {/* -------------------------------------------- auto-approve */}
+        <AutoApproveField checked={autoApprove} onChange={setAutoApprove} disabled={creating} />
 
         {/* --------------------------------------------- custom html */}
         <div className="flex flex-col gap-4">
