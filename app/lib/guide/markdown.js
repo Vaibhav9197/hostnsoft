@@ -169,6 +169,7 @@ function topicMd(base, tp, { standalone = true } = {}) {
   if (tp.tools) out.push('**Its tools**', '', bullet(Object.entries(tp.tools).map(([k, v]) => `${code(k)}: ${v}`)), '');
   if (tp.statuses) out.push('**Statuses**', '', bullet(Object.entries(tp.statuses).map(([k, v]) => `${code(k)}: ${v}`)), '');
   if (tp.types) out.push('**Types**', '', bullet(Object.entries(tp.types).map(([k, v]) => `${code(k)}: ${v}`)), '');
+  if (tp.roles) out.push('**Roles**', '', bullet(tp.roles.map((x) => `**${x.role}**: ${x.can}`)), '');
   if (tp.steps) {
     const label = { connector: 'With the connector', http_api: 'Over HTTP', dashboard: 'In the dashboard', any: 'Steps', manage: 'Change, pause or delete' };
     for (const [k, v] of Object.entries(tp.steps)) out.push(`**${label[k] || k}**`, '', numbered(v), '');
