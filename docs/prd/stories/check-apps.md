@@ -174,7 +174,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `request_log`
 - **Keeps** `resource_sample`
 - **Keeps** `tail_state` — One row, keyed by the log file's own path — lets the tailer resume from where it left off across restarts, and detect rotation (a changed inode, or a file that's now smaller than our last offset).
-- **Looks up** `DeployToken` — Company-wide deploy token.
+- **Looks up** `DeployToken` — A deploy token.
 - **Looks up** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Looks up** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
 - **Looks up** `Schedule` — A timed HTTP call into the app — see docs/schedules.md.

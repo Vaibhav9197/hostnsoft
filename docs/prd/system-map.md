@@ -387,7 +387,7 @@ Confirms who someone is, which workspaces they belong to, and whether they are a
 
 Decides what each member may do in a workspace: Owner, Admin, Developer, Viewer or Billing, and which apps.
 
-- **How it works:** MSG91 still decides who is in a workspace, checked on every request. @api then checks the member's role and app access on every panel and agent call, and on every deploy; an agent's token has the permissions of the person who made it. A member with no role is an Admin; each workspace's first Owner is picked the first time it is used.
+- **How it works:** MSG91 still decides who is in a workspace, checked on every request. @api then checks the member's role and app access on every panel and agent call, and on every deploy; a personal token has its person's permissions, a workspace token (Owner/Admin-made) acts for the whole workspace and outlives its maker. A member with no role gets one when first seen: Admin if they were active before roles, otherwise Developer; each workspace's first Owner is picked the first time it is used.
 - **Who decides:** a fixed rule
 - **Passes to:** Roles and app access (roles and app access)
 - **Receives from:** Account checks (what may they do?), Deploy intake (may this key deploy?)

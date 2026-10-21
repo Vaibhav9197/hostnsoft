@@ -157,7 +157,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `PendingInvite` — A role chosen for someone before they are a member.
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
 - **Keeps** `WorkspaceMember` — A member's role in one workspace.
-- **Looks up** `DeployToken` — Company-wide deploy token.
+- **Looks up** `DeployToken` — A deploy token.
 - **Looks up** `EnvVar`
 
 See [tables.md](../tables.md).

@@ -197,7 +197,6 @@ const EMBARKO_JSON_EXAMPLE = JSON.stringify({
 // person who made it, so these can come back from any call made with a token.
 const PERMISSION_ERRORS = [
   { code: 'permission_denied', status: 403, retry: 'No', do: 'The person who made this token is not allowed to do this. The reply names the permission and their role. Nothing changed. Tell the person (say_to_user.no_permission); do not try another way round it.' },
-  { code: 'token_owner_not_member', status: 403, retry: 'No', do: 'Whoever made this token has left the workspace, so it can no longer act there. Ask the person for a new token.' },
 ];
 
 // the errors topic has them all, with the retry rules.
@@ -210,7 +209,7 @@ const DEPLOY_ERRORS = [
   { code: 'invalid_file_path / invalid_file_content / invalid_file_encoding / invalid_json', status: 400, retry: 'No', do: 'JSON upload only: relative paths, string content, encoding utf8 or base64.' },
   { code: 'unauthorized', status: 401, retry: 'No', do: 'The token is invalid or revoked. Leaving the header out is an anonymous deploy, not an error; an empty or made-up token is a 401.' },
   { code: 'app_not_found', status: 404, retry: 'No', do: 'No app this token can reach has that appId (X-App-Id or embarko.json). Check you are using the right token. If the app should be new, remove "appId" from embarko.json and deploy.' },
-  { code: 'no_access', status: 403, retry: 'No', do: 'The person the token belongs to has no access to the workspace named in the message (they may have been removed). Nothing was deployed. Ask them to get access there, or for a token from that workspace. Never deploy under a new name to get round it.' },
+  { code: 'no_access', status: 403, retry: 'No', do: 'The person the token belongs to can\'t do this in the workspace named in the message: they were removed, or their role there doesn\'t allow it. Nothing was deployed. Ask them to get access there, or for a token from that workspace. Never deploy under a new name to get round it.' },
   { code: 'app_deleted', status: 410, retry: 'No', do: 'The app with that appId was deleted. Ask the person before deploying it again. If they want it back as a new app, remove "appId" from embarko.json and deploy.' },
   { code: 'host_not_allowed (from your own sandbox)', status: 403, retry: 'No', do: 'Not Embarko: your environment blocks ship.embarko.ai. Switch route: connector, or ask the person to connect it.' },
   ...PERMISSION_ERRORS.map((e) => (e.code === 'permission_denied' ? { ...e, do: 'The token\'s owner may not deploy this app (permission "app.deploy") or add new apps ("app.create"). The reply names their role. Nothing was deployed. Tell the person (say_to_user.no_permission).' } : e)),

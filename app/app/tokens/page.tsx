@@ -1,5 +1,6 @@
 "use client";
 
+import { usePermissions } from "../../lib/permissions";
 import { useCallback, useEffect, useState } from "react";
 import { Copy, Plus } from "lucide-react";
 import { ConfirmDialog, type ConfirmRequest } from "../../components/console/ConfirmDialog";
@@ -45,6 +46,11 @@ const KIND_CHOICES: { kind: DeployTokenKind; title: string; body: string }[] = [
 
 export default function TokensPage() {
   const { activeCompanyId, user } = useSession();
+  /* A whole-workspace token reaches every app here and outlives its maker,
+     so only an Owner or Admin may make one (the API refuses anyone else).
+     Everyone else just gets "Just me", with no choice to read past. */
+  const { role } = usePermissions();
+  const kindChoices = role === "owner" || role === "admin" ? KIND_CHOICES : KIND_CHOICES.filter((c) => c.kind === "user");
   const [tokens, setTokens] = useState<DeployToken[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -185,9 +191,10 @@ export default function TokensPage() {
             {/* The page's own alert sits behind the dialog, so a failed create
                 has to say so here. */}
             {error && <div className="text-sm font-medium text-destructive">{error}</div>}
+            {kindChoices.length > 1 && (
             <fieldset className="grid gap-2" disabled={creating}>
               <legend className="mb-2 text-sm font-semibold text-foreground">Who is it for?</legend>
-              {KIND_CHOICES.map((c) => (
+              {kindChoices.map((c) => (
                 <label
                   key={c.kind}
                   className={`flex cursor-pointer gap-3 rounded-lg border px-3.5 py-3 transition-colors ${
@@ -209,6 +216,7 @@ export default function TokensPage() {
                 </label>
               ))}
             </fieldset>
+            )}
             <div className="grid gap-1.5">
               <label htmlFor="token-name" className="text-sm font-semibold text-foreground">
                 Token name

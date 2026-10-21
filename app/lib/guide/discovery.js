@@ -168,7 +168,7 @@ function openapi() {
   const agentHeader = { name: 'X-Agent-Name', in: 'header', schema: { type: 'string', maxLength: 60 }, description: 'Your agent name, e.g. codex. Recorded in deploy history.' };
   const token = [{ deployToken: [] }];
   const optionalToken = [{ deployToken: [] }, {}];
-  const common = { 401: err('unauthorized: token invalid or revoked'), 403: err('permission_denied: the token\'s owner is not allowed this (body names permission and role); token_owner_not_member: whoever made the token left the workspace'), 404: err('Unknown app, or not yours'), 429: err('Rate limited: back off') };
+  const common = { 401: err('unauthorized: token invalid or revoked'), 403: err('permission_denied: the token\'s person is not allowed this (body names permission and role); no_access: the token\'s person can\'t act in that workspace (removed, or role too narrow)'), 404: err('Unknown app, or not yours'), 429: err('Rate limited: back off') };
 
   return {
     openapi: '3.1.0',

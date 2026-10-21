@@ -74,7 +74,7 @@ flowchart TD
   s4f -.->|no| s4f1
   s4f2["If the app isn’t one they can see<br/>→ it answers as if it doesn’t exist 404."]:::fail
   s4f -.->|no| s4f2
-  s4f3["If the token’s maker has left the workspace<br/>→ refused token_owner_not_member, 403."]:::fail
+  s4f3["If A personal token whose person left the workspace, or whose role there is too narrow<br/>→ refused no_access, 403. A workspace token keeps working after its maker leaves."]:::fail
   s4f -.->|no| s4f3
   done([Each person, and their AI, can do exactly what their role allows anything else is refused with a reason.])
   s4f -->|yes| done
@@ -134,7 +134,7 @@ flowchart TD
 - **If it goes wrong:**
   - If the action isn't allowed → refused (permission_denied, 403) naming the permission and role; the agent tells the person.
   - If the app isn't one they can see → it answers as if it doesn't exist (404).
-  - If the token's maker has left the workspace → refused (token_owner_not_member, 403).
+  - If A personal token whose person left the workspace, or whose role there is too narrow → refused (no_access, 403). A workspace token keeps working after its maker leaves.
 - **Parts:** Roles (`roles`), Deploy intake (`intake`), Your AI agent (`ai-agent`)
 - **Keeps:** `AppGrant`, `AuditLog`, `PendingInvite`, `WorkspaceMember`
 - **Looks up:** `DeployToken`, `Project`
@@ -162,7 +162,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `PendingInvite` — A role chosen for someone before they are a member.
 - **Keeps** `WorkspaceMember` — A member's role in one workspace.
-- **Looks up** `DeployToken` — Company-wide deploy token.
+- **Looks up** `DeployToken` — A deploy token.
 - **Looks up** `Project` — One Project == one deployed app on hostnsoft-deploy.
 
 See [tables.md](../tables.md).

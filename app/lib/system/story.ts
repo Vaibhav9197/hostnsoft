@@ -404,7 +404,7 @@ export const AREAS: Area[] = [
     lane: "engine",
     plain: "Decides what each member may do in a workspace: Owner, Admin, Developer, Viewer or Billing, and which apps.",
     detail:
-      "MSG91 still decides who is in a workspace, checked on every request. @api then checks the member's role and app access on every panel and agent call, and on every deploy; an agent's token has the permissions of the person who made it. A member with no role is an Admin; each workspace's first Owner is picked the first time it is used.",
+      "MSG91 still decides who is in a workspace, checked on every request. @api then checks the member's role and app access on every panel and agent call, and on every deploy; a personal token has its person's permissions, a workspace token (Owner/Admin-made) acts for the whole workspace and outlives its maker. A member with no role gets one when first seen: Admin if they were active before roles, otherwise Developer; each workspace's first Owner is picked the first time it is used.",
     judge: "rule",
     refs: [
       "lib:@api/src/lib/permissions",
@@ -2198,7 +2198,7 @@ export const JOURNEYS: Journey[] = [
         failure: [
           "The action isn't allowed → refused (permission_denied, 403) naming the permission and role; the agent tells the person.",
           "The app isn't one they can see → it answers as if it doesn't exist (404).",
-          "The token's maker has left the workspace → refused (token_owner_not_member, 403).",
+          "A personal token whose person left the workspace, or whose role there is too narrow → refused (no_access, 403). A workspace token keeps working after its maker leaves.",
         ],
         areas: ["roles", "intake", "ai-agent"],
         refs: ["api:@api/me/permissions", "lib:@api/src/middleware/requirePermission", "lib:@api/src/lib/permissions"],

@@ -189,7 +189,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `ShowcaseEvent` — An event page, /showcase/<slug>: a hackathon, a demo day.
 - **Keeps** `ShowcaseEventListing` — One app shown on one event page.
 - **Keeps** `WorkspaceMember` — A member's role in one workspace.
-- **Looks up** `DeployToken` — Company-wide deploy token.
+- **Looks up** `DeployToken` — A deploy token.
 - **Looks up** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
 
 See [tables.md](../tables.md).

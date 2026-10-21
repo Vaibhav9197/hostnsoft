@@ -154,7 +154,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
 - **Keeps** `PendingInvite` — A role chosen for someone before they are a member.
 - **Keeps** `WorkspaceMember` — A member's role in one workspace.
-- **Looks up** `DeployToken` — Company-wide deploy token.
+- **Looks up** `DeployToken` — A deploy token.
 - **Looks up** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Looks up** `EnvVar`
 - **Looks up** `Project` — One Project == one deployed app on hostnsoft-deploy.
