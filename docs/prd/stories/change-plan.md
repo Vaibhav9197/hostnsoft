@@ -8,7 +8,7 @@
 - **Wants to:** move to the plan that fits their apps
 - **Ends with:** They are on the new plan, paid by card, or back on Free.
 - **Steps:** 4 · 0 by AI · 4 can go wrong
-- **Last change to its code:** v48, 17 Oct 2026 — feat(companies): add PATCH /companies/:id to rename a workspace via proxy (#44)
+- **Last change to its code:** v49, 17 Oct 2026 — feat(companies): add PATCH /companies/:id to rename a workspace via proxy (#44)
 
 [← All stories](../README.md)
 
@@ -114,7 +114,8 @@ flowchart TD
   - If no card on file for a paid plan → refused (BILLING_PAYMENT_METHOD_REQUIRED, 402).
   - If cards can't load → "Couldn't load payment methods."
 - **Parts:** Billing (`billing`), Billing providers (`payments`)
-- **Keeps:** `Company`
+- **Keeps:** `AppGrant`, `AuditLog`, `Company`, `PendingInvite`, `WorkspaceMember`
+- **Looks up:** `DeployToken`, `Project`
 - **Code:** `page:/app/billing` → `app/app/billing/page.tsx`, `api:@api/companies/:companyId/billing/checkout-url` → `@api/src/routes/billing.routes.ts`, `lib:@api/src/lib/stripe` → `@api/src/lib/stripe.ts`
 - **Outside services:** Lago, Redis, Stripe
 
@@ -127,8 +128,8 @@ flowchart TD
   - If the change fails → the server's reason, or "Something went wrong. Please try again."
   - If A payment later fails → nothing in Embarko hears about it; there are no billing webhooks.
 - **Parts:** Panel bridge (`bridge`), Billing (`billing`), Billing providers (`payments`)
-- **Keeps:** `AuditLog`, `Company`, `Domain`
-- **Looks up:** `Deployment`, `EnvVar`, `Project`
+- **Keeps:** `AppGrant`, `AuditLog`, `Company`, `Domain`, `PendingInvite`, `WorkspaceMember`
+- **Looks up:** `DeployToken`, `Deployment`, `EnvVar`, `Project`
 - **Code:** `api:@api/companies/:companyId/billing/subscription` → `@api/src/routes/billing.routes.ts`, `lib:@api/src/services/billingCustomer` → `@api/src/services/billingCustomer.ts`
 - **Outside services:** Lago, Redis, Stripe
 
@@ -147,9 +148,13 @@ See [system-map.md](../system-map.md) for how the parts connect.
 
 ## Tables
 
+- **Keeps** `AppGrant` — One app a developer/viewer with appScope "selected" may reach, and how far: "manage" (deploy, change settings) or "view" (status, logs, history).
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
+- **Keeps** `PendingInvite` — A role chosen for someone before they are a member.
+- **Keeps** `WorkspaceMember` — A member's role in one workspace.
+- **Looks up** `DeployToken` — Company-wide deploy token.
 - **Looks up** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Looks up** `EnvVar`
 - **Looks up** `Project` — One Project == one deployed app on hostnsoft-deploy.
@@ -160,11 +165,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v48 (9246658) | 17 Oct 2026 | feat(companies): add PATCH /companies/:id to rename a workspace via proxy (#44) | load, card, apply |
-| v47 (dc830b8) | 13 Oct 2026 | feat: add Company model to mirror billing state and fallback when Lago is unreachable | load, apply |
-| v46 (c85241c) | 13 Oct 2026 | feat(orphan): claim link — keep a temporary app by signing in, no redeploy | — |
-| v45 (d24ce6a) | 12 Oct 2026 | fix: improve case-insensitive coupon resolution and update rate limit window duration | load, card, apply |
-| v44 (b73325d) | 12 Oct 2026 | Coupon integration with Lago + DB dash | load, choose, card |
+| v49 (9246658) | 17 Oct 2026 | feat(companies): add PATCH /companies/:id to rename a workspace via proxy (#44) | load, card, apply |
+| v48 (dc830b8) | 13 Oct 2026 | feat: add Company model to mirror billing state and fallback when Lago is unreachable | load, apply |
+| v47 (c85241c) | 13 Oct 2026 | feat(orphan): claim link — keep a temporary app by signing in, no redeploy | — |
+| v46 (d24ce6a) | 12 Oct 2026 | fix: improve case-insensitive coupon resolution and update rate limit window duration | load, card, apply |
+| v45 (b73325d) | 12 Oct 2026 | Coupon integration with Lago + DB dash | load, choose, card |
 
 ## Open questions
 

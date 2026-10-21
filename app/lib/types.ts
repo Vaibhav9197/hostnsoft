@@ -61,10 +61,83 @@ export interface CompanyDetail extends Company {
   projectCount: number;
 }
 
+// ------------------------------------------------------------------- Roles
+// What a person may do in a workspace (hostnsoft-api lib/permissions.ts).
+// Who is in the workspace at all stays with the members embed.
+export type WorkspaceRole = "owner" | "admin" | "developer" | "viewer" | "billing";
+export type AppScope = "all" | "selected";
+export type AppLevel = "manage" | "view";
+export type Permission =
+  | "workspace.manage"
+  | "members.manage"
+  | "billing.manage"
+  | "tokens.manage"
+  | "app.create"
+  | "app.delete"
+  | "app.deploy"
+  | "app.settings"
+  | "app.view"
+  | "app.logs"
+  | "app.move";
+
+export interface AppGrant {
+  projectId: string;
+  level: AppLevel;
+}
+
+// One member, the same shape from the list, get-one and every change.
 export interface Member {
   userId: string;
+  name: string | null;
+  email: string | null;
+  role: WorkspaceRole;
+  // false = never given a role; they count as an Admin.
+  roleIsSet: boolean;
+  appScope: AppScope;
+  canCreate: boolean;
+  canDelete: boolean;
+  apps: AppGrant[];
+  isYou: boolean;
+}
+
+export interface PendingInvite {
+  id: string;
   email: string;
-  status: MemberStatus;
+  role: WorkspaceRole;
+  appScope: AppScope;
+  canCreate: boolean;
+  canDelete: boolean;
+  apps: AppGrant[];
+  invitedBy: string;
+  createdAt: string;
+}
+
+export interface MembersList {
+  members: Member[];
+  // false when the identity service couldn't list everyone; the list then
+  // holds only people we already know about.
+  complete: boolean;
+  invites: PendingInvite[];
+}
+
+export interface RoleChange {
+  role: WorkspaceRole;
+  appScope?: AppScope;
+  canCreate?: boolean;
+  canDelete?: boolean;
+}
+
+// GET /me/permissions — so the UI can hide what the person can't do.
+export interface MyPermissions {
+  companyId: string;
+  userId: string;
+  role: WorkspaceRole;
+  roleIsSet: boolean;
+  appScope: AppScope;
+  canCreate: boolean;
+  canDelete: boolean;
+  permissions: Permission[];
+  apps: { projectId: string; level: AppLevel; permissions: Permission[] }[];
 }
 
 export interface Project {
@@ -196,7 +269,10 @@ export interface EnvVar {
   id: string;
   projectId: string;
   key: string;
-  value: string;
+  // null when valueHidden: the person can see the app but not change its
+  // settings, so they see which variables are set, not what they hold.
+  value: string | null;
+  valueHidden: boolean;
   updatedAt: string;
   updatedBy: string | null;
 }

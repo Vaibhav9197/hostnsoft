@@ -7,8 +7,8 @@
 - **Who:** An app builder
 - **Wants to:** set up their app's domain, settings and web address
 - **Ends with:** The app runs with its own domain and settings, at the address they chose.
-- **Steps:** 8 · 0 by AI · 8 can go wrong
-- **Last change to its code:** v137, 21 Oct 2026 — feat: deploy by app id, keep old names after a rename
+- **Steps:** 7 · 0 by AI · 7 can go wrong
+- **Last change to its code:** v136, 21 Oct 2026 — feat: deploy by app id, keep old names after a rename
 
 [← All stories](../README.md)
 
@@ -21,9 +21,8 @@
 | 3 | `app-settings/recheck` | Re-check every day | System | Once a day every active domain is checked again. |
 | 4 | `app-settings/settings` | Set app settings | Person | They add settings one by one, or paste or upload a whole .env file. |
 | 5 | `app-settings/apply` | Apply the changes | System | Saved settings reach the app only when it is deployed again, so Apply re-deploys the newest working version. |
-| 6 | `app-settings/address` | Rename or move | Person | They rename the app, move it to a new web address, hand it to another of their workspaces, or delete it. |
-| 7 | `app-settings/hand-over` | Hand to a workspace | System | Moving to another workspace changes only who owns the app: same address, settings and history, nothing redeployed. Keys of the old workspace stop reaching it. |
-| 8 | `app-settings/move` | Move the app | System | The app is copied to the new address, waits for its certificate, then the old one is removed. |
+| 6 | `app-settings/address` | Rename or move | Person | They rename the app, move it to a new web address, or delete it. |
+| 7 | `app-settings/move` | Move the app | System | The app is copied to the new address, waits for its certificate, then the old one is removed. |
 
 ## Flow
 
@@ -102,49 +101,34 @@ flowchart TD
   s6c --> s6c1
   s6c2([Change web address])
   s6c --> s6c2
-  s6c3([Move to another workspace])
+  s6c3([Delete app])
   s6c --> s6c3
-  s6c4([Delete app])
-  s6c --> s6c4
   s6f{Did it work?}
   s6c1 --> s6f
   s6c2 --> s6f
   s6c3 --> s6f
-  s6c4 --> s6f
   s6f1["If deleting without typing the exact name<br/>→ the button stays disabled."]:::fail
   s6f -.->|no| s6f1
-  s6f2["If moving while a deploy or an address change is running<br/>→ refused deploy_in_progress / rename_in_progress, shown under the picker."]:::fail
+  s6f2["If renaming fails<br/>→ Couldn’t rename the app."]:::fail
   s6f -.->|no| s6f2
-  s6f3["If the person can’t add apps in the chosen workspace<br/>→ refused no_access."]:::fail
+  s6f3["If the address was changed in the last 7 days<br/>→ refused slug_change_cooldown with when to retry."]:::fail
   s6f -.->|no| s6f3
-  s6f4["If renaming fails<br/>→ Couldn’t rename the app."]:::fail
+  s6f4["If A deploy is running<br/>→ refused deploy_in_progress."]:::fail
   s6f -.->|no| s6f4
-  s6f5["If the address was changed in the last 7 days<br/>→ refused slug_change_cooldown with when to retry."]:::fail
-  s6f -.->|no| s6f5
-  s6f6["If A deploy is running<br/>→ refused deploy_in_progress."]:::fail
-  s6f -.->|no| s6f6
-  s7["7. Hand to a workspace<br/>System"]
+  s7["7. Move the app<br/>System"]
   s6f -->|yes| s7
   s7f{Did it work?}
   s7 --> s7f
-  s7f1["If A Whole workspace key of the old workspace deploys it<br/>→ refused app_moved, and no copy is made."]:::fail
+  s7f1["If the new certificate isn’t ready in 60 seconds<br/>→ everything is put back certificate_timeout."]:::fail
   s7f -.->|no| s7f1
-  s7f2["If the two workspaces are on different plans<br/>→ the free-plan footer is re-applied to the live app without a rebuild."]:::fail
+  s7f2["If any step fails<br/>→ every step is undone in reverse and Couldn’t move your app."]:::fail
   s7f -.->|no| s7f2
-  s8["8. Move the app<br/>System"]
-  s7f -->|yes| s8
-  s8f{Did it work?}
-  s8 --> s8f
-  s8f1["If the new certificate isn’t ready in 60 seconds<br/>→ everything is put back certificate_timeout."]:::fail
-  s8f -.->|no| s8f1
-  s8f2["If any step fails<br/>→ every step is undone in reverse and Couldn’t move your app."]:::fail
-  s8f -.->|no| s8f2
-  s8f3["If the move works but saving the new name clashes<br/>→ the records and the server disagree rename_desynced and a person must fix it."]:::fail
-  s8f -.->|no| s8f3
-  s8f4["If still moving after 6 minutes in the panel<br/>→ Your app is taking longer than usual to move. Refresh in a minute…"]:::fail
-  s8f -.->|no| s8f4
+  s7f3["If the move works but saving the new name clashes<br/>→ the records and the server disagree rename_desynced and a person must fix it."]:::fail
+  s7f -.->|no| s7f3
+  s7f4["If still moving after 6 minutes in the panel<br/>→ Your app is taking longer than usual to move. Refresh in a minute…"]:::fail
+  s7f -.->|no| s7f4
   done([The app runs with its own domain and settings, at the address they chose.])
-  s8f -->|yes| done
+  s7f -->|yes| done
   classDef fail fill:#fde8e8,stroke:#dc2626,color:#7f1d1d
 ```
 
@@ -161,8 +145,8 @@ flowchart TD
   - If it is an Embarko address → refused (domain_reserved).
   - If another app already uses it → refused (409).
 - **Parts:** App builders (`builders`), Your apps panel (`console`), Settings and domains (`app-config`)
-- **Keeps:** `AuditLog`, `Domain`
-- **Looks up:** `Project`
+- **Keeps:** `AppGrant`, `AuditLog`, `Domain`, `PendingInvite`, `WorkspaceMember`
+- **Looks up:** `DeployToken`, `Project`
 - **Code:** `page:/app/projects/[projectId]/domain` → `app/app/projects/[projectId]/domain/page.tsx`, `api:@api/companies/:companyId/projects/:projectId/domains` → `@api/src/routes/domains.routes.ts`
 - **Outside services:** Redis
 
@@ -176,8 +160,8 @@ flowchart TD
   - If the router can't be updated → the domain goes back to waiting for DNS (502).
   - If the app was never deployed → the domain is marked active and used on the first deploy.
 - **Parts:** Settings and domains (`app-config`), App runner (`runner`), Traffic router (`router`)
-- **Keeps:** `AuditLog`, `Company`, `Domain`
-- **Looks up:** `Deployment`, `EnvVar`, `Project`
+- **Keeps:** `AppGrant`, `AuditLog`, `Company`, `Domain`, `PendingInvite`, `WorkspaceMember`
+- **Looks up:** `DeployToken`, `Deployment`, `EnvVar`, `Project`
 - **Code:** `api:@api/companies/:companyId/projects/:projectId/domains/:domain/verify` → `@api/src/routes/domains.routes.ts`, `lib:@api/src/lib/dnsVerify` → `@api/src/lib/dnsVerify.ts`, `lib:@api/src/services/customDomainActivation` → `@api/src/services/customDomainActivation.ts`, `api:@deploy/internal/apps/:appName/config` → `@deploy/server.js`
 - **Outside services:** Docker, Lago, Redis, Stripe, Traefik
 
@@ -203,8 +187,8 @@ flowchart TD
   - If saving fails → "Couldn't save the variable."
   - If deleting a setting that isn't there → a server error (500).
 - **Parts:** Your apps panel (`console`), Settings and domains (`app-config`), Apps and deploys (`apps-data`)
-- **Keeps:** `AuditLog`, `EnvVar`
-- **Looks up:** `Project`
+- **Keeps:** `AppGrant`, `AuditLog`, `EnvVar`, `PendingInvite`, `WorkspaceMember`
+- **Looks up:** `DeployToken`, `Project`
 - **Code:** `page:/app/projects/[projectId]/environment` → `app/app/projects/[projectId]/environment/page.tsx`, `lib:app/components/console/BulkEnvDialog` → `app/components/console/BulkEnvDialog.tsx`, `lib:app/lib/envFile` → `app/lib/envFile.ts`, `api:@api/companies/:companyId/projects/:projectId/env-vars` → `@api/src/routes/envVars.routes.ts`
 - **Outside services:** Redis
 
@@ -226,35 +210,20 @@ flowchart TD
 
 - **ID:** `app-settings/address`
 - **Who acts:** Person
-- **What happens:** They rename the app, move it to a new web address, hand it to another of their workspaces, or delete it.
-- **Choices:** Rename · Change web address · Move to another workspace · Delete app
+- **What happens:** They rename the app, move it to a new web address, or delete it.
+- **Choices:** Rename · Change web address · Delete app
 - **If it goes wrong:**
   - If deleting without typing the exact name → the button stays disabled.
-  - If moving while a deploy or an address change is running → refused (deploy_in_progress / rename_in_progress), shown under the picker.
-  - If the person can't add apps in the chosen workspace → refused (no_access).
   - If renaming fails → "Couldn't rename the app."
   - If the address was changed in the last 7 days → refused (slug_change_cooldown) with when to retry.
   - If A deploy is running → refused (deploy_in_progress).
 - **Parts:** Your apps panel (`console`), App records (`app-records`)
-- **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `Domain`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`
-- **Looks up:** `EnvVar`, `Schedule`, `ScheduleRun`
-- **Code:** `page:/app/projects/[projectId]/settings` → `app/app/projects/[projectId]/settings/page.tsx`, `api:@api/companies/:companyId/projects/:projectId/slug` → `@api/src/routes/projects.routes.ts`, `lib:@api/src/services/slugChangeFlow` → `@api/src/services/slugChangeFlow.ts`, `api:@api/companies/:companyId/projects/:projectId/move` → `@api/src/routes/projects.routes.ts`
+- **Keeps:** `AppDetails`, `AppGrant`, `AuditLog`, `Company`, `Deployment`, `PendingInvite`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`, `WorkspaceMember`
+- **Looks up:** `DeployToken`, `Domain`, `EnvVar`
+- **Code:** `page:/app/projects/[projectId]/settings` → `app/app/projects/[projectId]/settings/page.tsx`, `api:@api/companies/:companyId/projects/:projectId/slug` → `@api/src/routes/projects.routes.ts`, `lib:@api/src/services/slugChangeFlow` → `@api/src/services/slugChangeFlow.ts`
 - **Outside services:** Lago, Redis, Stripe, viaSocket webhook
 
-### 7. Hand to a workspace
-
-- **ID:** `app-settings/hand-over`
-- **Who acts:** System
-- **What happens:** Moving to another workspace changes only who owns the app: same address, settings and history, nothing redeployed. Keys of the old workspace stop reaching it.
-- **If it goes wrong:**
-  - If A Whole workspace key of the old workspace deploys it → refused (app_moved), and no copy is made.
-  - If the two workspaces are on different plans → the free-plan footer is re-applied to the live app without a rebuild.
-- **Parts:** App records (`app-records`), Deploy keys (`tokens`), Keys and audit (`access-data`)
-- **Keeps:** `AppDetails`, `AuditLog`, `Project`
-- **Looks up:** `Deployment`
-- **Code:** `lib:@api/src/services/projectMove` → `@api/src/services/projectMove.ts`, `lib:@api/src/services/tokenAccess` → `@api/src/services/tokenAccess.ts`
-
-### 8. Move the app
+### 7. Move the app
 
 - **ID:** `app-settings/move`
 - **Who acts:** System
@@ -282,8 +251,6 @@ flowchart TD
 | Apps and deploys (`apps-data`) | Data | Each app, its versions, settings, custom domains and old names. |
 | Deploy history (`deploy-history`) | Engine | Records every deploy as a numbered version, and puts an earlier one back on request. |
 | App records (`app-records`) | Engine | Keeps the list of apps: who owns each, its name and address, and whether it is live. |
-| Deploy keys (`tokens`) | Engine | Makes, checks, rotates and revokes the keys an AI uses to deploy, and decides which apps each key may reach. |
-| Keys and audit (`access-data`) | Data | Deploy keys (hashed), who the admins are, and a log of important actions. |
 | Status refresh (`refresh`) | Background | Checks again every few seconds while something is changing, then stops. |
 
 See [system-map.md](../system-map.md) for how the parts connect.
@@ -291,18 +258,19 @@ See [system-map.md](../system-map.md) for how the parts connect.
 ## Tables
 
 - **Keeps** `AppDetails` — Public-facing details of a deployed app.
+- **Keeps** `AppGrant` — One app a developer/viewer with appScope "selected" may reach, and how far: "manage" (deploy, change settings) or "view" (status, logs, history).
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
-- **Keeps** `DeployToken` — A deploy token.
 - **Keeps** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Keeps** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
 - **Keeps** `EnvVar`
+- **Keeps** `PendingInvite` — A role chosen for someone before they are a member.
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
 - **Keeps** `ShowcaseEvent` — An event page, /showcase/<slug>: a hackathon, a demo day.
 - **Keeps** `ShowcaseEventListing` — One app shown on one event page.
 - **Keeps** `SlugAlias` — A name an app used to have — one row per previous slug, written on every successful address change (services/projectSlugChange.ts).
-- **Looks up** `Schedule` — A timed HTTP call into the app — see docs/schedules.md.
-- **Looks up** `ScheduleRun` — One call the runner made (or chose not to make).
+- **Keeps** `WorkspaceMember` — A member's role in one workspace.
+- **Looks up** `DeployToken` — Company-wide deploy token.
 
 See [tables.md](../tables.md).
 
@@ -310,11 +278,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v137 (16f50ec) | 21 Oct 2026 | feat: deploy by app id, keep old names after a rename | address |
-| v136 (23a3409) | 21 Oct 2026 | feat: X-App-Id and embarko.json appId on deploy | check-dns, apply, move |
-| v135 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | — |
-| v134 (bffa93d) | 19 Oct 2026 | Report the real cause when an app crashes on startup | check-dns, apply, move |
-| v133 (cbf0640) | 19 Oct 2026 | Show schedules to the dashboard | address |
+| v136 (16f50ec) | 21 Oct 2026 | feat: deploy by app id, keep old names after a rename | address |
+| v135 (23a3409) | 21 Oct 2026 | feat: X-App-Id and embarko.json appId on deploy | check-dns, apply, move |
+| v134 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | — |
+| v133 (bffa93d) | 19 Oct 2026 | Report the real cause when an app crashes on startup | check-dns, apply, move |
+| v132 (cbf0640) | 19 Oct 2026 | Show schedules to the dashboard | address |
 
 ## Open questions
 

@@ -27,6 +27,11 @@ import type {
   EnvVar,
   LogStream,
   Member,
+  MembersList,
+  MyPermissions,
+  PendingInvite,
+  RoleChange,
+  AppGrant,
   OrphanClaimResult,
   PaymentMethod,
   Project,
@@ -66,17 +71,36 @@ export const companiesApi = {
 };
 
 // ------------------------------------------------------------------ Members
+// Roles and app access. Adding and removing people, and the invite email
+// itself, stay in the members embed — these only say what each person may do.
 export const membersApi = {
-  // POST /companies/:companyId/members — invite by email.
-  invite: (companyId: string, email: string) =>
-    hns<Member>(`/companies/${companyId}/members`, { method: "POST", body: { email } }),
+  // GET /companies/:companyId/members — everyone, with role and app access,
+  // plus invites waiting for someone to join.
+  list: (companyId: string) => hns<MembersList>(`/companies/${companyId}/members`),
 
-  // GET /companies/:companyId/members — everyone in the company.
-  list: (companyId: string) => hns<Member[]>(`/companies/${companyId}/members`),
+  // GET /companies/:companyId/members/:userId — one member, same shape.
+  get: (companyId: string, userId: string) => hns<Member>(`/companies/${companyId}/members/${userId}`),
 
-  // DELETE /companies/:companyId/members/:userId — remove a member.
-  remove: (companyId: string, userId: string) =>
-    hns<null>(`/companies/${companyId}/members/${userId}`, { method: "DELETE" }),
+  // PATCH /companies/:companyId/members/:userId — change role / app scope / flags.
+  update: (companyId: string, userId: string, change: RoleChange) =>
+    hns<Member>(`/companies/${companyId}/members/${userId}`, { method: "PATCH", body: change }),
+
+  // PUT .../members/:userId/apps — replace the apps a "selected" member reaches.
+  setApps: (companyId: string, userId: string, grants: AppGrant[]) =>
+    hns<Member>(`/companies/${companyId}/members/${userId}/apps`, { method: "PUT", body: { grants } }),
+
+  // POST /companies/:companyId/invites — remember the role someone gets when
+  // they join. The invite email is sent from the embed.
+  invite: (companyId: string, invite: RoleChange & { email: string; grants?: AppGrant[] }) =>
+    hns<PendingInvite>(`/companies/${companyId}/invites`, { method: "POST", body: invite }),
+
+  // DELETE /companies/:companyId/invites/:inviteId — forget a waiting role.
+  cancelInvite: (companyId: string, inviteId: string) =>
+    hns<null>(`/companies/${companyId}/invites/${inviteId}`, { method: "DELETE" }),
+
+  // GET /me/permissions?companyId= — what the signed-in person may do here.
+  myPermissions: (companyId: string) =>
+    hns<MyPermissions>(`/me/permissions?companyId=${encodeURIComponent(companyId)}`),
 };
 
 // ----------------------------------------------------------------- Projects

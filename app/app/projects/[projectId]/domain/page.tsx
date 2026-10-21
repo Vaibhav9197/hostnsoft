@@ -9,11 +9,15 @@ import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
 import { domainsApi } from "../../../../lib/hnsApi";
 import { useSession } from "../../../../lib/session";
+import { usePermissions } from "../../../../lib/permissions";
 import type { Domain, DomainInstructions } from "../../../../lib/types";
 
 export default function DomainPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = use(params);
   const { activeCompanyId } = useSession();
+  // Adding, verifying and removing domains are app settings; someone who can
+  // only view the app sees the domains and their state, nothing to press.
+  const canChange = usePermissions().can("app.settings", projectId);
 
   const [domains, setDomains] = useState<Domain[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +61,7 @@ export default function DomainPage({ params }: { params: Promise<{ projectId: st
    * IP is the server's to decide, not ours to hardcode).
    */
   useEffect(() => {
-    if (!activeCompanyId || !domains) return;
+    if (!activeCompanyId || !domains || !canChange) return;
     const missing = domains.filter(
       (d) => d.status !== "active" && !d.instructions && !recovered.current.has(d.domain),
     );
@@ -97,7 +101,7 @@ export default function DomainPage({ params }: { params: Promise<{ projectId: st
        correctly finds nothing to do — and cancelling the first would throw away
        the only fetch anyone made. Settling into unmounted state is a no-op in
        React 18+, so letting it land costs nothing. */
-  }, [activeCompanyId, projectId, domains]);
+  }, [activeCompanyId, projectId, domains, canChange]);
 
   // Replace one row in place, so a verify result doesn't cost a full reload.
   function merge(next: Domain) {
@@ -186,6 +190,7 @@ export default function DomainPage({ params }: { params: Promise<{ projectId: st
         Serve this app on a domain you own.
       </p>
 
+      {canChange && (
       <div className="flex flex-col gap-2">
         <form className="flex flex-wrap items-center gap-2.5" onSubmit={add}>
           <Input
@@ -209,6 +214,7 @@ export default function DomainPage({ params }: { params: Promise<{ projectId: st
           Both work — a subdomain like <Ex>app.example.com</Ex>, or the root domain <Ex>example.com</Ex>
         </p>
       </div>
+      )}
 
       {error && <Alert>{error}</Alert>}
 
@@ -216,7 +222,7 @@ export default function DomainPage({ params }: { params: Promise<{ projectId: st
 
       {domains && domains.length === 0 && (
         <EmptyState title="No custom domain yet">
-          Add one above and we’ll show you the single DNS record to create at your registrar.
+          {canChange && "Add one above and we’ll show you the single DNS record to create at your registrar."}
         </EmptyState>
       )}
 
@@ -226,8 +232,8 @@ export default function DomainPage({ params }: { params: Promise<{ projectId: st
           domain={d}
           verifying={!!verifying[d.domain]}
           recovering={!!recovering[d.domain]}
-          onVerify={() => verify(d.domain)}
-          onRemove={() => askRemove(d)}
+          onVerify={canChange ? () => verify(d.domain) : undefined}
+          onRemove={canChange ? () => askRemove(d) : undefined}
         />
       ))}
 
@@ -263,8 +269,9 @@ function DomainCard({
   domain: Domain;
   verifying: boolean;
   recovering: boolean;
-  onVerify: () => void;
-  onRemove: () => void;
+  // Absent for someone who can't change this app's settings.
+  onVerify?: () => void;
+  onRemove?: () => void;
 }) {
   const live = domain.status === "active";
 
@@ -281,9 +288,11 @@ function DomainCard({
             {...(domain.status === "failed" ? { label: "Not resolving yet", tone: "warn" as const } : {})}
           />
         </div>
-        <LinkButton danger onClick={onRemove}>
-          Remove
-        </LinkButton>
+        {onRemove && (
+          <LinkButton danger onClick={onRemove}>
+            Remove
+          </LinkButton>
+        )}
       </div>
 
       {live ? (
@@ -312,6 +321,7 @@ function DomainCard({
             </Alert>
           )}
 
+          {onVerify && (
           <div className="flex flex-wrap items-center gap-3">
             <Button onClick={onVerify} disabled={verifying || recovering}>
               {verifying ? "Checking DNS…" : "Verify"}
@@ -322,6 +332,7 @@ function DomainCard({
                 : "Press once the record is saved at your DNS provider."}
             </span>
           </div>
+          )}
         </>
       )}
     </Panel>

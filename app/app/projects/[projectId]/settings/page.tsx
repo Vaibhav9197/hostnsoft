@@ -12,12 +12,18 @@ import { HnsError } from "../../../../lib/client";
 import { projectsApi } from "../../../../lib/hnsApi";
 import { useSession } from "../../../../lib/session";
 import { refreshProjects, useProject } from "../../../../lib/useProject";
+import { usePermissions } from "../../../../lib/permissions";
 import { APP_DOMAIN, appHost } from "../../../../lib/site";
 
 export default function ProjectSettingsPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = use(params);
   const { activeCompanyId, activeCompany, companies, setActiveCompanyId } = useSession();
   const { project, error, reload } = useProject(activeCompanyId, projectId);
+  // Hide what the person's role can't do here (permissions.tsx); the API
+  // refuses it regardless.
+  const { can } = usePermissions();
+  const canChange = can("app.settings", projectId);
+  const canDelete = can("app.delete", projectId);
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -279,6 +285,7 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
             </>
           }
           editing={editingName}
+          locked={!canChange}
           onEdit={() => { setName(project.name); setEditingName(true); }}
         >
           <p className="mt-1 text-[0.92rem] text-muted-foreground">
@@ -298,6 +305,7 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
           label="Web address"
           value={appHost(project.slug)}
           editing={editingSlug}
+          locked={!canChange}
           onEdit={() => { setSlug(project.slug); setSlugError(null); setEditingSlug(true); }}
         >
           <p className="mt-1 text-[0.92rem] text-muted-foreground">
@@ -335,10 +343,12 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
 
       </Panel>
 
-      {/* Only when there is somewhere to move it. Someone in a single
-          workspace has no use for the control, and showing it would just be
-          one more thing on the page to read past. */}
-      {otherWorkspaces.length > 0 && (
+      {/* Only when there is somewhere to move it and their role here allows
+          it. Someone in a single workspace has no use for the control, and
+          showing it would just be one more thing on the page to read past.
+          The target workspace's own check (may they add apps there?) is the
+          API's: a refusal shows in moveError. */}
+      {otherWorkspaces.length > 0 && can("app.move", projectId) && (
         <Panel padded>
           <PanelTitle>Move to another workspace</PanelTitle>
           <p className="mt-1 text-[0.92rem] text-muted-foreground">
@@ -366,6 +376,9 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
         </Panel>
       )}
 
+      {/* Only for someone who may delete this app — a Developer without that
+          right can still delete apps they added themselves. */}
+      {canDelete && (
       <Panel padded tone="danger">
         <PanelTitle tone="danger">Remove this app</PanelTitle>
         {/* Removal is not instant: the app is taken off the list first and shut
@@ -386,6 +399,7 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
           <Button variant="destructive" disabled={deleting || confirm !== project.name} onClick={del}>{deleting ? "Removing…" : "Remove app"}</Button>
         </div>
       </Panel>
+      )}
 
       <ConfirmDialog request={confirmReq} onClose={() => setConfirmReq(null)} />
     </Page>

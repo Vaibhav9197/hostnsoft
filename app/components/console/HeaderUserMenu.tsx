@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
 import { useSession } from "@/app/lib/session";
+import { usePermissions } from "@/app/lib/permissions";
 import { cn } from "@/app/lib/utils";
 
 /**
@@ -75,6 +76,7 @@ export function AccountMenu({
   align?: "start" | "end";
 }) {
   const { user, isSuperAdmin, signOut } = useSession();
+  const { can } = usePermissions();
 
   // Switching workspace changes what every other page shows, so it sits on
   // its own at the top. Admin is platform-wide and only for admins; the pages
@@ -83,12 +85,14 @@ export function AccountMenu({
     [{ href: "/app/switch-workspace", label: "Switch workspace", icon: Building2 }],
     [
       { href: "/app", label: "Your apps", icon: LayoutGrid },
-      { href: "/app/tokens", label: "Deploy tokens", icon: KeyRound },
+      // Hidden from people whose role can't use them (permissions.tsx); the
+      // pages and the API refuse them anyway.
+      ...(can("tokens.manage") ? [{ href: "/app/tokens", label: "Deploy tokens", icon: KeyRound }] : []),
       { href: "/app/showcase", label: "Showcase", icon: Sparkles },
     ],
     [
       { href: "/app/members", label: "Members", icon: Users },
-      { href: "/app/billing", label: "Billing", icon: CreditCard },
+      ...(can("billing.manage") ? [{ href: "/app/billing", label: "Billing", icon: CreditCard }] : []),
       { href: "/app/settings", label: "Settings", icon: Settings },
       ...(isSuperAdmin
         ? [

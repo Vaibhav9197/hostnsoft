@@ -35,6 +35,7 @@ flowchart LR
     results["Test results"]
     site_setup["Site setup"]
     accounts["Account checks"]
+    roles["Roles"]
     tokens["Deploy keys"]
     app_records["App records"]
     deploy_history["Deploy history"]
@@ -64,6 +65,7 @@ flowchart LR
     apps_data["Apps and deploys"]
     schedule_data["Schedules and runs"]
     access_data["Keys and audit"]
+    roles_data["Roles and app access"]
     showcase_data["Showcase records"]
     feedback_data["Feedback records"]
     traffic_data["Traffic records"]
@@ -111,6 +113,9 @@ flowchart LR
   showcase_manage -->|listings| bridge
   admin -->|every app, queries| bridge
   bridge -->|as the person| accounts
+  accounts -->|what may they do?| roles
+  roles -->|roles and app access| roles_data
+  intake -->|may this key deploy?| roles
   bridge -->|apps| app_records
   bridge -->|versions, rollback| deploy_history
   bridge -->|settings, domains| app_config
@@ -175,7 +180,7 @@ People who land on embarko.ai, read about it and browse the Showcase.
 People whose AI agent builds an app, who want it online and healthy.
 
 - **Passes to:** Your AI agent (pastes prompt), Sign-in (signs in), Your apps panel (checks apps)
-- **Stories:** [First Deploy](stories/first-deploy.md), [Check Apps](stories/check-apps.md), [Fix Or Update](stories/fix-or-update.md), [Sign In](stories/sign-in.md), [App Settings](stories/app-settings.md), [Scheduled Task](stories/scheduled-task.md), [Connect AI](stories/connect-ai.md), [Showcase Listing](stories/showcase-listing.md), [Ask For Help](stories/ask-for-help.md), [Change Plan](stories/change-plan.md)
+- **Stories:** [First Deploy](stories/first-deploy.md), [Check Apps](stories/check-apps.md), [Fix Or Update](stories/fix-or-update.md), [Sign In](stories/sign-in.md), [App Settings](stories/app-settings.md), [Scheduled Task](stories/scheduled-task.md), [Connect AI](stories/connect-ai.md), [Showcase Listing](stories/showcase-listing.md), [Ask For Help](stories/ask-for-help.md), [Change Plan](stories/change-plan.md), [Team Roles](stories/team-roles.md)
 
 ### Showcase organisers (`organisers`)
 
@@ -242,8 +247,8 @@ Where builders see their apps, whether each is live, and what to do next.
 
 - **Passes to:** Embarko prompt (copy prompt), Panel bridge (panel requests)
 - **Receives from:** App builders (checks apps)
-- **Stories:** [First Deploy](stories/first-deploy.md), [Check Apps](stories/check-apps.md), [Fix Or Update](stories/fix-or-update.md), [Sign In](stories/sign-in.md), [App Settings](stories/app-settings.md), [Ask For Help](stories/ask-for-help.md), [Change Plan](stories/change-plan.md)
-- **Code files:** `app/app/billing/page.tsx`, `app/app/console-shell.tsx`, `app/app/layout.tsx`, `app/app/members/page.tsx`, `app/app/page.tsx`, `app/app/projects/[projectId]/deployments/page.tsx`, `app/app/projects/[projectId]/domain/page.tsx`, `app/app/projects/[projectId]/environment/page.tsx`, `app/app/projects/[projectId]/layout.tsx`, `app/app/projects/[projectId]/page.tsx`, `app/app/projects/[projectId]/settings/page.tsx`, `app/app/projects/[projectId]/showcase/page.tsx`, `app/app/settings/page.tsx`, `app/app/switch-workspace/page.tsx`, `app/app/tokens/page.tsx`, `app/components/console/AppTile.tsx`, `app/components/console/BulkEnvDialog.tsx`, `app/components/console/CloudBackdrop.tsx`, `app/components/console/CompanyDialog.tsx`, `app/components/console/ConfirmDialog.tsx`, `app/components/console/ConsoleBreadcrumbs.tsx`, `app/components/console/CouponBox.tsx`, `app/components/console/DeployPromptDialog.tsx`, `app/components/console/DeploySteps.tsx`, `app/components/console/FeedbackWidget.tsx`, `app/components/console/FirstAppEmpty.tsx`, `app/components/console/HeaderHomeButton.tsx`, `app/components/console/HeaderPlanBadge.tsx`, `app/components/console/HeaderTokenButton.tsx`, `app/components/console/HeaderUserMenu.tsx`, `app/components/console/HealthPill.tsx`, `app/components/console/LoginScreen.tsx`, `app/components/console/ProjectAnalytics.tsx`, `app/components/console/ProjectNav.tsx`, `app/components/console/ProjectSchedules.tsx`, `app/components/console/ScheduleRunsDialog.tsx`, `app/components/console/SkillDialog.tsx`, `app/components/console/StatusPill.tsx`, `app/components/console/UploadDeployPanel.tsx`, `app/components/console/UserManagementWidget.tsx`, `app/components/console/kit.tsx`, `app/components/console/showcase/ApprovalCodeDialog.tsx`, `app/components/console/showcase/AutoApproveField.tsx`, `app/components/console/showcase/CopyButton.tsx`, `app/components/console/showcase/CustomHtmlField.tsx`, `app/components/console/showcase/InviteCard.tsx`, `app/components/console/showcase/ListOnShowcaseDialog.tsx`, `app/components/console/showcase/ListingRows.tsx`, `app/components/console/showcase/PosterPreview.tsx`, `app/components/console/showcase/ProjectShowcasePages.tsx`, `app/components/console/showcase/RequestRows.tsx`, `app/components/console/showcase/ShareKit.tsx`, `app/components/console/useDeployWatch.ts`
+- **Stories:** [First Deploy](stories/first-deploy.md), [Check Apps](stories/check-apps.md), [Fix Or Update](stories/fix-or-update.md), [Sign In](stories/sign-in.md), [App Settings](stories/app-settings.md), [Ask For Help](stories/ask-for-help.md), [Change Plan](stories/change-plan.md), [Team Roles](stories/team-roles.md)
+- **Code files:** `app/app/billing/page.tsx`, `app/app/console-shell.tsx`, `app/app/layout.tsx`, `app/app/members/page.tsx`, `app/app/page.tsx`, `app/app/projects/[projectId]/deployments/page.tsx`, `app/app/projects/[projectId]/domain/page.tsx`, `app/app/projects/[projectId]/environment/page.tsx`, `app/app/projects/[projectId]/layout.tsx`, `app/app/projects/[projectId]/page.tsx`, `app/app/projects/[projectId]/settings/page.tsx`, `app/app/projects/[projectId]/showcase/page.tsx`, `app/app/settings/page.tsx`, `app/app/switch-workspace/page.tsx`, `app/app/tokens/page.tsx`, `app/components/console/AppTile.tsx`, `app/components/console/BulkEnvDialog.tsx`, `app/components/console/CloudBackdrop.tsx`, `app/components/console/CompanyDialog.tsx`, `app/components/console/ConfirmDialog.tsx`, `app/components/console/ConsoleBreadcrumbs.tsx`, `app/components/console/CouponBox.tsx`, `app/components/console/DeployPromptDialog.tsx`, `app/components/console/DeploySteps.tsx`, `app/components/console/FeedbackWidget.tsx`, `app/components/console/FirstAppEmpty.tsx`, `app/components/console/HeaderHomeButton.tsx`, `app/components/console/HeaderPlanBadge.tsx`, `app/components/console/HeaderTokenButton.tsx`, `app/components/console/HeaderUserMenu.tsx`, `app/components/console/HealthPill.tsx`, `app/components/console/LoginScreen.tsx`, `app/components/console/ProjectAnalytics.tsx`, `app/components/console/ProjectNav.tsx`, `app/components/console/ProjectSchedules.tsx`, `app/components/console/ScheduleRunsDialog.tsx`, `app/components/console/SkillDialog.tsx`, `app/components/console/StatusPill.tsx`, `app/components/console/TeamRoles.tsx`, `app/components/console/UploadDeployPanel.tsx`, `app/components/console/UserManagementWidget.tsx`, `app/components/console/kit.tsx`, `app/components/console/showcase/ApprovalCodeDialog.tsx`, `app/components/console/showcase/AutoApproveField.tsx`, `app/components/console/showcase/CopyButton.tsx`, `app/components/console/showcase/CustomHtmlField.tsx`, `app/components/console/showcase/InviteCard.tsx`, `app/components/console/showcase/ListOnShowcaseDialog.tsx`, `app/components/console/showcase/ListingRows.tsx`, `app/components/console/showcase/PosterPreview.tsx`, `app/components/console/showcase/ProjectShowcasePages.tsx`, `app/components/console/showcase/RequestRows.tsx`, `app/components/console/showcase/ShareKit.tsx`, `app/components/console/useDeployWatch.ts`, `app/lib/permissions.tsx`
 
 ### Showcase manager (`showcase-manage`)
 
@@ -327,7 +332,7 @@ Passes every panel request to the account service as the signed-in person.
 - **How it works:** The browser calls /api/hns/*; the server adds the session cookie and forwards it, 5s for reads and 10s for changes. In production worker.ts answers it before Next starts.
 - **Passes to:** Account checks (as the person), App records (apps), Deploy history (versions, rollback), Settings and domains (settings, domains), Deploy keys (keys), Billing (plan), Showcase service (listings)
 - **Receives from:** Your apps panel (panel requests), Showcase manager (listings), Admin pages (every app, queries), Status refresh (check again)
-- **Stories:** [First Deploy](stories/first-deploy.md), [Check Apps](stories/check-apps.md), [Showcase Listing](stories/showcase-listing.md), [Change Plan](stories/change-plan.md)
+- **Stories:** [First Deploy](stories/first-deploy.md), [Check Apps](stories/check-apps.md), [Showcase Listing](stories/showcase-listing.md), [Change Plan](stories/change-plan.md), [Team Roles](stories/team-roles.md)
 - **Code files:** `app/api/apps/[slug]/logs/route.ts`, `app/api/apps/upload/route.ts`, `app/api/hns/[...path]/route.ts`, `app/lib/api.ts`, `app/lib/appName.ts`, `app/lib/billing.tsx`, `app/lib/client.ts`, `app/lib/envFile.ts`, `app/lib/format.ts`, `app/lib/hnsApi.ts`, `app/lib/hnsForward.ts`, `app/lib/lastSeen.ts`, `app/lib/pack.ts`, `app/lib/plans.ts`, `app/lib/tokenName.ts`, `app/lib/types.ts`, `app/lib/useProject.ts`, `worker.ts`
 
 ### Showcase reader (`showcase-reader`)
@@ -373,10 +378,21 @@ Confirms who someone is, which workspaces they belong to, and whether they are a
 
 - **How it works:** Every panel request carries the MSG91 token; @api checks it with MSG91 (cached 5 minutes in Redis) and checks workspace membership on every request, uncached.
 - **Who decides:** a fixed rule
-- **Passes to:** MSG91 (check token), Redis (cache), Billing (set up billing)
+- **Passes to:** MSG91 (check token), Redis (cache), Billing (set up billing), Roles (what may they do?)
 - **Receives from:** Session (confirm session), Panel bridge (as the person)
 - **Stories:** [Sign In](stories/sign-in.md), [Connect AI](stories/connect-ai.md)
 - **Code files:** `@api/src/lib/connectorPendingLogin.ts`, `@api/src/lib/connectorRedirect.ts`, `@api/src/lib/connectorTokenConfig.ts`, `@api/src/lib/msg91.ts`, `@api/src/lib/superAdmin.ts`, `@api/src/lib/ttlCache.ts`, `@api/src/middleware/companyContext.ts`, `@api/src/middleware/proxyToken.ts`, `@api/src/middleware/requireSuperAdmin.ts`, `@api/src/routes/auth.routes.ts`, `@api/src/routes/companies.routes.ts`, `@api/src/routes/connectorAuth.routes.ts`, `@api/src/routes/internalProxyAuth.routes.ts`, `@api/src/services/connectorToken.ts`
+
+### Roles (`roles`)
+
+Decides what each member may do in a workspace: Owner, Admin, Developer, Viewer or Billing, and which apps.
+
+- **How it works:** MSG91 still decides who is in a workspace, checked on every request. @api then checks the member's role and app access on every panel and agent call, and on every deploy; an agent's token has the permissions of the person who made it. A member with no role is an Admin; each workspace's first Owner is picked the first time it is used.
+- **Who decides:** a fixed rule
+- **Passes to:** Roles and app access (roles and app access)
+- **Receives from:** Account checks (what may they do?), Deploy intake (may this key deploy?)
+- **Stories:** [Team Roles](stories/team-roles.md)
+- **Code files:** `@api/src/lib/permissions.ts`, `@api/src/middleware/requirePermission.ts`, `@api/src/routes/members.routes.ts`, `@api/src/services/appReadAccess.ts`, `@api/src/services/workspaceRoles.ts`
 
 ### Deploy keys (`tokens`)
 
@@ -472,9 +488,9 @@ Takes an app from an AI, checks the key and the name, and starts the build.
 
 - **How it works:** POST /apps on @deploy. Accepts a .tar.gz or a JSON list of files; a deploy token, a panel session or nothing (a trial app). Asks @api to claim the name before building.
 - **Who decides:** a fixed rule
-- **Passes to:** Deploy keys (is this key live?), App records (claim the name), App builder (build it), Feedback inbox (AI reports a problem)
+- **Passes to:** Deploy keys (is this key live?), App records (claim the name), App builder (build it), Roles (may this key deploy?), Feedback inbox (AI reports a problem)
 - **Receives from:** Your AI agent (sends the app)
-- **Stories:** [First Deploy](stories/first-deploy.md), [Trial App](stories/try-without-account.md), [Fix Or Update](stories/fix-or-update.md)
+- **Stories:** [First Deploy](stories/first-deploy.md), [Trial App](stories/try-without-account.md), [Fix Or Update](stories/fix-or-update.md), [Team Roles](stories/team-roles.md)
 - **Code files:** `@deploy/build-info.js`, `@deploy/claim-project.js`, `@deploy/deploy-credential.js`, `@deploy/deploy-response.js`, `@deploy/internal-auth.js`, `@deploy/json-source.js`, `@deploy/logger.js`, `@deploy/project-lookup.js`, `@deploy/request-context.js`, `@deploy/server.js`, `@deploy/validate-deploy-token.js`, `@deploy/verify-proxy-auth.js`
 
 ### App builder (`builder`)
@@ -622,6 +638,14 @@ Deploy keys (hashed), who the admins are, and a log of important actions.
 - **Stories:** [First Deploy](stories/first-deploy.md), [App Settings](stories/app-settings.md), [Connect AI](stories/connect-ai.md)
 - **Tables:** `AuditLog`, `DeployToken`, `SuperAdmin`
 
+### Roles and app access (`roles-data`)
+
+Each member's role, which apps they can reach, and roles waiting for people who were invited.
+
+- **Receives from:** Roles (roles and app access)
+- **Stories:** [Team Roles](stories/team-roles.md)
+- **Tables:** `AppGrant`, `PendingInvite`, `WorkspaceMember`
+
 ### Showcase records (`showcase-data`)
 
 Each app's Showcase details, the event pages, and which apps are on which page.
@@ -657,14 +681,14 @@ The builder's own AI (Claude, ChatGPT, Cursor…) that builds and deploys the ap
 - **Who decides:** AI
 - **Passes to:** Agent docs (reads the rules), Deploy intake (sends the app), Sign-in (connect AI), App records (sets schedules)
 - **Receives from:** App builders (pastes prompt)
-- **Stories:** [First Deploy](stories/first-deploy.md), [Trial App](stories/try-without-account.md), [Fix Or Update](stories/fix-or-update.md), [Scheduled Task](stories/scheduled-task.md), [Connect AI](stories/connect-ai.md), [Ask For Help](stories/ask-for-help.md)
+- **Stories:** [First Deploy](stories/first-deploy.md), [Trial App](stories/try-without-account.md), [Fix Or Update](stories/fix-or-update.md), [Scheduled Task](stories/scheduled-task.md), [Connect AI](stories/connect-ai.md), [Ask For Help](stories/ask-for-help.md), [Team Roles](stories/team-roles.md)
 
 ### MSG91 (`msg91`)
 
 Checks who a person is, holds workspaces and members, and sends email templates.
 
 - **Receives from:** Sign-in (who is this?), Account checks (check token)
-- **Stories:** [Trial App](stories/try-without-account.md), [Sign In](stories/sign-in.md), [Connect AI](stories/connect-ai.md)
+- **Stories:** [Trial App](stories/try-without-account.md), [Sign In](stories/sign-in.md), [Connect AI](stories/connect-ai.md), [Team Roles](stories/team-roles.md)
 - **Services:** MSG91
 
 ### Container platform (`containers`)

@@ -8,7 +8,7 @@
 - **Wants to:** see at a glance which apps are live and which need attention
 - **Ends with:** Each app shows Live, Not online or Needs attention, and one click opens it.
 - **Steps:** 5 · 0 by AI · 5 can go wrong
-- **Last change to its code:** v162, 21 Oct 2026 — feat: X-App-Id and embarko.json appId on deploy
+- **Last change to its code:** v163, 21 Oct 2026 — feat: X-App-Id and embarko.json appId on deploy
 
 [← All stories](../README.md)
 
@@ -93,8 +93,8 @@ flowchart TD
   - If A later refresh fails → the screen stays as it was.
   - If the deploy service can't be asked → that app's health shows as Unknown.
 - **Parts:** Your apps panel (`console`), Panel bridge (`bridge`), App records (`app-records`), App runner (`runner`)
-- **Keeps:** `AppDetails`, `AuditLog`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`
-- **Looks up:** `Deployment`, `Domain`, `Schedule`, `ScheduleRun`
+- **Keeps:** `AppDetails`, `AppGrant`, `AuditLog`, `PendingInvite`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`, `WorkspaceMember`
+- **Looks up:** `DeployToken`, `Deployment`, `Domain`, `Schedule`, `ScheduleRun`
 - **Code:** `page:/app` → `app/app/page.tsx`, `lib:app/lib/lastSeen` → `app/lib/lastSeen.ts`, `lib:app/lib/earlyReads` → `app/lib/earlyReads.ts`, `api:@api/companies/:companyId/projects` → `@api/src/routes/projects.routes.ts`, `lib:@api/src/services/appHealth` → `@api/src/services/appHealth.ts`, `api:@deploy/internal/apps/:appName/status` → `@deploy/server.js`, `lib:@deploy/app-health` → `@deploy/app-health.js`
 - **Outside services:** Docker, Nomad, Redis, viaSocket webhook
 
@@ -141,8 +141,8 @@ flowchart TD
   - If the log can't load → "Couldn't load logs."
   - If the deploy service restarted since the build → the build log is gone; only the app's own last 8KB of output remains.
 - **Parts:** Your apps panel (`console`), App records (`app-records`), Traffic recorder (`traffic-recorder`), Traffic records (`traffic-data`), App runner (`runner`)
-- **Keeps:** `request_log`, `resource_sample`, `tail_state`
-- **Looks up:** `Project`
+- **Keeps:** `AppGrant`, `AuditLog`, `PendingInvite`, `WorkspaceMember`, `request_log`, `resource_sample`, `tail_state`
+- **Looks up:** `DeployToken`, `Project`
 - **Code:** `lib:app/components/console/ProjectAnalytics` → `app/components/console/ProjectAnalytics.tsx`, `page:/app/projects/[projectId]/deployments` → `app/app/projects/[projectId]/deployments/page.tsx`, `api:@api/companies/:companyId/projects/:projectId/analytics` → `@api/src/routes/analytics.routes.ts`, `api:@deploy/internal/apps/:appName/analytics` → `@deploy/server.js`, `api:/api/apps/[slug]/logs` → `app/api/apps/[slug]/logs/route.ts`, `api:@deploy/apps/:appName/logs` → `@deploy/server.js`
 - **Outside services:** Docker, MSG91, Nomad, Redis, Traefik
 
@@ -164,13 +164,17 @@ See [system-map.md](../system-map.md) for how the parts connect.
 ## Tables
 
 - **Keeps** `AppDetails` — Public-facing details of a deployed app.
+- **Keeps** `AppGrant` — One app a developer/viewer with appScope "selected" may reach, and how far: "manage" (deploy, change settings) or "view" (status, logs, history).
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
+- **Keeps** `PendingInvite` — A role chosen for someone before they are a member.
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
 - **Keeps** `ShowcaseEvent` — An event page, /showcase/<slug>: a hackathon, a demo day.
 - **Keeps** `ShowcaseEventListing` — One app shown on one event page.
+- **Keeps** `WorkspaceMember` — A member's role in one workspace.
 - **Keeps** `request_log`
 - **Keeps** `resource_sample`
 - **Keeps** `tail_state` — One row, keyed by the log file's own path — lets the tailer resume from where it left off across restarts, and detect rotation (a changed inode, or a file that's now smaller than our last offset).
+- **Looks up** `DeployToken` — Company-wide deploy token.
 - **Looks up** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Looks up** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
 - **Looks up** `Schedule` — A timed HTTP call into the app — see docs/schedules.md.
@@ -182,11 +186,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v162 (23a3409) | 21 Oct 2026 | feat: X-App-Id and embarko.json appId on deploy | list, details |
-| v161 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | — |
-| v160 (bffa93d) | 19 Oct 2026 | Report the real cause when an app crashes on startup | list, details |
-| v159 (36b6871) | 19 Oct 2026 | Show an app's scheduled jobs in the panel | label, open |
-| v158 (cbf0640) | 19 Oct 2026 | Show schedules to the dashboard | list |
+| v163 (23a3409) | 21 Oct 2026 | feat: X-App-Id and embarko.json appId on deploy | list, details |
+| v162 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | — |
+| v161 (bffa93d) | 19 Oct 2026 | Report the real cause when an app crashes on startup | list, details |
+| v160 (36b6871) | 19 Oct 2026 | Show an app's scheduled jobs in the panel | label, open |
+| v159 (cbf0640) | 19 Oct 2026 | Show schedules to the dashboard | list |
 
 ## Open questions
 

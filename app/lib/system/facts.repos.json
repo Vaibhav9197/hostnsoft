@@ -18,6 +18,9 @@
    "tables": [
     "table:api:DeployToken",
     "table:api:Project",
+    "table:api:WorkspaceMember",
+    "table:api:AppGrant",
+    "table:api:PendingInvite",
     "table:api:SlugAlias",
     "table:api:Schedule",
     "table:api:ScheduleRun",
@@ -236,6 +239,7 @@
     "imports": [
      "lib:@api/src/lib/deployAttribution",
      "lib:@api/src/middleware/deployTokenContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/slugChangeFlow"
     ],
     "calls": [
@@ -245,26 +249,32 @@
     ],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:SlugAlias"
+     "table:api:SlugAlias",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:SlugAlias"
+     "table:api:SlugAlias",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
@@ -286,6 +296,7 @@
     "inbound": false,
     "imports": [
      "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/appTeardown",
      "lib:@api/src/services/audit"
     ],
@@ -293,13 +304,24 @@
      "api:@deploy/internal/apps/:appName"
     ],
     "tablesRead": [
-     "table:api:Deployment"
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:Deployment",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
-     "table:api:Project"
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
-    "services": []
+    "services": [
+     "ext:redis"
+    ]
    },
    {
     "id": "api:@api/apps/:appName/env-vars",
@@ -314,6 +336,7 @@
     "imports": [
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/redeploy"
     ],
@@ -321,21 +344,30 @@
      "api:@deploy/internal/apps/:appName/config"
     ],
     "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
-     "table:api:Project"
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
-     "table:api:Project"
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
+     "ext:redis",
      "ext:stripe"
     ]
    },
@@ -350,6 +382,7 @@
     "inbound": false,
     "imports": [
      "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/redeploy"
     ],
@@ -357,20 +390,29 @@
      "api:@deploy/internal/apps/:appName/config"
     ],
     "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
-     "table:api:Project"
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
      "table:api:Deployment",
      "table:api:Domain",
-     "table:api:Project"
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
+     "ext:redis",
      "ext:stripe"
     ]
    },
@@ -388,6 +430,7 @@
      "lib:@api/src/lib/prisma",
      "lib:@api/src/lib/publicHttpsUrl",
      "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/redeploy",
      "lib:@api/src/services/schedules"
@@ -397,25 +440,33 @@
     ],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
@@ -439,6 +490,7 @@
      "lib:@api/src/lib/publicHttpsUrl",
      "lib:@api/src/lib/scheduleConfig",
      "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/scheduleSync",
      "lib:@api/src/services/schedules"
@@ -446,22 +498,30 @@
     "calls": [],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Domain",
      "table:api:EnvVar",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:EnvVar",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis",
@@ -480,6 +540,7 @@
     "imports": [
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/scheduleRunner",
      "lib:@api/src/services/schedules"
@@ -487,23 +548,31 @@
     "calls": [],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Domain",
      "table:api:EnvVar",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:EnvVar",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis",
@@ -525,26 +594,35 @@
      "lib:@api/src/lib/prisma",
      "lib:@api/src/lib/publicHttpsUrl",
      "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/schedules"
     ],
     "calls": [],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Domain",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis",
@@ -562,6 +640,7 @@
     "inbound": false,
     "imports": [
      "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/scheduleRunner",
      "lib:@api/src/services/schedules"
@@ -569,23 +648,31 @@
     "calls": [],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Domain",
      "table:api:EnvVar",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:EnvVar",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis",
@@ -602,23 +689,33 @@
     ],
     "inbound": false,
     "imports": [
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/schedules"
     ],
     "calls": [],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Domain",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis",
@@ -636,23 +733,33 @@
     "inbound": false,
     "imports": [
      "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/schedules"
     ],
     "calls": [],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Domain",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis",
@@ -670,6 +777,7 @@
     "inbound": false,
     "imports": [
      "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/projectSlugChange",
      "lib:@api/src/services/showcase",
      "lib:@api/src/services/slugChangeFlow"
@@ -681,24 +789,31 @@
     ],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:SlugAlias"
+     "table:api:SlugAlias",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
      "table:api:Deployment",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:SlugAlias"
+     "table:api:SlugAlias",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
@@ -717,14 +832,28 @@
     ],
     "inbound": false,
     "imports": [
-     "lib:@api/src/lib/prisma"
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/requirePermission"
     ],
     "calls": [],
     "tablesRead": [
-     "table:api:Deployment"
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:Deployment",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
-    "tablesWritten": [],
-    "services": []
+    "tablesWritten": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
+    ],
+    "services": [
+     "ext:redis"
+    ]
    },
    {
     "id": "api:@api/apps/:appName/deployments/:deploymentId",
@@ -736,14 +865,28 @@
     ],
     "inbound": false,
     "imports": [
-     "lib:@api/src/lib/prisma"
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/requirePermission"
     ],
     "calls": [],
     "tablesRead": [
-     "table:api:Deployment"
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:Deployment",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
-    "tablesWritten": [],
-    "services": []
+    "tablesWritten": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
+    ],
+    "services": [
+     "ext:redis"
+    ]
    },
    {
     "id": "api:@api/apps/:appName/rollback",
@@ -758,6 +901,7 @@
      "lib:@api/src/lib/customDomain",
      "lib:@api/src/lib/customDomainConfig",
      "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/redeploy"
     ],
@@ -765,20 +909,29 @@
      "api:@deploy/internal/apps/:appName/config"
     ],
     "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
-     "table:api:Project"
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
      "table:api:Deployment",
      "table:api:Domain",
-     "table:api:Project"
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
+     "ext:redis",
      "ext:stripe"
     ]
    },
@@ -797,17 +950,29 @@
      "lib:@api/src/lib/customDomainConfig",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/lib/prismaErrors",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit"
     ],
     "calls": [],
     "tablesRead": [
-     "table:api:Domain"
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:Domain",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
-     "table:api:Domain"
+     "table:api:Domain",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
     ],
-    "services": []
+    "services": [
+     "ext:redis"
+    ]
    },
    {
     "id": "api:@api/apps/:appName/domains/:domain/verify",
@@ -822,6 +987,7 @@
      "lib:@api/src/lib/customDomain",
      "lib:@api/src/lib/dnsVerify",
      "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/customDomainActivation"
     ],
@@ -829,18 +995,27 @@
      "api:@deploy/internal/apps/:appName/config"
     ],
     "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
-     "table:api:Project"
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
-     "table:api:Domain"
+     "table:api:Domain",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
+     "ext:redis",
      "ext:stripe"
     ]
    },
@@ -855,6 +1030,7 @@
     "inbound": false,
     "imports": [
      "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/customDomainActivation"
     ],
@@ -862,18 +1038,27 @@
      "api:@deploy/internal/apps/:appName/config"
     ],
     "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
-     "table:api:Project"
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
-     "table:api:Domain"
+     "table:api:Domain",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
+     "ext:redis",
      "ext:stripe"
     ]
    },
@@ -887,14 +1072,29 @@
     ],
     "inbound": false,
     "imports": [
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/appAnalytics"
     ],
     "calls": [
      "api:@deploy/internal/apps/:appName/analytics"
     ],
-    "tablesRead": [],
-    "tablesWritten": [],
-    "services": []
+    "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
+    ],
+    "tablesWritten": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
+    ],
+    "services": [
+     "ext:redis"
+    ]
    },
    {
     "id": "api:@api/apps/:appName/showcase",
@@ -907,23 +1107,32 @@
     "inbound": false,
     "imports": [
      "lib:@api/src/lib/frontendOrigin",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/showcase"
     ],
     "calls": [],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Domain",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis",
@@ -942,15 +1151,26 @@
     "imports": [
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/appAnalytics"
     ],
     "calls": [
      "api:@deploy/internal/apps/:appName/analytics"
     ],
     "tablesRead": [
-     "table:api:Project"
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
-    "tablesWritten": [],
+    "tablesWritten": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
+    ],
     "services": [
      "ext:redis"
     ]
@@ -965,17 +1185,29 @@
     ],
     "inbound": false,
     "imports": [
+     "lib:@api/src/lib/permissions",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/appAnalytics"
     ],
     "calls": [
      "api:@deploy/internal/apps/:appName/analytics"
     ],
     "tablesRead": [
-     "table:api:Project"
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
-    "tablesWritten": [],
+    "tablesWritten": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
+    ],
     "services": [
      "ext:redis"
     ]
@@ -1105,15 +1337,26 @@
      "lib:@api/src/lib/billingUtility",
      "lib:@api/src/lib/lago",
      "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/billingCustomer",
      "lib:@api/src/validation/billing.validation"
     ],
     "calls": [],
-    "tablesRead": [],
-    "tablesWritten": [
+    "tablesRead": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
-     "table:api:Company"
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
+    ],
+    "tablesWritten": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:Company",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
@@ -1134,12 +1377,24 @@
      "lib:@api/src/lib/billingUtility",
      "lib:@api/src/lib/lago",
      "lib:@api/src/lib/stripe",
-     "lib:@api/src/middleware/companyContext"
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission"
     ],
     "calls": [],
-    "tablesRead": [],
+    "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
+    ],
     "tablesWritten": [
-     "table:api:Company"
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:Company",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
@@ -1161,13 +1416,24 @@
      "lib:@api/src/lib/lago",
      "lib:@api/src/lib/stripe",
      "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit"
     ],
     "calls": [],
-    "tablesRead": [],
-    "tablesWritten": [
+    "tablesRead": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
-     "table:api:Company"
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
+    ],
+    "tablesWritten": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:Company",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
@@ -1186,12 +1452,24 @@
     "inbound": false,
     "imports": [
      "lib:@api/src/lib/lago",
-     "lib:@api/src/middleware/companyContext"
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission"
     ],
     "calls": [],
-    "tablesRead": [],
+    "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
+    ],
     "tablesWritten": [
-     "table:api:Company"
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:Company",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
@@ -1243,6 +1521,7 @@
      "lib:@api/src/lib/logger",
      "lib:@api/src/lib/rateLimit",
      "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/couponCheck",
      "lib:@api/src/services/footerResync",
@@ -1252,15 +1531,23 @@
      "api:@deploy/internal/apps/:appName/config"
     ],
     "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
-     "table:api:Project"
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
-     "table:api:Domain"
+     "table:api:Domain",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
@@ -1283,15 +1570,26 @@
      "lib:@api/src/lib/couponTable",
      "lib:@api/src/lib/lago",
      "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/couponCheck",
      "lib:@api/src/validation/billing.validation"
     ],
     "calls": [],
-    "tablesRead": [],
-    "tablesWritten": [
+    "tablesRead": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
-     "table:api:Company"
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
+    ],
+    "tablesWritten": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:Company",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
@@ -1311,13 +1609,25 @@
     "imports": [
      "lib:@api/src/lib/billingUtility",
      "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/couponCheck",
      "lib:@api/src/validation/billing.validation"
     ],
     "calls": [],
-    "tablesRead": [],
+    "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
+    ],
     "tablesWritten": [
-     "table:api:Company"
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:Company",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
@@ -1339,6 +1649,7 @@
      "lib:@api/src/lib/msg91",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/services/audit",
      "lib:@api/src/services/billingCustomer"
     ],
     "calls": [],
@@ -1346,7 +1657,9 @@
      "table:api:Project"
     ],
     "tablesWritten": [
-     "table:api:Company"
+     "table:api:AuditLog",
+     "table:api:Company",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
@@ -1369,14 +1682,24 @@
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/billingCustomer"
     ],
     "calls": [],
     "tablesRead": [
-     "table:api:Project"
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
-     "table:api:Company"
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:Company",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
@@ -1465,14 +1788,25 @@
     "imports": [
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
-     "lib:@api/src/middleware/projectContext"
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/middleware/requirePermission"
     ],
     "calls": [],
     "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Deployment",
-     "table:api:Project"
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
-    "tablesWritten": [],
+    "tablesWritten": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
+    ],
     "services": [
      "ext:redis"
     ]
@@ -1489,14 +1823,25 @@
     "imports": [
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
-     "lib:@api/src/middleware/projectContext"
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/middleware/requirePermission"
     ],
     "calls": [],
     "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Deployment",
-     "table:api:Project"
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
-    "tablesWritten": [],
+    "tablesWritten": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
+    ],
     "services": [
      "ext:redis"
     ]
@@ -1513,6 +1858,7 @@
     "imports": [
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/redeploy"
     ],
@@ -1520,17 +1866,25 @@
      "api:@deploy/internal/apps/:appName/config"
     ],
     "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
-     "table:api:Project"
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
      "table:api:Deployment",
      "table:api:Domain",
-     "table:api:Project"
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
@@ -1555,16 +1909,25 @@
      "lib:@api/src/lib/prismaErrors",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit"
     ],
     "calls": [],
     "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Domain",
-     "table:api:Project"
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
-     "table:api:Domain"
+     "table:api:Domain",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis"
@@ -1585,6 +1948,7 @@
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/customDomainActivation"
     ],
@@ -1592,15 +1956,23 @@
      "api:@deploy/internal/apps/:appName/config"
     ],
     "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
-     "table:api:Project"
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
-     "table:api:Domain"
+     "table:api:Domain",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
@@ -1621,6 +1993,7 @@
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/customDomainActivation"
     ],
@@ -1628,15 +2001,23 @@
      "api:@deploy/internal/apps/:appName/config"
     ],
     "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
-     "table:api:Project"
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
-     "table:api:Domain"
+     "table:api:Domain",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
@@ -1655,20 +2036,30 @@
     ],
     "inbound": false,
     "imports": [
+     "lib:@api/src/lib/permissions",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/projectContext",
      "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit"
     ],
     "calls": [],
     "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:EnvVar",
-     "table:api:Project"
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
-     "table:api:EnvVar"
+     "table:api:EnvVar",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis"
@@ -1687,15 +2078,24 @@
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit"
     ],
     "calls": [],
     "tablesRead": [
-     "table:api:Project"
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
-     "table:api:EnvVar"
+     "table:api:EnvVar",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis"
@@ -1789,8 +2189,7 @@
      "lib:@api/src/services/deploymentVersioning",
      "lib:@api/src/services/projectClaim",
      "lib:@api/src/services/scheduleSync",
-     "lib:@api/src/services/schedules",
-     "lib:@api/src/services/tokenAccess"
+     "lib:@api/src/services/schedules"
     ],
     "calls": [
      "api:@deploy/internal/apps/:appName",
@@ -1799,30 +2198,36 @@
     ],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:SlugAlias"
+     "table:api:SlugAlias",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:EnvVar",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:SlugAlias"
+     "table:api:SlugAlias",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
@@ -1884,30 +2289,36 @@
     ],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:SlugAlias"
+     "table:api:SlugAlias",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:EnvVar",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:SlugAlias"
+     "table:api:SlugAlias",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
@@ -1946,11 +2357,24 @@
     "inbound": true,
     "imports": [
      "lib:@api/src/lib/msg91",
-     "lib:@api/src/middleware/requireInternalSecret"
+     "lib:@api/src/middleware/requireInternalSecret",
+     "lib:@api/src/services/appReadAccess"
     ],
     "calls": [],
-    "tablesRead": [],
-    "tablesWritten": [],
+    "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
+    ],
+    "tablesWritten": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
+    ],
     "services": [
      "ext:redis"
     ]
@@ -1966,19 +2390,224 @@
     "inbound": true,
     "imports": [
      "lib:@api/src/lib/orphanMessage",
-     "lib:@api/src/lib/prisma",
-     "lib:@api/src/services/deployTokenAuth",
-     "lib:@api/src/services/tokenAccess"
+     "lib:@api/src/services/appReadAccess",
+     "lib:@api/src/services/deployTokenAuth"
     ],
     "calls": [],
     "tablesRead": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:DeployToken",
-     "table:api:Deployment",
-     "table:api:Project"
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
-     "table:api:DeployToken"
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/members",
+    "repo": "api",
+    "route": "/companies/:companyId/members",
+    "file": "@api/src/routes/members.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
+     "lib:@api/src/services/workspaceRoles"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
+    ],
+    "tablesWritten": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/members/:userId",
+    "repo": "api",
+    "route": "/companies/:companyId/members/:userId",
+    "file": "@api/src/routes/members.routes.ts",
+    "methods": [
+     "GET",
+     "PATCH"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/permissions",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
+     "lib:@api/src/services/workspaceRoles"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
+    ],
+    "tablesWritten": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/members/:userId/apps",
+    "repo": "api",
+    "route": "/companies/:companyId/members/:userId/apps",
+    "file": "@api/src/routes/members.routes.ts",
+    "methods": [
+     "PUT"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
+     "lib:@api/src/services/workspaceRoles"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
+    ],
+    "tablesWritten": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/invites",
+    "repo": "api",
+    "route": "/companies/:companyId/invites",
+    "file": "@api/src/routes/members.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
+     "lib:@api/src/services/workspaceRoles"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
+    ],
+    "tablesWritten": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/invites/:inviteId",
+    "repo": "api",
+    "route": "/companies/:companyId/invites/:inviteId",
+    "file": "@api/src/routes/members.routes.ts",
+    "methods": [
+     "DELETE"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
+     "lib:@api/src/services/workspaceRoles"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
+    ],
+    "tablesWritten": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
+    ],
+    "services": [
+     "ext:redis"
+    ]
+   },
+   {
+    "id": "api:@api/me/permissions",
+    "repo": "api",
+    "route": "/me/permissions",
+    "file": "@api/src/routes/members.routes.ts",
+    "methods": [
+     "GET"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/permissions",
+     "lib:@api/src/lib/prisma"
+    ],
+    "calls": [],
+    "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
+    ],
+    "tablesWritten": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis"
@@ -1995,10 +2624,12 @@
     ],
     "inbound": false,
     "imports": [
+     "lib:@api/src/lib/permissions",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/lib/reservedSlugs",
      "lib:@api/src/lib/slug",
      "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/appHealth",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/projectStatus",
@@ -2009,20 +2640,28 @@
     ],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis",
@@ -2043,6 +2682,7 @@
      "lib:@api/src/lib/orphanClaim",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/appHealth",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/projectClaim",
@@ -2058,29 +2698,34 @@
     ],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:SlugAlias"
+     "table:api:SlugAlias",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
-     "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:SlugAlias"
+     "table:api:SlugAlias",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
@@ -2104,6 +2749,7 @@
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/appHealth",
      "lib:@api/src/services/appTeardown",
      "lib:@api/src/services/audit",
@@ -2116,20 +2762,28 @@
     ],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis",
@@ -2149,6 +2803,7 @@
     "imports": [
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/slugChangeFlow"
     ],
     "calls": [
@@ -2158,75 +2813,31 @@
     ],
     "tablesRead": [
      "table:api:AppDetails",
-     "table:api:AuditLog",
-     "table:api:Deployment",
-     "table:api:Domain",
-     "table:api:EnvVar",
-     "table:api:Project",
-     "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing",
-     "table:api:SlugAlias"
-    ],
-    "tablesWritten": [
-     "table:api:AppDetails",
-     "table:api:AuditLog",
-     "table:api:Company",
-     "table:api:Deployment",
-     "table:api:Project",
-     "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing",
-     "table:api:SlugAlias"
-    ],
-    "services": [
-     "ext:lago",
-     "ext:redis",
-     "ext:stripe",
-     "ext:viasocket"
-    ]
-   },
-   {
-    "id": "api:@api/companies/:companyId/projects/:projectId/move",
-    "repo": "api",
-    "route": "/companies/:companyId/projects/:projectId/move",
-    "file": "@api/src/routes/projects.routes.ts",
-    "methods": [
-     "POST"
-    ],
-    "inbound": false,
-    "imports": [
-     "lib:@api/src/middleware/companyContext",
-     "lib:@api/src/middleware/projectContext",
-     "lib:@api/src/services/appHealth",
-     "lib:@api/src/services/projectMove",
-     "lib:@api/src/services/projectStatus",
-     "lib:@api/src/services/schedules"
-    ],
-    "calls": [
-     "api:@deploy/internal/apps/:appName/config",
-     "api:@deploy/internal/apps/:appName/status"
-    ],
-    "tablesRead": [
-     "table:api:AppDetails",
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
+     "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:Schedule",
-     "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:SlugAlias",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
-     "table:api:DeployToken",
-     "table:api:Domain",
+     "table:api:Deployment",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:SlugAlias",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:lago",
@@ -2249,15 +2860,24 @@
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/projectContext",
      "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit"
     ],
     "calls": [],
     "tablesRead": [
-     "table:api:Project"
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
-     "table:api:Project"
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis"
@@ -2506,23 +3126,33 @@
      "lib:@api/src/lib/scheduleConfig",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/schedules"
     ],
     "calls": [],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Domain",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis",
@@ -2542,23 +3172,33 @@
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/schedules"
     ],
     "calls": [],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Domain",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:Schedule",
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis",
@@ -2579,21 +3219,31 @@
      "lib:@api/src/lib/prisma",
      "lib:@api/src/lib/prismaErrors",
      "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/showcase"
     ],
     "calls": [],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Domain",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis",
@@ -2612,23 +3262,34 @@
     ],
     "inbound": false,
     "imports": [
+     "lib:@api/src/lib/permissions",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/showcase"
     ],
     "calls": [],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Domain",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis",
@@ -2647,22 +3308,32 @@
     "imports": [
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/showcase",
      "lib:@api/src/services/showcaseMail"
     ],
     "calls": [],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Domain",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis",
@@ -2681,21 +3352,31 @@
     "imports": [
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/showcase"
     ],
     "calls": [],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Domain",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis",
@@ -2714,23 +3395,34 @@
     "inbound": false,
     "imports": [
      "lib:@api/src/lib/frontendOrigin",
+     "lib:@api/src/lib/permissions",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/showcase"
     ],
     "calls": [],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Domain",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis",
@@ -2749,21 +3441,31 @@
     "imports": [
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/showcase"
     ],
     "calls": [],
     "tablesRead": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
      "table:api:Domain",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
-     "table:api:ShowcaseEventListing"
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis",
@@ -2784,15 +3486,24 @@
      "lib:@api/src/lib/deployTokens",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit"
     ],
     "calls": [],
     "tablesRead": [
-     "table:api:DeployToken"
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
-     "table:api:DeployToken"
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis"
@@ -2810,15 +3521,24 @@
     "imports": [
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit"
     ],
     "calls": [],
     "tablesRead": [
-     "table:api:DeployToken"
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
-     "table:api:DeployToken"
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis"
@@ -2837,15 +3557,24 @@
      "lib:@api/src/lib/deployTokens",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit"
     ],
     "calls": [],
     "tablesRead": [
-     "table:api:DeployToken"
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
     "tablesWritten": [
+     "table:api:AppGrant",
      "table:api:AuditLog",
-     "table:api:DeployToken"
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
     ],
     "services": [
      "ext:redis"
@@ -2883,6 +3612,39 @@
      "table:api:SuperAdmin"
     ],
     "services": []
+   },
+   {
+    "id": "lib:@api/src/__x",
+    "repo": "api",
+    "file": "@api/src/__x.ts",
+    "summary": "SCRATCH — role scenarios with proxy stubbed.",
+    "imports": [
+     "lib:@api/src/app",
+     "lib:@api/src/lib/deployTokens",
+     "lib:@api/src/lib/permissions",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/redis"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
+    ],
+    "tablesWritten": [
+     "table:api:AppGrant",
+     "table:api:DeployToken",
+     "table:api:EnvVar",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
+    ],
+    "services": [
+     "ext:lago",
+     "ext:stripe",
+     "ext:redis"
+    ]
    },
    {
     "id": "lib:@api/src/app",
@@ -3222,14 +3984,28 @@
     "id": "lib:@api/src/lib/permissions",
     "repo": "api",
     "file": "@api/src/lib/permissions.ts",
-    "summary": null,
+    "summary": "Who may do what inside a workspace — the role layer on top of proxy membership.",
     "imports": [
-     "lib:@api/src/lib/msg91"
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/prisma"
     ],
     "endpoints": [],
     "defines": [],
-    "tablesRead": [],
-    "tablesWritten": [],
+    "tablesRead": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:DeployToken",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
+    ],
+    "tablesWritten": [
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
+    ],
     "services": []
    },
    {
@@ -3463,18 +4239,15 @@
     "file": "@api/src/middleware/deployTokenContext.ts",
     "summary": "Authenticating an AI agent (or a CI script) holding a deploy token, against one app addressed by name.",
     "imports": [
-     "lib:@api/src/lib/permissions",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/services/deployTokenAuth",
      "lib:@api/src/services/showcase",
-     "lib:@api/src/services/slugChangeFlow",
-     "lib:@api/src/services/tokenAccess"
+     "lib:@api/src/services/slugChangeFlow"
     ],
     "endpoints": [],
     "defines": [],
     "tablesRead": [
-     "table:api:Project",
-     "table:api:SlugAlias"
+     "table:api:Project"
     ],
     "tablesWritten": [],
     "services": []
@@ -3559,6 +4332,20 @@
     "summary": null,
     "imports": [
      "lib:@api/src/lib/internalDeployClient"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/middleware/requirePermission",
+    "repo": "api",
+    "file": "@api/src/middleware/requirePermission.ts",
+    "summary": "The one role check, for every route that acts inside a workspace — the dashboard's (after loadCompanyContext, and loadProjectContext where the route has a :projectId) and the agent API's (after requireDeployToken + loadA",
+    "imports": [
+     "lib:@api/src/lib/permissions"
     ],
     "endpoints": [],
     "defines": [],
@@ -3653,6 +4440,7 @@
      "lib:@api/src/lib/scheduleConfig",
      "lib:@api/src/middleware/deployTokenContext",
      "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/appAnalytics",
      "lib:@api/src/services/appTeardown",
      "lib:@api/src/services/audit",
@@ -3709,10 +4497,12 @@
     "file": "@api/src/routes/analytics.routes.ts",
     "summary": null,
     "imports": [
+     "lib:@api/src/lib/permissions",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/projectContext",
      "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/appAnalytics"
     ],
     "endpoints": [],
@@ -3769,6 +4559,7 @@
      "lib:@api/src/lib/stripe",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/billingCustomer",
      "lib:@api/src/services/couponCheck",
@@ -3800,6 +4591,8 @@
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/middleware/requirePermission",
+     "lib:@api/src/services/audit",
      "lib:@api/src/services/billingCustomer"
     ],
     "endpoints": [],
@@ -3810,7 +4603,9 @@
     "tablesRead": [
      "table:api:Project"
     ],
-    "tablesWritten": [],
+    "tablesWritten": [
+     "table:api:WorkspaceMember"
+    ],
     "services": []
    },
    {
@@ -3863,6 +4658,7 @@
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/projectContext",
      "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/redeploy"
     ],
@@ -3892,6 +4688,7 @@
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/projectContext",
      "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/customDomainActivation"
     ],
@@ -3915,11 +4712,13 @@
     "file": "@api/src/routes/envVars.routes.ts",
     "summary": null,
     "imports": [
+     "lib:@api/src/lib/permissions",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/projectContext",
      "lib:@api/src/middleware/proxyToken",
      "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit"
     ],
     "endpoints": [],
@@ -3976,6 +4775,7 @@
      "lib:@api/src/routes/internalProjects.routes",
      "lib:@api/src/routes/internalProxyAuth.routes",
      "lib:@api/src/routes/internalTokens.routes",
+     "lib:@api/src/routes/members.routes",
      "lib:@api/src/routes/projects.routes",
      "lib:@api/src/routes/publicBilling.routes",
      "lib:@api/src/routes/publicCustomerQuery.routes",
@@ -4044,8 +4844,7 @@
      "lib:@api/src/services/deploymentVersioning",
      "lib:@api/src/services/projectClaim",
      "lib:@api/src/services/scheduleSync",
-     "lib:@api/src/services/schedules",
-     "lib:@api/src/services/tokenAccess"
+     "lib:@api/src/services/schedules"
     ],
     "endpoints": [],
     "defines": [
@@ -4101,7 +4900,8 @@
     "summary": null,
     "imports": [
      "lib:@api/src/lib/msg91",
-     "lib:@api/src/middleware/requireInternalSecret"
+     "lib:@api/src/middleware/requireInternalSecret",
+     "lib:@api/src/services/appReadAccess"
     ],
     "endpoints": [],
     "defines": [
@@ -4118,14 +4918,39 @@
     "summary": null,
     "imports": [
      "lib:@api/src/lib/orphanMessage",
-     "lib:@api/src/lib/permissions",
-     "lib:@api/src/lib/prisma",
-     "lib:@api/src/services/deployTokenAuth",
-     "lib:@api/src/services/tokenAccess"
+     "lib:@api/src/services/appReadAccess",
+     "lib:@api/src/services/deployTokenAuth"
     ],
     "endpoints": [],
     "defines": [
      "api:@api/internal/deploy-tokens/validate"
+    ],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/routes/members.routes",
+    "repo": "api",
+    "file": "@api/src/routes/members.routes.ts",
+    "summary": "Roles and app access for a workspace's members, plus the caller's own permissions so the dashboard can hide what they can't do.",
+    "imports": [
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/permissions",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/middleware/requirePermission",
+     "lib:@api/src/services/workspaceRoles"
+    ],
+    "endpoints": [],
+    "defines": [
+     "api:@api/companies/:companyId/members",
+     "api:@api/companies/:companyId/members/:userId",
+     "api:@api/companies/:companyId/members/:userId/apps",
+     "api:@api/companies/:companyId/invites",
+     "api:@api/companies/:companyId/invites/:inviteId",
+     "api:@api/me/permissions"
     ],
     "tablesRead": [
      "table:api:Project"
@@ -4141,6 +4966,7 @@
     "imports": [
      "lib:@api/src/lib/logger",
      "lib:@api/src/lib/orphanClaim",
+     "lib:@api/src/lib/permissions",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/lib/reservedSlugs",
      "lib:@api/src/lib/slug",
@@ -4148,11 +4974,11 @@
      "lib:@api/src/middleware/projectContext",
      "lib:@api/src/middleware/proxyToken",
      "lib:@api/src/middleware/refuseForStaticApp",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/appHealth",
      "lib:@api/src/services/appTeardown",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/projectClaim",
-     "lib:@api/src/services/projectMove",
      "lib:@api/src/services/projectStatus",
      "lib:@api/src/services/redeploy",
      "lib:@api/src/services/schedules",
@@ -4164,7 +4990,6 @@
      "api:@api/companies/:companyId/orphans/claim",
      "api:@api/companies/:companyId/projects/:projectId",
      "api:@api/companies/:companyId/projects/:projectId/slug",
-     "api:@api/companies/:companyId/projects/:projectId/move",
      "api:@api/companies/:companyId/projects/:projectId/memory"
     ],
     "tablesRead": [
@@ -4285,6 +5110,7 @@
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/projectContext",
      "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/schedules"
     ],
     "endpoints": [],
@@ -4305,10 +5131,12 @@
     "summary": null,
     "imports": [
      "lib:@api/src/lib/frontendOrigin",
+     "lib:@api/src/lib/permissions",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/lib/prismaErrors",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/showcase",
      "lib:@api/src/services/showcaseMail"
@@ -4345,6 +5173,7 @@
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/proxyToken",
+     "lib:@api/src/middleware/requirePermission",
      "lib:@api/src/services/audit"
     ],
     "endpoints": [],
@@ -4411,6 +5240,23 @@
     ],
     "defines": [],
     "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/appReadAccess",
+    "repo": "api",
+    "file": "@api/src/services/appReadAccess.ts",
+    "summary": null,
+    "imports": [
+     "lib:@api/src/lib/permissions",
+     "lib:@api/src/lib/prisma"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:Project"
+    ],
     "tablesWritten": [],
     "services": []
    },
@@ -4573,9 +5419,9 @@
     "summary": null,
     "imports": [
      "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/permissions",
      "lib:@api/src/middleware/requireInternalSecret",
-     "lib:@api/src/services/deployTokenAuth",
-     "lib:@api/src/services/tokenAccess"
+     "lib:@api/src/services/deployTokenAuth"
     ],
     "endpoints": [],
     "defines": [],
@@ -4721,18 +5567,6 @@
     "services": []
    },
    {
-    "id": "lib:@api/src/services/planLimits",
-    "repo": "api",
-    "file": "@api/src/services/planLimits.ts",
-    "summary": null,
-    "imports": [],
-    "endpoints": [],
-    "defines": [],
-    "tablesRead": [],
-    "tablesWritten": [],
-    "services": []
-   },
-   {
     "id": "lib:@api/src/services/projectClaim",
     "repo": "api",
     "file": "@api/src/services/projectClaim.ts",
@@ -4743,8 +5577,7 @@
      "lib:@api/src/lib/prisma",
      "lib:@api/src/lib/prismaErrors",
      "lib:@api/src/lib/reservedSlugs",
-     "lib:@api/src/services/slugChangeFlow",
-     "lib:@api/src/services/tokenAccess"
+     "lib:@api/src/services/slugChangeFlow"
     ],
     "endpoints": [],
     "defines": [],
@@ -4754,35 +5587,6 @@
      "table:api:SlugAlias"
     ],
     "tablesWritten": [
-     "table:api:Project"
-    ],
-    "services": []
-   },
-   {
-    "id": "lib:@api/src/services/projectMove",
-    "repo": "api",
-    "file": "@api/src/services/projectMove.ts",
-    "summary": "Moving an app to another workspace (POST /companies/:companyId/projects/:projectId/move, projects.routes.ts).",
-    "imports": [
-     "lib:@api/src/lib/lago",
-     "lib:@api/src/lib/logger",
-     "lib:@api/src/lib/msg91",
-     "lib:@api/src/lib/permissions",
-     "lib:@api/src/lib/prisma",
-     "lib:@api/src/services/audit",
-     "lib:@api/src/services/customDomainActivation",
-     "lib:@api/src/services/planLimits",
-     "lib:@api/src/services/renameStatus",
-     "lib:@api/src/services/tokenAccess"
-    ],
-    "endpoints": [],
-    "defines": [],
-    "tablesRead": [
-     "table:api:Deployment",
-     "table:api:Project"
-    ],
-    "tablesWritten": [
-     "table:api:AppDetails",
      "table:api:Project"
     ],
     "services": []
@@ -5051,24 +5855,29 @@
     "services": []
    },
    {
-    "id": "lib:@api/src/services/tokenAccess",
+    "id": "lib:@api/src/services/workspaceRoles",
     "repo": "api",
-    "file": "@api/src/services/tokenAccess.ts",
-    "summary": "May this caller act on this app?",
+    "file": "@api/src/services/workspaceRoles.ts",
+    "summary": "Changing who may do what in a workspace: the members list with roles, role changes, per-app access, and invites with a role chosen up front.",
     "imports": [
-     "lib:@api/src/lib/logger",
      "lib:@api/src/lib/msg91",
      "lib:@api/src/lib/permissions",
      "lib:@api/src/lib/prisma",
-     "lib:@api/src/services/deployTokenAuth"
+     "lib:@api/src/services/audit"
     ],
     "endpoints": [],
     "defines": [],
     "tablesRead": [
-     "table:api:AuditLog",
-     "table:api:Deployment"
+     "table:api:AppGrant",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:WorkspaceMember"
     ],
-    "tablesWritten": [],
+    "tablesWritten": [
+     "table:api:AppGrant",
+     "table:api:PendingInvite",
+     "table:api:WorkspaceMember"
+    ],
     "services": []
    },
    {
@@ -5091,7 +5900,7 @@
     "store": "api",
     "name": "DeployToken",
     "migration": "@api/prisma/schema.prisma",
-    "note": "A deploy token.",
+    "note": "Company-wide deploy token.",
     "columns": [
      "id",
      "companyId",
@@ -5103,8 +5912,7 @@
      "updatedAt",
      "revokedAt",
      "lastUsedAt",
-     "source",
-     "kind"
+     "source"
     ]
    },
    {
@@ -5129,6 +5937,60 @@
      "currentDeploymentId",
      "kind",
      "appType"
+    ]
+   },
+   {
+    "id": "table:api:WorkspaceMember",
+    "repo": "api",
+    "store": "api",
+    "name": "WorkspaceMember",
+    "migration": "@api/prisma/schema.prisma",
+    "note": "A member's role in one workspace.",
+    "columns": [
+     "id",
+     "companyId",
+     "userId",
+     "role",
+     "appScope",
+     "canCreate",
+     "canDelete",
+     "createdAt",
+     "updatedAt"
+    ]
+   },
+   {
+    "id": "table:api:AppGrant",
+    "repo": "api",
+    "store": "api",
+    "name": "AppGrant",
+    "migration": "@api/prisma/schema.prisma",
+    "note": "One app a developer/viewer with appScope \"selected\" may reach, and how far: \"manage\" (deploy, change settings) or \"view\" (status, logs, history).",
+    "columns": [
+     "id",
+     "projectId",
+     "userId",
+     "level",
+     "createdAt"
+    ]
+   },
+   {
+    "id": "table:api:PendingInvite",
+    "repo": "api",
+    "store": "api",
+    "name": "PendingInvite",
+    "migration": "@api/prisma/schema.prisma",
+    "note": "A role chosen for someone before they are a member.",
+    "columns": [
+     "id",
+     "companyId",
+     "email",
+     "role",
+     "appScope",
+     "canCreate",
+     "canDelete",
+     "grants",
+     "invitedBy",
+     "createdAt"
     ]
    },
    {
@@ -5388,6 +6250,10 @@
    }
   ],
   "foreignKeys": [
+   {
+    "from": "table:api:AppGrant.projectId",
+    "to": "table:api:Project.id"
+   },
    {
     "from": "table:api:SlugAlias.projectId",
     "to": "table:api:Project.id"

@@ -21,12 +21,16 @@ import { ENV_VAR_KEY } from "../../../../lib/envFile";
 import { relativeTime } from "../../../../lib/format";
 import { useSession } from "../../../../lib/session";
 import { useProject } from "../../../../lib/useProject";
+import { usePermissions } from "../../../../lib/permissions";
 import type { Deployment, EnvVar } from "../../../../lib/types";
 
 export default function EnvironmentPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = use(params);
   const { activeCompanyId } = useSession();
   const { project } = useProject(activeCompanyId, projectId);
+  // Someone who can see the app but not change it (a Viewer) sees which
+  // variables exist, never their values — the API leaves those out too.
+  const canEdit = usePermissions().can("app.settings", projectId);
   const [vars, setVars] = useState<EnvVar[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<React.ReactNode>(null);
@@ -192,7 +196,7 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
   // a text box on a row does not.
   function startEdit(v: EnvVar) {
     setEditingKey(v.key);
-    setEditingValue(v.value);
+    setEditingValue(v.value ?? "");
     setRevealed((r) => ({ ...r, [v.key]: true }));
   }
 
@@ -259,6 +263,7 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
       {/* The paste dialog already rejects bad names line by line; this form
           didn't, so a name like FOO-BAR only failed after a round trip, as a
           generic validation error with no hint at which part was wrong. */}
+      {canEdit && (
       <form className="flex flex-col gap-1.5" onSubmit={upsert}>
         <div className="flex flex-wrap items-center gap-2.5">
           <Input
@@ -281,6 +286,7 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
           </p>
         )}
       </form>
+      )}
 
       <BulkEnvDialog open={bulkOpen} onOpenChange={setBulkOpen} onSave={saveBulk} />
       <BulkEnvDialog
@@ -288,7 +294,7 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
         onOpenChange={setEditAllOpen}
         onSave={saveBulk}
         mode="edit"
-        existing={vars ?? []}
+        existing={(vars ?? []).map((v) => ({ key: v.key, value: v.value ?? "" }))}
       />
 
       {/* A deleted variable can't be recovered — the value isn't stored
@@ -321,7 +327,7 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
       {!vars && !error && <Skeleton className="h-[140px]" aria-hidden="true" />}
 
       {vars && vars.length === 0 && (
-        <EmptyState title="No variables">Add config and secrets above.</EmptyState>
+        <EmptyState title="No variables">{canEdit ? "Add config and secrets above." : "This app has none set."}</EmptyState>
       )}
 
       {vars && vars.length > 0 && (
@@ -348,12 +354,14 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
                     for hover, which is the only thing left saying it can be
                     clicked. */}
                 <TableHead className="text-right">
-                  <LinkButton
-                    className="font-sans normal-case tracking-normal underline underline-offset-2"
-                    onClick={() => setEditAllOpen(true)}
-                  >
-                    Edit all
-                  </LinkButton>
+                  {canEdit && (
+                    <LinkButton
+                      className="font-sans normal-case tracking-normal underline underline-offset-2"
+                      onClick={() => setEditAllOpen(true)}
+                    >
+                      Edit all
+                    </LinkButton>
+                  )}
                 </TableHead>
                 {/* Removing is per-variable and deliberately has no bulk twin —
                     the paste dialog is where several go at once, and it asks
@@ -384,6 +392,11 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
                           Cancel
                         </Button>
                       </span>
+                    ) : v.valueHidden ? (
+                      <span className="inline-flex items-center gap-2 text-faint">
+                        <Lock className="size-[13px]" />
+                        Set
+                      </span>
                     ) : !revealed[v.key] ? (
                       <span className="inline-flex items-center gap-2 text-faint">
                         <Lock className="size-[13px]" />
@@ -399,10 +412,10 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
                   </TableCell>
                   <TableCell className="font-mono text-[0.78rem] text-faint">{relativeTime(v.updatedAt)}</TableCell>
                   <TableCell className="whitespace-nowrap text-right">
-                    {editingKey !== v.key && <LinkButton onClick={() => startEdit(v)}>Edit</LinkButton>}
+                    {canEdit && editingKey !== v.key && <LinkButton onClick={() => startEdit(v)}>Edit</LinkButton>}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-right">
-                    {editingKey !== v.key && (
+                    {canEdit && editingKey !== v.key && (
                       <LinkButton danger onClick={() => setConfirmRemove(v.key)}>
                         Remove
                       </LinkButton>

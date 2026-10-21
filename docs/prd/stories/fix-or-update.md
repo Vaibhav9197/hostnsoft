@@ -103,8 +103,8 @@ flowchart TD
   - If the deploy service can't take it → the new version is removed and "Couldn't re-deploy that."
   - If one is already running → the other buttons wait.
 - **Parts:** Your apps panel (`console`), Deploy history (`deploy-history`), App runner (`runner`)
-- **Keeps:** `AuditLog`, `Company`, `Deployment`, `Domain`, `Project`
-- **Looks up:** `EnvVar`
+- **Keeps:** `AppGrant`, `AuditLog`, `Company`, `Deployment`, `Domain`, `PendingInvite`, `Project`, `WorkspaceMember`
+- **Looks up:** `DeployToken`, `EnvVar`
 - **Code:** `page:/app/projects/[projectId]/deployments` → `app/app/projects/[projectId]/deployments/page.tsx`, `api:@api/companies/:companyId/projects/:projectId/deployments/:deploymentId/rollback` → `@api/src/routes/deployments.routes.ts`, `lib:@api/src/services/redeploy` → `@api/src/services/redeploy.ts`, `api:@deploy/internal/apps/:appName/config` → `@deploy/server.js`
 - **Outside services:** Docker, Lago, Redis, Stripe, Traefik
 
@@ -149,11 +149,15 @@ See [system-map.md](../system-map.md) for how the parts connect.
 
 ## Tables
 
+- **Keeps** `AppGrant` — One app a developer/viewer with appScope "selected" may reach, and how far: "manage" (deploy, change settings) or "view" (status, logs, history).
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Keeps** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
+- **Keeps** `PendingInvite` — A role chosen for someone before they are a member.
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
+- **Keeps** `WorkspaceMember` — A member's role in one workspace.
+- **Looks up** `DeployToken` — Company-wide deploy token.
 - **Looks up** `EnvVar`
 
 See [tables.md](../tables.md).

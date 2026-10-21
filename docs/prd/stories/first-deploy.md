@@ -146,7 +146,8 @@ flowchart TD
   - If making the key fails → "Couldn't create your deploy key." with Try again.
   - If there is no key yet on the new-app path → the plain prompt is used and the AI asks for a key.
 - **Parts:** Panel bridge (`bridge`), Deploy keys (`tokens`), Keys and audit (`access-data`)
-- **Keeps:** `AuditLog`, `DeployToken`
+- **Keeps:** `AppGrant`, `AuditLog`, `DeployToken`, `PendingInvite`, `WorkspaceMember`
+- **Looks up:** `Project`
 - **Code:** `lib:app/lib/hnsApi` → `app/lib/hnsApi.ts`, `lib:app/components/console/DeploySteps` → `app/components/console/DeploySteps.tsx`, `api:@api/companies/:companyId/tokens` → `@api/src/routes/tokens.routes.ts`
 - **Outside services:** Redis
 
@@ -168,8 +169,8 @@ flowchart TD
   - If A server app crashes after starting → "started, then stopped".
   - If A server app isn't running 3 minutes after its build → "didn't start".
 - **Parts:** Your apps panel (`console`), Deploy history (`deploy-history`)
-- **Keeps:** `AppDetails`, `AuditLog`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`
-- **Looks up:** `Deployment`, `Domain`, `Schedule`, `ScheduleRun`
+- **Keeps:** `AppDetails`, `AppGrant`, `AuditLog`, `PendingInvite`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`, `WorkspaceMember`
+- **Looks up:** `DeployToken`, `Deployment`, `Domain`, `Schedule`, `ScheduleRun`
 - **Code:** `lib:app/components/console/DeploySteps` → `app/components/console/DeploySteps.tsx`, `lib:app/components/console/useDeployWatch` → `app/components/console/useDeployWatch.ts`, `api:@api/companies/:companyId/projects/:projectId/deployments` → `@api/src/routes/deployments.routes.ts`, `api:@api/companies/:companyId/projects` → `@api/src/routes/projects.routes.ts`
 - **Outside services:** Redis, viaSocket webhook
 
@@ -195,7 +196,7 @@ flowchart TD
   - If another workspace owns the name → refused (app_name_taken).
   - If the account service can't be reached → "Could not verify app name availability" (502).
 - **Parts:** Deploy intake (`intake`), Deploy keys (`tokens`), App records (`app-records`), Apps and deploys (`apps-data`)
-- **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`
+- **Keeps:** `AppDetails`, `AppGrant`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `EnvVar`, `PendingInvite`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`, `WorkspaceMember`
 - **Looks up:** `Domain`, `ScheduleRun`
 - **Code:** `lib:@deploy/deploy-credential` → `@deploy/deploy-credential.js`, `lib:@deploy/validate-deploy-token` → `@deploy/validate-deploy-token.js`, `api:@api/internal/deploy-tokens/validate` → `@api/src/routes/internalTokens.routes.ts`, `lib:@deploy/claim-project` → `@deploy/claim-project.js`, `api:@api/internal/projects/claim` → `@api/src/routes/internalProjects.routes.ts`, `lib:@api/src/services/projectClaim` → `@api/src/services/projectClaim.ts`
 - **Outside services:** Lago, Redis, Stripe, viaSocket webhook
@@ -237,7 +238,7 @@ flowchart TD
   - If two versions are numbered at once → the number is retried up to 5 times.
   - If recording fails → the history row is lost and the panel can stay at "in progress".
 - **Parts:** Deploy history (`deploy-history`), Apps and deploys (`apps-data`)
-- **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`
+- **Keeps:** `AppDetails`, `AppGrant`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `EnvVar`, `PendingInvite`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`, `WorkspaceMember`
 - **Looks up:** `Domain`, `ScheduleRun`
 - **Code:** `lib:@deploy/record-deployment` → `@deploy/record-deployment.js`, `api:@api/internal/deployments/record` → `@api/src/routes/internalDeployments.routes.ts`, `lib:@api/src/services/deploymentVersioning` → `@api/src/services/deploymentVersioning.ts`
 - **Outside services:** Lago, Redis, Stripe, viaSocket webhook
@@ -281,16 +282,19 @@ See [system-map.md](../system-map.md) for how the parts connect.
 ## Tables
 
 - **Keeps** `AppDetails` — Public-facing details of a deployed app.
+- **Keeps** `AppGrant` — One app a developer/viewer with appScope "selected" may reach, and how far: "manage" (deploy, change settings) or "view" (status, logs, history).
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `DeployToken` — A deploy token.
 - **Keeps** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Keeps** `EnvVar`
+- **Keeps** `PendingInvite` — A role chosen for someone before they are a member.
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
 - **Keeps** `Schedule` — A timed HTTP call into the app — see docs/schedules.md.
 - **Keeps** `ShowcaseEvent` — An event page, /showcase/<slug>: a hackathon, a demo day.
 - **Keeps** `ShowcaseEventListing` — One app shown on one event page.
 - **Keeps** `SlugAlias` — A name an app used to have — one row per previous slug, written on every successful address change (services/projectSlugChange.ts).
+- **Keeps** `WorkspaceMember` — A member's role in one workspace.
 - **Looks up** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
 - **Looks up** `ScheduleRun` — One call the runner made (or chose not to make).
 

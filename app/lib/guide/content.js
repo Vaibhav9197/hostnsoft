@@ -46,6 +46,7 @@ const EXAMPLES = {
   needs_user: 'I need one thing from you: {plain explanation}.',
   missing_secrets: 'Your app needs a key before it can work. Add it here: {secrets page link}',
   connect_once: 'Connect Embarko to {your AI tool} once ({link}), then ask me again. After that I can deploy for you directly.',
+  no_permission: "Your role in this workspace ({role}) doesn't allow me to {what it was}. An Owner or Admin can change that on the Members page: https://embarko.ai/app/members",
 };
 
 // Every host an agent may need, so it (or the person) can allowlist them
@@ -192,6 +193,13 @@ const EMBARKO_JSON_EXAMPLE = JSON.stringify({
 }, null, 2);
 
 // Every error a deploy can return. The deploy topic shows the common ones;
+// Who may do what in a workspace. Every token acts with the permissions of the
+// person who made it, so these can come back from any call made with a token.
+const PERMISSION_ERRORS = [
+  { code: 'permission_denied', status: 403, retry: 'No', do: 'The person who made this token is not allowed to do this. The reply names the permission and their role. Nothing changed. Tell the person (say_to_user.no_permission); do not try another way round it.' },
+  { code: 'token_owner_not_member', status: 403, retry: 'No', do: 'Whoever made this token has left the workspace, so it can no longer act there. Ask the person for a new token.' },
+];
+
 // the errors topic has them all, with the retry rules.
 const DEPLOY_ERRORS = [
   { code: 'invalid_app_name', status: 400, retry: 'No', do: 'Name missing or breaks the pattern. Slugify and resend.' },
@@ -205,6 +213,7 @@ const DEPLOY_ERRORS = [
   { code: 'no_access', status: 403, retry: 'No', do: 'The person the token belongs to has no access to the workspace named in the message (they may have been removed). Nothing was deployed. Ask them to get access there, or for a token from that workspace. Never deploy under a new name to get round it.' },
   { code: 'app_deleted', status: 410, retry: 'No', do: 'The app with that appId was deleted. Ask the person before deploying it again. If they want it back as a new app, remove "appId" from embarko.json and deploy.' },
   { code: 'host_not_allowed (from your own sandbox)', status: 403, retry: 'No', do: 'Not Embarko: your environment blocks ship.embarko.ai. Switch route: connector, or ask the person to connect it.' },
+  ...PERMISSION_ERRORS.map((e) => (e.code === 'permission_denied' ? { ...e, do: 'The token\'s owner may not deploy this app (permission "app.deploy") or add new apps ("app.create"). The reply names their role. Nothing was deployed. Tell the person (say_to_user.no_permission).' } : e)),
   { code: 'app_name_taken', status: 409, retry: 'No', do: 'Another account owns the name. On a first deploy, pick a close variant yourself: add the person\'s or business name if you know it, otherwise a short word (portfolio → portfolio-site, then portfolio-app). Mention the name with the link. Ask only if the exact name matters to them.' },
   { code: 'app_name_reserved', status: 409, retry: 'No', do: 'A platform name. Pick a different one (see name_rules.reserved).' },
   { code: 'rename_in_progress', status: 409, retry: 'Later', do: 'The app\'s address is being changed. Wait, then deploy under the new name.' },
@@ -226,7 +235,7 @@ const DEPLOY_ERRORS = [
   { code: 'app_name_check_failed', status: 502, retry: 'Once', do: 'Transient, and nothing was accepted: wait 2 seconds and send the identical request once. No status check needed.' },
   { code: '(other 5xx)', status: '502/503/504', retry: 'Once', do: 'Check status before re-sending: it may have been accepted.' },
 ];
-const COMMON_DEPLOY_ERRORS = ['app_name_taken', 'app_nested_in_subdirectory', 'no_manifest_at_root', 'host_not_allowed (from your own sandbox)'];
+const COMMON_DEPLOY_ERRORS = ['app_name_taken', 'app_nested_in_subdirectory', 'no_manifest_at_root', 'host_not_allowed (from your own sandbox)', 'permission_denied'];
 
 function topics(base) {
   const r = (topic, why, only) => ref(base, topic, why, only);
@@ -505,7 +514,7 @@ function topics(base) {
       ],
       errors: DEPLOY_ERRORS.filter((e) => COMMON_DEPLOY_ERRORS.includes(e.code)),
       more_errors: 'Every other code, and the retry rules: see errors.',
-      say_to_user: { deploying: EXAMPLES.deploying, failed: EXAMPLES.failed },
+      say_to_user: { deploying: EXAMPLES.deploying, failed: EXAMPLES.failed, no_permission: EXAMPLES.no_permission },
       prerequisites: prerequisites(base, [r('prerequisites', 'Check the app fits before deploying')]),
       next: 'Deploy, then poll until the app is live.',
       related: [r('status', 'Every status'), r('logs', 'When it failed'), r('static-sites', 'If it is just files'), r('data', 'Keeping data across redeploys'), r('claim', 'Keeping a temporary app'), r('feedback', 'If Embarko itself misbehaves')],
@@ -519,6 +528,7 @@ function topics(base) {
       summary: 'Every reply that fails has a code. Find it below, do what it says, and retry only as the rules allow.',
       retry: { rules: RETRY, backoff: BACKOFF },
       errors: DEPLOY_ERRORS,
+      say_to_user: { no_permission: EXAMPLES.no_permission },
       prerequisites: prerequisites(base),
       next: 'Find the code, fix the request or the app, then send a different request.',
       related: [r('deploy', 'The deploy call'), r('logs', 'When a build failed or the app crashed'), r('feedback', 'When Embarko itself is wrong')],
@@ -861,6 +871,7 @@ function topics(base) {
         { code: 'not_supported_for_static', status: 409, retry: 'No', do: 'Static site: put config in its files, or redeploy as a server app under a new name.' },
         { code: 'no_current_deployment', status: 422, retry: 'No', do: 'Values are saved. Deploy the app; do not write them again.' },
         { code: 'unauthorized', status: 401, retry: 'No', do: 'Bad token.' },
+        ...PERMISSION_ERRORS,
       ],
       say_to_user: { missing: EXAMPLES.missing_secrets },
       prerequisites: prerequisites(base, [claimFirst]),
@@ -993,6 +1004,7 @@ function topics(base) {
         { code: 'run_in_progress', status: 409, retry: 'Later', do: 'That schedule\'s last run has not finished. Poll it, then try again.' },
         { code: 'invalid_alert_webhook', status: 400, retry: 'No', do: 'alertWebhookUrl must be a public https:// address.' },
         { code: 'not_supported_for_static', status: 409, retry: 'No', do: 'A static site has no server to call. Deploy it as a server app under a new name.' },
+        ...PERMISSION_ERRORS,
       ],
       say_to_user: { done: 'Done: every weekday at 9:00 your app sends the digest. I ran it once just now and it worked. If it ever stops working, Embarko emails you.' },
       prerequisites: prerequisites(base, [claimFirst]),
@@ -1031,6 +1043,7 @@ function topics(base) {
         { code: 'domain_reserved', status: 400, retry: 'No', do: 'An Embarko address (*.embarko.app) cannot be registered.' },
         { code: 'invalid_domain', status: 400, retry: 'No', do: 'Not a valid domain name.' },
         { code: '(DNS not ready)', status: 422, retry: 'Later', do: 'On verify: wait a few minutes and verify again.' },
+        ...PERMISSION_ERRORS,
       ],
       say_to_user: { ask_dns: 'To use {domain}, add this one record in your domain provider\'s DNS settings: {type} {name} → {value}. Tell me when it\'s done.', done: '{domain} now opens your app.' },
       prerequisites: prerequisites(base, [claimFirst]),
@@ -1060,6 +1073,7 @@ function topics(base) {
         { code: 'no_rollback_target', status: 422, retry: 'No', do: 'No earlier good deploy. Fix forward instead.' },
         { code: 'rollback_image_unavailable', status: 422, retry: 'No', do: 'That version is too old to restore; retainCount says how far back you can go.' },
         { code: 'unauthorized', status: 401, retry: 'No', do: 'Bad token.' },
+        ...PERMISSION_ERRORS,
       ],
       say_to_user: { done: 'I put the previous version back, so your app works again. I\'ll fix the new version next.' },
       prerequisites: prerequisites(base, [claimFirst]),
@@ -1111,6 +1125,7 @@ function topics(base) {
         { code: 'app_state_unknown', status: 503, retry: 'Once', do: 'Retry once after 2 seconds.' },
         { code: 'rename_failed', status: 502, retry: 'Once', do: 'Nothing changed. Try once more.' },
         { code: 'rename_desynced', status: 500, retry: 'No', do: 'Needs the Embarko team: report it.' },
+        ...PERMISSION_ERRORS,
       ],
       say_to_user: { confirm: 'Your app will move to {new}.embarko.app. The old link stops working right away with no redirect. Your custom domain and Showcase listing move with it. You can change the address only once a week. Go ahead?', done: 'Done: your app is now at {link}.' },
       prerequisites: prerequisites(base, [claimFirst]),
@@ -1131,7 +1146,7 @@ function topics(base) {
         connector: ['Confirm with the person by name. Call app_danger_zone { action: "delete_app", appName, confirmAppName } with confirmAppName equal to appName.'],
         http_api: ['Confirm with the person. DELETE https://ship.embarko.ai/api/apps/{app-name} with {"confirmAppName": "{app-name}"} and the token. 204 means deleted.'],
       },
-      errors: [{ code: 'confirmation_required', status: 400, retry: 'No', do: 'confirmAppName missing or different. Nothing was deleted.' }],
+      errors: [{ code: 'confirmation_required', status: 400, retry: 'No', do: 'confirmAppName missing or different. Nothing was deleted.' }, ...PERMISSION_ERRORS],
       say_to_user: { confirm: 'This deletes {app} for good: its deploys, settings, custom domains and Showcase listing. There is no undo, and the name becomes free for anyone. Delete it?', done: '{app} is deleted.' },
       prerequisites: prerequisites(base, [claimFirst]),
       next: 'Only on an explicit yes.',
@@ -1187,6 +1202,7 @@ function topics(base) {
         { code: 'SHOWCASE_COLLECTION_UNKNOWN', status: 404, retry: 'No', do: 'Wrong event slug.' },
         { code: 'SHOWCASE_COLLECTION_PRIVATE', status: 403, retry: 'No', do: 'Another company\'s event page.' },
         { code: 'unauthorized', status: 401, retry: 'No', do: 'Bad token, or the app is not claimed.' },
+        ...PERMISSION_ERRORS,
       ],
       say_to_user: { confirm: 'Here\'s how your app will look on Showcase: {draft}. Publish it?', done: 'Your app is on Showcase: {link}.' },
       prerequisites: prerequisites(base, [r('deploy', 'The app must be live'), r('claim', 'Over HTTP the app must be claimed: Showcase uses its deploy token', 'over HTTP only')]),

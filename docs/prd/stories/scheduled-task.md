@@ -138,7 +138,7 @@ flowchart TD
   - If embarko.json is in a subfolder, misnamed or has unknown keys; or the app has schedules and the upload declares none; or it is a static site → it deploys with a warning (embarko_json_not_at_top, embarko_json_misnamed, embarko_json_unknown_keys, schedules_unchanged, schedules_on_static_site).
   - If the code uses a timer library and embarko.json lists no schedules → it deploys with a warning (in_process_timer).
 - **Parts:** Your AI agent (`ai-agent`), App records (`app-records`), Schedules and runs (`schedule-data`)
-- **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`
+- **Keeps:** `AppDetails`, `AppGrant`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `EnvVar`, `PendingInvite`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`, `WorkspaceMember`
 - **Looks up:** `Domain`, `ScheduleRun`
 - **Code:** `api:@deploy/apps` → `@deploy/server.js`, `api:@api/internal/projects/claim` → `@api/src/routes/internalProjects.routes.ts`, `api:@api/internal/deployments/record` → `@api/src/routes/internalDeployments.routes.ts`, `lib:@deploy/server` → `@deploy/server.js`, `lib:@deploy/claim-project` → `@deploy/claim-project.js`, `lib:@deploy/record-deployment` → `@deploy/record-deployment.js`, `lib:@deploy/deploy-response` → `@deploy/deploy-response.js`, `lib:@deploy/json-source` → `@deploy/json-source.js`, `lib:@deploy/embarko-config` → `@deploy/embarko-config.js`, `lib:@deploy/detect-timers` → `@deploy/detect-timers.js`, `lib:@api/src/routes/internalProjects.routes` → `@api/src/routes/internalProjects.routes.ts`, `lib:@api/src/routes/internalDeployments.routes` → `@api/src/routes/internalDeployments.routes.ts`, `lib:@api/src/services/deployActor` → `@api/src/services/deployActor.ts`, `lib:@api/src/services/scheduleSync` → `@api/src/services/scheduleSync.ts`, `lib:@api/src/services/schedules` → `@api/src/services/schedules.ts`
 - **Outside services:** Docker, Lago, Nomad, Railpack, Redis, Stripe, Traefik, viaSocket webhook
@@ -153,8 +153,8 @@ flowchart TD
   - If the app has no schedules → refused (no_schedules).
   - If it is a static site → refused (not_supported_for_static).
 - **Parts:** Your AI agent (`ai-agent`), Schedules (`schedules`), Schedules and runs (`schedule-data`)
-- **Keeps:** `AppDetails`, `AuditLog`, `Domain`, `EnvVar`, `Project`, `Schedule`, `ScheduleRun`, `ShowcaseEvent`, `ShowcaseEventListing`
-- **Looks up:** `Deployment`
+- **Keeps:** `AppDetails`, `AppGrant`, `AuditLog`, `Domain`, `EnvVar`, `PendingInvite`, `Project`, `Schedule`, `ScheduleRun`, `ShowcaseEvent`, `ShowcaseEventListing`, `WorkspaceMember`
+- **Looks up:** `DeployToken`, `Deployment`
 - **Code:** `api:@api/apps/:appName/schedules/run` → `@api/src/routes/agentApps.routes.ts`, `api:@api/apps/:appName/schedules/:scheduleId/run` → `@api/src/routes/agentApps.routes.ts`, `api:@api/apps/:appName/schedules/:scheduleId/runs/:runId` → `@api/src/routes/agentApps.routes.ts`, `lib:@api/src/routes/agentApps.routes` → `@api/src/routes/agentApps.routes.ts`, `lib:@api/src/services/scheduleRunner` → `@api/src/services/scheduleRunner.ts`
 - **Outside services:** Redis, viaSocket webhook
 
@@ -206,18 +206,21 @@ See [system-map.md](../system-map.md) for how the parts connect.
 ## Tables
 
 - **Keeps** `AppDetails` — Public-facing details of a deployed app.
+- **Keeps** `AppGrant` — One app a developer/viewer with appScope "selected" may reach, and how far: "manage" (deploy, change settings) or "view" (status, logs, history).
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `DeployToken` — A deploy token.
 - **Keeps** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Keeps** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
 - **Keeps** `EnvVar`
+- **Keeps** `PendingInvite` — A role chosen for someone before they are a member.
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
 - **Keeps** `Schedule` — A timed HTTP call into the app — see docs/schedules.md.
 - **Keeps** `ScheduleRun` — One call the runner made (or chose not to make).
 - **Keeps** `ShowcaseEvent` — An event page, /showcase/<slug>: a hackathon, a demo day.
 - **Keeps** `ShowcaseEventListing` — One app shown on one event page.
 - **Keeps** `SlugAlias` — A name an app used to have — one row per previous slug, written on every successful address change (services/projectSlugChange.ts).
+- **Keeps** `WorkspaceMember` — A member's role in one workspace.
 
 See [tables.md](../tables.md).
 

@@ -8,7 +8,7 @@
 - **Wants to:** show their app to others on a public page
 - **Ends with:** The app is on a Showcase page, or waiting for the organiser to approve it.
 - **Steps:** 5 · 0 by AI · 5 can go wrong
-- **Last change to its code:** v61, 21 Oct 2026 — feat: add auto-approve configuration option for showcase events
+- **Last change to its code:** v62, 21 Oct 2026 — feat: add auto-approve configuration option for showcase events
 
 [← All stories](../README.md)
 
@@ -128,8 +128,8 @@ flowchart TD
   - If A first listing has no tagline or builder name → refused (400).
   - If anything else fails → "Couldn't list that app."
 - **Parts:** Panel bridge (`bridge`), Showcase service (`showcase-service`), Showcase records (`showcase-data`)
-- **Keeps:** `AppDetails`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`
-- **Looks up:** `Domain`
+- **Keeps:** `AppDetails`, `AppGrant`, `AuditLog`, `PendingInvite`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`, `WorkspaceMember`
+- **Looks up:** `DeployToken`, `Domain`
 - **Code:** `api:@api/companies/:companyId/showcase/submissions` → `@api/src/routes/showcase.routes.ts`, `lib:@api/src/services/showcase` → `@api/src/services/showcase.ts`
 - **Outside services:** Redis, viaSocket webhook
 
@@ -144,8 +144,8 @@ flowchart TD
   - If the code is wrong → "That code didn't work. Check it with the organiser and try again."
   - If an email can't be sent → it is only logged; nobody is told.
 - **Parts:** Showcase organisers (`organisers`), Showcase manager (`showcase-manage`), Showcase service (`showcase-service`), viaSocket (`webhook`)
-- **Keeps:** `AppDetails`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`
-- **Looks up:** `Domain`
+- **Keeps:** `AppDetails`, `AppGrant`, `AuditLog`, `PendingInvite`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`, `WorkspaceMember`
+- **Looks up:** `DeployToken`, `Domain`
 - **Code:** `page:/app/showcase/[collectionId]` → `app/app/showcase/[collectionId]/page.tsx`, `lib:app/components/console/showcase/RequestRows` → `app/components/console/showcase/RequestRows.tsx`, `lib:app/components/console/showcase/ApprovalCodeDialog` → `app/components/console/showcase/ApprovalCodeDialog.tsx`, `api:@api/companies/:companyId/showcase/collections/:collectionId/projects/:listingId` → `@api/src/routes/showcase.routes.ts`, `lib:@api/src/services/showcaseMail` → `@api/src/services/showcaseMail.ts`
 - **Outside services:** Redis, viaSocket webhook
 
@@ -182,9 +182,14 @@ See [system-map.md](../system-map.md) for how the parts connect.
 ## Tables
 
 - **Keeps** `AppDetails` — Public-facing details of a deployed app.
+- **Keeps** `AppGrant` — One app a developer/viewer with appScope "selected" may reach, and how far: "manage" (deploy, change settings) or "view" (status, logs, history).
+- **Keeps** `AuditLog` — Every mutating action: who, what, when.
+- **Keeps** `PendingInvite` — A role chosen for someone before they are a member.
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
 - **Keeps** `ShowcaseEvent` — An event page, /showcase/<slug>: a hackathon, a demo day.
 - **Keeps** `ShowcaseEventListing` — One app shown on one event page.
+- **Keeps** `WorkspaceMember` — A member's role in one workspace.
+- **Looks up** `DeployToken` — Company-wide deploy token.
 - **Looks up** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
 
 See [tables.md](../tables.md).
@@ -193,11 +198,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v61 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | send, approve |
-| v60 (ee930c9) | 21 Oct 2026 | feat: add auto-approve setting for showcase collections and submission flow | choose, approve |
-| v59 (e19113b) | 14 Oct 2026 | Replace the docs with the agent guide | choose |
-| v58 (c85241c) | 13 Oct 2026 | feat(orphan): claim link — keep a temporary app by signing in, no redeploy | — |
-| v57 (f70181f) | 9 Oct 2026 | feat(showcase): invite contributors without an account, credit them by name | check-address, send, approve, public |
+| v62 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | send, approve |
+| v61 (ee930c9) | 21 Oct 2026 | feat: add auto-approve setting for showcase collections and submission flow | choose, approve |
+| v60 (e19113b) | 14 Oct 2026 | Replace the docs with the agent guide | choose |
+| v59 (c85241c) | 13 Oct 2026 | feat(orphan): claim link — keep a temporary app by signing in, no redeploy | — |
+| v58 (f70181f) | 9 Oct 2026 | feat(showcase): invite contributors without an account, credit them by name | check-address, send, approve, public |
 
 ## Open questions
 

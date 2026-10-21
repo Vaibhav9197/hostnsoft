@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { Button } from "../../../../components/ui/button";
 import { appsApi, deploymentsApi } from "../../../../lib/hnsApi";
 import { useProject } from "../../../../lib/useProject";
+import { usePermissions } from "../../../../lib/permissions";
 import { relativeTime } from "../../../../lib/format";
 import { useSession } from "../../../../lib/session";
 import { cn } from "../../../../lib/utils";
@@ -37,6 +38,8 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
   const [rollingBack, setRollingBack] = useState<string | null>(null);
   const [rollbackError, setRollbackError] = useState<string | null>(null);
   const { project } = useProject(activeCompanyId, projectId);
+  // Re-deploying needs deploy rights on this app; a Viewer sees history only.
+  const mayDeploy = usePermissions().can("app.deploy", projectId);
   const [logsOpen, setLogsOpen] = useState(false);
   const [stream, setStream] = useState<LogStream>("stdout");
   const [logs, setLogs] = useState<AppLogs | null>(null);
@@ -177,7 +180,7 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
             </TableHeader>
             <TableBody>
               {deps.map((d) => {
-                const canRedeploy = redeployable.has(d.id);
+                const canRedeploy = mayDeploy && redeployable.has(d.id);
                 return (
                 <TableRow
                   key={d.version}

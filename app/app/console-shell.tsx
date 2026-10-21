@@ -9,6 +9,7 @@ import { Alert } from "../components/console/kit";
 import { SessionSignals } from "../components/analytics/SessionSignals";
 import { Toaster } from "../components/ui/sonner";
 import { BillingProvider } from "../lib/billing";
+import { PermissionsProvider } from "../lib/permissions";
 import { SessionProvider, useSession } from "../lib/session";
 import { ThemeProvider } from "../lib/theme";
 
@@ -18,7 +19,9 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
       <SessionProvider>
         <SessionSignals />
         <BillingProvider>
-          <Shell>{children}</Shell>
+          <PermissionsProvider>
+            <Shell>{children}</Shell>
+          </PermissionsProvider>
           {/* Inside ThemeProvider so toasts follow the console's own light/dark
               choice, and outside Shell so one is never unmounted mid-flight by
               the navigation that a save triggers. */}
