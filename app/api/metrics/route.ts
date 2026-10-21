@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
         COUNT(DISTINCT CASE WHEN json_extract(e.data, '$.cta_type') = 'signup' THEN e.visitor_id END) AS signed_up,
         COUNT(DISTINCT CASE WHEN e.event = 'deployment' AND json_extract(e.data, '$.status') = 'success' THEN e.visitor_id END) AS deployed,
         COUNT(DISTINCT CASE WHEN e.event = 'deployment' AND json_extract(e.data, '$.status') != 'success' THEN e.visitor_id END) AS deploy_failed,
-        COUNT(DISTINCT CASE WHEN e.event = 'signup' THEN e.visitor_id END) AS signups
+        COUNT(DISTINCT CASE WHEN e.event = 'signin' THEN e.visitor_id END) AS signed_in
       FROM seen s
       LEFT JOIN events e ON e.visitor_id = s.visitor_id AND e.variant = s.variant
       GROUP BY s.variant
@@ -109,7 +109,10 @@ export async function GET(req: NextRequest) {
         cta_signup: Number(r.signed_up ?? 0),
         deployments_success: deployed,
         deployments_failed: Number(r.deploy_failed ?? 0),
-        signups: Number(r.signups ?? 0),
+        /* Recorded by /api/auth/exchange on a successful sign-in. Sign-ins,
+           not new accounts: the API can't tell the two apart. */
+        signed_in: Number(r.signed_in ?? 0),
+        signin_rate: pct(Number(r.signed_in ?? 0), visitors),
         ctr: pct(clicked, visitors),
         /* The share of visitors who copied the deploy prompt. The test is ranked
            on this: deploys happen in the visitor's AI agent, so this site never

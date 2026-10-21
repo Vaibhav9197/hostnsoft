@@ -13,7 +13,8 @@ interface Metric {
   cta_signup: number;
   deployments_success: number;
   deployments_failed: number;
-  signups: number;
+  signed_in: number;
+  signin_rate: string;
   ctr: string;
   copy_rate: string;
   conversion_rate: string;
@@ -234,6 +235,8 @@ export default function AdminDashboard() {
                 <th className="px-6 py-4 text-center font-semibold">Copy rate</th>
                 <th className="px-6 py-4 text-center font-semibold">Any click</th>
                 <th className="px-6 py-4 text-center font-semibold">Click rate</th>
+                <th className="px-6 py-4 text-center font-semibold">Signed in</th>
+                <th className="px-6 py-4 text-center font-semibold">Sign-in rate</th>
               </tr>
             </thead>
             <tbody>
@@ -252,6 +255,8 @@ export default function AdminDashboard() {
                   <td className="px-6 py-4 text-center font-bold text-lg">{m.copy_rate}%</td>
                   <td className="px-6 py-4 text-center">{m.cta_clicks}</td>
                   <td className="px-6 py-4 text-center">{m.ctr}%</td>
+                  <td className="px-6 py-4 text-center">{m.signed_in}</td>
+                  <td className="px-6 py-4 text-center">{m.signin_rate}%</td>
                 </tr>
               ))}
             </tbody>
@@ -297,11 +302,13 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Deploys and signups used to have columns and cards here, always at 0.
-            Said once instead, so nobody reads a zero as a result. */}
+        {/* Deploys used to have columns and cards here, always at 0. Said once
+            instead, so nobody reads a zero as a result. */}
         <p className="mt-8 text-sm text-muted-foreground">
-          Deploys and signups aren&apos;t tracked per variant yet: the deploy happens in the
-          visitor&apos;s AI agent, so this site never sees it.
+          Signed in counts visitors who signed in after seeing that page, starting from when this
+          was added — returning users included, since new accounts can&apos;t be told apart yet.
+          Deploys aren&apos;t tracked per variant: the deploy happens in the visitor&apos;s AI
+          agent, so this site never sees it.
         </p>
       </div>
       </div>
