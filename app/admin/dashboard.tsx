@@ -15,6 +15,7 @@ interface Metric {
   deployments_failed: number;
   signups: number;
   ctr: string;
+  copy_rate: string;
   conversion_rate: string;
   overall_conversion: string;
 }
@@ -38,7 +39,7 @@ function formatVariant(variant: string): string {
 }
 
 /**
- * Below this many visitors in an arm, a conversion rate is noise. One visitor
+ * Below this many visitors in an arm, a rate is noise. One visitor
  * who converts reads as 100%, and the old dashboard would crown it.
  */
 const MIN_VISITORS = 100;
@@ -62,7 +63,7 @@ function interval(successes: number, total: number): [number, number] {
 
 interface Verdict {
   leader: Metric | null;
-  /** True only when the leader's interval clears every rival's entirely. */
+  /** True only when the leader's copy-rate interval clears every rival's entirely. */
   conclusive: boolean;
   /** Why not, when it isn't — shown instead of a false result. */
   reason: string;
@@ -75,13 +76,17 @@ interface Verdict {
  * WINNER", which on one visitor and one conversion declared a winner at 100%.
  * A dashboard that announces a result the data cannot support is worse than
  * one that announces nothing, because someone acts on it.
+ *
+ * Ranked on copy rate — the share of visitors who copied the deploy prompt.
+ * Deploys happen in the visitor's AI agent, so this site never records one;
+ * ranking on deploys picked the first arm in a four-way tie at 0%.
  */
 function readVerdict(metrics: Metric[]): Verdict {
   const withTraffic = metrics.filter((m) => m.visitors > 0);
   if (withTraffic.length === 0) return { leader: null, conclusive: false, reason: 'No traffic recorded yet.' };
 
   const leader = withTraffic.reduce((best, m) =>
-    parseFloat(m.overall_conversion) > parseFloat(best.overall_conversion) ? m : best,
+    parseFloat(m.copy_rate) > parseFloat(best.copy_rate) ? m : best,
   );
 
   const short = metrics.filter((m) => m.visitors < MIN_VISITORS);
@@ -94,10 +99,10 @@ function readVerdict(metrics: Metric[]): Verdict {
     };
   }
 
-  const [leaderLow] = interval(leader.deployments_success, leader.visitors);
+  const [leaderLow] = interval(leader.cta_copy, leader.visitors);
   const beaten = withTraffic
     .filter((m) => m.variant !== leader.variant)
-    .every((m) => leaderLow > interval(m.deployments_success, m.visitors)[1]);
+    .every((m) => leaderLow > interval(m.cta_copy, m.visitors)[1]);
 
   return beaten
     ? { leader, conclusive: true, reason: 'Leads every other arm with no overlap at 95% confidence.' }
@@ -168,7 +173,8 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl font-bold mb-2">AB Test Dashboard</h1>
           <p className="text-muted-foreground mb-6">
-            Landing page variant performance. Every figure counts unique visitors, not events.
+            Landing page variant performance, ranked by how many visitors copy the deploy prompt.
+            Every figure counts unique visitors, not events.
           </p>
 
           <div className="mb-8 flex flex-wrap gap-2">
@@ -208,7 +214,7 @@ export default function AdminDashboard() {
                 {formatVariant(verdict.leader.variant)}
               </p>
               <p className={`mt-1 ${verdict.conclusive ? 'text-success' : 'text-muted-foreground'}`}>
-                {verdict.leader.overall_conversion}% overall conversion ·{' '}
+                {verdict.leader.copy_rate}% copied the prompt ·{' '}
                 {verdict.leader.visitors.toLocaleString()} visitors
               </p>
               {/* The caveat is the point, not a footnote: this banner is the
@@ -224,12 +230,10 @@ export default function AdminDashboard() {
               <tr>
                 <th className="px-6 py-4 text-left font-semibold">Variant</th>
                 <th className="px-6 py-4 text-center font-semibold">Visitors</th>
-                <th className="px-6 py-4 text-center font-semibold">CTR</th>
-                <th className="px-6 py-4 text-center font-semibold">Clicks</th>
-                <th className="px-6 py-4 text-center font-semibold">Deployed</th>
-                <th className="px-6 py-4 text-center font-semibold">Conv. Rate</th>
-                <th className="px-6 py-4 text-center font-semibold">Overall Conv.</th>
-                <th className="px-6 py-4 text-center font-semibold">Signups</th>
+                <th className="px-6 py-4 text-center font-semibold">Copied</th>
+                <th className="px-6 py-4 text-center font-semibold">Copy rate</th>
+                <th className="px-6 py-4 text-center font-semibold">Any click</th>
+                <th className="px-6 py-4 text-center font-semibold">Click rate</th>
               </tr>
             </thead>
             <tbody>
@@ -244,12 +248,10 @@ export default function AdminDashboard() {
                 >
                   <td className="px-6 py-4 font-bold text-lg">{formatVariant(m.variant)}</td>
                   <td className="px-6 py-4 text-center">{m.visitors.toLocaleString()}</td>
-                  <td className="px-6 py-4 text-center">{m.ctr}%</td>
+                  <td className="px-6 py-4 text-center">{m.cta_copy}</td>
+                  <td className="px-6 py-4 text-center font-bold text-lg">{m.copy_rate}%</td>
                   <td className="px-6 py-4 text-center">{m.cta_clicks}</td>
-                  <td className="px-6 py-4 text-center font-semibold">{m.deployments_success}</td>
-                  <td className="px-6 py-4 text-center">{m.conversion_rate}%</td>
-                  <td className="px-6 py-4 text-center font-bold text-lg">{m.overall_conversion}%</td>
-                  <td className="px-6 py-4 text-center">{m.signups}</td>
+                  <td className="px-6 py-4 text-center">{m.ctr}%</td>
                 </tr>
               ))}
             </tbody>
@@ -295,32 +297,12 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Deployment Stats */}
-        <div className="mt-8 grid grid-cols-2 gap-6">
-          <div className="bg-card p-6 rounded-lg shadow">
-            <h3 className="font-semibold text-foreground mb-4">Successful Deployments</h3>
-            <div className="space-y-2">
-              {metrics.map((m) => (
-                <div key={m.variant} className="flex justify-between">
-                  <span>{formatVariant(m.variant)}</span>
-                  <span className="font-bold text-success">{m.deployments_success}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-card p-6 rounded-lg shadow">
-            <h3 className="font-semibold text-foreground mb-4">Failed Deployments</h3>
-            <div className="space-y-2">
-              {metrics.map((m) => (
-                <div key={m.variant} className="flex justify-between">
-                  <span>{formatVariant(m.variant)}</span>
-                  <span className="font-bold text-destructive">{m.deployments_failed}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        {/* Deploys and signups used to have columns and cards here, always at 0.
+            Said once instead, so nobody reads a zero as a result. */}
+        <p className="mt-8 text-sm text-muted-foreground">
+          Deploys and signups aren&apos;t tracked per variant yet: the deploy happens in the
+          visitor&apos;s AI agent, so this site never sees it.
+        </p>
       </div>
       </div>
     </div>

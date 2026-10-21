@@ -98,18 +98,23 @@ export async function GET(req: NextRequest) {
       const visitors = Number(r.visitors ?? 0);
       const clicked = Number(r.clicked ?? 0);
       const deployed = Number(r.deployed ?? 0);
+      const copied = Number(r.copied ?? 0);
 
       return {
         variant,
         visitors,
         cta_clicks: clicked,
-        cta_copy: Number(r.copied ?? 0),
+        cta_copy: copied,
         cta_login: Number(r.logged_in ?? 0),
         cta_signup: Number(r.signed_up ?? 0),
         deployments_success: deployed,
         deployments_failed: Number(r.deploy_failed ?? 0),
         signups: Number(r.signups ?? 0),
         ctr: pct(clicked, visitors),
+        /* The share of visitors who copied the deploy prompt. The test is ranked
+           on this: deploys happen in the visitor's AI agent, so this site never
+           sees one, and the deploy columns below stay at zero. */
+        copy_rate: pct(copied, visitors),
         conversion_rate: pct(deployed, clicked),
         overall_conversion: pct(deployed, visitors),
       };
