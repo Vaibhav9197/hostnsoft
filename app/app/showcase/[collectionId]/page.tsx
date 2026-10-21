@@ -134,6 +134,7 @@ export default function ShowcaseManagePage() {
      One choice for the card and the ⋮ menu, so both copy the same prompt.
      Off by default: skipping review is something the owner opts into. */
   const [includeCode, setIncludeCode] = useState(false);
+  const [savingAutoApprove, setSavingAutoApprove] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
   const [showAllUnlisted, setShowAllUnlisted] = useState(false);
@@ -492,10 +493,24 @@ export default function ShowcaseManagePage() {
     }
   }
 
+  async function changeAutoApprove(next: boolean) {
+    if (!meta || !activeCompanyId) return;
+    setSavingAutoApprove(true);
+    try {
+      const updated = await showcaseApi.setAutoApprove(activeCompanyId, meta.id, next);
+      setMeta((m) => (m ? { ...m, autoApprove: updated.autoApprove } : m));
+      toast.success(next ? "New apps go on the page at once." : "New apps now wait for your approval.");
+    } catch {
+      toast.error("Couldn’t save. Try again.");
+    } finally {
+      setSavingAutoApprove(false);
+    }
+  }
+
   async function copyAddPrompt() {
     if (!meta) return;
     try {
-      await navigator.clipboard.writeText(showcaseListPrompt({ slug: meta.slug, title: meta.title, type: "event" }, null, includeCode ? meta.submitCode : null));
+      await navigator.clipboard.writeText(showcaseListPrompt({ slug: meta.slug, title: meta.title, type: "event" }, null, includeCode && !meta.autoApprove ? meta.submitCode : null));
       toast.success("Prompt copied. Share it with participants.");
     } catch {
       toast.error("Couldn’t copy. Try again.");
@@ -719,6 +734,8 @@ export default function ShowcaseManagePage() {
                 page={meta}
                 includeCode={includeCode}
                 onIncludeCodeChange={setIncludeCode}
+                onAutoApproveChange={(v) => void changeAutoApprove(v)}
+                savingAutoApprove={savingAutoApprove}
                 heading={
                   showCelebration ? (
                   <div className="mb-5 animate-fade-up motion-reduce:animate-none">
@@ -756,6 +773,8 @@ export default function ShowcaseManagePage() {
               page={meta}
               includeCode={includeCode}
               onIncludeCodeChange={setIncludeCode}
+              onAutoApproveChange={(v) => void changeAutoApprove(v)}
+              savingAutoApprove={savingAutoApprove}
               heading={
                 <div className="mb-2">
                   <PanelTitle>Invite participants</PanelTitle>

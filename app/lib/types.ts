@@ -420,6 +420,9 @@ export interface ShowcaseCollection {
   createdBy: string;
   // Handed to participants; submitting with it skips review. Absent on the public page.
   submitCode?: string;
+  // On: every app goes on the page at once. Off: the organiser reviews unless
+  // the app was sent with the code. Absent on the public page.
+  autoApprove?: boolean;
   // Organiser-supplied HTML shown on an event page above its apps. Only the
   // single-page reads (create, detail, edit) carry it; lists leave it out.
   customHtml?: string | null;
@@ -434,6 +437,8 @@ export interface ShowcasePage {
   title: string;
   intro: string | null;
   type: ShowcaseType;
+  // Events only: apps go on at once, no code needed.
+  autoApprove?: boolean;
   projectCount: number;
   createdAt: string;
 }

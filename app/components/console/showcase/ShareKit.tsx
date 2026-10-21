@@ -33,7 +33,7 @@ const RESET_MS = 1800;
 /* Below sm every button takes the full row at a 44px touch height. */
 const ROW_BTN = "h-11 w-full sm:h-9 sm:w-auto";
 
-type SharePage = { slug: string; title: string; intro: string | null; submitCode?: string };
+type SharePage = { slug: string; title: string; intro: string | null; submitCode?: string; autoApprove?: boolean };
 
 function BlockLabel({ children }: { children: React.ReactNode }) {
   return <h3 className="text-[0.8rem] font-semibold text-muted-foreground">{children}</h3>;
@@ -55,7 +55,7 @@ export function ShareKit({ page, celebrate }: { page: SharePage; celebrate?: boo
           <BlockLabel>For participants</BlockLabel>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <CopyPromptButton
-              text={showcaseListPrompt({ slug: page.slug, title: page.title, type: "event" }, null, page.submitCode)}
+              text={showcaseListPrompt({ slug: page.slug, title: page.title, type: "event" }, null, page.autoApprove ? null : page.submitCode)}
               className={cn(buttonVariants({ variant: "outline" }), ROW_BTN)}
               announce="Prompt copied."
               copiedChildren={
