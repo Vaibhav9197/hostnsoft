@@ -9,6 +9,7 @@ import { ApprovalCodeDialog } from "@/app/components/console/showcase/ApprovalCo
 import { Button } from "@/app/components/ui/button";
 import { showcaseApi } from "@/app/lib/hnsApi";
 import { formatDate } from "@/app/lib/format";
+import { usePermissions } from "@/app/lib/permissions";
 import { SITE_HOST } from "@/app/lib/site";
 import type { ShowcaseListing } from "@/app/lib/types";
 
@@ -29,6 +30,8 @@ export function ProjectShowcasePages({
   const [listings, setListings] = useState<ShowcaseListing[] | null>(null);
   /* The waiting listing whose code is being entered, if any. */
   const [codeFor, setCodeFor] = useState<ShowcaseListing | null>(null);
+  // Entering a code re-lists the app, which is a change to its settings.
+  const canChange = usePermissions().can("app.settings", projectId);
 
   useEffect(() => {
     if (!companyId) return;
@@ -104,7 +107,7 @@ export function ProjectShowcasePages({
               </div>
               {/* Only while waiting: a code from the organiser puts it on the
                   page now, without listing it again through the AI. */}
-              {l.status === "pending" && (
+              {l.status === "pending" && canChange && (
                 <Button variant="outline" size="sm" onClick={() => setCodeFor(l)}>
                   I have an approval code
                 </Button>

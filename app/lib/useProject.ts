@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { HnsError } from "./client";
 import { markMainDataSettled } from "./earlyReads";
 import { projectsApi } from "./hnsApi";
 import { readLastSeen, writeLastSeen } from "./lastSeen";
@@ -88,7 +89,15 @@ export function useProject(companyId: string | null, projectId: string) {
       // A failed first read drops last visit's copy rather than showing it
       // under the error; a failed refresh keeps what is on screen.
       if (first) setProject(null);
-      setError(e instanceof Error ? e.message : "This project couldn’t be found.");
+      /* The API answers 404 both for an app that's gone and for one this
+         person's role doesn't reach (only Billing, which reaches no apps;
+         everyone else can at least view every app) — on purpose, so it
+         can't say which. */
+      setError(
+        e instanceof HnsError && e.status === 404
+          ? "This app isn’t here. It may have been removed, or your role doesn’t include apps."
+          : e instanceof Error ? e.message : "This app couldn’t be found.",
+      );
     } finally {
       // Lets the header's billing read go (earlyReads.ts).
       if (first) markMainDataSettled();

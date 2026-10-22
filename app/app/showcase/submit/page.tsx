@@ -1,3 +1,4 @@
+import { NeedsPermission } from "../../../components/console/NeedsPermission";
 import { ListAppForm } from "./ListAppForm";
 
 /* Three ways in: from the Showcase page or an app's row there ("List it" →
@@ -13,11 +14,13 @@ export default async function ListAppPage({
   const params = await searchParams;
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
   return (
-    <ListAppForm
-      initialPage={one(params.page)}
-      initialApp={one(params.app)}
-      fromApp={one(params.from) === "app"}
-      startOnEvent={one(params.where) === "event"}
-    />
+    <NeedsPermission permission="app.view">
+      <ListAppForm
+        initialPage={one(params.page)}
+        initialApp={one(params.app)}
+        fromApp={one(params.from) === "app"}
+        startOnEvent={one(params.where) === "event"}
+      />
+    </NeedsPermission>
   );
 }

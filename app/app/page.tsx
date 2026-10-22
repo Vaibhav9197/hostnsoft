@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { CloudBackdrop } from "../components/console/CloudBackdrop";
-import { Alert, Page, PageHeader, Skeleton } from "../components/console/kit";
-import { Button } from "../components/ui/button";
+import Link from "next/link";
+import { Alert, EmptyState, Page, PageHeader, Skeleton } from "../components/console/kit";
+import { Button, buttonVariants } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { DeployPromptDialog } from "../components/console/DeployPromptDialog";
 import { FirstAppEmpty } from "../components/console/FirstAppEmpty";
@@ -12,11 +13,17 @@ import { AppTile, CreateAppTile } from "../components/console/AppTile";
 import { earlyProjects, markMainDataSettled } from "../lib/earlyReads";
 import { readLastSeen, writeLastSeen } from "../lib/lastSeen";
 import { companiesApi, projectsApi } from "../lib/hnsApi";
+import { usePermissions } from "../lib/permissions";
 import { useSession } from "../lib/session";
 import type { Project } from "../lib/types";
 
 export default function ProjectsPage() {
   const { activeCompanyId, companies, reload } = useSession();
+  /* Only people who may add apps (Owner, Admin, Member) are offered a way to
+     deploy one. Someone who can't (a Billing member) gets an empty list that
+     says why instead of "Deploy your first app". */
+  const { settled, can } = usePermissions();
+  const canAdd = can("app.create");
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -159,13 +166,15 @@ export default function ProjectsPage() {
 
       {error && <Alert>{error}</Alert>}
 
-      {!projects && !error && (
+      {(!projects || (projects.length === 0 && !settled)) && !error && (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3.5">
           {[0, 1, 2].map((i) => <Skeleton className="min-h-[150px]" key={i} aria-hidden="true" />)}
         </div>
       )}
 
-      {projects && projects.length === 0 && <FirstAppEmpty onLive={() => load(true)} />}
+      {projects && projects.length === 0 && settled && (
+        canAdd ? <FirstAppEmpty onLive={() => load(true)} /> : <NoAppsShared toBilling={!can("app.view") && can("billing.manage")} />
+      )}
 
       {projects && projects.length > 0 && (
         <div className="sc">
@@ -178,11 +187,31 @@ export default function ProjectsPage() {
             {projects.map((p) => (
               <AppTile key={p.id} project={p} />
             ))}
-            <CreateAppTile onClick={() => setCreating(true)} />
+            {canAdd && <CreateAppTile onClick={() => setCreating(true)} />}
           </div>
         </div>
       )}
     </Page>
+  );
+}
+
+/* The empty list for someone who can't add apps: nothing is wrong, nothing to
+   deploy — just who decides what shows up here. */
+function NoAppsShared({ toBilling }: { toBilling: boolean }) {
+  if (toBilling) {
+    return (
+      <EmptyState title="You look after this workspace’s plan">
+        <p className="mx-auto max-w-[44ch]">Apps aren’t part of the Billing role, so none show here.</p>
+        <div className="mt-5">
+          <Link href="/app/billing" className={buttonVariants()}>Go to billing</Link>
+        </div>
+      </EmptyState>
+    );
+  }
+  return (
+    <EmptyState title="Your workspace’s apps will appear here">
+      When someone in this workspace adds an app, you’ll see it here.
+    </EmptyState>
   );
 }
 

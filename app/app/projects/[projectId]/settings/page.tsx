@@ -376,8 +376,8 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ proj
         </Panel>
       )}
 
-      {/* Only for someone who may delete this app — a Developer without that
-          right can still delete apps they added themselves. */}
+      {/* Only for someone with full access to this app — an Owner, an Admin,
+          the Member who added it, or a Member given full access. */}
       {canDelete && (
       <Panel padded tone="danger">
         <PanelTitle tone="danger">Remove this app</PanelTitle>

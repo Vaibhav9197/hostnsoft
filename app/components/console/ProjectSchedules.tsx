@@ -12,6 +12,7 @@ import { buttonVariants } from "@/app/components/ui/button";
 import { consoleFixSchedulePrompt } from "@/app/lib/deployPrompt";
 import { formatDateTime, relativeTime, untilTime } from "@/app/lib/format";
 import { schedulesApi } from "@/app/lib/hnsApi";
+import { usePermissions } from "@/app/lib/permissions";
 import type { Schedule } from "@/app/lib/types";
 import { cn } from "@/app/lib/utils";
 
@@ -35,6 +36,9 @@ export function ProjectSchedules({
   appName: string;
 }) {
   const [schedules, setSchedules] = useState<Schedule[] | null>(null);
+  // Fixing a job means publishing the app again, which takes full access.
+  // Anyone less sees the jobs and how they're doing, not the fix prompt.
+  const mayFix = usePermissions().can("app.deploy", projectId);
 
   useEffect(() => {
     if (!companyId) return;
@@ -66,15 +70,15 @@ export function ProjectSchedules({
         <p className="mt-0.5 text-[0.85rem] text-muted-foreground">
           {failing > 0
             ? failing === 1
-              ? "One of this app's jobs is failing. Hand it to your AI to fix."
-              : `${failing} of this app's jobs are failing. Hand them to your AI to fix.`
+              ? `One of this app's jobs is failing.${mayFix ? " Hand it to your AI to fix." : ""}`
+              : `${failing} of this app's jobs are failing.${mayFix ? " Hand them to your AI to fix." : ""}`
             : "Embarko runs these on time, even when nobody is using the app."}
         </p>
       </div>
       <Panel>
         <ul className="divide-y divide-border">
           {schedules.map((s) => (
-            <JobRow key={s.id} schedule={s} appName={appName} companyId={companyId!} projectId={projectId} />
+            <JobRow key={s.id} schedule={s} appName={appName} companyId={companyId!} projectId={projectId} mayFix={mayFix} />
           ))}
         </ul>
       </Panel>
@@ -99,11 +103,13 @@ function JobRow({
   appName,
   companyId,
   projectId,
+  mayFix,
 }: {
   schedule: Schedule;
   appName: string;
   companyId: string;
   projectId: string;
+  mayFix: boolean;
 }) {
   const last = s.lastRun;
   const job = s.name ?? s.path;
@@ -146,7 +152,7 @@ function JobRow({
       )}
       {/* The one action for a broken job: hand it to the AI, with the job and
           its last error already in the prompt. */}
-      {s.failing && (
+      {s.failing && mayFix && (
         <CopyPromptButton
           text={consoleFixSchedulePrompt({
             appName,

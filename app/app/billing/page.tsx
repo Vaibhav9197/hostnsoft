@@ -18,6 +18,7 @@ import {
   Toast,
 } from "../../components/console/kit";
 import { ConfirmDialog } from "../../components/console/ConfirmDialog";
+import { NeedsPermission } from "../../components/console/NeedsPermission";
 import { CouponBox, type CouponBoxState, couponErrorMessage, describeCoupon } from "../../components/console/CouponBox";
 import { Button } from "../../components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
@@ -56,7 +57,17 @@ const price = (p: BillingPlan) => `${formatMoney(p.amount_cents, p.amount_curren
 
 type Interval = "monthly" | "yearly";
 
+// Owner, Admin and Billing. The plan chip in the header is for everyone;
+// the plan, cards and coupons here aren't.
 export default function BillingPage() {
+  return (
+    <NeedsPermission permission="billing.manage">
+      <Billing />
+    </NeedsPermission>
+  );
+}
+
+function Billing() {
   const { activeCompanyId, activeCompany, user } = useSession();
   const { active, pending, plans, setup, isFree, error: billingError, reload } = useBilling();
 

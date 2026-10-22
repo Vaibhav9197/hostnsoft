@@ -8,7 +8,7 @@
 - **Wants to:** collect the apps built at their event on one public page
 - **Ends with:** A live event page with a poster and QR code, filling with the apps people send.
 - **Steps:** 5 · 0 by AI · 5 can go wrong
-- **Last change to its code:** v54, 21 Oct 2026 — feat: add auto-approve configuration option for showcase events
+- **Last change to its code:** v55, 21 Oct 2026 — feat: add auto-approve configuration option for showcase events
 
 [← All stories](../README.md)
 
@@ -113,8 +113,8 @@ flowchart TD
   - If the address can't be checked → "You can still create the page."
   - If creating fails → "Couldn't create the page."
 - **Parts:** Showcase organisers (`organisers`), Showcase manager (`showcase-manage`), Showcase service (`showcase-service`), Showcase records (`showcase-data`)
-- **Keeps:** `AppDetails`, `AppGrant`, `AuditLog`, `PendingInvite`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`, `WorkspaceMember`
-- **Looks up:** `DeployToken`, `Domain`
+- **Keeps:** `AppDetails`, `AppGrant`, `AuditLog`, `PendingInvite`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`, `WorkspaceMember`, `WorkspaceRoleSetup`
+- **Looks up:** `Company`, `DeployToken`, `Domain`
 - **Code:** `page:/app/showcase/new` → `app/app/showcase/new/page.tsx`, `lib:app/app/showcase/new/NewShowcaseForm` → `app/app/showcase/new/NewShowcaseForm.tsx`, `lib:app/lib/showcaseAddress` → `app/lib/showcaseAddress.ts`, `api:@api/companies/:companyId/showcase/collections` → `@api/src/routes/showcase.routes.ts`
 - **Outside services:** Redis, viaSocket webhook
 
@@ -152,8 +152,8 @@ flowchart TD
   - If hiding fails → it is undone and "Couldn't show or hide it."
   - If an app arrives while they remove the page → "Someone just added an app, so this page can't be removed."
 - **Parts:** Showcase organisers (`organisers`), Showcase manager (`showcase-manage`), Showcase service (`showcase-service`)
-- **Keeps:** `AppDetails`, `AppGrant`, `AuditLog`, `PendingInvite`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`, `WorkspaceMember`
-- **Looks up:** `DeployToken`, `Domain`
+- **Keeps:** `AppDetails`, `AppGrant`, `AuditLog`, `PendingInvite`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`, `WorkspaceMember`, `WorkspaceRoleSetup`
+- **Looks up:** `Company`, `DeployToken`, `Domain`
 - **Code:** `lib:app/components/console/showcase/RequestRows` → `app/components/console/showcase/RequestRows.tsx`, `lib:app/components/console/showcase/ListingRows` → `app/components/console/showcase/ListingRows.tsx`, `api:@api/companies/:companyId/showcase/collections/:collectionId/projects/:listingId` → `@api/src/routes/showcase.routes.ts`
 - **Outside services:** Redis, viaSocket webhook
 
@@ -188,13 +188,15 @@ See [system-map.md](../system-map.md) for how the parts connect.
 ## Tables
 
 - **Keeps** `AppDetails` — Public-facing details of a deployed app.
-- **Keeps** `AppGrant` — One app a developer/viewer with appScope "selected" may reach, and how far: "manage" (deploy, change settings) or "view" (status, logs, history).
+- **Keeps** `AppGrant` — A Member's access to one project, above the default "use": "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `PendingInvite` — A role chosen for someone before they are a member.
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
 - **Keeps** `ShowcaseEvent` — An event page, /showcase/<slug>: a hackathon, a demo day.
 - **Keeps** `ShowcaseEventListing` — One app shown on one event page.
 - **Keeps** `WorkspaceMember` — A member's role in one workspace.
+- **Keeps** `WorkspaceRoleSetup` — How far a workspace's roles have been set up (permissions.ts setUpWorkspaceRoles).
+- **Looks up** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Looks up** `DeployToken` — A deploy token.
 - **Looks up** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
 
@@ -204,11 +206,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v54 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | create, review |
-| v53 (ee930c9) | 21 Oct 2026 | feat: add auto-approve setting for showcase collections and submission flow | create, share, watch |
+| v55 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | create, review |
+| v54 (ee930c9) | 21 Oct 2026 | feat: add auto-approve setting for showcase collections and submission flow | create, share, watch |
+| v53 (dc830b8) | 13 Oct 2026 | feat: add Company model to mirror billing state and fallback when Lago is unreachable | — |
 | v52 (c85241c) | 13 Oct 2026 | feat(orphan): claim link — keep a temporary app by signing in, no redeploy | — |
 | v51 (b362cfe) | 13 Oct 2026 | feat(guides): move to /guides, 4 new guides, share launcher, llms.txt | public |
-| v50 (dd7f1da) | 12 Oct 2026 | feat(blog): Guides layout with covers, share, reading rail | public |
 
 ## Open questions
 

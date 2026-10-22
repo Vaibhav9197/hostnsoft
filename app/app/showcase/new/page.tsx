@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { Page, PageHeader } from "@/app/components/console/kit";
+import { NeedsPermission } from "@/app/components/console/NeedsPermission";
 import { PosterPreview } from "@/app/components/console/showcase/PosterPreview";
 
 import { NewShowcaseForm, type ShowcaseDraft } from "./NewShowcaseForm";
@@ -18,7 +19,16 @@ import { NewShowcaseForm, type ShowcaseDraft } from "./NewShowcaseForm";
  * only (the form is the source of truth), and is left out below md where
  * there is no room beside the fields.
  */
+// Making a showcase page is the workspace's (Owner, Admin).
 export default function NewShowcasePage() {
+  return (
+    <NeedsPermission permission="workspace.manage">
+      <NewShowcase />
+    </NeedsPermission>
+  );
+}
+
+function NewShowcase() {
   const [draft, setDraft] = useState<ShowcaseDraft>({ title: "", intro: "", slug: "" });
 
   return (

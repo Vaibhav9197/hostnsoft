@@ -11,6 +11,7 @@ import {
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
 import { useBilling } from "@/app/lib/billing";
+import { usePermissions } from "@/app/lib/permissions";
 import { cn } from "@/app/lib/utils";
 
 /**
@@ -25,7 +26,12 @@ export function HeaderPlanBadge() {
   const { setup, planName, isFree, error } = useBilling();
   const pathname = usePathname();
   const onBilling = pathname === "/app/billing";
+  const { settled, can } = usePermissions();
 
+  // Both shapes lead to Billing and invite a plan change, which only Owners,
+  // Admins and Billing members can make; for anyone else it's a dead end.
+  // Held back until permissions are in, so it never shows and then vanishes.
+  if (!settled || !can("billing.manage")) return null;
   if (error || setup === "unknown") return null;
 
   if (isFree) {

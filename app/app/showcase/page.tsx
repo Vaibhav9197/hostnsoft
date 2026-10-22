@@ -6,7 +6,9 @@ import { ArrowUpRight, ChevronRight, Globe, Plus } from "lucide-react";
 
 import { Alert, LinkButton, Page, PageHeader, Skeleton, Tag } from "@/app/components/console/kit";
 import { Button } from "@/app/components/ui/button";
+import { NeedsPermission } from "@/app/components/console/NeedsPermission";
 import { showcaseApi } from "@/app/lib/hnsApi";
+import { usePermissions } from "@/app/lib/permissions";
 import { useSession } from "@/app/lib/session";
 import { readSeen } from "@/app/lib/showcaseSeen";
 import { SITE_HOST } from "@/app/lib/site";
@@ -41,7 +43,17 @@ const byNewest = (a: { createdAt: string }, b: { createdAt: string }) =>
   Date.parse(b.createdAt) - Date.parse(a.createdAt);
 
 export default function ShowcasePage() {
+  return (
+    <NeedsPermission permission="app.view">
+      <Showcase />
+    </NeedsPermission>
+  );
+}
+
+function Showcase() {
   const { activeCompanyId } = useSession();
+  // Making a showcase page is workspace.manage (Owner, Admin).
+  const canCreate = usePermissions().can("workspace.manage");
   const [data, setData] = useState<Data | null>(null);
   const [failed, setFailed] = useState(false);
   /* Bumped by "Try again" to re-run the load. */
@@ -82,7 +94,7 @@ export default function ShowcasePage() {
           title="Showcase"
           subtitle="Pages that show off apps. Make one for your hackathon, class or demo day."
           actions={
-            <div className="flex w-full flex-col gap-2.5 sm:w-auto sm:flex-row-reverse">
+            canCreate && <div className="flex w-full flex-col gap-2.5 sm:w-auto sm:flex-row-reverse">
               <Button asChild className="max-sm:h-11 max-sm:w-full">
                 <Link href="/app/showcase/new">
                   <Plus aria-hidden="true" />
@@ -115,13 +127,13 @@ export default function ShowcasePage() {
           <Skeleton className="h-[72px]" />
         </div>
       ) : (
-        <PageList data={data} />
+        <PageList data={data} canCreate={canCreate} />
       )}
     </Page>
   );
 }
 
-function PageList({ data }: { data: Data }) {
+function PageList({ data, canCreate }: { data: Data; canCreate: boolean }) {
   const company = data.collections.find((c) => c.type === "public") ?? null;
   const events = data.collections.filter((c) => c.type === "event").sort(byNewest);
   const companyListings = data.mine.filter((l) => l.collection.type === "public").sort(byNewest);
@@ -164,7 +176,7 @@ function PageList({ data }: { data: Data }) {
         )}
 
         {/* No event pages yet: the slot one would take, as an invitation. */}
-        {events.length === 0 && (
+        {events.length === 0 && canCreate && (
           <Link
             href="/app/showcase/new"
             className={cn(ROW_SHAPE, FOCUS, "border-dashed border-input bg-transparent transition-colors hover:bg-card motion-reduce:transition-none")}

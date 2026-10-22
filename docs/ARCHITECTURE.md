@@ -1,7 +1,7 @@
 ---
 covers: ["app/**", "worker.ts", "next.config.mjs", "wrangler.jsonc", "scripts/**"]
-verified_at: 105ccbb
-verified_on: 2026-10-21
+verified_at: 1629250
+verified_on: 2026-10-22
 ---
 # Architecture & Mental Model
 
@@ -98,6 +98,7 @@ Dependency rules that are enforced by the runtime, not by lint:
 | Identity + workspaces (client) | `app/lib/session.tsx:SessionProvider` (`status`, `user`, `companies`, `apiConnected`, `isSuperAdmin`) | Tab | `reload()` re-calls `authMe`; `signOut()` clears everything |
 | Active workspace | `localStorage` `hns.activeCompany` (`app/lib/session.tsx`) | Persistent | `setActiveCompanyId` writes it and fires best-effort `POST /api/auth/switch-company`; removed on sign-out |
 | Billing | `app/lib/billing.tsx:BillingProvider` | Per active company | `reload()` after plan changes; waits for `whenMainDataSettled` off the Billing page |
+| Role and permissions | `app/lib/permissions.tsx:PermissionsProvider` (`GET /me/permissions`) | Per active company | `reload()` after a role change; `can()` reads as allowed until `settled`, so pages whose requests a role may refuse wrap in `app/components/console/NeedsPermission.tsx`, which waits for `settled` and shows a calm "not part of your role" state. Presentation only: the API enforces every check |
 | Project detail | `app/lib/useProject.ts:useProject` (per-instance state + shared in-flight request, 2s) | Component | `app/lib/useProject.ts:refreshProjects` bumps a revision every instance subscribes to |
 | Last-seen snapshots | `localStorage` `hns.lastSeen:*` (`app/lib/lastSeen.ts`) | Persistent | `clearLastSeen` on sign-out or expired session; only ever a first frame |
 | One-time token dedupe | `sessionStorage` `hns.exchangedToken` (`app/lib/client.ts:wasExchanged`) | Tab | Prevents spending a single-use MSG91 token twice |

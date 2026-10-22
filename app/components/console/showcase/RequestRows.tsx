@@ -24,9 +24,12 @@ export function RequestRows({
   onReject,
   onRemove,
   bare,
+  readOnly,
 }: {
   listings: ShowcaseListing[];
   bare?: boolean;
+  /** Seen by someone who can't review: the state, no decisions. */
+  readOnly?: boolean;
   busy: ReadonlySet<string>;
   onApprove: (l: ShowcaseListing) => void;
   onReject: (l: ShowcaseListing) => void;
@@ -67,7 +70,7 @@ export function RequestRows({
                   </div>
                 )}
                 <div className="flex shrink-0 items-center gap-2">
-                  {pending ? (
+                  {readOnly ? null : pending ? (
                     <>
                       <Button size="sm" className="h-9 sm:h-8" disabled={busy.has(l.id)} onClick={() => onApprove(l)} aria-label={`Approve ${l.name}`}>
                         Approve

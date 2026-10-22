@@ -92,7 +92,7 @@ flowchart TD
   - If A workspace already owns the name → refused (app_name_taken).
   - If deploying the same trial app again → it is updated, but the 24 hours do not restart.
 - **Parts:** App records (`app-records`), Apps and deploys (`apps-data`)
-- **Keeps:** `AppDetails`, `AppGrant`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `EnvVar`, `PendingInvite`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`, `WorkspaceMember`
+- **Keeps:** `AppDetails`, `AppGrant`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `EnvVar`, `PendingInvite`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`, `WorkspaceMember`, `WorkspaceRoleSetup`
 - **Looks up:** `Domain`, `ScheduleRun`
 - **Code:** `api:@api/internal/projects/claim` → `@api/src/routes/internalProjects.routes.ts`, `lib:@api/src/services/projectClaim` → `@api/src/services/projectClaim.ts`, `lib:@api/src/lib/orphanMessage` → `@api/src/lib/orphanMessage.ts`
 - **Outside services:** Lago, Redis, Stripe, viaSocket webhook
@@ -128,7 +128,7 @@ flowchart TD
 - **If it goes wrong:**
   - If the key is revoked by then → refused (401), and the app stays a trial.
 - **Parts:** Deploy intake (`intake`), App records (`app-records`)
-- **Keeps:** `AppDetails`, `AppGrant`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `EnvVar`, `PendingInvite`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`, `WorkspaceMember`
+- **Keeps:** `AppDetails`, `AppGrant`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `EnvVar`, `PendingInvite`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`, `WorkspaceMember`, `WorkspaceRoleSetup`
 - **Looks up:** `Domain`, `ScheduleRun`
 - **Code:** `api:@api/internal/projects/claim` → `@api/src/routes/internalProjects.routes.ts`, `lib:@api/src/services/projectClaim` → `@api/src/services/projectClaim.ts`
 - **Outside services:** Lago, Redis, Stripe, viaSocket webhook
@@ -167,7 +167,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 ## Tables
 
 - **Keeps** `AppDetails` — Public-facing details of a deployed app.
-- **Keeps** `AppGrant` — One app a developer/viewer with appScope "selected" may reach, and how far: "manage" (deploy, change settings) or "view" (status, logs, history).
+- **Keeps** `AppGrant` — A Member's access to one project, above the default "use": "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `DeployToken` — A deploy token.
@@ -180,6 +180,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `ShowcaseEventListing` — One app shown on one event page.
 - **Keeps** `SlugAlias` — A name an app used to have — one row per previous slug, written on every successful address change (services/projectSlugChange.ts).
 - **Keeps** `WorkspaceMember` — A member's role in one workspace.
+- **Keeps** `WorkspaceRoleSetup` — How far a workspace's roles have been set up (permissions.ts setUpWorkspaceRoles).
 - **Looks up** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
 - **Looks up** `ScheduleRun` — One call the runner made (or chose not to make).
 

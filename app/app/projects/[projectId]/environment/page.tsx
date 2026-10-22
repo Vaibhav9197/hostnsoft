@@ -28,7 +28,7 @@ export default function EnvironmentPage({ params }: { params: Promise<{ projectI
   const { projectId } = use(params);
   const { activeCompanyId } = useSession();
   const { project } = useProject(activeCompanyId, projectId);
-  // Someone who can see the app but not change it (a Viewer) sees which
+  // Someone without full access to the app sees which
   // variables exist, never their values — the API leaves those out too.
   const canEdit = usePermissions().can("app.settings", projectId);
   const [vars, setVars] = useState<EnvVar[] | null>(null);

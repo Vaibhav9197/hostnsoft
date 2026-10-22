@@ -6,6 +6,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { companiesApi } from "../../lib/hnsApi";
 import { formatDate } from "../../lib/format";
+import { usePermissions } from "../../lib/permissions";
 import { useSession } from "../../lib/session";
 import type { CompanyDetail } from "../../lib/types";
 
@@ -16,6 +17,13 @@ export default function SettingsPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [savingName, setSavingName] = useState(false);
+  const { can, data: perms } = usePermissions();
+  // Renaming is workspace.manage (Owner, Admin); everyone else reads the name.
+  const canRename = can("workspace.manage");
+  // The count is every app in the workspace. Everyone but Billing can see
+  // every app (a Member at least "Can use"), so only Billing would see a
+  // number that doesn't match anything they can open.
+  const seesAllApps = !perms || perms.role !== "billing";
 
   const load = useCallback(async () => {
     if (!activeCompanyId) return;
@@ -72,9 +80,15 @@ export default function SettingsPage() {
         ) : (
           <>
             <p className="mt-1 text-[0.92rem] text-muted-foreground">
-              {company.projectCount === 1 ? "1 app" : `${company.projectCount} apps`}
-              {company.createdAt && <> · Created {formatDate(company.createdAt)}</>}
+              {seesAllApps && (company.projectCount === 1 ? "1 app" : `${company.projectCount} apps`)}
+              {seesAllApps && company.createdAt && " · "}
+              {company.createdAt && <>Created {formatDate(company.createdAt)}</>}
             </p>
+            {!canRename ? (
+              <FactGrid flush>
+                <Fact flush k="Workspace name" v={company.name} />
+              </FactGrid>
+            ) : (
             <form className="mt-4 grid gap-1.5" onSubmit={rename}>
               <label htmlFor="ws-name" className="text-sm font-semibold text-foreground">Workspace name</label>
               <div className="flex flex-wrap gap-2.5">
@@ -82,6 +96,7 @@ export default function SettingsPage() {
                 <Button type="submit" disabled={savingName || !name.trim() || name.trim() === company.name}>{savingName ? "Saving…" : "Rename"}</Button>
               </div>
             </form>
+            )}
             {notice && <Alert variant="info" className="mt-3">{notice}</Alert>}
           </>
         )}

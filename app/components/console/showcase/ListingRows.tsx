@@ -59,6 +59,7 @@ export function ListingRows({
   onToggle,
   onRemove,
   leading,
+  canChange = () => true,
 }: {
   variant: "event" | "company";
   /** Tiles drawn first in the same grid — an event page's requests. */
@@ -73,6 +74,8 @@ export function ListingRows({
   busy: ReadonlySet<string>;
   onToggle: (l: ShowcaseListing, on: boolean) => void;
   onRemove: (l: ShowcaseListing) => void;
+  /** Whether this person may take this listing off. */
+  canChange?: (l: ShowcaseListing) => boolean;
 }) {
   const [query, setQuery] = useState("");
   const [chip, setChip] = useState<Chip>("all");
@@ -230,7 +233,7 @@ export function ListingRows({
               removing={removing.has(l.id)}
               busy={busy.has(l.id)}
               onToggle={onToggle}
-              onRemove={onRemove}
+              onRemove={canChange(l) ? onRemove : undefined}
             />
           ))}
         </div>
@@ -265,7 +268,7 @@ function Row({
   removing: boolean;
   busy: boolean;
   onToggle: (l: ShowcaseListing, on: boolean) => void;
-  onRemove: (l: ShowcaseListing) => void;
+  onRemove?: (l: ShowcaseListing) => void;
 }) {
   return (
     <div
@@ -286,13 +289,15 @@ function Row({
           )}
           <span className="text-faint">Added {formatDate(l.createdAt)}</span>
         </div>
-        <LinkButton
-          disabled={busy || removing}
-          onClick={() => onRemove(l)}
-          className={cn("min-h-11 shrink-0 px-1 sm:min-h-0", FOCUS)}
-        >
-          Remove<span className="sr-only"> {l.name}</span>
-        </LinkButton>
+        {onRemove && (
+          <LinkButton
+            disabled={busy || removing}
+            onClick={() => onRemove(l)}
+            className={cn("min-h-11 shrink-0 px-1 sm:min-h-0", FOCUS)}
+          >
+            Remove<span className="sr-only"> {l.name}</span>
+          </LinkButton>
+        )}
       </div>
     </div>
   );

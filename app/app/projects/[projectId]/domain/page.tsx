@@ -15,9 +15,10 @@ import type { Domain, DomainInstructions } from "../../../../lib/types";
 export default function DomainPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = use(params);
   const { activeCompanyId } = useSession();
-  // Adding, verifying and removing domains are app settings; someone who can
-  // only view the app sees the domains and their state, nothing to press.
-  const canChange = usePermissions().can("app.settings", projectId);
+  // Adding, verifying and removing domains are app settings (full access);
+  // anyone with less sees the domains and their state, nothing to press.
+  const { can, settled } = usePermissions();
+  const canChange = can("app.settings", projectId);
 
   const [domains, setDomains] = useState<Domain[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +62,9 @@ export default function DomainPage({ params }: { params: Promise<{ projectId: st
    * IP is the server's to decide, not ours to hardcode).
    */
   useEffect(() => {
-    if (!activeCompanyId || !domains || !canChange) return;
+    // Waits for permissions: before they load, can() reads "allowed", and a
+    // page without full access would send checks the API only refuses.
+    if (!activeCompanyId || !domains || !canChange || !settled) return;
     const missing = domains.filter(
       (d) => d.status !== "active" && !d.instructions && !recovered.current.has(d.domain),
     );
@@ -101,7 +104,7 @@ export default function DomainPage({ params }: { params: Promise<{ projectId: st
        correctly finds nothing to do — and cancelling the first would throw away
        the only fetch anyone made. Settling into unmounted state is a no-op in
        React 18+, so letting it land costs nothing. */
-  }, [activeCompanyId, projectId, domains, canChange]);
+  }, [activeCompanyId, projectId, domains, canChange, settled]);
 
   // Replace one row in place, so a verify result doesn't cost a full reload.
   function merge(next: Domain) {

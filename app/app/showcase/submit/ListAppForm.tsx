@@ -10,6 +10,7 @@ import { Button, buttonVariants } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { projectsApi, showcaseApi } from "../../../lib/hnsApi";
 import { HnsError } from "../../../lib/client";
+import { usePermissions } from "../../../lib/permissions";
 import { useSession } from "../../../lib/session";
 import { CATEGORIES, TOOLS } from "../../../lib/showcaseOptions";
 import { showcaseListPrompt } from "../../../lib/showcasePrompt";
@@ -130,11 +131,15 @@ export function ListAppForm({
       });
   }, [activeCompanyId]);
 
+  /* Listing an app is a change to that app, so only the apps this person may
+     change are offered. Mounted behind NeedsPermission, so can() is settled. */
+  const { can } = usePermissions();
   useEffect(() => {
     if (!activeCompanyId) return;
     projectsApi
       .list(activeCompanyId)
-      .then((list) => {
+      .then((all) => {
+        const list = all.filter((p) => can("app.settings", p.id));
         setProjects(list);
         /* One app and nothing preselected: choose it, there is nothing to decide. */
         if (!initialApp && list.length === 1) setProjectId(list[0].id);
@@ -143,7 +148,7 @@ export function ListAppForm({
         setProjects([]);
         setError(e instanceof Error ? e.message : "Couldn’t load your apps.");
       });
-  }, [activeCompanyId, initialApp]);
+  }, [activeCompanyId, initialApp, can]);
 
   /* The listing's name follows the chosen app's name until edited by hand. */
   useEffect(() => {

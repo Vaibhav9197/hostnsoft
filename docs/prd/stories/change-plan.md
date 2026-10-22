@@ -114,7 +114,7 @@ flowchart TD
   - If no card on file for a paid plan → refused (BILLING_PAYMENT_METHOD_REQUIRED, 402).
   - If cards can't load → "Couldn't load payment methods."
 - **Parts:** Billing (`billing`), Billing providers (`payments`)
-- **Keeps:** `AppGrant`, `AuditLog`, `Company`, `PendingInvite`, `WorkspaceMember`
+- **Keeps:** `AppGrant`, `AuditLog`, `Company`, `PendingInvite`, `WorkspaceMember`, `WorkspaceRoleSetup`
 - **Looks up:** `DeployToken`, `Project`
 - **Code:** `page:/app/billing` → `app/app/billing/page.tsx`, `api:@api/companies/:companyId/billing/checkout-url` → `@api/src/routes/billing.routes.ts`, `lib:@api/src/lib/stripe` → `@api/src/lib/stripe.ts`
 - **Outside services:** Lago, Redis, Stripe
@@ -128,7 +128,7 @@ flowchart TD
   - If the change fails → the server's reason, or "Something went wrong. Please try again."
   - If A payment later fails → nothing in Embarko hears about it; there are no billing webhooks.
 - **Parts:** Panel bridge (`bridge`), Billing (`billing`), Billing providers (`payments`)
-- **Keeps:** `AppGrant`, `AuditLog`, `Company`, `Domain`, `PendingInvite`, `WorkspaceMember`
+- **Keeps:** `AppGrant`, `AuditLog`, `Company`, `Domain`, `PendingInvite`, `WorkspaceMember`, `WorkspaceRoleSetup`
 - **Looks up:** `DeployToken`, `Deployment`, `EnvVar`, `Project`
 - **Code:** `api:@api/companies/:companyId/billing/subscription` → `@api/src/routes/billing.routes.ts`, `lib:@api/src/services/billingCustomer` → `@api/src/services/billingCustomer.ts`
 - **Outside services:** Lago, Redis, Stripe
@@ -148,12 +148,13 @@ See [system-map.md](../system-map.md) for how the parts connect.
 
 ## Tables
 
-- **Keeps** `AppGrant` — One app a developer/viewer with appScope "selected" may reach, and how far: "manage" (deploy, change settings) or "view" (status, logs, history).
+- **Keeps** `AppGrant` — A Member's access to one project, above the default "use": "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
 - **Keeps** `PendingInvite` — A role chosen for someone before they are a member.
 - **Keeps** `WorkspaceMember` — A member's role in one workspace.
+- **Keeps** `WorkspaceRoleSetup` — How far a workspace's roles have been set up (permissions.ts setUpWorkspaceRoles).
 - **Looks up** `DeployToken` — A deploy token.
 - **Looks up** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Looks up** `EnvVar`

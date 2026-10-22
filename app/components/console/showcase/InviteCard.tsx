@@ -25,17 +25,21 @@ export function InviteCard({
   heading,
   onAutoApproveChange,
   savingAutoApprove,
+  canManage = true,
 }: {
   page: { slug: string; title: string; submitCode?: string | null; autoApprove?: boolean };
   includeCode: boolean;
   onIncludeCodeChange: (next: boolean) => void;
   onAutoApproveChange: (next: boolean) => void;
   savingAutoApprove?: boolean;
+  /** False for someone who can't run the page: no auto-approve switch, and
+   *  the prompt goes out without the code. */
+  canManage?: boolean;
   /** The card's title area — "No apps yet", the just-created celebration, or "Invite participants". */
   heading: React.ReactNode;
 }) {
   const checkboxId = useId();
-  const code = page.autoApprove ? null : (page.submitCode ?? null);
+  const code = page.autoApprove || !canManage ? null : (page.submitCode ?? null);
 
   return (
     <Panel padded>
@@ -44,7 +48,7 @@ export function InviteCard({
         Send participants a prompt. Their AI adds the app for them.
       </p>
 
-      <div className="mt-5">
+      {canManage && <div className="mt-5">
         <AutoApproveField
           checked={!!page.autoApprove}
           onChange={onAutoApproveChange}
@@ -78,7 +82,7 @@ export function InviteCard({
             )
           }
         />
-      </div>
+      </div>}
 
       <CopyPromptButton
         text={showcaseListPrompt(

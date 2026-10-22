@@ -32,6 +32,7 @@ import type {
   PendingInvite,
   RoleChange,
   AppGrant,
+  InviteInput,
   OrphanClaimResult,
   PaymentMethod,
   Project,
@@ -81,20 +82,23 @@ export const membersApi = {
   // GET /companies/:companyId/members/:userId — one member, same shape.
   get: (companyId: string, userId: string) => hns<Member>(`/companies/${companyId}/members/${userId}`),
 
-  // PATCH /companies/:companyId/members/:userId — change role / app scope / flags.
+  // PATCH /companies/:companyId/members/:userId — change their role.
   update: (companyId: string, userId: string, change: RoleChange) =>
     hns<Member>(`/companies/${companyId}/members/${userId}`, { method: "PATCH", body: change }),
 
-  // PUT .../members/:userId/apps — replace the apps a "selected" member reaches.
+  // PUT .../members/:userId/apps — replace a Member's per-app access (grants
+  // above the default "use"; an app left out goes back to the default).
   setApps: (companyId: string, userId: string, grants: AppGrant[]) =>
     hns<Member>(`/companies/${companyId}/members/${userId}/apps`, { method: "PUT", body: { grants } }),
 
   // POST /companies/:companyId/invites — remember the role someone gets when
-  // they join. The invite email is sent from the embed.
-  invite: (companyId: string, invite: RoleChange & { email: string; grants?: AppGrant[] }) =>
+  // they join. The invite email is sent from the embed. Without
+  // members.manage only role "member" with no grants is accepted.
+  invite: (companyId: string, invite: InviteInput) =>
     hns<PendingInvite>(`/companies/${companyId}/invites`, { method: "POST", body: invite }),
 
   // DELETE /companies/:companyId/invites/:inviteId — forget a waiting role.
+  // Anyone may cancel an invite they sent; others' take members.manage.
   cancelInvite: (companyId: string, inviteId: string) =>
     hns<null>(`/companies/${companyId}/invites/${inviteId}`, { method: "DELETE" }),
 

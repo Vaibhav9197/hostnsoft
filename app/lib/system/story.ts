@@ -398,9 +398,9 @@ export const AREAS: Area[] = [
     id: "roles",
     name: "Roles",
     lane: "engine",
-    plain: "Decides what each member may do in a workspace: Owner, Admin, Developer, Viewer or Billing, and which apps.",
+    plain: "Decides what each member may do in a workspace: Owner, Admin, Member or Billing, and each Member's access to each app: Can use, Can edit (their AI's changes wait for approval) or Full access (publishes).",
     detail:
-      "MSG91 still decides who is in a workspace, checked on every request. @api then checks the member's role and app access on every panel and agent call, and on every deploy; a personal token has its person's permissions, a workspace token (Owner/Admin-made) acts for the whole workspace and outlives its maker. A member with no role gets one when first seen: Admin if they were active before roles, otherwise Developer; each workspace's first Owner is picked the first time it is used.",
+      "MSG91 still decides who is in a workspace, checked on every request. @api then checks the member's role and app access on every panel and agent call, and on every deploy; a personal token has its person's permissions, a workspace token (Owner/Admin-made) acts for the whole workspace and outlives its maker. Each workspace is set up once (on its first request, and in a sweep at startup): everyone in it then becomes Admin and its creator Owner; anyone who joins later without an invite starts as a Member, who can use every app. Publishing needs Full access to the app; a Member has it on apps they added.",
     judge: "rule",
     refs: [
       "lib:@api/src/lib/permissions",
@@ -771,8 +771,8 @@ export const AREAS: Area[] = [
     id: "roles-data",
     name: "Roles and app access",
     lane: "data",
-    plain: "Each member's role, which apps they can reach, and roles waiting for people who were invited.",
-    refs: ["table:api:WorkspaceMember", "table:api:AppGrant", "table:api:PendingInvite"],
+    plain: "Each member's role, which apps they can reach, roles waiting for people who were invited, and whether each workspace's existing members and owner have been set up.",
+    refs: ["table:api:WorkspaceMember", "table:api:AppGrant", "table:api:PendingInvite", "table:api:WorkspaceRoleSetup"],
   },
   {
     id: "showcase-data",
@@ -2164,9 +2164,9 @@ export const JOURNEYS: Journey[] = [
       {
         id: "invite",
         title: "Invite with a role",
-        plain: "They choose a role (and apps) for an email, then send the invite from MSG91's list. The role applies when the person first arrives.",
+        plain: "They choose a role (and, for a Member, access to apps) for an email, then send the invite from MSG91's list. The role applies when the person first arrives.",
         actor: "user",
-        choices: ["Owner", "Admin", "Developer", "Viewer", "Billing"],
+        choices: ["Owner", "Admin", "Member", "Billing"],
         failure: [
           "The person is already in the workspace → refused (already_member, 409): change their role instead.",
           "An Admin invites an Owner or Admin → refused (owner_required, 403).",
@@ -2177,7 +2177,7 @@ export const JOURNEYS: Journey[] = [
       {
         id: "change",
         title: "Change a role",
-        plain: "They change someone's role, the apps they reach (all, or chosen apps to view or change), and whether a Developer can add or delete apps.",
+        plain: "They change someone's role and, for a Member, their access to each app: Can use (the default), Can edit or Full access.",
         actor: "user",
         failure: [
           "It would leave no Owner → refused (last_owner, 409).",
@@ -2192,9 +2192,9 @@ export const JOURNEYS: Journey[] = [
         plain: "Each panel call, agent call and deploy is checked against the role. The panel hides what the person can't do.",
         actor: "rule",
         failure: [
-          "The action isn't allowed → refused (permission_denied, 403) naming the permission and role; the agent tells the person.",
+          "The action isn't allowed → refused (permission_denied, 403) naming the permission and their access to the app (or role); the agent tells the person.",
           "The app isn't one they can see → it answers as if it doesn't exist (404).",
-          "A personal token whose person left the workspace, or whose role there is too narrow → refused (no_access, 403). A workspace token keeps working after its maker leaves.",
+          "A personal token whose person left the workspace → refused (no_access, 403). A workspace token keeps working after its maker leaves.",
         ],
         areas: ["roles", "intake", "ai-agent"],
         refs: ["api:@api/me/permissions", "lib:@api/src/middleware/requirePermission", "lib:@api/src/lib/permissions"],

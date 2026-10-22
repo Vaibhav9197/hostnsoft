@@ -1,6 +1,7 @@
 "use client";
 
 import { usePermissions } from "../../lib/permissions";
+import { NeedsPermission } from "../../components/console/NeedsPermission";
 import { useCallback, useEffect, useState } from "react";
 import { Copy, Plus } from "lucide-react";
 import { ConfirmDialog, type ConfirmRequest } from "../../components/console/ConfirmDialog";
@@ -44,7 +45,18 @@ const KIND_CHOICES: { kind: DeployTokenKind; title: string; body: string }[] = [
 ];
 
 
+// Owners, Admins and Members make tokens; a Member sees only their own (the
+// API scopes the list), and a token never does more than its maker may.
+// Billing doesn't, so no list loads.
 export default function TokensPage() {
+  return (
+    <NeedsPermission permission="tokens.manage">
+      <Tokens />
+    </NeedsPermission>
+  );
+}
+
+function Tokens() {
   const { activeCompanyId, user } = useSession();
   /* A whole-workspace token reaches every app here and outlives its maker,
      so only an Owner or Admin may make one (the API refuses anyone else).

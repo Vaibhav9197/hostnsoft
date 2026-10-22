@@ -24,6 +24,8 @@ import { Button, buttonVariants } from "@/app/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { HnsError } from "@/app/lib/client";
 import { projectsApi, showcaseApi } from "@/app/lib/hnsApi";
+import { NeedsPermission } from "@/app/components/console/NeedsPermission";
+import { usePermissions } from "@/app/lib/permissions";
 import { useSession } from "@/app/lib/session";
 import { readSeen, writeSeen, type Seen } from "@/app/lib/showcaseSeen";
 import { showcaseGeneralPrompt, showcaseListPrompt } from "@/app/lib/showcasePrompt";
@@ -107,7 +109,20 @@ function TextLink({ href, children }: { href: string; children: React.ReactNode 
 }
 
 export default function ShowcaseManagePage() {
+  return (
+    <NeedsPermission permission="app.view">
+      <ShowcaseManage />
+    </NeedsPermission>
+  );
+}
+
+function ShowcaseManage() {
   const { collectionId } = useParams<{ collectionId: string }>();
+  /* Running an event page (review, hide, remove, auto-approve, delete it) is
+     the workspace's: workspace.manage. On Embarko Showcase each listing is
+     one of this workspace's apps, so changing it is that app's settings. */
+  const { can } = usePermissions();
+  const canOrganise = can("workspace.manage");
   const pathname = usePathname();
   const router = useRouter();
   const { activeCompanyId } = useSession();
@@ -321,8 +336,8 @@ export default function ShowcaseManagePage() {
   );
   const unlisted = useMemo(() => {
     const listed = new Set(everything.map((l) => l.projectId));
-    return (projects ?? []).filter((p) => !listed.has(p.id));
-  }, [everything, projects]);
+    return (projects ?? []).filter((p) => !listed.has(p.id) && can("app.settings", p.id));
+  }, [everything, projects, can]);
 
   const showCelebration = celebrate && isEvent && liveRows.length === 0;
 
@@ -613,6 +628,7 @@ export default function ShowcaseManagePage() {
     busy,
     onToggle: toggle,
     onRemove: askRemove,
+    canChange: (l: ShowcaseListing) => (isEvent ? canOrganise : can("app.settings", l.projectId)),
   };
 
   /* Below sm the header's buttons share one row, equal width, at 44px. */
@@ -687,6 +703,7 @@ export default function ShowcaseManagePage() {
                 Copy prompt to add app
               </DropdownMenuItem>
               {/* Only while the page really is empty: the API refuses otherwise. */}
+              {canOrganise && (
               <DropdownMenuItem variant="destructive" disabled={total > 0} onSelect={askRemovePage}>
                 <Trash2 aria-hidden="true" />
                 <span className="flex flex-col">
@@ -694,6 +711,7 @@ export default function ShowcaseManagePage() {
                   {total > 0 && <span className="text-xs font-normal text-muted-foreground">Remove its apps first</span>}
                 </span>
               </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
@@ -735,6 +753,7 @@ export default function ShowcaseManagePage() {
                 includeCode={includeCode}
                 onIncludeCodeChange={setIncludeCode}
                 onAutoApproveChange={(v) => void changeAutoApprove(v)}
+                canManage={canOrganise}
                 savingAutoApprove={savingAutoApprove}
                 heading={
                   showCelebration ? (
@@ -774,6 +793,7 @@ export default function ShowcaseManagePage() {
               includeCode={includeCode}
               onIncludeCodeChange={setIncludeCode}
               onAutoApproveChange={(v) => void changeAutoApprove(v)}
+              canManage={canOrganise}
               savingAutoApprove={savingAutoApprove}
               heading={
                 <div className="mb-2">
@@ -801,6 +821,7 @@ export default function ShowcaseManagePage() {
                       bare
                       listings={requestRows}
                       busy={busy}
+                      readOnly={!canOrganise}
                       onApprove={(l) => void review(l, true)}
                       onReject={askReject}
                       onRemove={askRemove}
@@ -818,7 +839,7 @@ export default function ShowcaseManagePage() {
           ) : projects && projects.length === 0 ? (
             <EmptyState title="First deploy an app to showcase">
               Show off your apps on Embarko Showcase.
-              <div className="mt-5">
+              {can("app.create") && <div className="mt-5">
                 <CopyPromptButton
                   text={showcaseGeneralPrompt()}
                   announce="Prompt copied."
@@ -828,14 +849,14 @@ export default function ShowcaseManagePage() {
                   <PromptIcon aria-hidden="true" />
                   Copy deploy prompt
                 </CopyPromptButton>
-              </div>
+              </div>}
             </EmptyState>
           ) : (
             <EmptyState title="None of your apps are on Embarko Showcase yet.">
               List one and it gets its own public page in the gallery.
               {/* The AI lists the app. The form at /app/showcase/submit stays
                   in place for later, just without a button here. */}
-              <div className="mt-5">
+              {unlisted.length > 0 && <div className="mt-5">
                 <CopyPromptButton
                   text={showcaseListPrompt({ slug: meta.slug, title: meta.title, type: "public" })}
                   copiedChildren={COPIED_LABEL}
@@ -845,7 +866,7 @@ export default function ShowcaseManagePage() {
                   <PromptIcon aria-hidden="true" />
                   List your app here
                 </CopyPromptButton>
-              </div>
+              </div>}
             </EmptyState>
           )
         ) : (

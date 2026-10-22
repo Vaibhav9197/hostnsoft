@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/app/
 import { Button } from "@/app/components/ui/button";
 import { DeployPromptDialog } from "@/app/components/console/DeployPromptDialog";
 import { HealthPill } from "@/app/components/console/HealthPill";
+import { usePermissions } from "@/app/lib/permissions";
 import { useSession } from "@/app/lib/session";
 import { useProject } from "@/app/lib/useProject";
 import { appHost, appUrl } from "@/app/lib/site";
@@ -35,11 +36,20 @@ const SECTIONS = [
 export function ProjectNav({ projectId }: { projectId: string }) {
   const pathname = usePathname();
   const { activeCompanyId } = useSession();
-  const { project } = useProject(activeCompanyId, projectId);
+  const { project, error } = useProject(activeCompanyId, projectId);
   const [promptOpen, setPromptOpen] = useState(false);
+  // The update prompt hands a redeploy to the AI; publishing takes full
+  // access, so anyone with less sees the app, not the prompt.
+  const { can, settled, levelOf } = usePermissions();
+  const canDeploy = can("app.deploy", projectId);
+  const level = settled ? levelOf(projectId) : null;
 
   const base = `/app/projects/${projectId}`;
   const isActive = (seg: string) => (seg ? pathname.startsWith(`${base}/${seg}`) : pathname === base);
+
+  /* An app that isn't there for this person (deleted, or their role reaches
+     no apps) has no name, address or sections to show; the page below says so. */
+  if (error && !project) return null;
 
   return (
     <div className="mb-6 flex flex-col gap-4">
@@ -87,6 +97,7 @@ export function ProjectNav({ projectId }: { projectId: string }) {
             {/* Says who does the work: the button hands the job to the
                 reader's AI agent (or an upload), it does not itself rebuild
                 anything. "Redeploy this app" read like a server action. */}
+            {canDeploy && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -103,6 +114,7 @@ export function ProjectNav({ projectId }: { projectId: string }) {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+            )}
             <Button asChild>
               <a href={appUrl(project.slug)} target="_blank" rel="noreferrer">
                 Open live URL
@@ -123,6 +135,16 @@ export function ProjectNav({ projectId }: { projectId: string }) {
         appSlug={project?.slug}
         projectId={project?.id}
       />
+
+      {/* Once, for someone with less than full access: what they can do here
+          and who can give more — instead of a disabled button on every page. */}
+      {level && level !== "full" && (
+        <p className="text-[0.85rem] text-muted-foreground">
+          {level === "use"
+            ? "You can use this app. Ask an Owner or Admin if your AI should be able to change it."
+            : "Your AI can prepare changes for someone with Full access to approve. Publishing isn’t available to you yet."}
+        </p>
+      )}
 
       {/* Underline tabs rather than a pill row: they read as sections of this
           project, not as separate destinations. */}

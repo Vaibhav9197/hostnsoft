@@ -38,8 +38,12 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
   const [rollingBack, setRollingBack] = useState<string | null>(null);
   const [rollbackError, setRollbackError] = useState<string | null>(null);
   const { project } = useProject(activeCompanyId, projectId);
-  // Re-deploying needs deploy rights on this app; a Viewer sees history only.
-  const mayDeploy = usePermissions().can("app.deploy", projectId);
+  // Re-deploying is publishing, which takes full access to this app; anyone
+  // with less sees the history. The deploy log needs "Can edit" or more (app.logs).
+  // Held until permissions load, so nobody gets a moment of buttons.
+  const { can, settled } = usePermissions();
+  const mayDeploy = settled && can("app.deploy", projectId);
+  const mayReadLogs = settled && can("app.logs", projectId);
   const [logsOpen, setLogsOpen] = useState(false);
   const [stream, setStream] = useState<LogStream>("stdout");
   const [logs, setLogs] = useState<AppLogs | null>(null);
@@ -153,11 +157,13 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
           and the log button keep the row the heading used to share. */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <p className="text-[0.95rem] leading-relaxed text-muted-foreground">
-          The last {REDEPLOYABLE} versions can be re-deployed.
+          {mayDeploy ? `The last ${REDEPLOYABLE} versions can be re-deployed.` : "Every version of this app, newest first."}
         </p>
-        <Button variant="outline" onClick={() => { setSelected(null); setLogsOpen(true); }}>
-          Last deploy log
-        </Button>
+        {mayReadLogs && (
+          <Button variant="outline" onClick={() => { setSelected(null); setLogsOpen(true); }}>
+            Last deploy log
+          </Button>
+        )}
       </div>
 
       {rollbackError && <Alert>{rollbackError}</Alert>}

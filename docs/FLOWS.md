@@ -1,7 +1,7 @@
 ---
 covers: ["app/app/**", "app/claim/**", "app/connector/**", "app/showcase/**", "app/api/**", "app/components/console/**", "app/lib/session.tsx", "app/lib/hnsApi.ts", "app/lib/useProject.ts", "app/lib/deployPrompt.ts"]
-verified_at: 105ccbb
-verified_on: 2026-10-21
+verified_at: 1629250
+verified_on: 2026-10-22
 ---
 # User Flows & Critical Journeys
 
@@ -326,6 +326,16 @@ re-poll keeps what is on screen; `useProject` drops last visit's copy on a faile
 ---
 
 ## 6. Smaller flows
+
+- **Roles in the panel.** `app/lib/permissions.tsx:usePermissions().can(permission, projectId?)` hides
+  what the person's role can't do: the menu (`HeaderUserMenu.tsx`: Billing, Deploy tokens, Showcase), the
+  plan chip, the "Host new app" tile, app-level actions (`ProjectNav.tsx`, deployments, domain, showcase),
+  workspace rename, and the Members page (`TeamRoles.tsx`: Admins manage everyone except Owners/Admins;
+  everyone else read-only). Whole pages a role can't use (tokens, billing, showcase admin) render
+  `app/components/console/NeedsPermission.tsx`. Home with no visible apps: the deploy flow only with
+  `app.create`; a Billing member is sent to billing. On an app page, below Full access `ProjectNav.tsx`
+  shows one line about the person's access (`usePermissions().levelOf(projectId)`) instead of change
+  controls. An app the person can't see (404) reads "This app isn't here…" via `app/lib/useProject.ts`.
 
 - **Admin gate.** Every `app/admin/*` page calls `app/admin/guard.tsx:requireAdmin` →
   `app/lib/api.ts:currentSuperAdmin`: asks hostnsoft-api `/auth/me` and requires `isSuperAdmin === true`.

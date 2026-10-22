@@ -1,7 +1,7 @@
 ---
 covers: ["app/api/**", "app/lib/hnsApi.ts", "app/lib/types.ts", "app/lib/api.ts", "app/lib/hnsForward.ts", "app/lib/db.ts", "app/lib/tracking.ts", "migrations/**", "worker.ts", "app/openapi.json/**", "app/agent.json/**", "app/.well-known/**"]
-verified_at: 105ccbb
-verified_on: 2026-10-21
+verified_at: 1629250
+verified_on: 2026-10-22
 ---
 # Contracts & Data Schemas
 
@@ -218,8 +218,13 @@ These describe the **agent** surface (backend `agentApps.routes.ts`, deploy-toke
 
 ## Required / Unavailable Backend Capabilities
 
-### Members
-No members API exists on either side. `/app/members` renders MSG91's user-management widget (`app/components/console/UserManagementWidget.tsx`); membership lives in MSG91. An unused members client was deleted on 2026-10-22. If a members feature is built, the backend route must come first and membership must be mirrored to MSG91.
+### Members and roles
+Who is in a workspace stays MSG91's: `/app/members` still renders its user-management widget (`app/components/console/UserManagementWidget.tsx`) for adding and removing people. What each member may do is hostnsoft-api's (roles Owner, Admin, Member, Billing, plus each Member's access to each app: Can use by default, Can edit — their AI's changes wait for approval — or Full access), through `app/lib/hnsApi.ts:membersApi`:
+- `list` / `get` / `update` / `setApps` → `GET|PATCH /companies/:companyId/members[/:userId]`, `PUT …/members/:userId/apps`; one `Member` shape (`app/lib/types.ts`) from all of them.
+- `invite` / `cancelInvite` → `POST|DELETE /companies/:companyId/invites[/:id]` (the role someone gets when they join; the invite email itself is still the widget's).
+- `myPermissions` → `GET /me/permissions?companyId=` → `MyPermissions`, read once per workspace by `app/lib/permissions.tsx:PermissionsProvider`.
+
+Every guarded API route answers 403 `permission_denied` `{permission, role, access?, error}` (`access` is their level on the app), or 404 for an app the person can't see. `GET /companies/:companyId/projects` returns only the apps the person can see (an empty list for a Billing member), and `projectCount` on the company routes counts the same set. Owner and Admin both have billing; only an Owner can add or change Owners and Admins. Everyone in a workspace before roles is an Admin and its creator its Owner; someone added later without a role starts as a Member. Publishing (deploy, rollback, settings) needs Full access; Can edit can't publish until previews exist. Inviting people, roles and app access are Owner/Admin only.
 
 ### `signup` A/B event
 - Counted by `app/api/metrics/route.ts` but never emitted from `app/` (`trackEvent('signup')` has no caller). Signups column is always 0 until something sends it.

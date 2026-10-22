@@ -161,8 +161,8 @@ flowchart TD
   - If it is an Embarko address → refused (domain_reserved).
   - If another app already uses it → refused (409).
 - **Parts:** App builders (`builders`), Your apps panel (`console`), Settings and domains (`app-config`)
-- **Keeps:** `AppGrant`, `AuditLog`, `Domain`, `PendingInvite`, `WorkspaceMember`
-- **Looks up:** `DeployToken`, `Project`
+- **Keeps:** `AppGrant`, `AuditLog`, `Domain`, `PendingInvite`, `WorkspaceMember`, `WorkspaceRoleSetup`
+- **Looks up:** `Company`, `DeployToken`, `Project`
 - **Code:** `page:/app/projects/[projectId]/domain` → `app/app/projects/[projectId]/domain/page.tsx`, `api:@api/companies/:companyId/projects/:projectId/domains` → `@api/src/routes/domains.routes.ts`
 - **Outside services:** Redis
 
@@ -176,7 +176,7 @@ flowchart TD
   - If the router can't be updated → the domain goes back to waiting for DNS (502).
   - If the app was never deployed → the domain is marked active and used on the first deploy.
 - **Parts:** Settings and domains (`app-config`), App runner (`runner`), Traffic router (`router`)
-- **Keeps:** `AppGrant`, `AuditLog`, `Company`, `Domain`, `PendingInvite`, `WorkspaceMember`
+- **Keeps:** `AppGrant`, `AuditLog`, `Company`, `Domain`, `PendingInvite`, `WorkspaceMember`, `WorkspaceRoleSetup`
 - **Looks up:** `DeployToken`, `Deployment`, `EnvVar`, `Project`
 - **Code:** `api:@api/companies/:companyId/projects/:projectId/domains/:domain/verify` → `@api/src/routes/domains.routes.ts`, `lib:@api/src/lib/dnsVerify` → `@api/src/lib/dnsVerify.ts`, `lib:@api/src/services/customDomainActivation` → `@api/src/services/customDomainActivation.ts`, `api:@deploy/internal/apps/:appName/config` → `@deploy/server.js`
 - **Outside services:** Docker, Lago, Redis, Stripe, Traefik
@@ -203,8 +203,8 @@ flowchart TD
   - If saving fails → "Couldn't save the variable."
   - If deleting a setting that isn't there → a server error (500).
 - **Parts:** Your apps panel (`console`), Settings and domains (`app-config`), Apps and deploys (`apps-data`)
-- **Keeps:** `AppGrant`, `AuditLog`, `EnvVar`, `PendingInvite`, `WorkspaceMember`
-- **Looks up:** `DeployToken`, `Project`
+- **Keeps:** `AppGrant`, `AuditLog`, `EnvVar`, `PendingInvite`, `WorkspaceMember`, `WorkspaceRoleSetup`
+- **Looks up:** `Company`, `DeployToken`, `Project`
 - **Code:** `page:/app/projects/[projectId]/environment` → `app/app/projects/[projectId]/environment/page.tsx`, `lib:app/components/console/BulkEnvDialog` → `app/components/console/BulkEnvDialog.tsx`, `lib:app/lib/envFile` → `app/lib/envFile.ts`, `api:@api/companies/:companyId/projects/:projectId/env-vars` → `@api/src/routes/envVars.routes.ts`
 - **Outside services:** Redis
 
@@ -236,7 +236,7 @@ flowchart TD
   - If the address was changed in the last 7 days → refused (slug_change_cooldown) with when to retry.
   - If A deploy is running → refused (deploy_in_progress).
 - **Parts:** Your apps panel (`console`), App records (`app-records`)
-- **Keeps:** `AppDetails`, `AppGrant`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `Domain`, `PendingInvite`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`, `WorkspaceMember`
+- **Keeps:** `AppDetails`, `AppGrant`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `Domain`, `PendingInvite`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`, `WorkspaceMember`, `WorkspaceRoleSetup`
 - **Looks up:** `EnvVar`, `Schedule`, `ScheduleRun`
 - **Code:** `page:/app/projects/[projectId]/settings` → `app/app/projects/[projectId]/settings/page.tsx`, `api:@api/companies/:companyId/projects/:projectId/slug` → `@api/src/routes/projects.routes.ts`, `lib:@api/src/services/slugChangeFlow` → `@api/src/services/slugChangeFlow.ts`, `api:@api/companies/:companyId/projects/:projectId/move` → `@api/src/routes/projects.routes.ts`
 - **Outside services:** Lago, Redis, Stripe, viaSocket webhook
@@ -291,7 +291,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 ## Tables
 
 - **Keeps** `AppDetails` — Public-facing details of a deployed app.
-- **Keeps** `AppGrant` — One app a developer/viewer with appScope "selected" may reach, and how far: "manage" (deploy, change settings) or "view" (status, logs, history).
+- **Keeps** `AppGrant` — A Member's access to one project, above the default "use": "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `DeployToken` — A deploy token.
@@ -304,6 +304,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `ShowcaseEventListing` — One app shown on one event page.
 - **Keeps** `SlugAlias` — A name an app used to have — one row per previous slug, written on every successful address change (services/projectSlugChange.ts).
 - **Keeps** `WorkspaceMember` — A member's role in one workspace.
+- **Keeps** `WorkspaceRoleSetup` — How far a workspace's roles have been set up (permissions.ts setUpWorkspaceRoles).
 - **Looks up** `Schedule` — A timed HTTP call into the app — see docs/schedules.md.
 - **Looks up** `ScheduleRun` — One call the runner made (or chose not to make).
 

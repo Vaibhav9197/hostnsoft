@@ -20,7 +20,7 @@ const SHIP = 'https://ship.embarko.ai';
 const API = `${SHIP}/api`;
 const SITE = 'https://embarko.ai';
 
-const VERSION = '2026-10-22';
+const VERSION = '2026-10-22.1';
 
 const SECTIONS = [
   { n: 1, id: 'start', name: 'Start', blurb: 'What Embarko is, how to reply to the person, and connecting Embarko to their AI tool.' },
@@ -46,7 +46,7 @@ const EXAMPLES = {
   needs_user: 'I need one thing from you: {plain explanation}.',
   missing_secrets: 'Your app needs a key before it can work. Add it here: {secrets page link}',
   connect_once: 'Connect Embarko to {your AI tool} once ({link}), then ask me again. After that I can deploy for you directly.',
-  no_permission: "Your role in this workspace ({role}) doesn't allow me to {what it was}. An Owner or Admin can change that on the Members page: https://embarko.ai/app/members",
+  no_permission: "Your access ({your access to the app, or your role}) doesn't let me {what it was}. An Owner or Admin can give you more on the Members page: https://embarko.ai/app/members",
 };
 
 // Every host an agent may need, so it (or the person) can allowlist them
@@ -196,7 +196,7 @@ const EMBARKO_JSON_EXAMPLE = JSON.stringify({
 // Who may do what in a workspace. Every token acts with the permissions of the
 // person who made it, so these can come back from any call made with a token.
 const PERMISSION_ERRORS = [
-  { code: 'permission_denied', status: 403, retry: 'No', do: 'The person who made this token is not allowed to do this. The reply names the permission and their role. Nothing changed. Tell the person (say_to_user.no_permission); do not try another way round it.' },
+  { code: 'permission_denied', status: 403, retry: 'No', do: 'The person who made this token is not allowed to do this. The reply names the permission and their access to the app (or their role). Nothing changed. Tell the person (say_to_user.no_permission); do not try another way round it.' },
 ];
 
 // the errors topic has them all, with the retry rules.
@@ -209,11 +209,11 @@ const DEPLOY_ERRORS = [
   { code: 'invalid_file_path / invalid_file_content / invalid_file_encoding / invalid_json', status: 400, retry: 'No', do: 'JSON upload only: relative paths, string content, encoding utf8 or base64.' },
   { code: 'unauthorized', status: 401, retry: 'No', do: 'The token is invalid or revoked. Leaving the header out is an anonymous deploy, not an error; an empty or made-up token is a 401.' },
   { code: 'app_not_found', status: 404, retry: 'No', do: 'No app this token can reach has that appId (X-App-Id or embarko.json). Check you are using the right token. If the app should be new, remove "appId" from embarko.json and deploy.' },
-  { code: 'no_access', status: 403, retry: 'No', do: 'The person the token belongs to can\'t do this in the workspace named in the message: they were removed, or their role there doesn\'t allow it. Nothing was deployed. Ask them to get access there, or for a token from that workspace. Never deploy under a new name to get round it.' },
+  { code: 'no_access', status: 403, retry: 'No', do: 'The person the token belongs to can\'t do this in the workspace named in the message: they are no longer in it. Nothing was deployed. Ask them to get access there, or for a token from that workspace. Never deploy under a new name to get round it.' },
   { code: 'app_deleted', status: 410, retry: 'No', do: 'The app with that appId was deleted. Ask the person before deploying it again. If they want it back as a new app, remove "appId" from embarko.json and deploy.' },
   { code: 'app_id_mismatch', status: 409, retry: 'No', do: 'The appId (X-App-Id or embarko.json) belongs to another app, and the app name you sent was never that app\'s name. Usually the code was copied from that app. For a new app, remove "appId" from embarko.json and deploy. To update the other app, deploy under its name.' },
   { code: 'host_not_allowed (from your own sandbox)', status: 403, retry: 'No', do: 'Not Embarko: your environment blocks ship.embarko.ai. Switch route: connector, or ask the person to connect it.' },
-  ...PERMISSION_ERRORS.map((e) => (e.code === 'permission_denied' ? { ...e, do: 'The token\'s owner may not deploy this app (permission "app.deploy") or add new apps ("app.create"). The reply names their role. Nothing was deployed. Tell the person (say_to_user.no_permission).' } : e)),
+  ...PERMISSION_ERRORS.map((e) => (e.code === 'permission_denied' ? { ...e, do: 'The token\'s owner may not publish this app (that needs Full access to it, permission "app.deploy") or add new apps ("app.create"). The reply names their access. Nothing was deployed. Tell the person (say_to_user.no_permission).' } : e)),
   { code: 'app_name_taken', status: 409, retry: 'No', do: 'Another account owns the name. On a first deploy, pick a close variant yourself: add the person\'s or business name if you know it, otherwise a short word (portfolio → portfolio-site, then portfolio-app). Mention the name with the link. Ask only if the exact name matters to them.' },
   { code: 'app_name_reserved', status: 409, retry: 'No', do: 'A platform name. Pick a different one (see name_rules.reserved).' },
   { code: 'rename_in_progress', status: 409, retry: 'Later', do: 'The app\'s address is being changed. Wait, then deploy under the new name.' },
@@ -1108,23 +1108,27 @@ function topics(base) {
       section: 'manage',
       title: 'Teammates and roles',
       covers: 'Who in a workspace can do what, and how the person gives a teammate access',
-      summary: 'Everyone in a workspace has a role that decides what they, and their "Just me" tokens, can do. The person sets roles on the Members page; you cannot change them. When a reply says permission_denied, tell the person and stop.',
+      summary: 'Everyone in a workspace has a role, and each Member has a level of access to each app. Together they decide what the person, and their "Just me" tokens, can do. An Owner or Admin sets them on the Members page; you cannot change them. When a reply says permission_denied, tell the person and stop.',
       done_when: 'The person knows who can change the role and where, and nothing was done another way.',
       available: true,
       who: { connector: null, api: null, dashboard: `${SITE}/app/members`, needs_human: 'An Owner or Admin changes roles and app access on the Members page.' },
       roles: [
-        { role: 'Owner', can: 'Everything, including billing and managing Admins.' },
-        { role: 'Admin', can: 'Everything except billing: apps, teammates, tokens, moving apps.' },
-        { role: 'Developer', can: 'Deploy and change the apps they have access to (all apps, or only chosen ones). Usually can add apps; deletes only apps they made unless allowed.' },
-        { role: 'Viewer', can: 'See status, logs and history of the apps they have access to. Sees which secrets are set, not their values. Changes nothing.' },
+        { role: 'Owner', can: 'Everything, including billing, and the only role that can make or change Owners and Admins.' },
+        { role: 'Admin', can: 'Everything, including billing: apps, teammates, tokens, moving apps. Cannot change Owners or Admins.' },
+        { role: 'Member', can: 'Can use every app by default, with more access to the apps they are given it on. Can add new apps, and has Full access to the apps they added.' },
         { role: 'Billing', can: 'Plan and billing only. No apps.' },
+      ],
+      access_levels: [
+        { level: 'Can use', can: 'Use the app, see its history, comment. Nothing on the live app changes.' },
+        { level: 'Can edit', can: 'Their AI (you) can make changes as a preview for someone with Full access to approve, and read logs. The live app does not change until then. Previews are not available yet, so today you cannot deploy for them: tell the person who has Full access.' },
+        { level: 'Full access', can: 'Approve and publish to the live app, restore a version, change settings, secrets and domains, share, delete or move it.' },
       ],
       steps: {
         any: [
-          'To add a teammate, the person opens https://embarko.ai/app/members, clicks "Invite with a role", enters their email and picks a role.',
+          'To add a teammate, the person opens https://embarko.ai/app/members and invites them by email with a role. Only an Owner or Admin can invite people.',
           'Then they send the invite from the team list on the same page. The teammate gets the role when they join.',
-          'For one app only: pick Developer or Viewer, then "Only the apps I choose", and pick the app.',
-          'To change someone\'s role later, the person does it on the same page. Only an Owner or Admin can.',
+          'To let a Member\'s AI change one app: on the same page, give them "Can edit" (changes wait for approval) or "Full access" (they publish) on that app.',
+          'To change someone\'s role or access later, the person does it on the same page. Only an Owner or Admin can.',
           'If a reply says permission_denied, tell the person in one message (say_to_user.no_permission). Do not retry, use other tools, make a new token, or deploy under another name to get round it.',
         ],
       },
@@ -1132,6 +1136,8 @@ function topics(base) {
         'You cannot change roles or app access; the person does it on the Members page.',
         'A "Just me" token can do exactly what its person can, in every workspace they are in.',
         'A "Whole workspace" token is not limited by a role, and only an Owner or Admin can make one.',
+        'Publishing a change to the live app needs Full access to it. A Member with less gets permission_denied when you deploy; nothing is published.',
+        'Everyone who was in a workspace before roles existed is an Admin, and whoever made the workspace is its Owner. Someone added later without a role starts as a Member.',
       ],
       errors: [...PERMISSION_ERRORS],
       say_to_user: { no_permission: EXAMPLES.no_permission },

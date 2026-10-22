@@ -84,11 +84,12 @@ export function AccountMenu({
   const groups = [
     [{ href: "/app/switch-workspace", label: "Switch workspace", icon: Building2 }],
     [
-      { href: "/app", label: "Your apps", icon: LayoutGrid },
       // Hidden from people whose role can't use them (permissions.tsx); the
-      // pages and the API refuse them anyway.
+      // pages and the API refuse them anyway. A Billing member sees no apps,
+      // so neither "Your apps" nor Showcase leads anywhere for them.
+      ...(can("app.view") ? [{ href: "/app", label: "Your apps", icon: LayoutGrid }] : []),
       ...(can("tokens.manage") ? [{ href: "/app/tokens", label: "Deploy tokens", icon: KeyRound }] : []),
-      { href: "/app/showcase", label: "Showcase", icon: Sparkles },
+      ...(can("app.view") ? [{ href: "/app/showcase", label: "Showcase", icon: Sparkles }] : []),
     ],
     [
       { href: "/app/members", label: "Members", icon: Users },
@@ -112,7 +113,7 @@ export function AccountMenu({
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align={align} className="w-64">
-        {groups.map((items, i) => (
+        {groups.filter((items) => items.length > 0).map((items, i) => (
           <div key={i}>
             <DropdownMenuGroup>
               {items.map(({ href, label, icon: Icon }) => (

@@ -13,6 +13,7 @@ import {
   consoleDeployPromptWithToken,
   consoleKeepPromptWithToken,
 } from "@/app/lib/deployPrompt";
+import { HnsError } from "@/app/lib/client";
 import { tokensApi } from "@/app/lib/hnsApi";
 import { useDeployWatch, type DeployWatch } from "./useDeployWatch";
 import { useSession } from "@/app/lib/session";
@@ -135,8 +136,9 @@ export function DeploySteps({
       /* A prompt copied before had no key in it. Put Copy back as the next
          move, so the one pasted is the one with the key. */
       setCopied(false);
-    } catch {
-      setError("Couldn’t create your deploy key.");
+    } catch (e) {
+      // A role that can't make keys gets the API's own sentence, which says why.
+      setError(e instanceof HnsError && e.status === 403 ? e.message : "Couldn’t create your deploy key.");
     } finally {
       setMaking(false);
     }
