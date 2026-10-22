@@ -93,6 +93,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ["/hackathons", 0.7, "monthly"],
     ["/use-cases", 0.8, "weekly"],
     ["/status", 0.6, "daily"],
+    ["/faq", 0.7, "monthly"],
     ["/support", 0.5, "monthly"],
     ["/security", 0.6, "monthly"],
     ["/terms", 0.6, "yearly"],
