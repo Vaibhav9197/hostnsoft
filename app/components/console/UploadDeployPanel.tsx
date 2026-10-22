@@ -16,6 +16,7 @@ import {
   type Packed,
 } from "@/app/lib/pack";
 import { appNameError } from "@/app/lib/appName";
+import { formatBytes } from "@/app/lib/format";
 import { appHost } from "../../lib/site";
 
 /**
@@ -37,11 +38,6 @@ type Phase =
   | { step: "ready"; packed: Packed }
   | { step: "uploading"; packed: Packed }
   | { step: "error"; message: string };
-
-function formatSize(bytes: number): string {
-  const mb = bytes / (1024 * 1024);
-  return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
-}
 
 export function UploadDeployPanel({
   companyId,
@@ -67,7 +63,7 @@ export function UploadDeployPanel({
         const packed = await pack();
         if (packed.blob.size > MAX_PACKED_BYTES) {
           throw new Error(
-            `That comes to ${formatSize(packed.blob.size)} packed — 100 MB is the limit.`,
+            `That comes to ${formatBytes(packed.blob.size)} packed — 100 MB is the limit.`,
           );
         }
         setPhase({ step: "ready", packed });
@@ -214,7 +210,7 @@ export function UploadDeployPanel({
       {(phase.step === "ready" || phase.step === "uploading") && (
         <div className="flex flex-col gap-2">
           <p className="text-xs text-muted-foreground">
-            {formatSize(phase.packed.blob.size)} packed
+            {formatBytes(phase.packed.blob.size)} packed
             {phase.packed.fileCount > 0 && ` · ${phase.packed.fileCount} files`}
             {/* Named rather than silently dropped: a project with thousands of
                 files packing to 49 looks broken unless something says the

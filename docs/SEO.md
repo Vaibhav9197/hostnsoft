@@ -1,3 +1,8 @@
+---
+covers: ["app/**/page.tsx", "app/**/layout.tsx", "app/robots.ts", "app/sitemap.ts", "app/lib/landingMetadata.ts", "middleware.ts"]
+verified_at: 105ccbb
+verified_on: 2026-10-21
+---
 # SEO rules for this codebase
 
 Every public page must follow these rules before it ships. This is not
@@ -101,12 +106,12 @@ openGraph: {
 
 **The OG image must be a static file, not a generated route.** Production
 runs on a Cloudflare Worker via OpenNext with no filesystem and no
-incremental cache configured. A `next/og` `ImageResponse` route
+incremental cache configured. A `next/og` `ImageResponse` route <!-- verify:ignore -->
 (`opengraph-image.tsx`) gets re-executed on every request there and 500s —
 it worked in `next dev` and broke in production. If a page needs a custom
 card, generate the PNG once (locally, or in a script) and commit it under
 `public/assets/`, the way `app/layout.tsx` and
-`app/lib/landingMetadata.ts` do. Do not reintroduce `app/opengraph-image.tsx`.
+`app/lib/landingMetadata.ts` do. Do not reintroduce `app/opengraph-image.tsx`. <!-- verify:ignore -->
 
 ## 6. Structured data (JSON-LD)
 

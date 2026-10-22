@@ -8,7 +8,7 @@
 - **Wants to:** have their app do something at set times without anyone visiting it
 - **Ends with:** The app's route is called at each due time; the owner hears only when it starts failing and when it recovers.
 - **Steps:** 6 · 3 by AI · 4 can go wrong
-- **Last change to its code:** v132, 19 Oct 2026 — Show schedules to the dashboard
+- **Last change to its code:** v135, 21 Oct 2026 — feat: add auto-approve configuration option for showcase events
 
 [← All stories](../README.md)
 
@@ -224,11 +224,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v135 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | — |
+| v134 (960e6d4) | 19 Oct 2026 | Fix schedule alert emails for deploy-token apps; page run history | deploy, test, alert |
+| v133 (bffa93d) | 19 Oct 2026 | Report the real cause when an app crashes on startup | deploy, call |
 | v132 (cbf0640) | 19 Oct 2026 | Show schedules to the dashboard | deploy |
 | v131 (0d035d5) | 19 Oct 2026 | Report the running commit on /health and check it after deploy | deploy |
-| v130 (c24def1) | 19 Oct 2026 | Drop wake-up from the schedule timeout error | test, call |
-| v129 (b3adf2c) | 19 Oct 2026 | Stop telling agents about app sleep | deploy |
-| v128 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | deploy |
 
 ## Open questions
 

@@ -1,3 +1,8 @@
+---
+covers: ["app/privacy/**", "app/terms/**", "app/dpa/**"]
+verified_at: 105ccbb
+verified_on: 2026-10-21
+---
 # Legal pages — values still to add
 
 These values were removed from `/privacy`, `/terms` and `/dpa` on 2026-10-19

@@ -8,7 +8,7 @@
 - **Wants to:** show their app to others on a public page
 - **Ends with:** The app is on a Showcase page, or waiting for the organiser to approve it.
 - **Steps:** 5 · 0 by AI · 5 can go wrong
-- **Last change to its code:** v59, 14 Oct 2026 — Replace the docs with the agent guide
+- **Last change to its code:** v61, 21 Oct 2026 — feat: add auto-approve configuration option for showcase events
 
 [← All stories](../README.md)
 
@@ -193,11 +193,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v61 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | send, approve |
+| v60 (ee930c9) | 21 Oct 2026 | feat: add auto-approve setting for showcase collections and submission flow | choose, approve |
 | v59 (e19113b) | 14 Oct 2026 | Replace the docs with the agent guide | choose |
 | v58 (c85241c) | 13 Oct 2026 | feat(orphan): claim link — keep a temporary app by signing in, no redeploy | — |
 | v57 (f70181f) | 9 Oct 2026 | feat(showcase): invite contributors without an account, credit them by name | check-address, send, approve, public |
-| v56 (67cbcf0) | 8 Oct 2026 | feat(showcase): custom HTML on event pages- #15 (#15) | public |
-| v55 (67eadd2) | 8 Oct 2026 | feat(panel): top bar with workspace and plan; prompt-first showcase actions | approve |
 
 ## Open questions
 

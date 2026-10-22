@@ -16,7 +16,6 @@ export const SITE = `https://${SITE_HOST}`;
 
 /** The deploy API host that agents talk to. */
 export const SHIP_HOST = `ship.${SITE_HOST}`;
-export const SHIP_URL = `https://${SHIP_HOST}`;
 
 /** The domain every deployed app lives under: <app-name>.embarko.app */
 export const APP_DOMAIN = "embarko.app";

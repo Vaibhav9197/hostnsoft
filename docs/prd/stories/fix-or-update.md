@@ -8,7 +8,7 @@
 - **Wants to:** change a live app, or return to a version that worked
 - **Ends with:** A new or earlier version of the app is live.
 - **Steps:** 5 · 1 by AI · 3 can go wrong
-- **Last change to its code:** v144, 19 Oct 2026 — Show an app's scheduled jobs in the panel
+- **Last change to its code:** v146, 21 Oct 2026 — doc improvements
 
 [← All stories](../README.md)
 
@@ -162,11 +162,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v146 (ceac79b) | 21 Oct 2026 | doc improvements | choose |
+| v145 (bffa93d) | 19 Oct 2026 | Report the real cause when an app crashes on startup | ai-updates, rollback |
 | v144 (36b6871) | 19 Oct 2026 | Show an app's scheduled jobs in the panel | choose |
 | v143 (0d035d5) | 19 Oct 2026 | Report the running commit on /health and check it after deploy | ai-updates, rollback |
 | v142 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | ai-updates, rollback |
-| v141 (4602272) | 19 Oct 2026 | Add schedules: timed calls into apps | confirm |
-| v140 (b3e21dd) | 14 Oct 2026 | feat: add zero-downtime graceful shutdown, unref intervals, and live migration script | ai-updates, rollback |
 
 ## Open questions
 

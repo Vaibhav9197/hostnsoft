@@ -5142,6 +5142,7 @@
      "companyId",
      "createdBy",
      "submitCode",
+     "autoApprove",
      "customHtml",
      "createdAt",
      "updatedAt"
@@ -5567,6 +5568,7 @@
     "imports": [
      "lib:@deploy/analytics/bot-filter",
      "lib:@deploy/nomad-job-spec",
+     "lib:@deploy/nomad-task-failure",
      "lib:@deploy/scale-to-zero-images",
      "lib:@deploy/scale-to-zero-registry",
      "lib:@deploy/sqlite-data-check"
@@ -6034,6 +6036,20 @@
     ]
    },
    {
+    "id": "lib:@deploy/nomad-task-failure",
+    "repo": "deploy",
+    "file": "@deploy/nomad-task-failure.js",
+    "summary": "nomad-task-failure.js Explains WHY an app's container is not running, from Nomad's own records: the latest allocation's task events (exit code, restart count, \"Not Restarting\" verdict) plus the tail of the task's stderr/",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": [
+     "ext:nomad"
+    ]
+   },
+   {
     "id": "lib:@deploy/old_server",
     "repo": "deploy",
     "file": "@deploy/old_server.js",
@@ -6221,6 +6237,7 @@
      "lib:@deploy/logger",
      "lib:@deploy/nomad-job",
      "lib:@deploy/nomad-job-spec",
+     "lib:@deploy/nomad-task-failure",
      "lib:@deploy/project-lookup",
      "lib:@deploy/record-deployment",
      "lib:@deploy/rename-app",

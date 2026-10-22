@@ -1,3 +1,8 @@
+---
+covers: ["app/lib/guide/**", "content/docs/**", "content/guides/**"]
+verified_at: 105ccbb
+verified_on: 2026-10-21
+---
 # Writing the docs
 
 How to write every page of the agent guide (`app/lib/guide/content.js`, served
@@ -46,11 +51,11 @@ Leave out any section the topic doesn't need.
 
 ## Headings and links
 
-- Write headings as self-links: `## [How to do it](#how)`. Other pages, the
+- Write headings as self-links: `## [How to do it](#how)`. Other pages, the <!-- verify:ignore -->
   skills and `llms.txt` link to these anchors.
 - **Don't change an existing anchor.** You can reword the heading text, but
   keep the `#id` the same.
-- To link to another doc, use its file name: `[Connectors](connectors.md)` or
+- To link to another doc, use its file name: `[Connectors](connectors.md)` or <!-- verify:ignore -->
   `capabilities.md#agent-auth`. The site turns that into the right link.
 
 ## What agents must still get

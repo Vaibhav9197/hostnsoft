@@ -8,7 +8,7 @@
 - **Wants to:** collect the apps built at their event on one public page
 - **Ends with:** A live event page with a poster and QR code, filling with the apps people send.
 - **Steps:** 5 · 0 by AI · 5 can go wrong
-- **Last change to its code:** v51, 13 Oct 2026 — feat(orphan): claim link — keep a temporary app by signing in, no redeploy
+- **Last change to its code:** v53, 21 Oct 2026 — feat: add auto-approve configuration option for showcase events
 
 [← All stories](../README.md)
 
@@ -199,11 +199,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v53 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | create, review |
+| v52 (ee930c9) | 21 Oct 2026 | feat: add auto-approve setting for showcase collections and submission flow | create, share, watch |
 | v51 (c85241c) | 13 Oct 2026 | feat(orphan): claim link — keep a temporary app by signing in, no redeploy | — |
 | v50 (b362cfe) | 13 Oct 2026 | feat(guides): move to /guides, 4 new guides, share launcher, llms.txt | public |
 | v49 (dd7f1da) | 12 Oct 2026 | feat(blog): Guides layout with covers, share, reading rail | public |
-| v48 (f70181f) | 9 Oct 2026 | feat(showcase): invite contributors without an account, credit them by name | create, review, public |
-| v47 (67cbcf0) | 8 Oct 2026 | feat(showcase): custom HTML on event pages- #15 (#15) | create, public |
 
 ## Open questions
 
