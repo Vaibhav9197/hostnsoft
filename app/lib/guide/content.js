@@ -20,7 +20,7 @@ const SHIP = 'https://ship.embarko.ai';
 const API = `${SHIP}/api`;
 const SITE = 'https://embarko.ai';
 
-const VERSION = '2026-10-17';
+const VERSION = '2026-10-22';
 
 const SECTIONS = [
   { n: 1, id: 'start', name: 'Start', blurb: 'What Embarko is, how to reply to the person, and connecting Embarko to their AI tool.' },
@@ -203,6 +203,7 @@ const DEPLOY_ERRORS = [
   { code: 'unauthorized', status: 401, retry: 'No', do: 'The token is invalid or revoked. Leaving the header out is an anonymous deploy, not an error; an empty or made-up token is a 401.' },
   { code: 'app_not_found', status: 404, retry: 'No', do: 'No app in this token\'s workspace has that appId (X-App-Id or embarko.json). Check the token is the right workspace\'s. If the app should be new, remove "appId" from embarko.json and deploy.' },
   { code: 'app_deleted', status: 410, retry: 'No', do: 'The app with that appId was deleted. Ask the person before deploying it again. If they want it back as a new app, remove "appId" from embarko.json and deploy.' },
+  { code: 'app_id_mismatch', status: 409, retry: 'No', do: 'The appId (X-App-Id or embarko.json) belongs to another app, and the app name you sent was never that app\'s name. Usually the code was copied from that app. For a new app, remove "appId" from embarko.json and deploy. To update the other app, deploy under its name.' },
   { code: 'host_not_allowed (from your own sandbox)', status: 403, retry: 'No', do: 'Not Embarko: your environment blocks ship.embarko.ai. Switch route: connector, or ask the person to connect it.' },
   { code: 'app_name_taken', status: 409, retry: 'No', do: 'Another account owns the name. On a first deploy, pick a close variant yourself: add the person\'s or business name if you know it, otherwise a short word (portfolio → portfolio-site, then portfolio-app). Mention the name with the link. Ask only if the exact name matters to them.' },
   { code: 'app_name_reserved', status: 409, retry: 'No', do: 'A platform name. Pick a different one (see name_rules.reserved).' },
@@ -604,7 +605,8 @@ function topics(base) {
       ],
       limits: [
         'Optional. No file means no change.',
-        '"appId" decides which app the deploy goes to; the app name you send does not. Keep it after the first deploy and commit it. A deploy with an "appId" never creates a new app: one that is not in the token\'s workspace gets 404 app_not_found, a deleted one 410 app_deleted.',
+        '"appId" decides which app the deploy goes to, so a deploy under the app\'s old name still reaches it after a rename. Keep it after the first deploy and commit it. A deploy with an "appId" never creates a new app: one that is not in the token\'s workspace gets 404 app_not_found, a deleted one 410 app_deleted.',
+        'Copying an app\'s code to start a new app copies its "appId" too. Remove it before the first deploy of the copy: a name the app never had gets 409 app_id_mismatch, so the original app is never overwritten.',
         '"appId" is read for token deploys only. A dashboard upload goes to the app the person picked.',
         'The file is the source of truth. A setting changed through the API is set back by the next deploy whose file lists it.',
         '"schedules" is the app\'s full set, matched by path. [] removes all. A file without a "schedules" key leaves them as they are.',
@@ -618,6 +620,7 @@ function topics(base) {
       errors: [
         { code: 'invalid_embarko_json', status: 400, retry: 'No', do: 'Not valid JSON (the message gives line and column), not one object, "schedules" is not a list, "appId" is not an id, or over 64 KB. Fix the file and deploy again.' },
         { code: 'app_not_found / app_deleted', status: '404 / 410', retry: 'No', do: '"appId" leads to no app in this workspace, or to a deleted one. Check the token. To deploy as a new app, ask the person, then remove "appId".' },
+        { code: 'app_id_mismatch', status: 409, retry: 'No', do: '"appId" is another app\'s, and the name you sent was never its name: this code was likely copied. For a new app, remove "appId". To update that app, deploy under its name.' },
         { code: 'secrets_in_embarko_json', status: 400, retry: 'No', do: 'A key named like secret, token, password, api key, private key or credential, or a value that looks like a key or a URL with ?token=. Remove it and set it as an env var.' },
         { code: 'invalid_schedules / invalid_cron / schedule_too_frequent / invalid_timezone / invalid_path / duplicate_schedule_path / schedule_limit_reached', status: 400, retry: 'No', do: 'A schedule entry is wrong. The message names it, e.g. "Schedule 1: ...". Fixes: see schedules.' },
         { code: 'embarko_json_not_at_top (warning)', status: 202, retry: 'No', do: 'Found in a subfolder; only the top folder is read. Move it next to package.json and deploy again.' },
