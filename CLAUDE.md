@@ -1,5 +1,7 @@
 # Embarko Panel — UX Redesign Instructions
 
+@AGENTS.md
+
 Start with [docs/prd/README.md](docs/prd/README.md). It is the Live PRD,
 generated from the code of this repo, `hostnsoft-api` and `hostnsoft-deploy`.
 It gives the files and tables behind every story step, by ID. A change can alter a story, a step, a table, or code a

@@ -33,59 +33,6 @@ export function showcaseListPrompt(
 ${SHOWCASE_STEPS}`;
 }
 
-/**
- * For an app that is already listed but has no screenshot, so the public page
- * leaves it out. Listing again through the agent API updates the listing
- * rather than erroring, so the prompt carries the details it was listed with:
- * the agent resends them unchanged and adds the one thing missing, instead of
- * asking the person to type them all over again.
- */
-export function showcaseScreenshotPrompt(
-  page: { slug: string; title: string; type: "public" | "event" },
-  listing: Pick<
-    ShowcaseListing,
-    | "name"
-    | "tagline"
-    | "creatorName"
-    | "creatorProfile"
-    | "description"
-    | "story"
-    | "builtWith"
-    | "category"
-    | "tags"
-    | "videoUrl"
-  >,
-  appSlug?: string | null,
-): string {
-  const where =
-    page.type === "event"
-      ? `the Embarko Showcase page "${page.title}" (${SITE_HOST}/showcase/${page.slug})`
-      : `my workspace's Embarko Showcase page "${page.title}" (${SITE_HOST}/showcase/${page.slug})`;
-  const which = appSlug ? `my Embarko app "${appSlug}"` : "this app";
-
-  const details = [
-    `- name: ${listing.name}`,
-    `- tagline: ${listing.tagline}`,
-    `- creator name: ${listing.creatorName}`,
-    listing.creatorProfile && `- creator profile link: ${listing.creatorProfile}`,
-    listing.description && `- what it does: ${listing.description}`,
-    listing.story && `- why it was built: ${listing.story}`,
-    listing.builtWith && `- built with: ${listing.builtWith}`,
-    listing.category && `- category: ${listing.category}`,
-    listing.tags?.length && `- tags: ${listing.tags.join(", ")}`,
-    listing.videoUrl && `- video URL: ${listing.videoUrl}`,
-  ].filter(Boolean);
-
-  return `Add a screenshot to the listing for ${which} on ${where}.
-It is listed there already, but without a screenshot it doesn't show on the page.
-
-Use my deploy token — DEPLOY_TOKEN or ~/.embarko/credentials if either is set; if neither is, ask me for one from ${SITE}/app/tokens.
-
-Read ${SITE}/docs/showcase.md: listing the app again on page slug "${page.slug}" updates its existing listing. Send these details unchanged, plus a screenshot URL — a public image of the app's main screen. If you can't make one, ask me for it.
-${details.join("\n")}
-
-When it's done, give me the link to its Showcase page.`;
-}
 
 /** The same prompt for the public gallery, from pages that aren't one Showcase page. */
 export function showcaseGeneralPrompt(): string {

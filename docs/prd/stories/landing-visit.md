@@ -136,7 +136,7 @@ flowchart TD
 | Part | Lane | What it does |
 |---|---|---|
 | Landing split test (`split`) | Engine | Gives each visitor one landing version and keeps them on it. |
-| Landing pages (`landing`) | Screens | The four versions of the home page a visitor may see. |
+| Landing pages (`landing`) | Screens | The five versions of the home page a visitor may see. |
 | Visitors (`visitors`) | People | People who land on embarko.ai, read about it and browse the Showcase. |
 | Visit tracking (`tracking`) | Background | Quietly records page views and button clicks for the split test and analytics. |
 | Visit records (`visit-records`) | Data | Every page view and click, tagged with the landing version that produced it. |

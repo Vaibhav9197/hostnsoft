@@ -367,13 +367,6 @@ export interface Domain {
   updatedAt?: string;
 }
 
-// Normalized error shape the BFF returns for every failure.
-export interface ApiError {
-  error: string;
-  details?: { path: string; message: string }[];
-  status: number;
-}
-
 // ------------------------------------------------------------------ Billing
 // Billing lives in Lago (plans, customers, subscriptions) and Stripe (saved
 // cards). hostnsoft-api passes Lago objects through mostly untouched, so these

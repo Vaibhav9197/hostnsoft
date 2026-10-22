@@ -13,9 +13,9 @@
     "start": "next start",
     "lint": "next lint",
     "prepreview": "npm run system:facts",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "preview": "opennextjs-cloudflare build --dangerouslyUseUnsupportedNextVersion && opennextjs-cloudflare preview",
     "predeploy": "npm run system:facts",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "deploy": "opennextjs-cloudflare build --dangerouslyUseUnsupportedNextVersion && opennextjs-cloudflare deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "system:facts": "node scripts/build-system-map.mjs && node scripts/build-system-history.mjs",
     "prd": "node scripts/build-prd.mjs",
@@ -23,16 +23,13 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
-    "@radix-ui/react-dialog": "^1.1.23",
     "@radix-ui/react-dropdown-menu": "^2.1.24",
-    "@radix-ui/react-slot": "^1.3.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cronstrue": "^2.61.0",
     "lucide-react": "^1.38.0",
     "nanoid": "^5.1.16",
     "next": "^15.5.22",
-    "postcss": "^8.5.26",
     "qrcode-generator": "^2.0.4",
     "radix-ui": "^1.6.7",
     "react": "19.0.0",
@@ -43,7 +40,6 @@
     "simple-icons": "^16.29.0",
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.6.0",
-    "tailwindcss": "3.4.19",
     "tw-animate-css": "^1.4.0"
   },
   "devDependencies": {
@@ -53,6 +49,8 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.5.4",
+    "postcss": "^8.5.26",
+    "tailwindcss": "3.4.19",
     "typescript": "^5",
     "wrangler": "^4.117.0"
   }

@@ -106,5 +106,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/v1", "/v2", "/v3", "/v4", "/docs", "/docs/:path*", "/docs.md", "/docs.json"],
+  matcher: ["/", "/v1", "/v2", "/v3", "/v4", "/v5", "/docs", "/docs/:path*", "/docs.md", "/docs.json"],
 };
