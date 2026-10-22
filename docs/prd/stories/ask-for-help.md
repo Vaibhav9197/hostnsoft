@@ -8,7 +8,7 @@
 - **Wants to:** send feedback, report a problem or ask for a feature
 - **Ends with:** The message is saved in the team's inbox, where admins read it.
 - **Steps:** 4 · 0 by AI · 4 can go wrong
-- **Last change to its code:** v100, 19 Oct 2026 — Report the real cause when an app crashes on startup
+- **Last change to its code:** v101, 21 Oct 2026 — feat: X-App-Id and embarko.json appId on deploy
 
 [← All stories](../README.md)
 
@@ -161,11 +161,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v101 (23a3409) | 21 Oct 2026 | feat: X-App-Id and embarko.json appId on deploy | write |
 | v100 (bffa93d) | 19 Oct 2026 | Report the real cause when an app crashes on startup | write |
 | v99 (0d035d5) | 19 Oct 2026 | Report the running commit on /health and check it after deploy | write |
 | v98 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | write |
 | v97 (b3e21dd) | 14 Oct 2026 | feat: add zero-downtime graceful shutdown, unref intervals, and live migration script | write |
-| v96 (1b7b79b) | 14 Oct 2026 | Redirect /capabilities to the agent guide | write |
 
 ## Open questions
 

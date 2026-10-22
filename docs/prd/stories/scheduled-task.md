@@ -8,7 +8,7 @@
 - **Wants to:** have their app do something at set times without anyone visiting it
 - **Ends with:** The app's route is called at each due time; the owner hears only when it starts failing and when it recovers.
 - **Steps:** 6 · 3 by AI · 4 can go wrong
-- **Last change to its code:** v135, 21 Oct 2026 — feat: add auto-approve configuration option for showcase events
+- **Last change to its code:** v137, 21 Oct 2026 — feat: deploy by app id, keep old names after a rename
 
 [← All stories](../README.md)
 
@@ -208,7 +208,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `AppDetails` — Public-facing details of a deployed app.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
-- **Keeps** `DeployToken` — Company-wide deploy token.
+- **Keeps** `DeployToken` — A deploy token.
 - **Keeps** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Keeps** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
 - **Keeps** `EnvVar`
@@ -225,11 +225,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v137 (16f50ec) | 21 Oct 2026 | feat: deploy by app id, keep old names after a rename | deploy |
+| v136 (23a3409) | 21 Oct 2026 | feat: X-App-Id and embarko.json appId on deploy | deploy |
 | v135 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | — |
 | v134 (960e6d4) | 19 Oct 2026 | Fix schedule alert emails for deploy-token apps; page run history | deploy, test, alert |
 | v133 (bffa93d) | 19 Oct 2026 | Report the real cause when an app crashes on startup | deploy, call |
-| v132 (cbf0640) | 19 Oct 2026 | Show schedules to the dashboard | deploy |
-| v131 (0d035d5) | 19 Oct 2026 | Report the running commit on /health and check it after deploy | deploy |
 
 ## Open questions
 

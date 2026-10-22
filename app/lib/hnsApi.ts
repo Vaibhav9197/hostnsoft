@@ -20,6 +20,7 @@ import type {
   CompanyDetail,
   CompanyWithMembership,
   DeployToken,
+  DeployTokenKind,
   DeployTokenSecret,
   Deployment,
   Domain,
@@ -33,6 +34,7 @@ import type {
   ScheduleRunsPage,
   ProjectAnalytics,
   ProjectDetail,
+  ProjectMoveResult,
   ShowcaseCollection,
   ShowcaseCollectionDetail,
   ShowcaseListing,
@@ -136,6 +138,17 @@ export const projectsApi = {
   setMemory: (companyId: string, projectId: string, memoryMb: number) =>
     hns<Project>(`/companies/${companyId}/projects/${projectId}/memory`, { method: "PATCH", body: { memoryMb } }),
 
+  // POST /companies/:companyId/projects/:projectId/move — hand the app to
+  // another workspace the person is in. Ownership only: same address, same
+  // id, no redeploy. Answers the project in its new workspace. Error codes
+  // worth branching on: same_workspace, no_access, rename_in_progress,
+  // deploy_in_progress, plan_limit_reached, move_conflict.
+  move: (companyId: string, projectId: string, targetCompanyId: string) =>
+    hns<ProjectMoveResult>(`/companies/${companyId}/projects/${projectId}/move`, {
+      method: "POST",
+      body: { targetCompanyId },
+    }),
+
   // DELETE /companies/:companyId/projects/:projectId — delete the record
   // (does not stop the running app yet).
   remove: (companyId: string, projectId: string) =>
@@ -182,8 +195,10 @@ export const schedulesApi = {
 // -------------------------------------------------------------- Deploy tokens
 export const tokensApi = {
   // POST /companies/:companyId/tokens — create; raw token returned once.
-  create: (companyId: string, label: string) =>
-    hns<DeployTokenSecret>(`/companies/${companyId}/tokens`, { method: "POST", body: { label } }),
+  // kind defaults to "user" on the server too; sent explicitly so the
+  // person's choice is what decides, not a default either side could change.
+  create: (companyId: string, label: string, kind: DeployTokenKind) =>
+    hns<DeployTokenSecret>(`/companies/${companyId}/tokens`, { method: "POST", body: { label, kind } }),
 
   // GET /companies/:companyId/tokens — list. Prefixes only.
   list: (companyId: string) => hns<DeployToken[]>(`/companies/${companyId}/tokens`),

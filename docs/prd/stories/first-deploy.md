@@ -8,7 +8,7 @@
 - **Wants to:** get the app their AI built online
 - **Ends with:** The app is live at its own embarko.app address and shows in Your apps.
 - **Steps:** 10 · 1 by AI · 7 can go wrong
-- **Last change to its code:** v206, 21 Oct 2026 — feat: add auto-approve configuration option for showcase events
+- **Last change to its code:** v208, 21 Oct 2026 — feat: deploy by app id, keep old names after a rename
 
 [← All stories](../README.md)
 
@@ -17,7 +17,7 @@
 | # | Step ID | Step | Who acts | What happens |
 |---|---|---|---|---|
 | 1 | `first-deploy/copy-prompt` | Copy the prompt | Person | In the panel the builder says whether they are new, then follows the same four steps as Host new app and copies the Embarko prompt. |
-| 2 | `first-deploy/make-token` | Put a key in the prompt | System | On a click, the panel makes a deploy key and writes it into the prompt, so the AI can deploy as them. Optional for a new app; required to keep an app deployed before signing in. |
+| 2 | `first-deploy/make-token` | Put a key in the prompt | System | On a click, the panel makes a Just me deploy key and writes it into the prompt, so the AI can deploy as them, in any of their workspaces. Optional for a new app; required to keep an app deployed before signing in. |
 | 3 | `first-deploy/paste` | Paste into the AI | Person | The builder pastes the prompt into their AI agent and asks it to deploy. |
 | 4 | `first-deploy/watch` | Watch it go live | System | After the copy, the steps fold into "Prompt copied" and the view shows the deploy's state instead, checking every few seconds. It follows whichever app the AI deploys — new or existing, since the AI picks the name — through Waiting, Deploying, Starting, then Live with Open app. |
 | 5 | `first-deploy/ai-deploys` | AI sends the app | AI | The AI reads the quickstart and the rules, then sends the app's files to Embarko. |
@@ -141,7 +141,7 @@ flowchart TD
 
 - **ID:** `first-deploy/make-token`
 - **Who acts:** System
-- **What happens:** On a click, the panel makes a deploy key and writes it into the prompt, so the AI can deploy as them. Optional for a new app; required to keep an app deployed before signing in.
+- **What happens:** On a click, the panel makes a Just me deploy key and writes it into the prompt, so the AI can deploy as them, in any of their workspaces. Optional for a new app; required to keep an app deployed before signing in.
 - **If it goes wrong:**
   - If making the key fails → "Couldn't create your deploy key." with Try again.
   - If there is no key yet on the new-app path → the plain prompt is used and the AI asks for a key.
@@ -262,7 +262,7 @@ flowchart TD
 | Your apps panel (`console`) | Screens | Where builders see their apps, whether each is live, and what to do next. |
 | Embarko prompt (`prompt`) | Engine | The text people copy into their AI so it knows how to deploy to Embarko. |
 | Panel bridge (`bridge`) | Engine | Passes every panel request to the account service as the signed-in person. |
-| Deploy keys (`tokens`) | Engine | Makes, checks, rotates and revokes the keys an AI uses to deploy as a workspace. |
+| Deploy keys (`tokens`) | Engine | Makes, checks, rotates and revokes the keys an AI uses to deploy, and decides which apps each key may reach. |
 | Keys and audit (`access-data`) | Data | Deploy keys (hashed), who the admins are, and a log of important actions. |
 | Your AI agent (`ai-agent`) | Outside | The builder's own AI (Claude, ChatGPT, Cursor…) that builds and deploys the app. |
 | Deploy history (`deploy-history`) | Engine | Records every deploy as a numbered version, and puts an earlier one back on request. |
@@ -283,7 +283,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `AppDetails` — Public-facing details of a deployed app.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
-- **Keeps** `DeployToken` — Company-wide deploy token.
+- **Keeps** `DeployToken` — A deploy token.
 - **Keeps** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Keeps** `EnvVar`
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
@@ -300,11 +300,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v208 (16f50ec) | 21 Oct 2026 | feat: deploy by app id, keep old names after a rename | check-key |
+| v207 (23a3409) | 21 Oct 2026 | feat: X-App-Id and embarko.json appId on deploy | ai-deploys, check-key |
 | v206 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | — |
 | v205 (ee930c9) | 21 Oct 2026 | feat: add auto-approve setting for showcase collections and submission flow | make-token |
 | v204 (ceac79b) | 21 Oct 2026 | doc improvements | copy-prompt |
-| v203 (06ddb8c) | 19 Oct 2026 | Browse a scheduled job's full run history | make-token |
-| v202 (bffa93d) | 19 Oct 2026 | Report the real cause when an app crashes on startup | ai-deploys, build-run |
 
 ## Open questions
 

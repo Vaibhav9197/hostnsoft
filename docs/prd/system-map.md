@@ -380,25 +380,25 @@ Confirms who someone is, which workspaces they belong to, and whether they are a
 
 ### Deploy keys (`tokens`)
 
-Makes, checks, rotates and revokes the keys an AI uses to deploy as a workspace.
+Makes, checks, rotates and revokes the keys an AI uses to deploy, and decides which apps each key may reach.
 
-- **How it works:** Keys are emb_ + 64 hex; only a hash is kept. Rotation keeps the old key alive for an hour. Every check updates lastUsedAt.
+- **How it works:** Keys are emb_ + 64 hex; only a hash is kept. Rotation keeps the old key alive for an hour. Every check updates lastUsedAt. Two kinds: a "Just me" key (kind user) acts as the person who made it, in every workspace they are in, checked live with can(); a "Whole workspace" key (kind workspace) reaches only its own workspace's apps. Email and connector keys are Just me. A key the app moved away from gets app_moved; a person who lost access gets no_access; strangers see the old 404 / name taken.
 - **Who decides:** a fixed rule
 - **Passes to:** viaSocket (email the key), Keys and audit (hashed keys)
 - **Receives from:** Deploy intake (is this key live?), Panel bridge (keys)
-- **Stories:** [First Deploy](stories/first-deploy.md), [Trial App](stories/try-without-account.md), [Connect AI](stories/connect-ai.md)
-- **Code files:** `@api/src/lib/deployTokenEmail.ts`, `@api/src/lib/deployTokens.ts`, `@api/src/lib/publicTokenConfig.ts`, `@api/src/middleware/deployTokenContext.ts`, `@api/src/routes/internalTokens.routes.ts`, `@api/src/routes/publicTokens.routes.ts`, `@api/src/routes/tokens.routes.ts`, `@api/src/services/deployTokenAuth.ts`, `@api/src/services/emailToken.ts`, `@api/src/services/publicTokenRequest.ts`
+- **Stories:** [First Deploy](stories/first-deploy.md), [Trial App](stories/try-without-account.md), [App Settings](stories/app-settings.md), [Connect AI](stories/connect-ai.md)
+- **Code files:** `@api/src/lib/deployTokenEmail.ts`, `@api/src/lib/deployTokens.ts`, `@api/src/lib/permissions.ts`, `@api/src/lib/publicTokenConfig.ts`, `@api/src/middleware/deployTokenContext.ts`, `@api/src/routes/internalTokens.routes.ts`, `@api/src/routes/publicTokens.routes.ts`, `@api/src/routes/tokens.routes.ts`, `@api/src/services/deployTokenAuth.ts`, `@api/src/services/emailToken.ts`, `@api/src/services/publicTokenRequest.ts`, `@api/src/services/tokenAccess.ts`
 
 ### App records (`app-records`)
 
 Keeps the list of apps: who owns each, its name and address, and whether it is live.
 
-- **How it works:** One Project per app; the slug is its address and the id is what stays fixed. Names are claimed platform-wide; a renamed app keeps its old names (SlugAlias), so nobody else takes them and a deploy under one reaches the app. Trial (orphan) apps expire after 24 hours unless claimed.
+- **How it works:** One Project per app; the slug is its address and the id is what stays fixed. Names are claimed platform-wide; a renamed app keeps its old names (SlugAlias), so nobody else takes them and a deploy under one reaches the app. Trial (orphan) apps expire after 24 hours unless claimed. An app can be moved to another workspace: only its owner changes (Project and AppDetails companyId), with no redeploy, audited in both workspaces.
 - **Who decides:** a fixed rule
 - **Passes to:** Apps and deploys (apps), App runner (health, rename, remove), Traffic records (traffic charts), Schedules and runs (schedules)
 - **Receives from:** Deploy intake (claim the name), Panel bridge (apps), Your AI agent (sets schedules)
 - **Stories:** [First Deploy](stories/first-deploy.md), [Trial App](stories/try-without-account.md), [Check Apps](stories/check-apps.md), [App Settings](stories/app-settings.md), [Scheduled Task](stories/scheduled-task.md)
-- **Code files:** `@api/src/lib/orphanConfig.ts`, `@api/src/lib/orphanMessage.ts`, `@api/src/lib/reservedSlugs.ts`, `@api/src/lib/slug.ts`, `@api/src/middleware/projectContext.ts`, `@api/src/middleware/refuseForStaticApp.ts`, `@api/src/routes/agentApps.routes.ts`, `@api/src/routes/analytics.routes.ts`, `@api/src/routes/internalProjects.routes.ts`, `@api/src/routes/projects.routes.ts`, `@api/src/services/appAnalytics.ts`, `@api/src/services/appHealth.ts`, `@api/src/services/appRename.ts`, `@api/src/services/appTeardown.ts`, `@api/src/services/projectClaim.ts`, `@api/src/services/projectSlugChange.ts`, `@api/src/services/projectStatus.ts`, `@api/src/services/renameStatus.ts`, `@api/src/services/slugChangeFlow.ts`
+- **Code files:** `@api/src/lib/orphanConfig.ts`, `@api/src/lib/orphanMessage.ts`, `@api/src/lib/reservedSlugs.ts`, `@api/src/lib/slug.ts`, `@api/src/middleware/projectContext.ts`, `@api/src/middleware/refuseForStaticApp.ts`, `@api/src/routes/agentApps.routes.ts`, `@api/src/routes/analytics.routes.ts`, `@api/src/routes/internalProjects.routes.ts`, `@api/src/routes/projects.routes.ts`, `@api/src/services/appAnalytics.ts`, `@api/src/services/appHealth.ts`, `@api/src/services/appRename.ts`, `@api/src/services/appTeardown.ts`, `@api/src/services/planLimits.ts`, `@api/src/services/projectClaim.ts`, `@api/src/services/projectMove.ts`, `@api/src/services/projectSlugChange.ts`, `@api/src/services/projectStatus.ts`, `@api/src/services/renameStatus.ts`, `@api/src/services/slugChangeFlow.ts`
 
 ### Deploy history (`deploy-history`)
 
@@ -619,7 +619,7 @@ Each app's schedules, and the last 100 runs of each with what the app answered.
 Deploy keys (hashed), who the admins are, and a log of important actions.
 
 - **Receives from:** Deploy keys (hashed keys)
-- **Stories:** [First Deploy](stories/first-deploy.md), [Connect AI](stories/connect-ai.md)
+- **Stories:** [First Deploy](stories/first-deploy.md), [App Settings](stories/app-settings.md), [Connect AI](stories/connect-ai.md)
 - **Tables:** `AuditLog`, `DeployToken`, `SuperAdmin`
 
 ### Showcase records (`showcase-data`)

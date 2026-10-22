@@ -8,7 +8,7 @@
 - **Wants to:** put an app online without making an account first
 - **Ends with:** The app is live for 24 hours with a banner, and stays for good once they claim it.
 - **Steps:** 6 · 1 by AI · 5 can go wrong
-- **Last change to its code:** v122, 21 Oct 2026 — feat: add auto-approve configuration option for showcase events
+- **Last change to its code:** v124, 21 Oct 2026 — feat: deploy by app id, keep old names after a rename
 
 [← All stories](../README.md)
 
@@ -157,7 +157,7 @@ flowchart TD
 | Trial banner (`trial-banner`) | Background | Puts a banner on trial and free-plan apps saying how to keep them. |
 | App runner (`runner`) | Engine | Runs each app, gives it its address and domains, and moves or removes it when asked. |
 | Visitors (`visitors`) | People | People who land on embarko.ai, read about it and browse the Showcase. |
-| Deploy keys (`tokens`) | Engine | Makes, checks, rotates and revokes the keys an AI uses to deploy as a workspace. |
+| Deploy keys (`tokens`) | Engine | Makes, checks, rotates and revokes the keys an AI uses to deploy, and decides which apps each key may reach. |
 | viaSocket (`webhook`) | Outside | Receives early-access requests and sends Embarko's emails (keys, Showcase notices). |
 | MSG91 (`msg91`) | Outside | Checks who a person is, holds workspaces and members, and sends email templates. |
 | Cleanup and re-checks (`cleanup`) | Background | Deletes trial apps nobody claimed, and re-checks custom domains every day. |
@@ -169,7 +169,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `AppDetails` — Public-facing details of a deployed app.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
-- **Keeps** `DeployToken` — Company-wide deploy token.
+- **Keeps** `DeployToken` — A deploy token.
 - **Keeps** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Keeps** `EnvVar`
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
@@ -186,11 +186,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v124 (16f50ec) | 21 Oct 2026 | feat: deploy by app id, keep old names after a rename | trial, claim |
+| v123 (23a3409) | 21 Oct 2026 | feat: X-App-Id and embarko.json appId on deploy | ai-deploys, cleanup |
 | v122 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | — |
 | v121 (d4cf249) | 21 Oct 2026 | fix: position orphan banner as fixed and dynamically offset page layout | banner |
 | v120 (bffa93d) | 19 Oct 2026 | Report the real cause when an app crashes on startup | ai-deploys, banner, cleanup |
-| v119 (0d035d5) | 19 Oct 2026 | Report the running commit on /health and check it after deploy | ai-deploys, cleanup |
-| v118 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | ai-deploys, cleanup |
 
 ## Open questions
 
