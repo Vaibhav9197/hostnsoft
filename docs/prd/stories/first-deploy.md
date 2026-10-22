@@ -8,7 +8,7 @@
 - **Wants to:** get the app their AI built online
 - **Ends with:** The app is live at its own embarko.app address and shows in Your apps.
 - **Steps:** 10 · 1 by AI · 7 can go wrong
-- **Last change to its code:** v201, 19 Oct 2026 — Show an app's scheduled jobs in the panel
+- **Last change to its code:** v206, 21 Oct 2026 — feat: add auto-approve configuration option for showcase events
 
 [← All stories](../README.md)
 
@@ -299,11 +299,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v201 (36b6871) | 19 Oct 2026 | Show an app's scheduled jobs in the panel | copy-prompt, make-token, app-appears |
-| v200 (cbf0640) | 19 Oct 2026 | Show schedules to the dashboard | watch |
-| v199 (0d035d5) | 19 Oct 2026 | Report the running commit on /health and check it after deploy | ai-deploys |
-| v198 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | ai-deploys, check-key, record |
-| v197 (4602272) | 19 Oct 2026 | Add schedules: timed calls into apps | check-key, record |
+| v206 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | — |
+| v205 (ee930c9) | 21 Oct 2026 | feat: add auto-approve setting for showcase collections and submission flow | make-token |
+| v204 (ceac79b) | 21 Oct 2026 | doc improvements | copy-prompt |
+| v203 (06ddb8c) | 19 Oct 2026 | Browse a scheduled job's full run history | make-token |
+| v202 (bffa93d) | 19 Oct 2026 | Report the real cause when an app crashes on startup | ai-deploys, build-run |
 
 ## Open questions
 

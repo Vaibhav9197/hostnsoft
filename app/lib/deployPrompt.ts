@@ -83,21 +83,6 @@ export function consoleDeployPromptWithToken(token: string): string {
 }
 
 /**
- * "Keep that app": for an app deployed before signing up, which is deleted
- * 24 hours after its deploy unless claimed. Claiming is a redeploy of the same
- * name with the account's token, so the agent — which still has the project —
- * does it. Token handling mirrors the console prompt: use one already set, or
- * ask the person for one; never print it.
- */
-export function consoleKeepPrompt(appName: string): string {
-  return `Keep my Embarko app "${appName}" (https://${appName}.embarko.app). It was deployed without an account, so it will be deleted unless it's claimed.
-
-Read ${SITE}/docs/claim.md and follow it: redeploy this same app, with the same name "${appName}", using my deploy token — DEPLOY_TOKEN or ~/.embarko/credentials if either is set; if neither is, ask me for one from ${SITE}/app/tokens and save it to ~/.embarko/credentials.
-
-Then confirm the deploy succeeded and tell me the app is now permanent.`;
-}
-
-/**
  * The empty console's main action: keep an app deployed before signing up,
  * with a token made on the spot. No app name — the agent that deployed it
  * still has the project and knows the name it used, so the person has
@@ -153,9 +138,3 @@ Read ${SITE}/docs/schedules.md and fix it. Use my deploy token: DEPLOY_TOKEN or 
 Check the job's recent runs at https://ship.embarko.ai/api/apps/${appName}/schedules/${scheduleId}/runs, fix the route in this app's code, then redeploy it as the existing app "${appName}" — that exact name. Tell me it's fixed only when the job's test run says "ok".`;
 }
 
-/** "my-app.embarko.app", "https://my-app.embarko.app/x" or "my-app" → "my-app". */
-export function appNameFromLink(input: string): string | null {
-  const s = input.trim().toLowerCase().replace(/^https?:\/\//, "").split(/[/?#]/)[0];
-  const name = s.endsWith(".embarko.app") ? s.slice(0, -".embarko.app".length) : s;
-  return /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(name) ? name : null;
-}

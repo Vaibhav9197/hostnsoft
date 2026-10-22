@@ -16,5 +16,4 @@ export function discoveryResponse(body: unknown, type: string): Response {
 }
 
 export const JSON_TYPE = "application/json; charset=utf-8";
-export const MD_TYPE = "text/markdown; charset=utf-8";
 export const TEXT_TYPE = "text/plain; charset=utf-8";

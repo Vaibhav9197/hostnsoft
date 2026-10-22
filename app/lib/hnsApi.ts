@@ -25,7 +25,6 @@ import type {
   Domain,
   EnvVar,
   LogStream,
-  Member,
   OrphanClaimResult,
   PaymentMethod,
   Project,
@@ -61,20 +60,6 @@ export const companiesApi = {
   // PATCH /companies/:companyId — rename.
   rename: (companyId: string, name: string) =>
     hns<Company>(`/companies/${companyId}`, { method: "PATCH", body: { name } }),
-};
-
-// ------------------------------------------------------------------ Members
-export const membersApi = {
-  // POST /companies/:companyId/members — invite by email.
-  invite: (companyId: string, email: string) =>
-    hns<Member>(`/companies/${companyId}/members`, { method: "POST", body: { email } }),
-
-  // GET /companies/:companyId/members — everyone in the company.
-  list: (companyId: string) => hns<Member[]>(`/companies/${companyId}/members`),
-
-  // DELETE /companies/:companyId/members/:userId — remove a member.
-  remove: (companyId: string, userId: string) =>
-    hns<null>(`/companies/${companyId}/members/${userId}`, { method: "DELETE" }),
 };
 
 // ----------------------------------------------------------------- Projects

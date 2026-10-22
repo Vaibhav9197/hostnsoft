@@ -8,7 +8,7 @@
 - **Wants to:** put an app online without making an account first
 - **Ends with:** The app is live for 24 hours with a banner, and stays for good once they claim it.
 - **Steps:** 6 · 1 by AI · 5 can go wrong
-- **Last change to its code:** v119, 19 Oct 2026 — Report the running commit on /health and check it after deploy
+- **Last change to its code:** v122, 21 Oct 2026 — feat: add auto-approve configuration option for showcase events
 
 [← All stories](../README.md)
 
@@ -184,11 +184,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v122 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | — |
+| v121 (d4cf249) | 21 Oct 2026 | fix: position orphan banner as fixed and dynamically offset page layout | banner |
+| v120 (bffa93d) | 19 Oct 2026 | Report the real cause when an app crashes on startup | ai-deploys, banner, cleanup |
 | v119 (0d035d5) | 19 Oct 2026 | Report the running commit on /health and check it after deploy | ai-deploys, cleanup |
 | v118 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | ai-deploys, cleanup |
-| v117 (4602272) | 19 Oct 2026 | Add schedules: timed calls into apps | trial, claim |
-| v116 (4b84108) | 19 Oct 2026 | footer capsule changes acc to touch screen as well | banner |
-| v115 (9ec8b0e) | 17 Oct 2026 | new capsule footer changes | banner |
 
 ## Open questions
 

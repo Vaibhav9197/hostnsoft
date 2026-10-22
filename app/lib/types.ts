@@ -61,12 +61,6 @@ export interface CompanyDetail extends Company {
   projectCount: number;
 }
 
-export interface Member {
-  userId: string;
-  email: string;
-  status: MemberStatus;
-}
-
 export interface Project {
   id: string;
   // null only for an unclaimed orphan (anonymous) deploy.
@@ -270,13 +264,6 @@ export interface Domain {
   lastVerifiedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
-}
-
-// Normalized error shape the BFF returns for every failure.
-export interface ApiError {
-  error: string;
-  details?: { path: string; message: string }[];
-  status: number;
 }
 
 // ------------------------------------------------------------------ Billing
