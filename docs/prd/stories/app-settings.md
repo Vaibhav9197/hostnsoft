@@ -218,7 +218,7 @@ flowchart TD
   - If the address was changed in the last 7 days → refused (slug_change_cooldown) with when to retry.
   - If A deploy is running → refused (deploy_in_progress).
 - **Parts:** Your apps panel (`console`), App records (`app-records`)
-- **Keeps:** `AppDetails`, `AuditLog`, `Company`, `Deployment`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`
+- **Keeps:** `AppDetails`, `AuditLog`, `Company`, `Deployment`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`
 - **Looks up:** `Domain`, `EnvVar`
 - **Code:** `page:/app/projects/[projectId]/settings` → `app/app/projects/[projectId]/settings/page.tsx`, `api:@api/companies/:companyId/projects/:projectId/slug` → `@api/src/routes/projects.routes.ts`, `lib:@api/src/services/slugChangeFlow` → `@api/src/services/slugChangeFlow.ts`
 - **Outside services:** Lago, Redis, Stripe, viaSocket webhook
@@ -248,7 +248,7 @@ flowchart TD
 | App runner (`runner`) | Engine | Runs each app, gives it its address and domains, and moves or removes it when asked. |
 | Traffic router (`router`) | Outside | Traefik: sends each address to the right app and gets its certificate. |
 | Cleanup and re-checks (`cleanup`) | Background | Deletes trial apps nobody claimed, and re-checks custom domains every day. |
-| Apps and deploys (`apps-data`) | Data | Each app, its versions, settings and custom domains. |
+| Apps and deploys (`apps-data`) | Data | Each app, its versions, settings, custom domains and old names. |
 | Deploy history (`deploy-history`) | Engine | Records every deploy as a numbered version, and puts an earlier one back on request. |
 | App records (`app-records`) | Engine | Keeps the list of apps: who owns each, its name and address, and whether it is live. |
 | Status refresh (`refresh`) | Background | Checks again every few seconds while something is changing, then stops. |
@@ -266,6 +266,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
 - **Keeps** `ShowcaseEvent` — An event page, /showcase/<slug>: a hackathon, a demo day.
 - **Keeps** `ShowcaseEventListing` — One app shown on one event page.
+- **Keeps** `SlugAlias` — A name an app used to have — one row per previous slug, written on every successful address change (services/projectSlugChange.ts).
 
 See [tables.md](../tables.md).
 

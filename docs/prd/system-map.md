@@ -286,7 +286,7 @@ This page: the product explained story by story, built from the code of all thre
 
 The shared buttons, cards, type and theme every page is built from.
 
-- **Code files:** `app/components/ds/Button.tsx`, `app/components/ds/Card.tsx`, `app/components/ds/CtaSection.tsx`, `app/components/ds/GlowBackdrop.tsx`, `app/components/ds/Hero.tsx`, `app/components/ds/Pill.tsx`, `app/components/ds/PrimaryCta.tsx`, `app/components/ds/Section.tsx`, `app/components/ds/Serif.tsx`, `app/components/ds/Steps.tsx`, `app/components/ds/cx.ts`, `app/components/ds/index.ts`, `app/components/ui/alert.tsx`, `app/components/ui/button.tsx`, `app/components/ui/chart.tsx`, `app/components/ui/dialog.tsx`, `app/components/ui/dictation.tsx`, `app/components/ui/dropdown-menu.tsx`, `app/components/ui/input.tsx`, `app/components/ui/kbd.tsx`, `app/components/ui/popover.tsx`, `app/components/ui/separator.tsx`, `app/components/ui/sheet.tsx`, `app/components/ui/skeleton.tsx`, `app/components/ui/sonner.tsx`, `app/components/ui/table.tsx`, `app/components/ui/tabs.tsx`, `app/components/ui/tooltip.tsx`, `app/layout.tsx`, `app/lib/theme.tsx`, `app/lib/utils.ts`
+- **Code files:** `app/components/ds/Button.tsx`, `app/components/ds/Card.tsx`, `app/components/ds/CtaSection.tsx`, `app/components/ds/GlowBackdrop.tsx`, `app/components/ds/Hero.tsx`, `app/components/ds/Pill.tsx`, `app/components/ds/PrimaryCta.tsx`, `app/components/ds/Section.tsx`, `app/components/ds/Serif.tsx`, `app/components/ds/Steps.tsx`, `app/components/ds/cx.ts`, `app/components/ds/index.ts`, `app/components/ui/alert.tsx`, `app/components/ui/button.tsx`, `app/components/ui/chart.tsx`, `app/components/ui/dialog.tsx`, `app/components/ui/dictation.tsx`, `app/components/ui/dropdown-menu.tsx`, `app/components/ui/input.tsx`, `app/components/ui/kbd.tsx`, `app/components/ui/popover.tsx`, `app/components/ui/sheet.tsx`, `app/components/ui/sonner.tsx`, `app/components/ui/table.tsx`, `app/components/ui/tabs.tsx`, `app/components/ui/tooltip.tsx`, `app/layout.tsx`, `app/lib/theme.tsx`, `app/lib/utils.ts`
 
 ## Engine — What answers them
 
@@ -393,7 +393,7 @@ Makes, checks, rotates and revokes the keys an AI uses to deploy as a workspace.
 
 Keeps the list of apps: who owns each, its name and address, and whether it is live.
 
-- **How it works:** One Project per app; the slug is its address. Names are claimed platform-wide; trial (orphan) apps expire after 24 hours unless claimed.
+- **How it works:** One Project per app; the slug is its address and the id is what stays fixed. Names are claimed platform-wide; a renamed app keeps its old names (SlugAlias), so nobody else takes them and a deploy under one reaches the app. Trial (orphan) apps expire after 24 hours unless claimed.
 - **Who decides:** a fixed rule
 - **Passes to:** Apps and deploys (apps), App runner (health, rename, remove), Traffic records (traffic charts), Schedules and runs (schedules)
 - **Receives from:** Deploy intake (claim the name), Panel bridge (apps), Your AI agent (sets schedules)
@@ -598,12 +598,12 @@ Showcase tables created in the site database but never used; Showcase lives in t
 
 ### Apps and deploys (`apps-data`)
 
-Each app, its versions, settings and custom domains.
+Each app, its versions, settings, custom domains and old names.
 
 - **How it works:** API database (SQLite via Prisma). There is no user or workspace table: owners are MSG91 ids stored as text.
 - **Receives from:** Deploy history (versions), App records (apps), Cleanup and re-checks (delete, re-check)
 - **Stories:** [First Deploy](stories/first-deploy.md), [Trial App](stories/try-without-account.md), [Fix Or Update](stories/fix-or-update.md), [App Settings](stories/app-settings.md)
-- **Tables:** `Deployment`, `Domain`, `EnvVar`, `Project`
+- **Tables:** `Deployment`, `Domain`, `EnvVar`, `Project`, `SlugAlias`
 
 ### Schedules and runs (`schedule-data`)
 

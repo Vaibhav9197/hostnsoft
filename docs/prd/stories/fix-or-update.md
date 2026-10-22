@@ -17,7 +17,7 @@
 | # | Step ID | Step | Who acts | What happens |
 |---|---|---|---|---|
 | 1 | `fix-or-update/choose` | Choose how | Person | They copy a prompt that tells their AI to update this exact app, or pick an earlier version. |
-| 2 | `fix-or-update/ai-updates` | AI redeploys | AI | The AI changes the code and deploys it again under the same app name. |
+| 2 | `fix-or-update/ai-updates` | AI redeploys | AI | The AI changes the code and deploys it again. The app id it saved in embarko.json after the first deploy finds the same app, even if the person renamed it; the reply says if it was renamed. |
 | 3 | `fix-or-update/rollback` | Re-deploy an earlier one | System | Any of the newest 3 working versions can be put back live as a new version. |
 | 4 | `fix-or-update/confirm` | Confirm it worked | System | The deploy service reports back, and the version becomes the live one. |
 | 5 | `fix-or-update/watch` | Watch it go live | System | The deploy list checks every second while a deploy runs. |
@@ -86,7 +86,7 @@ flowchart TD
 
 - **ID:** `fix-or-update/ai-updates`
 - **Who acts:** AI
-- **What happens:** The AI changes the code and deploys it again under the same app name.
+- **What happens:** The AI changes the code and deploys it again. The app id it saved in embarko.json after the first deploy finds the same app, even if the person renamed it; the reply says if it was renamed.
 - **If it goes wrong:** not written down yet — open question.
 - **Parts:** Your AI agent (`ai-agent`), Deploy intake (`intake`)
 - **Code:** `api:@deploy/apps` → `@deploy/server.js`
@@ -142,7 +142,7 @@ flowchart TD
 | Deploy intake (`intake`) | Engine | Takes an app from an AI, checks the key and the name, and starts the build. |
 | Deploy history (`deploy-history`) | Engine | Records every deploy as a numbered version, and puts an earlier one back on request. |
 | App runner (`runner`) | Engine | Runs each app, gives it its address and domains, and moves or removes it when asked. |
-| Apps and deploys (`apps-data`) | Data | Each app, its versions, settings and custom domains. |
+| Apps and deploys (`apps-data`) | Data | Each app, its versions, settings, custom domains and old names. |
 | Status refresh (`refresh`) | Background | Checks again every few seconds while something is changing, then stops. |
 
 See [system-map.md](../system-map.md) for how the parts connect.

@@ -9,6 +9,11 @@
       "type": "string",
       "description": "Optional. https://embarko.ai/schema/embarko.json"
     },
+    "appId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]{1,64}$",
+      "description": "The app this code deploys to: app.id from the first deploy reply. Keeps reaching the same app after it is renamed. Guide: https://embarko.ai/docs/embarko-json"
+    },
     "schedules": {
       "type": "array",
       "description": "The app's full set of timed calls, matched by path. [] removes all. Leave the key out to keep the schedules as they are. Guide: https://embarko.ai/docs/schedules",
