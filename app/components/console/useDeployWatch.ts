@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { deploymentsApi, projectsApi } from "@/app/lib/hnsApi";
+import { pollWhileVisible } from "@/app/lib/pollWhileVisible";
 import type { Deployment, Project } from "@/app/lib/types";
 
 /**
@@ -49,6 +50,9 @@ export type DeployWatch =
 
 /* A glance-at-it pace, like the apps grid: a build takes minutes. */
 const TICK_MS = 4000;
+/* While the app isn't known yet, every tick reads every app's history, so
+   it goes a little slower. */
+const SEARCH_TICK_MS = 6000;
 /* When the wording turns to "still nothing — here's why that can happen". */
 const SLOW_MS = 10 * 60 * 1000;
 /* When polling stops for good, so a prompt nobody pasted doesn't poll all day. */
@@ -137,6 +141,7 @@ export function useDeployWatch({
     const startedAt = Date.now();
     let target: Target | null = null;
     let succeededAt = 0;
+    let onFound: (() => void) | null = null;
 
     const set = (next: DeployWatch) => {
       if (run.current === mine) setWatch(next);
@@ -185,6 +190,7 @@ export function useDeployWatch({
           deploy = found.deploy;
           target = { id: project.id, slug: project.slug };
           onEventRef.current?.("seen");
+          onFound?.();
         } else {
           project = projects.find((p) => p.id === target!.id);
           deploy = newestOf(await deploymentsApi.list(companyId, target.id));
@@ -224,11 +230,32 @@ export function useDeployWatch({
       }
     }
 
-    const id = window.setInterval(tick, TICK_MS);
-    const giveUp = window.setTimeout(() => window.clearInterval(id), GIVE_UP_MS);
+    /* A tick that is still reading when the next one is due is skipped, so a
+       slow API can't stack requests. */
+    let inFlight = false;
+    const guarded = async () => {
+      if (inFlight) return;
+      inFlight = true;
+      try {
+        await tick();
+      } finally {
+        inFlight = false;
+      }
+    };
+    /* Searching fans out to one history read per app, so it runs at the
+       slower pace; once the app is known, `tick` calls `onFound` and the
+       rest is followed at the faster one. A hidden tab doesn't poll at all. */
+    let cleanup = pollWhileVisible(guarded, { intervalMs: SEARCH_TICK_MS, giveUpMs: GIVE_UP_MS });
+    onFound = () => {
+      cleanup();
+      cleanup = pollWhileVisible(guarded, {
+        intervalMs: TICK_MS,
+        giveUpMs: Math.max(0, GIVE_UP_MS - (Date.now() - startedAt)),
+      });
+    };
     return () => {
-      window.clearInterval(id);
-      window.clearTimeout(giveUp);
+      onFound = null;
+      cleanup();
     };
   }, [polling, companyId, preferProjectId]);
 

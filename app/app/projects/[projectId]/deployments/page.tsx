@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "../../../../components/ui/sheet";
 import { Button } from "../../../../components/ui/button";
 import { appsApi, deploymentsApi } from "../../../../lib/hnsApi";
+import { pollWhileVisible } from "../../../../lib/pollWhileVisible";
 import { useProject } from "../../../../lib/useProject";
 import { relativeTime } from "../../../../lib/format";
 import { useSession } from "../../../../lib/session";
@@ -43,8 +44,8 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
   const [logsError, setLogsError] = useState<string | null>(null);
 
   /* `quiet` re-reads without blanking the table to a skeleton first. The first
-     load has nothing to show and wants the skeleton; the poll below runs once a
-     second and would otherwise flash the whole table away between ticks. */
+     load has nothing to show and wants the skeleton; the poll below runs every
+     few seconds and would otherwise flash the whole table away between ticks. */
   const load = useCallback(async (quiet = false) => {
     if (!activeCompanyId) return;
     if (!quiet) setDeps(null);
@@ -54,8 +55,8 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
     } catch (e) {
       /* A failed poll keeps the table it already has. `error` replaces the
          whole page, and one blip mid-build is not a reason to take the list
-         away from someone watching it. The next tick a second later either
-         works or the deploy finishes without them. */
+         away from someone watching it. The next tick a few seconds later
+         either works or the deploy finishes without them. */
       if (!quiet) setError(e instanceof Error ? e.message : "Couldn’t load deployments.");
     }
   }, [activeCompanyId, projectId]);
@@ -73,18 +74,15 @@ export default function DeploymentsPage({ params }: { params: Promise<{ projectI
      Anything in flight counts, not just a re-deploy from this page — a deploy
      an agent started while the tab was open settles the same way.
 
-     Capped rather than left to run: a build that is still going after ten
-     minutes is not going to be watched to the end, and an interval nobody is
-     looking at is just load on the API. */
+     Every four seconds, not every second: a build takes minutes, so a faster
+     read buys nothing anyone can see. Capped rather than left to run: a build
+     that is still going after ten minutes is not going to be watched to the
+     end, and an interval nobody is looking at is just load on the API — which
+     is also why it pauses while the tab is hidden. */
   const settling = deps?.some((d) => d.status === "in_progress") ?? false;
   useEffect(() => {
     if (!settling) return;
-    const tick = setInterval(() => load(true), 1000);
-    const giveUp = setTimeout(() => clearInterval(tick), 10 * 60 * 1000);
-    return () => {
-      clearInterval(tick);
-      clearTimeout(giveUp);
-    };
+    return pollWhileVisible(() => load(true), { intervalMs: 4000, giveUpMs: 10 * 60 * 1000 });
   }, [settling, load]);
 
   /* Logs are app-level — one running allocation, not one per deploy — which is

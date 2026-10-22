@@ -12,6 +12,7 @@ import { AppTile, CreateAppTile } from "../components/console/AppTile";
 import { earlyProjects, markMainDataSettled } from "../lib/earlyReads";
 import { readLastSeen, writeLastSeen } from "../lib/lastSeen";
 import { companiesApi, projectsApi } from "../lib/hnsApi";
+import { pollWhileVisible } from "../lib/pollWhileVisible";
 import { useSession } from "../lib/session";
 import type { Project } from "../lib/types";
 
@@ -89,12 +90,7 @@ export default function ProjectsPage() {
   ) ?? false;
   useEffect(() => {
     if (!settling) return;
-    const tick = setInterval(() => load(true), 5000);
-    const giveUp = setTimeout(() => clearInterval(tick), 10 * 60 * 1000);
-    return () => {
-      clearInterval(tick);
-      clearTimeout(giveUp);
-    };
+    return pollWhileVisible(() => load(true), { intervalMs: 5000, giveUpMs: 10 * 60 * 1000 });
   }, [settling, load]);
 
   /* Parked, not deleted: apps are created by deploying to them, so the dialog
