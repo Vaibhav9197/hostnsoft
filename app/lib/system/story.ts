@@ -1726,14 +1726,14 @@ export const JOURNEYS: Journey[] = [
       {
         id: "alert",
         title: "Tell the owner",
-        plain: "When 3 runs in a row have failed, or it has been failing for 6 hours with no success, the owner gets an email, and the optional webhook a schedule.failed message; on the next good run, one recovery message each. Shorter failure streaks reset quietly on the next good run.",
+        plain: "When 3 runs in a row have failed, or it has been failing for 6 hours with no success, the owner gets an email in plain words with a Fix with your AI button (it opens the job in the panel, one click from the prompt; the prompt is also in the email), and the optional webhook a schedule.failed message; on the next good run, one recovery message each. Shorter failure streaks reset quietly on the next good run.",
         actor: "system",
         failure: [
           "The email or webhook can't be sent → only logged; never retried, and the run's result is unchanged.",
           "The webhook address now points somewhere private → not sent.",
         ],
         areas: ["schedules", "webhook"],
-        refs: ["lib:@api/src/services/scheduleAlerts", "lib:@api/src/lib/publicHttpsUrl", "ext:viasocket"],
+        refs: ["lib:@api/src/services/scheduleAlerts", "lib:@api/src/lib/publicHttpsUrl", "lib:app/components/console/ProjectSchedules", "ext:viasocket"],
       },
     ],
   },

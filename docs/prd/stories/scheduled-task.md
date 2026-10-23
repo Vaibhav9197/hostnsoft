@@ -8,7 +8,7 @@
 - **Wants to:** have their app do something at set times without anyone visiting it
 - **Ends with:** The app's route is called at each due time; the owner hears only when it starts failing and when it recovers.
 - **Steps:** 6 · 3 by AI · 4 can go wrong
-- **Last change to its code:** v146, 23 Oct 2026 — feat: invite and remove people through the API; per-member app access
+- **Last change to its code:** v149, 23 Oct 2026 — feat: invite and remove people through the API; per-member app access
 
 [← All stories](../README.md)
 
@@ -21,7 +21,7 @@
 | 3 | `scheduled-task/deploy` | Deploy with the schedules | AI | The AI lists the schedules under "schedules" in embarko.json, in the app's top folder, and deploys any usual way. The list is the app's full set; no file or no schedules key leaves them unchanged, [] removes all. They are checked before the build and a CRON_SECRET setting is created if the app has none; when the deploy succeeds, listed schedules are created or updated by path, unlisted ones deleted. |
 | 4 | `scheduled-task/test` | Run each once | AI | Once the app is live the AI runs every schedule once and checks each answer, so a broken route shows before the first real time. The skill's deploy script does this itself. |
 | 5 | `scheduled-task/call` | Call the app on time | System | Every 30 seconds due schedules are taken and their route is called on the app's own address; a sleeping app is woken first. |
-| 6 | `scheduled-task/alert` | Tell the owner | System | When 3 runs in a row have failed, or it has been failing for 6 hours with no success, the owner gets an email, and the optional webhook a schedule.failed message; on the next good run, one recovery message each. Shorter failure streaks reset quietly on the next good run. |
+| 6 | `scheduled-task/alert` | Tell the owner | System | When 3 runs in a row have failed, or it has been failing for 6 hours with no success, the owner gets an email in plain words with a Fix with your AI button (it opens the job in the panel, one click from the prompt; the prompt is also in the email), and the optional webhook a schedule.failed message; on the next good run, one recovery message each. Shorter failure streaks reset quietly on the next good run. |
 
 ## Flow
 
@@ -180,13 +180,12 @@ flowchart TD
 
 - **ID:** `scheduled-task/alert`
 - **Who acts:** System
-- **What happens:** When 3 runs in a row have failed, or it has been failing for 6 hours with no success, the owner gets an email, and the optional webhook a schedule.failed message; on the next good run, one recovery message each. Shorter failure streaks reset quietly on the next good run.
+- **What happens:** When 3 runs in a row have failed, or it has been failing for 6 hours with no success, the owner gets an email in plain words with a Fix with your AI button (it opens the job in the panel, one click from the prompt; the prompt is also in the email), and the optional webhook a schedule.failed message; on the next good run, one recovery message each. Shorter failure streaks reset quietly on the next good run.
 - **If it goes wrong:**
   - If the email or webhook can't be sent → only logged; never retried, and the run's result is unchanged.
   - If the webhook address now points somewhere private → not sent.
 - **Parts:** Schedules (`schedules`), viaSocket (`webhook`)
-- **Looks up:** `ScheduleRun`
-- **Code:** `lib:@api/src/services/scheduleAlerts` → `@api/src/services/scheduleAlerts.ts`, `lib:@api/src/lib/publicHttpsUrl` → `@api/src/lib/publicHttpsUrl.ts`
+- **Code:** `lib:@api/src/services/scheduleAlerts` → `@api/src/services/scheduleAlerts.ts`, `lib:@api/src/lib/publicHttpsUrl` → `@api/src/lib/publicHttpsUrl.ts`, `lib:app/components/console/ProjectSchedules` → `app/components/console/ProjectSchedules.tsx`
 - **Outside services:** viaSocket webhook
 
 ## Parts involved
@@ -230,11 +229,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v146 (3be464c) | 23 Oct 2026 | feat: invite and remove people through the API; per-member app access | — |
-| v145 (8b5e212) | 23 Oct 2026 | feat: schedule alerts wait for 3 failures in a row or a 6h failing streak | test, call, alert |
-| v144 (28bcc06) | 22 Oct 2026 | feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access | deploy |
-| v143 (7484583) | 22 Oct 2026 | feat: send status vs logs permission for dashboard reads; permission_denied next step | deploy |
-| v142 (d6e1f75) | 22 Oct 2026 | docs: next step for app_id_mismatch | deploy |
+| v149 (3be464c) | 23 Oct 2026 | feat: invite and remove people through the API; per-member app access | — |
+| v148 (8b5e212) | 23 Oct 2026 | feat: schedule alerts wait for 3 failures in a row or a 6h failing streak | test, call, alert |
+| v147 (782798d) | 22 Oct 2026 | feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access | alert |
+| v146 (28bcc06) | 22 Oct 2026 | feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access | deploy |
+| v145 (7484583) | 22 Oct 2026 | feat: send status vs logs permission for dashboard reads; permission_denied next step | deploy |
 
 ## Open questions
 

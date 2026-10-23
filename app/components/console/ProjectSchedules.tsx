@@ -59,6 +59,19 @@ export function ProjectSchedules({
     };
   }, [companyId, projectId]);
 
+  /* The failing-job email links here with ?fix=<scheduleId>: bring that job
+     into view, its "Fix with your AI" button marked, so the person lands
+     one click from the prompt. Read from location, not useSearchParams, so
+     the page needs no Suspense boundary for it. */
+  const [fixId, setFixId] = useState<string | null>(null);
+  useEffect(() => {
+    setFixId(new URLSearchParams(window.location.search).get("fix"));
+  }, []);
+  useEffect(() => {
+    if (!fixId || !schedules?.some((s) => s.id === fixId)) return;
+    document.getElementById(`job-${fixId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [fixId, schedules]);
+
   if (!schedules || schedules.length === 0) return null;
 
   const failing = schedules.filter((s) => s.failing).length;
@@ -78,7 +91,15 @@ export function ProjectSchedules({
       <Panel>
         <ul className="divide-y divide-border">
           {schedules.map((s) => (
-            <JobRow key={s.id} schedule={s} appName={appName} companyId={companyId!} projectId={projectId} mayFix={mayFix} />
+            <JobRow
+              key={s.id}
+              schedule={s}
+              appName={appName}
+              companyId={companyId!}
+              projectId={projectId}
+              mayFix={mayFix}
+              highlight={s.id === fixId}
+            />
           ))}
         </ul>
       </Panel>
@@ -104,19 +125,28 @@ function JobRow({
   companyId,
   projectId,
   mayFix,
+  highlight,
 }: {
   schedule: Schedule;
   appName: string;
   companyId: string;
   projectId: string;
   mayFix: boolean;
+  /** Arrived from the failing-job email for this job. */
+  highlight: boolean;
 }) {
   const last = s.lastRun;
   const job = s.name ?? s.path;
   const [runsOpen, setRunsOpen] = useState(false);
 
   return (
-    <li className={cn("flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-start sm:justify-between", s.failing && "bg-destructive/[0.04]")}>
+    <li
+      id={`job-${s.id}`}
+      className={cn(
+        "flex scroll-mt-24 flex-col gap-3 px-5 py-4 sm:flex-row sm:items-start sm:justify-between",
+        s.failing && "bg-destructive/[0.04]"
+      )}
+    >
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-x-2">
           <span className="text-[0.95rem] font-semibold text-foreground">{job}</span>
@@ -162,7 +192,11 @@ function JobRow({
             error: last?.error ?? null,
             reply: last?.responseExcerpt ?? null,
           })}
-          className={cn(buttonVariants({ size: "sm" }), "h-8")}
+          className={cn(
+            buttonVariants({ size: "sm" }),
+            "h-8",
+            highlight && "ring-2 ring-primary ring-offset-2 ring-offset-background motion-safe:animate-pulse"
+          )}
           announce="Prompt copied. Paste it into your AI to fix this job."
           copiedChildren={
             <>

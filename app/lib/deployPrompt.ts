@@ -120,6 +120,9 @@ When I ask for changes, redeploy it as the existing app "${appName}", that exact
  * agent needs to start without asking: which app, which job, and the last
  * error, plus where the run history is. The agent fixes the route in the
  * same project and redeploys the same app name, which re-runs the job.
+ *
+ * The failing-job email carries the same prompt, built server-side
+ * (hostnsoft-api src/services/scheduleAlerts.ts fixPrompt): change both.
  */
 export function consoleFixSchedulePrompt(input: {
   appName: string;
