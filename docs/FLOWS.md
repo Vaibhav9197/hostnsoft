@@ -1,7 +1,7 @@
 ---
 covers: ["app/app/**", "app/claim/**", "app/connector/**", "app/showcase/**", "app/api/**", "app/components/console/**", "app/lib/session.tsx", "app/lib/hnsApi.ts", "app/lib/useProject.ts", "app/lib/deployPrompt.ts"]
 verified_at: 1629250
-verified_on: 2026-10-22
+verified_on: 2026-10-23
 ---
 # User Flows & Critical Journeys
 
@@ -26,7 +26,7 @@ browser component ──> app/lib/hnsApi.ts (typed, one fn per endpoint)
 ```
 
 - The session is one httpOnly cookie, `hns_pat` (`app/lib/api.ts:PAT_COOKIE`). The browser never sees it
-  except through `GET /api/auth/widget-token` (user-management widget only).
+  (the route that once handed it to MSG91's user-management widget was removed with the widget).
 - Auth routes (`app/api/auth/`) bypass the generic proxy because they set or clear that cookie; the
   browser calls them through `app/lib/client.ts:authExchange`, `app/lib/client.ts:authMe`,
   `app/lib/client.ts:authSwitchCompany`, `app/lib/client.ts:authLogout`.
@@ -330,8 +330,9 @@ re-poll keeps what is on screen; `useProject` drops last visit's copy on a faile
 - **Roles in the panel.** `app/lib/permissions.tsx:usePermissions().can(permission, projectId?)` hides
   what the person's role can't do: the menu (`HeaderUserMenu.tsx`: Billing, Deploy tokens, Showcase), the
   plan chip, the "Host new app" tile, app-level actions (`ProjectNav.tsx`, deployments, domain, showcase),
-  workspace rename, and the Members page (`TeamRoles.tsx`: Admins manage everyone except Owners/Admins;
-  everyone else read-only). Whole pages a role can't use (tokens, billing, showcase admin) render
+  workspace rename, and the Members page (`TeamRoles.tsx`, ours only — no MSG91 widget: one list, one
+  Invite with email + role + access, remove; Admins manage everyone except Owners/Admins; everyone else
+  read-only with a "Your access" card). Whole pages a role can't use (tokens, billing, showcase admin) render
   `app/components/console/NeedsPermission.tsx`. Home with no visible apps: the deploy flow only with
   `app.create`; a Billing member is sent to billing. On an app page, below Full access `ProjectNav.tsx`
   shows one line about the person's access (`usePermissions().levelOf(projectId)`) instead of change

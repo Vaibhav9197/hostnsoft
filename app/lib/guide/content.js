@@ -1125,8 +1125,8 @@ function topics(base) {
       ],
       steps: {
         any: [
-          'To add a teammate, the person opens https://embarko.ai/app/members and invites them by email with a role. Only an Owner or Admin can invite people.',
-          'Then they send the invite from the team list on the same page. The teammate gets the role when they join.',
+          'To add a teammate, the person opens https://embarko.ai/app/members, clicks Invite, and enters an email, a role and, for a Member, their access: every app at one level, or only chosen apps. Only an Owner or Admin can invite people.',
+          'The teammate gets an email and has that access as soon as they sign in.',
           'To let a Member\'s AI change one app: on the same page, give them "Can edit" (changes wait for approval) or "Full access" (they publish) on that app.',
           'To change someone\'s role or access later, the person does it on the same page. Only an Owner or Admin can.',
           'If a reply says permission_denied, tell the person in one message (say_to_user.no_permission). Do not retry, use other tools, make a new token, or deploy under another name to get round it.',

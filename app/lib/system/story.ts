@@ -398,9 +398,9 @@ export const AREAS: Area[] = [
     id: "roles",
     name: "Roles",
     lane: "engine",
-    plain: "Decides what each member may do in a workspace: Owner, Admin, Member or Billing, and each Member's access to each app: Can use, Can edit (their AI's changes wait for approval) or Full access (publishes).",
+    plain: "Decides what each member may do in a workspace: Owner, Admin, Member or Billing, and each Member's access: Can use, Can edit (their AI's changes wait for approval) or Full access (publishes), on every app or only chosen ones.",
     detail:
-      "MSG91 still decides who is in a workspace, checked on every request. @api then checks the member's role and app access on every panel and agent call, and on every deploy; a personal token has its person's permissions, a workspace token (Owner/Admin-made) acts for the whole workspace and outlives its maker. Each workspace is set up once (on its first request, and in a sweep at startup): everyone in it then becomes Admin and its creator Owner; anyone who joins later without an invite starts as a Member, who can use every app. Publishing needs Full access to the app; a Member has it on apps they added.",
+      "MSG91 still decides who is in a workspace, checked on every request. @api then checks the member's role and app access on every panel and agent call, and on every deploy; a personal token has its person's permissions, a workspace token (Owner/Admin-made) acts for the whole workspace and outlives its maker. Each workspace is set up once (on its first request, and in a sweep at startup): everyone in it then becomes Admin and its creator Owner; anyone who joins later without an invite starts as a Member, who can use every app. A Member's access is one level on every app (apps added later included) or only chosen apps, the rest hidden. Publishing needs Full access to the app; a Member has it on apps they added. Owners and Admins invite and remove people from the Members page; @api makes the change on MSG91 and sends the invite email.",
     judge: "rule",
     refs: [
       "lib:@api/src/lib/permissions",
@@ -408,6 +408,7 @@ export const AREAS: Area[] = [
       "lib:@api/src/services/workspaceRoles",
       "lib:@api/src/services/appReadAccess",
       "lib:@api/src/routes/members.routes",
+      "lib:@api/src/lib/memberInviteEmail",
     ],
   },
   {
@@ -2164,26 +2165,28 @@ export const JOURNEYS: Journey[] = [
       {
         id: "invite",
         title: "Invite with a role",
-        plain: "They choose a role (and, for a Member, access to apps) for an email, then send the invite from MSG91's list. The role applies when the person first arrives.",
+        plain: "They enter an email and a role; for a Member, access to every app (Can use, Can edit or Full access) or only chosen apps. @api has MSG91 add them (as the person inviting) and sends Embarko's own invite email. The role applies when they first arrive.",
         actor: "user",
         choices: ["Owner", "Admin", "Member", "Billing"],
         failure: [
           "The person is already in the workspace → refused (already_member, 409): change their role instead.",
           "An Admin invites an Owner or Admin → refused (owner_required, 403).",
+          "MSG91 refuses the invite → nothing is kept, and its reason is shown.",
         ],
         areas: ["console", "roles", "roles-data", "msg91"],
-        refs: ["api:@api/companies/:companyId/invites", "lib:app/components/console/UserManagementWidget"],
+        refs: ["api:@api/companies/:companyId/invites", "lib:app/components/console/TeamRoles", "lib:@api/src/lib/msg91", "lib:@api/src/lib/memberInviteEmail"],
       },
       {
         id: "change",
         title: "Change a role",
-        plain: "They change someone's role and, for a Member, their access to each app: Can use (the default), Can edit or Full access.",
+        plain: "They change someone's role and, for a Member, their access: every app at Can use (the default), Can edit or Full access, or only chosen apps. They can also remove someone, which removes them on MSG91 too.",
         actor: "user",
         failure: [
           "It would leave no Owner → refused (last_owner, 409).",
           "An Admin changes an Owner or Admin → refused (owner_required, 403).",
+          "They try to remove themselves → refused (not_yourself, 400).",
         ],
-        areas: ["console", "roles", "roles-data"],
+        areas: ["console", "roles", "roles-data", "msg91"],
         refs: ["api:@api/companies/:companyId/members/:userId", "api:@api/companies/:companyId/members/:userId/apps"],
       },
       {

@@ -1,35 +1,46 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Alert, LinkButton, NativeSelect, Panel, PanelTitle, Skeleton } from "./kit";
+import { XIcon } from "lucide-react";
+import { Alert, LinkButton, NativeSelect, PageHeader, Panel, Skeleton } from "./kit";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 import { membersApi, projectsApi } from "../../lib/hnsApi";
-import { ACCESS_LEVELS, DEFAULT_LEVEL, LEVEL_HINTS, LEVEL_LABELS, LEVEL_RULE, ROLES, ROLE_HINTS, ROLE_LABELS, usePermissions } from "../../lib/permissions";
+import {
+  ACCESS_LABELS,
+  ACCESS_OPTIONS,
+  ACCESS_LEVELS,
+  DEFAULT_LEVEL,
+  LEVEL_HINTS,
+  LEVEL_LABELS,
+  ROLE_HINTS,
+  ROLE_LABELS,
+  usePermissions,
+} from "../../lib/permissions";
 import { useSession } from "../../lib/session";
-import type { AccessLevel, AppGrant, Member, MembersList, PendingInvite, Project, WorkspaceRole } from "../../lib/types";
+import type { AccessLevel, AppAccess, AppGrant, Member, MembersList, MyPermissions, PendingInvite, Project, WorkspaceRole } from "../../lib/types";
 
-// What each person in the workspace can do — the half of the members page
-// that's ours. Adding and removing people (and the invite email) is the
-// members embed below this, which is MSG91's; roles are kept by hostnsoft-api
-// and checked there on every request. So this panel only ever changes roles
-// and app access, and an invite here only remembers the role: the person is
-// then invited from the embed, and gets that role the first time they arrive.
+// The members page: who is in the workspace, what each of them can do, and
+// who is invited. All of it is hostnsoft-api (roles, access, and the invite
+// email and removal it does through the sign-in service as the caller).
 //
-// A Member can use every app and has full access to the apps they added;
-// the per-app list gives them more on particular apps. Other roles have no
-// per-app access to set (Owner and Admin reach everything, Billing nothing).
-//
-// Inviting, like every change here, is members.manage: Owner and Admin.
+// People with members.manage (Owner, Admin) get the editable list; everyone
+// else sees names, emails and roles, plus a card with their own access and
+// who to ask for more. The API enforces every rule here itself — an Admin
+// can't touch Owners or Admins, nobody changes or removes themselves — so
+// the page only disables what would be refused, and says why.
 
 const OWNERISH: ReadonlySet<WorkspaceRole> = new Set(["owner", "admin"]);
+// The order roles are offered in.
+const ROLE_ORDER: WorkspaceRole[] = ["member", "admin", "billing", "owner"];
+const OWNER_ONLY = "Only an Owner can change Owners and Admins.";
 
-// projectId -> a level above the default "use". Apps at "use" aren't kept.
+// projectId -> level, for the apps ticked in "Choose apps…".
 type Grants = Record<string, AccessLevel>;
 
 function grantsOf(apps: AppGrant[]): Grants {
-  return Object.fromEntries(apps.filter((a) => a.level !== DEFAULT_LEVEL).map((a) => [a.projectId, a.level]));
+  return Object.fromEntries(apps.map((a) => [a.projectId, a.level]));
 }
 
 function toList(grants: Grants): AppGrant[] {
@@ -41,32 +52,75 @@ function sameGrants(a: Grants, b: Grants): boolean {
   return ka.length === Object.keys(b).length && ka.every((k) => a[k] === b[k]);
 }
 
-function moreAccessLine(count: number): string | null {
-  if (count === 0) return null;
-  return count === 1 ? "More access to 1 app" : `More access to ${count} apps`;
-}
-
 function errorText(e: unknown, fallback: string): string {
   return e instanceof Error && e.message ? e.message : fallback;
 }
 
-export function TeamRoles() {
-  const { activeCompanyId } = useSession();
-  const { can, role: myRole, data: mine, settled, reload: reloadMine } = usePermissions();
+function displayName(p: { name: string | null; email: string | null }): string {
+  return p.name || p.email || "Someone";
+}
+
+function firstName(p: { name: string | null; email: string | null }): string {
+  return p.name?.trim().split(/\s+/)[0] || p.email || "Someone";
+}
+
+function initials(p: { name: string | null; email: string | null }): string {
+  const source = p.name?.trim() || p.email?.split("@")[0] || "?";
+  return source
+    .split(/[\s._-]+/)
+    .filter(Boolean)
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
+// "Can use all apps", or for chosen apps "Can edit · only 2 apps" (the level
+// only when every app shares it). Apps someone added are theirs in full
+// whatever this says, so they aren't counted.
+function accessSummary(access: AppAccess | null, apps: AppGrant[], created: ReadonlySet<string> = new Set()): string {
+  if (!access || access !== "chosen") return ACCESS_LABELS[access ?? DEFAULT_LEVEL];
+  const given = apps.filter((a) => !created.has(a.projectId));
+  if (given.length === 0) return created.size ? "Only apps they added" : "No apps yet";
+  const levels = new Set(given.map((a) => a.level));
+  const lead = levels.size === 1 ? `${LEVEL_LABELS[given[0].level]} · ` : "";
+  return `${lead}only ${given.length} ${given.length === 1 ? "app" : "apps"}`;
+}
+
+function accessHint(access: AppAccess): string {
+  return access === "chosen" ? "They only see the apps you tick." : "Includes apps added later.";
+}
+
+function appName(p: Project): string {
+  return p.name || p.slug;
+}
+
+function joinNames(names: string[]): string {
+  if (names.length <= 1) return names.join("");
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
+export function Members() {
+  const { activeCompanyId, activeCompany } = useSession();
+  const { can, role: myRole, data: mine, settled } = usePermissions();
   const [list, setList] = useState<MembersList | null>(null);
   const [apps, setApps] = useState<Project[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [editing, setEditing] = useState<Member | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [rowError, setRowError] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
   const [inviting, setInviting] = useState(false);
+  const [editing, setEditing] = useState<Member | null>(null);
+  const [removing, setRemoving] = useState<Member | null>(null);
 
-  // Held until permissions load, so nobody gets a moment of Change buttons
-  // that would only end in "you don't have permission".
+  // Held until permissions load, so nobody gets a moment of controls that
+  // would only end in "you don't have permission".
   const canManage = settled && can("members.manage");
   const isOwner = myRole === "owner";
+  const workspace = activeCompany?.companyName || "this workspace";
 
   const load = useCallback(async () => {
     if (!activeCompanyId) return;
-    setError(null);
+    setLoadError(null);
     try {
       const [members, projects] = await Promise.all([
         membersApi.list(activeCompanyId),
@@ -75,7 +129,7 @@ export function TeamRoles() {
       setList(members);
       setApps(projects);
     } catch (e) {
-      setError(errorText(e, "Couldn’t load your team."));
+      setLoadError(errorText(e, "Couldn’t load the members."));
     }
   }, [activeCompanyId]);
 
@@ -84,335 +138,385 @@ export function TeamRoles() {
     load();
   }, [load]);
 
-  // Owners and Admins are an Owner's to change; the API says so too.
-  const mayEdit = (m: Pick<Member, "role">) => canManage && (isOwner || !OWNERISH.has(m.role));
-  // Cancelling an invite is the same rule as changing that role.
-  const mayCancel = (i: PendingInvite) => mayEdit(i);
+  // Why this person's row can't be changed by me, or null when it can.
+  function lockReason(m: Member): string | null {
+    if (m.isYou) return "You can’t change your own role or remove yourself.";
+    if (OWNERISH.has(m.role) && !isOwner) return OWNER_ONLY;
+    return null;
+  }
 
-  async function cancelInvite(invite: PendingInvite) {
-    if (!activeCompanyId) return;
+  async function changeRole(m: Member, role: WorkspaceRole) {
+    if (!activeCompanyId || role === m.role) return;
+    setBusy(m.userId);
+    setRowError(null);
     try {
-      await membersApi.cancelInvite(activeCompanyId, invite.id);
+      await membersApi.update(activeCompanyId, m.userId, { role });
       await load();
     } catch (e) {
-      setError(errorText(e, "Couldn’t cancel that invite."));
+      setRowError(errorText(e, "Couldn’t change that role."));
+    } finally {
+      setBusy(null);
     }
   }
 
+  async function cancelInvite(i: PendingInvite) {
+    if (!activeCompanyId) return;
+    setBusy(i.id);
+    setRowError(null);
+    try {
+      await membersApi.cancelInvite(activeCompanyId, i.id);
+      await load();
+    } catch (e) {
+      setRowError(errorText(e, "Couldn’t cancel that invite."));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  const createdBy = (userId: string) => new Set(apps.filter((a) => a.createdBy === userId).map((a) => a.id));
+  const count = list?.members.length ?? 0;
+
   return (
-    <Panel padded>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <PanelTitle>What each person can do</PanelTitle>
-        {canManage && (
-          <Button variant="outline" size="sm" onClick={() => setInviting(true)}>
-            Invite with a role
-          </Button>
-        )}
-      </div>
+    <>
+      <PageHeader
+        title="Members"
+        subtitle={list ? `${count} ${count === 1 ? "person" : "people"} in ${workspace}` : undefined}
+        actions={canManage && <Button onClick={() => setInviting(true)}>Invite</Button>}
+      />
 
-      {/* Read-only for everyone else: say who to ask, once. */}
-      {settled && !canManage && (
-        <p className="mt-1 text-sm text-muted-foreground">
-          Owners and Admins invite people and decide what each person can do.
-        </p>
+      {loadError && (
+        <Alert>
+          {loadError}{" "}
+          <LinkButton className="ml-1 text-destructive" onClick={() => load()}>
+            Try again
+          </LinkButton>
+        </Alert>
       )}
-      {canManage && !isOwner && (
-        <p className="mt-1 text-sm text-muted-foreground">Only an Owner can change Owners and Admins.</p>
-      )}
-
-      {error && <Alert className="mt-3">{error}</Alert>}
+      {rowError && <Alert>{rowError}</Alert>}
 
       {!list ? (
-        <Skeleton className="mt-4 h-28" aria-hidden="true" />
+        !loadError && <Skeleton className="h-56" aria-hidden="true" />
       ) : (
         <>
-          {!list.complete && (
-            <Alert variant="note" className="mt-3">
-              Some people may be missing from this list.
-            </Alert>
-          )}
-          <ul className="mt-3 divide-y divide-border">
-            {list.members.map((m) => {
-              const more = m.role === "member" ? moreAccessLine(m.apps.filter((a) => a.level !== DEFAULT_LEVEL).length) : null;
-              return (
-                <li key={m.userId} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-[0.95rem] font-semibold text-foreground">
-                      {m.name || m.email || "Someone"}
-                      {m.isYou && <span className="font-normal text-muted-foreground"> (you)</span>}
-                    </p>
-                    {m.name && m.email && <p className="truncate text-sm text-muted-foreground">{m.email}</p>}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-right text-sm text-foreground">
-                      {ROLE_LABELS[m.role]}
-                      {more && <span className="block text-[0.8rem] text-muted-foreground">{more}</span>}
-                    </span>
-                    {mayEdit(m) && <LinkButton onClick={() => setEditing(m)}>Change</LinkButton>}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+          {!list.complete && <Alert variant="note">Some people may be missing from this list.</Alert>}
 
-          {list.invites.length > 0 && (
-            <>
-              <p className="mt-4 text-sm font-semibold text-foreground">Waiting to join</p>
-              <ul className="mt-1 divide-y divide-border">
-                {list.invites.map((i) => {
-                  const more = i.role === "member" ? moreAccessLine(i.apps.filter((a) => a.level !== DEFAULT_LEVEL).length) : null;
-                  return (
-                    <li key={i.id} className="flex flex-wrap items-center justify-between gap-3 py-2.5">
-                      <span className="truncate text-sm text-foreground">{i.email}</span>
-                      <div className="flex items-center gap-3">
+          <Panel className="overflow-hidden">
+            <ul className="divide-y divide-border" aria-label="Members">
+              {list.members.map((m) => {
+                const name = displayName(m);
+                const locked = lockReason(m);
+                return (
+                  <li key={m.userId} className="flex flex-wrap items-center gap-3.5 px-5 py-4">
+                    <span
+                      aria-hidden="true"
+                      className="flex size-10 shrink-0 items-center justify-center rounded-full bg-elevated text-sm font-semibold text-muted-foreground"
+                    >
+                      {initials(m)}
+                    </span>
+                    <div className="flex min-w-0 flex-[1_1_220px] flex-col gap-0.5">
+                      <p className="truncate text-[0.95rem] font-medium text-foreground">
+                        {name}
+                        {m.isYou && <span className="font-normal text-muted-foreground"> (you)</span>}
+                      </p>
+                      {m.name && m.email && <p className="truncate text-sm text-muted-foreground">{m.email}</p>}
+                      {canManage && m.role === "member" && (
+                        <button
+                          type="button"
+                          onClick={() => setEditing(m)}
+                          className="mt-1 cursor-pointer self-start text-[0.82rem] text-foreground underline underline-offset-[3px] hover:text-muted-foreground"
+                        >
+                          {accessSummary(m.access, m.apps, createdBy(m.userId))}
+                        </button>
+                      )}
+                    </div>
+
+                    {canManage ? (
+                      <div className="flex items-center gap-1.5">
+                        <span title={locked ?? undefined}>
+                          <NativeSelect
+                            aria-label={`Role for ${name}`}
+                            className="h-10 min-w-[120px]"
+                            value={m.role}
+                            disabled={!!locked || busy === m.userId}
+                            onChange={(e) => changeRole(m, e.target.value as WorkspaceRole)}
+                          >
+                            {(["owner", "admin", "member", "billing"] as WorkspaceRole[]).map((r) => (
+                              <option key={r} value={r} disabled={!isOwner && OWNERISH.has(r) && r !== m.role}>
+                                {ROLE_LABELS[r]}
+                                {!isOwner && OWNERISH.has(r) && r !== m.role ? " (Owners only)" : ""}
+                              </option>
+                            ))}
+                          </NativeSelect>
+                        </span>
+                        <span title={locked ?? undefined}>
+                          <Button
+                            variant="ghost"
+                            size="icon-lg"
+                            aria-label={`Remove ${name}`}
+                            disabled={!!locked || busy === m.userId}
+                            onClick={() => setRemoving(m)}
+                            className="text-muted-foreground hover:text-foreground"
+                          >
+                            <XIcon className="size-[18px]" />
+                          </Button>
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="min-w-[80px] text-right text-sm text-muted-foreground">{ROLE_LABELS[m.role]}</span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </Panel>
+
+          {canManage && list.invites.length > 0 && (
+            <section className="flex flex-col gap-2.5" aria-labelledby="invited-heading">
+              <h2 id="invited-heading" className="text-sm font-semibold text-muted-foreground">
+                Invited
+              </h2>
+              <Panel className="overflow-hidden">
+                <ul className="divide-y divide-border">
+                  {list.invites.map((i) => {
+                    const locked = OWNERISH.has(i.role) && !isOwner ? "Only an Owner can cancel an Owner or Admin invite." : null;
+                    return (
+                      <li key={i.id} className="flex flex-wrap items-center gap-3.5 px-5 py-3.5">
+                        <span className="min-w-0 flex-[1_1_220px] truncate text-[0.95rem] text-foreground">{i.email}</span>
                         <span className="text-sm text-muted-foreground">
                           {ROLE_LABELS[i.role]}
-                          {more && ` · ${more.toLowerCase()}`}
+                          {i.role === "member" && ` · ${accessSummary(i.access, i.apps)}`}
                         </span>
-                        {mayCancel(i) && (
-                          <LinkButton onClick={() => cancelInvite(i)}>Cancel</LinkButton>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            </>
+                        <span title={locked ?? undefined}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="rounded-full"
+                            disabled={!!locked || busy === i.id}
+                            onClick={() => cancelInvite(i)}
+                          >
+                            {busy === i.id ? "Cancelling…" : "Cancel"}
+                          </Button>
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </Panel>
+            </section>
           )}
+
+          {settled && !canManage && <YourAccess mine={mine} members={list.members} apps={apps} />}
         </>
       )}
 
-      <AccessDialog
-        member={editing}
-        apps={apps}
-        isOwner={isOwner}
-        onClose={() => setEditing(null)}
-        onSaved={async () => {
-          setEditing(null);
-          await Promise.all([load(), reloadMine()]);
-        }}
-      />
       <InviteDialog
         open={inviting}
         apps={apps}
         isOwner={isOwner}
+        workspace={workspace}
         onClose={() => setInviting(false)}
         onSaved={async () => {
           setInviting(false);
           await load();
         }}
       />
-    </Panel>
+      <AccessDialog
+        member={editing}
+        apps={apps}
+        onClose={() => setEditing(null)}
+        onSaved={async () => {
+          setEditing(null);
+          await load();
+        }}
+      />
+      <RemoveDialog
+        member={removing}
+        workspace={workspace}
+        onClose={() => setRemoving(null)}
+        onRemoved={async () => {
+          setRemoving(null);
+          await load();
+        }}
+      />
+    </>
   );
 }
 
-// The role picker. Owner and Admin stay in the list for an Admin, disabled,
-// with the reason underneath — so the choice they can't make isn't a mystery.
-function RoleField({
-  role,
-  current,
-  isOwner,
-  onChange,
-}: {
-  role: WorkspaceRole;
-  // The member's role now, kept selectable even when it's one this person
-  // couldn't pick (an Admin looking at an Owner by recovery).
-  current?: WorkspaceRole;
-  isOwner: boolean;
-  onChange: (r: WorkspaceRole) => void;
-}) {
-  return (
-    <div className="grid gap-1.5">
-      <label htmlFor="role" className="text-sm font-semibold text-foreground">Role</label>
-      <NativeSelect id="role" value={role} onChange={(e) => onChange(e.target.value as WorkspaceRole)}>
-        {ROLES.map((r) => (
-          <option key={r} value={r} disabled={!isOwner && OWNERISH.has(r) && r !== current}>
-            {ROLE_LABELS[r]}
-          </option>
-        ))}
-      </NativeSelect>
-      <p className="text-sm text-muted-foreground">{ROLE_HINTS[role]}</p>
-      {!isOwner && <p className="text-[0.8rem] text-muted-foreground">Only an Owner can make someone an Owner or Admin.</p>}
-    </div>
-  );
-}
+// What someone without members.manage can do, in a sentence, and who to ask.
+function YourAccess({ mine, members, apps }: { mine: MyPermissions | null; members: Member[]; apps: Project[] }) {
+  if (!mine) return null;
+  const managers = members.filter((m) => OWNERISH.has(m.role) && !m.isYou).map(firstName);
+  const ask = managers.length
+    ? `Need more? Ask an Owner or Admin: ${joinNames(managers.length > 3 ? [...managers.slice(0, 3), "others"] : managers)}.`
+    : "Need more? Ask an Owner or Admin.";
 
-// A Member's access, app by app. Every app starts at "Can use"; apps they
-// added are theirs in full and can't be lowered.
-function AppAccessField({
-  apps,
-  grants,
-  setGrants,
-  memberId,
-}: {
-  apps: Project[];
-  grants: Grants;
-  setGrants: (g: Grants) => void;
-  memberId?: string;
-}) {
-  return (
-    <div className="grid gap-1.5">
-      <p className="text-sm font-semibold text-foreground">Access to each app</p>
-      <p className="text-sm text-muted-foreground">Every app starts at Can use. Give more where they need it.</p>
-      <p className="text-[0.8rem] text-muted-foreground">{LEVEL_RULE}</p>
-      <ul className="mt-1 grid max-h-64 gap-2 overflow-y-auto pr-1">
-        {apps.length === 0 && <li className="text-sm text-muted-foreground">No apps yet.</li>}
-        {apps.map((a) => {
-          const name = a.name || a.slug;
-          const created = !!memberId && a.createdBy === memberId;
-          const level = grants[a.id] ?? DEFAULT_LEVEL;
-          return (
-            <li key={a.id} className="flex items-center justify-between gap-3">
-              <span className="min-w-0 truncate text-sm text-foreground">{name}</span>
-              {created ? (
-                <span className="shrink-0 text-sm text-muted-foreground">Full access (created it)</span>
-              ) : (
-                <NativeSelect
-                  aria-label={`Access to ${name}`}
-                  title={LEVEL_HINTS[level]}
-                  className="shrink-0"
-                  value={level}
-                  onChange={(e) => {
-                    const next = { ...grants };
-                    const value = e.target.value as AccessLevel;
-                    if (value === DEFAULT_LEVEL) delete next[a.id];
-                    else next[a.id] = value;
-                    setGrants(next);
-                  }}
-                >
-                  {ACCESS_LEVELS.map((l) => (
-                    <option key={l} value={l}>
-                      {l === DEFAULT_LEVEL ? `${LEVEL_LABELS[l]} (default)` : LEVEL_LABELS[l]}
-                    </option>
-                  ))}
-                </NativeSelect>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-      <ul className="mt-1 grid gap-0.5 text-[0.8rem] text-muted-foreground">
-        {ACCESS_LEVELS.map((l) => (
-          <li key={l}>
-            <span className="font-semibold">{LEVEL_LABELS[l]}:</span> {LEVEL_HINTS[l]}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function AccessDialog({
-  member,
-  apps,
-  isOwner,
-  onClose,
-  onSaved,
-}: {
-  member: Member | null;
-  apps: Project[];
-  isOwner: boolean;
-  onClose: () => void;
-  onSaved: () => Promise<void>;
-}) {
-  const { activeCompanyId } = useSession();
-  const [role, setRole] = useState<WorkspaceRole>("member");
-  const [grants, setGrants] = useState<Grants>({});
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!member) return;
-    setRole(member.role);
-    setGrants(grantsOf(member.apps));
-    setError(null);
-  }, [member]);
-
-  async function save() {
-    if (!activeCompanyId || !member) return;
-    setSaving(true);
-    setError(null);
-    const before = grantsOf(member.apps);
-    try {
-      // Leaving the Member role: their per-app access would do nothing, so
-      // it goes first, while they're still a Member.
-      if (member.role === "member" && role !== "member" && Object.keys(before).length) {
-        await membersApi.setApps(activeCompanyId, member.userId, []);
-      }
-      if (role !== member.role) {
-        await membersApi.update(activeCompanyId, member.userId, { role });
-      }
-      if (role === "member" && !sameGrants(before, grants)) {
-        await membersApi.setApps(activeCompanyId, member.userId, toList(grants));
-      }
-      await onSaved();
-    } catch (e) {
-      // The API's own sentence: last Owner, Owner-only, and the like.
-      setError(errorText(e, "Couldn’t save that."));
-    } finally {
-      setSaving(false);
+  let line: string;
+  if (mine.role !== "member") {
+    line = ROLE_HINTS[mine.role];
+  } else {
+    const names = new Map(apps.map((a) => [a.id, appName(a)]));
+    const added = new Set(apps.filter((a) => a.createdBy === mine.userId).map((a) => a.id));
+    const addedNames = [...added].map((id) => names.get(id)).filter(Boolean) as string[];
+    const addedPart = addedNames.length
+      ? `Full access to ${joinNames(addedNames)} (you added ${addedNames.length === 1 ? "it" : "them"})`
+      : "";
+    if (mine.access && mine.access !== "chosen") {
+      const all = { use: "You can use all apps", edit: "You can edit all apps", full: "You have full access to all apps" }[mine.access];
+      line = mine.access !== "full" && addedPart ? `${all}. ${addedPart}.` : `${all}.`;
+    } else {
+      const reachable = mine.apps.filter((a) => names.has(a.projectId));
+      const byLevel = (level: AccessLevel) =>
+        reachable.filter((a) => a.level === level && !added.has(a.projectId)).map((a) => names.get(a.projectId)!);
+      const parts = [
+        addedPart,
+        byLevel("full").length ? `Full access to ${joinNames(byLevel("full"))}` : "",
+        byLevel("edit").length ? `Can edit on ${joinNames(byLevel("edit"))}` : "",
+        byLevel("use").length ? `Can use ${joinNames(byLevel("use"))}` : "",
+      ].filter(Boolean);
+      const n = reachable.length;
+      line = n ? `You have ${n} ${n === 1 ? "app" : "apps"}: ${parts.join(", ")}.` : "You don’t have any apps yet.";
     }
   }
 
   return (
-    <Dialog open={member != null} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>What {member?.name || member?.email || "they"} can do</DialogTitle>
-          <DialogDescription>Takes effect on their next click, in the panel and for their AI.</DialogDescription>
-        </DialogHeader>
-        {member && (
-          <div className="grid gap-5">
-            <RoleField role={role} current={member.role} isOwner={isOwner} onChange={setRole} />
-            {role === "member" && (
-              <AppAccessField apps={apps} grants={grants} setGrants={setGrants} memberId={member.userId} />
-            )}
-          </div>
-        )}
-        {error && <Alert>{error}</Alert>}
-        <DialogFooter>
-          <DialogClose render={<Button variant="outline" />}>Keep as is</DialogClose>
-          <Button onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <Panel className="flex flex-col gap-1.5 px-5 py-4">
+      <h2 className="text-[0.95rem] font-medium text-foreground">Your access</h2>
+      <p className="text-sm text-muted-foreground">{line}</p>
+      <p className="text-sm text-muted-foreground">{ask}</p>
+    </Panel>
   );
 }
 
-// Owner/Admin choose a role and app access. Everyone else invites as a
-// Member with the default access — the only invite the API takes from them —
-// so they get just the email field.
+// The Access picker plus, for "Choose apps…", the app checklist. Apps the
+// person added (createdBy) are theirs in full: ticked and locked.
+function AccessFields({
+  id,
+  access,
+  setAccess,
+  grants,
+  setGrants,
+  apps,
+  createdBy,
+}: {
+  id: string;
+  access: AppAccess;
+  setAccess: (a: AppAccess) => void;
+  grants: Grants;
+  setGrants: (g: Grants) => void;
+  apps: Project[];
+  createdBy?: string;
+}) {
+  return (
+    <>
+      <div className="grid gap-1.5">
+        <label htmlFor={`${id}-access`} className="text-sm font-semibold text-foreground">
+          Access
+        </label>
+        <NativeSelect
+          id={`${id}-access`}
+          className="h-10"
+          value={access}
+          onChange={(e) => setAccess(e.target.value as AppAccess)}
+          aria-describedby={`${id}-access-hint`}
+        >
+          {ACCESS_OPTIONS.map((a) => (
+            <option key={a} value={a}>
+              {ACCESS_LABELS[a]}
+            </option>
+          ))}
+        </NativeSelect>
+        <p id={`${id}-access-hint`} className="text-[0.82rem] text-muted-foreground">
+          {accessHint(access)}
+        </p>
+      </div>
+
+      {access === "chosen" && (
+        <ul className="max-h-64 divide-y divide-border overflow-y-auto rounded-lg border border-border" aria-label="Apps">
+          {apps.length === 0 && <li className="px-3.5 py-3 text-sm text-muted-foreground">No apps yet.</li>}
+          {apps.map((a) => {
+            const name = appName(a);
+            const added = !!createdBy && a.createdBy === createdBy;
+            const level: AccessLevel | undefined = added ? "full" : grants[a.id];
+            const boxId = `${id}-app-${a.id}`;
+            return (
+              <li key={a.id} className="flex flex-wrap items-center gap-3 px-3.5 py-2.5">
+                <label htmlFor={boxId} className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 text-sm text-foreground">
+                  <input
+                    id={boxId}
+                    type="checkbox"
+                    className="size-4 shrink-0 cursor-pointer accent-foreground disabled:cursor-default"
+                    checked={!!level}
+                    disabled={added}
+                    onChange={(e) => {
+                      const next = { ...grants };
+                      if (e.target.checked) next[a.id] = DEFAULT_LEVEL;
+                      else delete next[a.id];
+                      setGrants(next);
+                    }}
+                  />
+                  <span className="truncate">
+                    {name}
+                    {added && <span className="text-muted-foreground"> (added it)</span>}
+                  </span>
+                </label>
+                {level && (
+                  <NativeSelect
+                    aria-label={`Access to ${name}`}
+                    title={LEVEL_HINTS[level]}
+                    className="h-9 py-1"
+                    value={level}
+                    disabled={added}
+                    onChange={(e) => setGrants({ ...grants, [a.id]: e.target.value as AccessLevel })}
+                  >
+                    {ACCESS_LEVELS.map((l) => (
+                      <option key={l} value={l}>
+                        {LEVEL_LABELS[l]}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </>
+  );
+}
+
 function InviteDialog({
   open,
   apps,
   isOwner,
+  workspace,
   onClose,
   onSaved,
 }: {
   open: boolean;
   apps: Project[];
   isOwner: boolean;
+  workspace: string;
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
   const { activeCompanyId } = useSession();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<WorkspaceRole>("member");
+  const [access, setAccess] = useState<AppAccess>(DEFAULT_LEVEL);
   const [grants, setGrants] = useState<Grants>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [savedFor, setSavedFor] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
     setEmail("");
     setRole("member");
+    setAccess(DEFAULT_LEVEL);
     setGrants({});
     setError(null);
-    setSavedFor(null);
   }, [open]);
 
-  async function save(e: React.FormEvent) {
+  async function send(e: React.FormEvent) {
     e.preventDefault();
     if (!activeCompanyId) return;
     setSaving(true);
@@ -421,9 +525,123 @@ function InviteDialog({
       await membersApi.invite(activeCompanyId, {
         email: email.trim(),
         role,
-        ...(role === "member" && Object.keys(grants).length ? { grants: toList(grants) } : {}),
+        ...(role === "member" ? { access } : {}),
+        ...(role === "member" && access === "chosen" ? { grants: toList(grants) } : {}),
       });
-      setSavedFor(email.trim());
+      await onSaved();
+    } catch (err) {
+      // The API's own sentence: already in, Owner-only, or the email failing.
+      setError(errorText(err, "Couldn’t send the invite."));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-h-[92vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl">Invite to {workspace}</DialogTitle>
+        </DialogHeader>
+        <form className="grid gap-5" onSubmit={send}>
+          <div className="grid gap-1.5">
+            <label htmlFor="invite-email" className="text-sm font-semibold text-foreground">
+              Email
+            </label>
+            <Input
+              id="invite-email"
+              type="email"
+              required
+              autoComplete="off"
+              placeholder="name@company.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <label htmlFor="invite-role" className="text-sm font-semibold text-foreground">
+              Role
+            </label>
+            <NativeSelect
+              id="invite-role"
+              className="h-10"
+              value={role}
+              aria-describedby="invite-role-hint"
+              onChange={(e) => setRole(e.target.value as WorkspaceRole)}
+            >
+              {ROLE_ORDER.map((r) => {
+                const ownerOnly = !isOwner && OWNERISH.has(r);
+                return (
+                  <option key={r} value={r} disabled={ownerOnly}>
+                    {ROLE_LABELS[r]}
+                    {ownerOnly ? " (Owners only)" : ""}
+                  </option>
+                );
+              })}
+            </NativeSelect>
+            <p id="invite-role-hint" className="text-[0.82rem] text-muted-foreground">
+              {ROLE_HINTS[role]}
+            </p>
+          </div>
+          {role === "member" && (
+            <AccessFields id="invite" access={access} setAccess={setAccess} grants={grants} setGrants={setGrants} apps={apps} />
+          )}
+          {error && <Alert>{error}</Alert>}
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" type="button" />}>Cancel</DialogClose>
+            <Button type="submit" disabled={saving || !email.trim()}>
+              {saving ? "Sending…" : "Send invite"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AccessDialog({
+  member,
+  apps,
+  onClose,
+  onSaved,
+}: {
+  member: Member | null;
+  apps: Project[];
+  onClose: () => void;
+  onSaved: () => Promise<void>;
+}) {
+  const { activeCompanyId } = useSession();
+  const [access, setAccess] = useState<AppAccess>(DEFAULT_LEVEL);
+  const [grants, setGrants] = useState<Grants>({});
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!member) return;
+    setAccess(member.access ?? DEFAULT_LEVEL);
+    setGrants(grantsOf(member.apps));
+    setError(null);
+  }, [member]);
+
+  async function save() {
+    if (!activeCompanyId || !member) return;
+    const before = member.access ?? DEFAULT_LEVEL;
+    // Apps they added are full whatever is sent; leave them out.
+    const added = new Set(apps.filter((a) => a.createdBy === member.userId).map((a) => a.id));
+    const wanted = Object.fromEntries(Object.entries(grants).filter(([id]) => !added.has(id)));
+    const had = Object.fromEntries(Object.entries(grantsOf(member.apps)).filter(([id]) => !added.has(id)));
+    const changeAccess = access !== before;
+    const changeApps = access === "chosen" && (changeAccess || !sameGrants(had, wanted));
+    if (!changeAccess && !changeApps) return onClose();
+
+    setSaving(true);
+    setError(null);
+    try {
+      // Access first: moving to "chosen" must land before the apps do, and
+      // moving away from it clears their apps on its own.
+      if (changeAccess) await membersApi.update(activeCompanyId, member.userId, { role: "member", access });
+      if (changeApps) await membersApi.setApps(activeCompanyId, member.userId, toList(wanted));
+      await onSaved();
     } catch (e) {
       setError(errorText(e, "Couldn’t save that."));
     } finally {
@@ -432,36 +650,89 @@ function InviteDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && (savedFor ? onSaved() : onClose())}>
+    <Dialog open={member != null} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-h-[92vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl">{member ? `${firstName(member)}’s access` : "Access"}</DialogTitle>
+        </DialogHeader>
+        {member && (
+          <div className="grid gap-5">
+            <AccessFields
+              id="member"
+              access={access}
+              setAccess={setAccess}
+              grants={grants}
+              setGrants={setGrants}
+              apps={apps}
+              createdBy={member.userId}
+            />
+          </div>
+        )}
+        {error && <Alert>{error}</Alert>}
+        <DialogFooter>
+          <Button onClick={save} disabled={saving}>
+            {saving ? "Saving…" : "Done"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function RemoveDialog({
+  member,
+  workspace,
+  onClose,
+  onRemoved,
+}: {
+  member: Member | null;
+  workspace: string;
+  onClose: () => void;
+  onRemoved: () => Promise<void>;
+}) {
+  const { activeCompanyId } = useSession();
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // Kept through the close animation so the copy doesn't blank out.
+  const [shown, setShown] = useState<Member | null>(null);
+
+  useEffect(() => {
+    if (!member) return;
+    setShown(member);
+    setError(null);
+  }, [member]);
+
+  async function remove() {
+    if (!activeCompanyId || !member) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await membersApi.remove(activeCompanyId, member.userId);
+      await onRemoved();
+    } catch (e) {
+      setError(errorText(e, "Couldn’t remove them."));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const name = shown ? displayName(shown) : "";
+  return (
+    <Dialog open={member != null} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Invite with a role</DialogTitle>
-          <DialogDescription>Choose what they can do, then send the invite from the team list below.</DialogDescription>
+          <DialogTitle className="text-xl leading-snug">
+            Remove {name} from {workspace}?
+          </DialogTitle>
+          <DialogDescription>They lose access to every app.</DialogDescription>
         </DialogHeader>
-        {savedFor ? (
-          <>
-            <Alert variant="info">
-              {`Saved. Now invite ${savedFor} from the team list below — they’ll get this role when they join.`}
-            </Alert>
-            <DialogFooter>
-              <Button onClick={() => onSaved()}>Done</Button>
-            </DialogFooter>
-          </>
-        ) : (
-          <form className="grid gap-5" onSubmit={save}>
-            <div className="grid gap-1.5">
-              <label htmlFor="invite-email" className="text-sm font-semibold text-foreground">Email</label>
-              <Input id="invite-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-            </div>
-            <RoleField role={role} isOwner={isOwner} onChange={setRole} />
-            {role === "member" && <AppAccessField apps={apps} grants={grants} setGrants={setGrants} />}
-            {error && <Alert>{error}</Alert>}
-            <DialogFooter>
-              <DialogClose render={<Button variant="outline" type="button" />}>Cancel</DialogClose>
-              <Button type="submit" disabled={saving || !email.trim()}>{saving ? "Saving…" : "Save role"}</Button>
-            </DialogFooter>
-          </form>
-        )}
+        {error && <Alert>{error}</Alert>}
+        <DialogFooter>
+          <DialogClose render={<Button variant="outline" />}>Keep as is</DialogClose>
+          <Button variant="destructive" onClick={remove} disabled={saving}>
+            {saving ? "Removing…" : "Remove"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -8,7 +8,7 @@
 - **Wants to:** see at a glance which apps are live and which need attention
 - **Ends with:** Each app shows Live, Not online or Needs attention, and one click opens it.
 - **Steps:** 5 · 0 by AI · 5 can go wrong
-- **Last change to its code:** v164, 21 Oct 2026 — feat: X-App-Id and embarko.json appId on deploy
+- **Last change to its code:** v172, 22 Oct 2026 — feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access
 
 [← All stories](../README.md)
 
@@ -164,7 +164,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 ## Tables
 
 - **Keeps** `AppDetails` — Public-facing details of a deployed app.
-- **Keeps** `AppGrant` — A Member's access to one project, above the default "use": "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
+- **Keeps** `AppGrant` — One app a Member with appAccess "chosen" can reach, and how far: "use", "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `PendingInvite` — A role chosen for someone before they are a member.
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
@@ -188,11 +188,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v164 (23a3409) | 21 Oct 2026 | feat: X-App-Id and embarko.json appId on deploy | list, details |
-| v163 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | — |
-| v162 (bffa93d) | 19 Oct 2026 | Report the real cause when an app crashes on startup | list, details |
-| v161 (36b6871) | 19 Oct 2026 | Show an app's scheduled jobs in the panel | label, open |
-| v160 (cbf0640) | 19 Oct 2026 | Show schedules to the dashboard | list |
+| v172 (782798d) | 22 Oct 2026 | feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access | list, keep-current, open, details |
+| v171 (28bcc06) | 22 Oct 2026 | feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access | list |
+| v170 (7484583) | 22 Oct 2026 | feat: send status vs logs permission for dashboard reads; permission_denied next step | list, details |
+| v169 (1633d9d) | 21 Oct 2026 | feat: per-app access on status and logs for dashboard sessions | list, details |
+| v168 (ff4b18d) | 21 Oct 2026 | feat: team roles in the dashboard | list, keep-current, details |
 
 ## Open questions
 

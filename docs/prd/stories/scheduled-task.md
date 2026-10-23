@@ -8,7 +8,7 @@
 - **Wants to:** have their app do something at set times without anyone visiting it
 - **Ends with:** The app's route is called at each due time; the owner hears only when it starts failing and when it recovers.
 - **Steps:** 6 · 3 by AI · 4 can go wrong
-- **Last change to its code:** v137, 21 Oct 2026 — feat: deploy by app id, keep old names after a rename
+- **Last change to its code:** v144, 22 Oct 2026 — feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access
 
 [← All stories](../README.md)
 
@@ -206,7 +206,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 ## Tables
 
 - **Keeps** `AppDetails` — Public-facing details of a deployed app.
-- **Keeps** `AppGrant` — A Member's access to one project, above the default "use": "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
+- **Keeps** `AppGrant` — One app a Member with appAccess "chosen" can reach, and how far: "use", "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `DeployToken` — A deploy token.
@@ -229,11 +229,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v137 (16f50ec) | 21 Oct 2026 | feat: deploy by app id, keep old names after a rename | deploy |
-| v136 (23a3409) | 21 Oct 2026 | feat: X-App-Id and embarko.json appId on deploy | deploy |
-| v135 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | — |
-| v134 (960e6d4) | 19 Oct 2026 | Fix schedule alert emails for deploy-token apps; page run history | deploy, test, alert |
-| v133 (bffa93d) | 19 Oct 2026 | Report the real cause when an app crashes on startup | deploy, call |
+| v144 (28bcc06) | 22 Oct 2026 | feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access | deploy |
+| v143 (7484583) | 22 Oct 2026 | feat: send status vs logs permission for dashboard reads; permission_denied next step | deploy |
+| v142 (d6e1f75) | 22 Oct 2026 | docs: next step for app_id_mismatch | deploy |
+| v141 (1633d9d) | 21 Oct 2026 | feat: per-app access on status and logs for dashboard sessions | deploy |
+| v140 (d2813cc) | 21 Oct 2026 | feat: workspace roles and per-app access | deploy, test |
 
 ## Open questions
 

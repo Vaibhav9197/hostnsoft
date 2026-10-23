@@ -8,7 +8,7 @@
 - **Wants to:** collect the apps built at their event on one public page
 - **Ends with:** A live event page with a poster and QR code, filling with the apps people send.
 - **Steps:** 5 · 0 by AI · 5 can go wrong
-- **Last change to its code:** v55, 21 Oct 2026 — feat: add auto-approve configuration option for showcase events
+- **Last change to its code:** v59, 22 Oct 2026 — feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access
 
 [← All stories](../README.md)
 
@@ -188,7 +188,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 ## Tables
 
 - **Keeps** `AppDetails` — Public-facing details of a deployed app.
-- **Keeps** `AppGrant` — A Member's access to one project, above the default "use": "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
+- **Keeps** `AppGrant` — One app a Member with appAccess "chosen" can reach, and how far: "use", "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `PendingInvite` — A role chosen for someone before they are a member.
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
@@ -206,11 +206,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v59 (782798d) | 22 Oct 2026 | feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access | create, share, watch, review |
+| v58 (28bcc06) | 22 Oct 2026 | feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access | — |
+| v57 (d2813cc) | 21 Oct 2026 | feat: workspace roles and per-app access | create, review |
+| v56 (b7f1799) | 21 Oct 2026 | feat: personal deploy tokens and moving apps between workspaces | — |
 | v55 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | create, review |
-| v54 (ee930c9) | 21 Oct 2026 | feat: add auto-approve setting for showcase collections and submission flow | create, share, watch |
-| v53 (dc830b8) | 13 Oct 2026 | feat: add Company model to mirror billing state and fallback when Lago is unreachable | — |
-| v52 (c85241c) | 13 Oct 2026 | feat(orphan): claim link — keep a temporary app by signing in, no redeploy | — |
-| v51 (b362cfe) | 13 Oct 2026 | feat(guides): move to /guides, 4 new guides, share launcher, llms.txt | public |
 
 ## Open questions
 

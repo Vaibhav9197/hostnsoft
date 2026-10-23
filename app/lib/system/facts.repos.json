@@ -21,6 +21,7 @@
     "table:api:WorkspaceMember",
     "table:api:AppGrant",
     "table:api:PendingInvite",
+    "table:api:WorkspaceRoleSetup",
     "table:api:SlugAlias",
     "table:api:Schedule",
     "table:api:ScheduleRun",
@@ -251,6 +252,7 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
@@ -260,7 +262,8 @@
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
      "table:api:SlugAlias",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -274,7 +277,8 @@
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
      "table:api:SlugAlias",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -306,18 +310,21 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis"
@@ -346,13 +353,15 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
@@ -363,7 +372,8 @@
      "table:api:EnvVar",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -392,13 +402,15 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
@@ -408,7 +420,8 @@
      "table:api:Domain",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -442,6 +455,7 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
@@ -452,7 +466,8 @@
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -466,7 +481,8 @@
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -500,6 +516,7 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Domain",
      "table:api:EnvVar",
@@ -509,7 +526,8 @@
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -521,7 +539,8 @@
      "table:api:Schedule",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis",
@@ -550,6 +569,7 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Domain",
      "table:api:EnvVar",
@@ -559,7 +579,8 @@
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -572,7 +593,8 @@
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis",
@@ -603,6 +625,7 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Domain",
      "table:api:PendingInvite",
@@ -611,7 +634,8 @@
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -622,7 +646,8 @@
      "table:api:Schedule",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis",
@@ -650,6 +675,7 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Domain",
      "table:api:EnvVar",
@@ -659,7 +685,8 @@
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -672,7 +699,8 @@
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis",
@@ -697,6 +725,7 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Domain",
      "table:api:PendingInvite",
@@ -705,7 +734,8 @@
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -715,7 +745,8 @@
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis",
@@ -741,6 +772,7 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Domain",
      "table:api:PendingInvite",
@@ -749,7 +781,8 @@
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -759,7 +792,8 @@
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis",
@@ -791,6 +825,7 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
@@ -800,7 +835,8 @@
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
      "table:api:SlugAlias",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -813,7 +849,8 @@
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
      "table:api:SlugAlias",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -839,17 +876,20 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis"
@@ -872,17 +912,20 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis"
@@ -911,13 +954,15 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
@@ -927,7 +972,8 @@
      "table:api:Domain",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -957,18 +1003,21 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Domain",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Domain",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis"
@@ -997,13 +1046,15 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
@@ -1011,7 +1062,8 @@
      "table:api:Company",
      "table:api:Domain",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -1040,13 +1092,15 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
@@ -1054,7 +1108,8 @@
      "table:api:Company",
      "table:api:Domain",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -1081,16 +1136,19 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis"
@@ -1116,13 +1174,15 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Domain",
      "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -1132,7 +1192,8 @@
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis",
@@ -1160,16 +1221,19 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis"
@@ -1197,16 +1261,19 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis"
@@ -1346,17 +1413,20 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -1384,17 +1454,20 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -1423,17 +1496,20 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -1459,17 +1535,20 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -1533,13 +1612,15 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
@@ -1547,7 +1628,8 @@
      "table:api:Company",
      "table:api:Domain",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -1579,17 +1661,20 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -1617,17 +1702,20 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -1653,13 +1741,12 @@
      "lib:@api/src/services/billingCustomer"
     ],
     "calls": [],
-    "tablesRead": [
-     "table:api:Project"
-    ],
+    "tablesRead": [],
     "tablesWritten": [
      "table:api:AuditLog",
      "table:api:Company",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -1679,7 +1766,6 @@
     "inbound": false,
     "imports": [
      "lib:@api/src/lib/msg91",
-     "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/proxyToken",
      "lib:@api/src/middleware/requirePermission",
@@ -1689,17 +1775,20 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -1795,17 +1884,20 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis"
@@ -1830,17 +1922,20 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis"
@@ -1868,13 +1963,15 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
@@ -1884,7 +1981,8 @@
      "table:api:Domain",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -1916,18 +2014,21 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Domain",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Domain",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis"
@@ -1958,13 +2059,15 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
@@ -1972,7 +2075,8 @@
      "table:api:Company",
      "table:api:Domain",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -2003,13 +2107,15 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:EnvVar",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
@@ -2017,7 +2123,8 @@
      "table:api:Company",
      "table:api:Domain",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -2048,18 +2155,21 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:EnvVar",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:EnvVar",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis"
@@ -2085,17 +2195,20 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:EnvVar",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis"
@@ -2189,7 +2302,8 @@
      "lib:@api/src/services/deploymentVersioning",
      "lib:@api/src/services/projectClaim",
      "lib:@api/src/services/scheduleSync",
-     "lib:@api/src/services/schedules"
+     "lib:@api/src/services/schedules",
+     "lib:@api/src/services/tokenAccess"
     ],
     "calls": [
      "api:@deploy/internal/apps/:appName",
@@ -2200,6 +2314,7 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
@@ -2211,7 +2326,8 @@
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
      "table:api:SlugAlias",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -2227,7 +2343,8 @@
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
      "table:api:SlugAlias",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -2291,6 +2408,7 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
@@ -2302,7 +2420,8 @@
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
      "table:api:SlugAlias",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -2318,7 +2437,8 @@
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
      "table:api:SlugAlias",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -2364,16 +2484,19 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis"
@@ -2390,24 +2513,29 @@
     "inbound": true,
     "imports": [
      "lib:@api/src/lib/orphanMessage",
-     "lib:@api/src/services/appReadAccess",
-     "lib:@api/src/services/deployTokenAuth"
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/deployTokenAuth",
+     "lib:@api/src/services/tokenAccess"
     ],
     "calls": [],
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
+     "table:api:Deployment",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:DeployToken",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis"
@@ -2431,19 +2559,23 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
-     "ext:redis"
+     "ext:redis",
+     "ext:viasocket"
     ]
    },
    {
@@ -2452,6 +2584,7 @@
     "route": "/companies/:companyId/members/:userId",
     "file": "@api/src/routes/members.routes.ts",
     "methods": [
+     "DELETE",
      "GET",
      "PATCH"
     ],
@@ -2466,19 +2599,23 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
-     "ext:redis"
+     "ext:redis",
+     "ext:viasocket"
     ]
    },
    {
@@ -2499,19 +2636,23 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
-     "ext:redis"
+     "ext:redis",
+     "ext:viasocket"
     ]
    },
    {
@@ -2532,19 +2673,23 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
-     "ext:redis"
+     "ext:redis",
+     "ext:viasocket"
     ]
    },
    {
@@ -2565,19 +2710,23 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
-     "ext:redis"
+     "ext:redis",
+     "ext:viasocket"
     ]
    },
    {
@@ -2598,16 +2747,19 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis"
@@ -2642,6 +2794,7 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
@@ -2651,7 +2804,8 @@
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -2661,7 +2815,8 @@
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis",
@@ -2700,6 +2855,7 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
@@ -2711,13 +2867,15 @@
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
      "table:api:SlugAlias",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:Company",
+     "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
      "table:api:PendingInvite",
@@ -2725,7 +2883,8 @@
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
      "table:api:SlugAlias",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -2764,6 +2923,7 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
@@ -2773,7 +2933,8 @@
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -2783,7 +2944,8 @@
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis",
@@ -2815,6 +2977,7 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Deployment",
      "table:api:Domain",
@@ -2824,7 +2987,8 @@
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
      "table:api:SlugAlias",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -2837,7 +3001,68 @@
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
      "table:api:SlugAlias",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
+    ],
+    "services": [
+     "ext:lago",
+     "ext:redis",
+     "ext:stripe",
+     "ext:viasocket"
+    ]
+   },
+   {
+    "id": "api:@api/companies/:companyId/projects/:projectId/move",
+    "repo": "api",
+    "route": "/companies/:companyId/projects/:projectId/move",
+    "file": "@api/src/routes/projects.routes.ts",
+    "methods": [
+     "POST"
+    ],
+    "inbound": false,
+    "imports": [
+     "lib:@api/src/middleware/companyContext",
+     "lib:@api/src/middleware/projectContext",
+     "lib:@api/src/services/appHealth",
+     "lib:@api/src/services/projectMove",
+     "lib:@api/src/services/projectStatus",
+     "lib:@api/src/services/schedules"
+    ],
+    "calls": [
+     "api:@deploy/internal/apps/:appName/config",
+     "api:@deploy/internal/apps/:appName/status"
+    ],
+    "tablesRead": [
+     "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:Company",
+     "table:api:DeployToken",
+     "table:api:Deployment",
+     "table:api:Domain",
+     "table:api:EnvVar",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:Schedule",
+     "table:api:ScheduleRun",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
+     "table:api:AppGrant",
+     "table:api:AuditLog",
+     "table:api:Company",
+     "table:api:DeployToken",
+     "table:api:Domain",
+     "table:api:PendingInvite",
+     "table:api:Project",
+     "table:api:ShowcaseEvent",
+     "table:api:ShowcaseEventListing",
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:lago",
@@ -2867,17 +3092,20 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis"
@@ -3134,6 +3362,7 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Domain",
      "table:api:PendingInvite",
@@ -3142,7 +3371,8 @@
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -3152,7 +3382,8 @@
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis",
@@ -3180,6 +3411,7 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Domain",
      "table:api:PendingInvite",
@@ -3188,7 +3420,8 @@
      "table:api:ScheduleRun",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -3198,7 +3431,8 @@
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis",
@@ -3227,13 +3461,15 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Domain",
      "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -3243,7 +3479,8 @@
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis",
@@ -3273,13 +3510,15 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Domain",
      "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -3289,7 +3528,8 @@
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis",
@@ -3317,13 +3557,15 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Domain",
      "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -3333,7 +3575,8 @@
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis",
@@ -3360,13 +3603,15 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Domain",
      "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -3376,7 +3621,8 @@
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis",
@@ -3406,13 +3652,15 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Domain",
      "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -3422,7 +3670,8 @@
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis",
@@ -3449,13 +3698,15 @@
      "table:api:AppDetails",
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:Domain",
      "table:api:PendingInvite",
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppDetails",
@@ -3465,7 +3716,8 @@
      "table:api:Project",
      "table:api:ShowcaseEvent",
      "table:api:ShowcaseEventListing",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis",
@@ -3484,6 +3736,7 @@
     "inbound": false,
     "imports": [
      "lib:@api/src/lib/deployTokens",
+     "lib:@api/src/lib/permissions",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/requirePermission",
@@ -3493,17 +3746,20 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:DeployToken",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis"
@@ -3528,17 +3784,20 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:DeployToken",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis"
@@ -3564,17 +3823,20 @@
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:DeployToken",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": [
      "ext:redis"
@@ -3612,39 +3874,6 @@
      "table:api:SuperAdmin"
     ],
     "services": []
-   },
-   {
-    "id": "lib:@api/src/__x",
-    "repo": "api",
-    "file": "@api/src/__x.ts",
-    "summary": "SCRATCH — role scenarios with proxy stubbed.",
-    "imports": [
-     "lib:@api/src/app",
-     "lib:@api/src/lib/deployTokens",
-     "lib:@api/src/lib/permissions",
-     "lib:@api/src/lib/prisma",
-     "lib:@api/src/lib/redis"
-    ],
-    "endpoints": [],
-    "defines": [],
-    "tablesRead": [
-     "table:api:AuditLog",
-     "table:api:PendingInvite",
-     "table:api:Project",
-     "table:api:WorkspaceMember"
-    ],
-    "tablesWritten": [
-     "table:api:AppGrant",
-     "table:api:DeployToken",
-     "table:api:EnvVar",
-     "table:api:Project",
-     "table:api:WorkspaceMember"
-    ],
-    "services": [
-     "ext:lago",
-     "ext:stripe",
-     "ext:redis"
-    ]
    },
    {
     "id": "lib:@api/src/app",
@@ -3923,6 +4152,18 @@
     "services": []
    },
    {
+    "id": "lib:@api/src/lib/memberInviteEmail",
+    "repo": "api",
+    "file": "@api/src/lib/memberInviteEmail.ts",
+    "summary": "The invite email for someone added to a workspace — rendered here as email-safe HTML (tables + inline styles, no external assets), the same way as deployTokenEmail.ts, so the viasocket flow only places one variable.",
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
     "id": "lib:@api/src/lib/msg91",
     "repo": "api",
     "file": "@api/src/lib/msg91.ts",
@@ -3988,23 +4229,27 @@
     "imports": [
      "lib:@api/src/lib/logger",
      "lib:@api/src/lib/msg91",
-     "lib:@api/src/lib/prisma"
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/prismaErrors"
     ],
     "endpoints": [],
     "defines": [],
     "tablesRead": [
      "table:api:AppGrant",
      "table:api:AuditLog",
+     "table:api:Company",
      "table:api:DeployToken",
      "table:api:PendingInvite",
      "table:api:Project",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "tablesWritten": [
      "table:api:AppGrant",
      "table:api:AuditLog",
      "table:api:PendingInvite",
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": []
    },
@@ -4239,15 +4484,18 @@
     "file": "@api/src/middleware/deployTokenContext.ts",
     "summary": "Authenticating an AI agent (or a CI script) holding a deploy token, against one app addressed by name.",
     "imports": [
+     "lib:@api/src/lib/permissions",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/services/deployTokenAuth",
      "lib:@api/src/services/showcase",
-     "lib:@api/src/services/slugChangeFlow"
+     "lib:@api/src/services/slugChangeFlow",
+     "lib:@api/src/services/tokenAccess"
     ],
     "endpoints": [],
     "defines": [],
     "tablesRead": [
-     "table:api:Project"
+     "table:api:Project",
+     "table:api:SlugAlias"
     ],
     "tablesWritten": [],
     "services": []
@@ -4588,6 +4836,7 @@
     "summary": null,
     "imports": [
      "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/permissions",
      "lib:@api/src/lib/prisma",
      "lib:@api/src/middleware/companyContext",
      "lib:@api/src/middleware/proxyToken",
@@ -4604,7 +4853,8 @@
      "table:api:Project"
     ],
     "tablesWritten": [
-     "table:api:WorkspaceMember"
+     "table:api:WorkspaceMember",
+     "table:api:WorkspaceRoleSetup"
     ],
     "services": []
    },
@@ -4844,7 +5094,8 @@
      "lib:@api/src/services/deploymentVersioning",
      "lib:@api/src/services/projectClaim",
      "lib:@api/src/services/scheduleSync",
-     "lib:@api/src/services/schedules"
+     "lib:@api/src/services/schedules",
+     "lib:@api/src/services/tokenAccess"
     ],
     "endpoints": [],
     "defines": [
@@ -4918,14 +5169,18 @@
     "summary": null,
     "imports": [
      "lib:@api/src/lib/orphanMessage",
-     "lib:@api/src/services/appReadAccess",
-     "lib:@api/src/services/deployTokenAuth"
+     "lib:@api/src/lib/permissions",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/deployTokenAuth",
+     "lib:@api/src/services/tokenAccess"
     ],
     "endpoints": [],
     "defines": [
      "api:@api/internal/deploy-tokens/validate"
     ],
-    "tablesRead": [],
+    "tablesRead": [
+     "table:api:Project"
+    ],
     "tablesWritten": [],
     "services": []
    },
@@ -4979,6 +5234,7 @@
      "lib:@api/src/services/appTeardown",
      "lib:@api/src/services/audit",
      "lib:@api/src/services/projectClaim",
+     "lib:@api/src/services/projectMove",
      "lib:@api/src/services/projectStatus",
      "lib:@api/src/services/redeploy",
      "lib:@api/src/services/schedules",
@@ -4990,6 +5246,7 @@
      "api:@api/companies/:companyId/orphans/claim",
      "api:@api/companies/:companyId/projects/:projectId",
      "api:@api/companies/:companyId/projects/:projectId/slug",
+     "api:@api/companies/:companyId/projects/:projectId/move",
      "api:@api/companies/:companyId/projects/:projectId/memory"
     ],
     "tablesRead": [
@@ -5198,6 +5455,7 @@
     "imports": [
      "lib:@api/src/app",
      "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/permissions",
      "lib:@api/src/lib/redis",
      "lib:@api/src/services/domainReverification",
      "lib:@api/src/services/orphanCleanup",
@@ -5421,7 +5679,8 @@
      "lib:@api/src/lib/msg91",
      "lib:@api/src/lib/permissions",
      "lib:@api/src/middleware/requireInternalSecret",
-     "lib:@api/src/services/deployTokenAuth"
+     "lib:@api/src/services/deployTokenAuth",
+     "lib:@api/src/services/tokenAccess"
     ],
     "endpoints": [],
     "defines": [],
@@ -5567,6 +5826,18 @@
     "services": []
    },
    {
+    "id": "lib:@api/src/services/planLimits",
+    "repo": "api",
+    "file": "@api/src/services/planLimits.ts",
+    "summary": null,
+    "imports": [],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
     "id": "lib:@api/src/services/projectClaim",
     "repo": "api",
     "file": "@api/src/services/projectClaim.ts",
@@ -5577,7 +5848,8 @@
      "lib:@api/src/lib/prisma",
      "lib:@api/src/lib/prismaErrors",
      "lib:@api/src/lib/reservedSlugs",
-     "lib:@api/src/services/slugChangeFlow"
+     "lib:@api/src/services/slugChangeFlow",
+     "lib:@api/src/services/tokenAccess"
     ],
     "endpoints": [],
     "defines": [],
@@ -5587,6 +5859,35 @@
      "table:api:SlugAlias"
     ],
     "tablesWritten": [
+     "table:api:Project"
+    ],
+    "services": []
+   },
+   {
+    "id": "lib:@api/src/services/projectMove",
+    "repo": "api",
+    "file": "@api/src/services/projectMove.ts",
+    "summary": "Moving an app to another workspace (POST /companies/:companyId/projects/:projectId/move, projects.routes.ts).",
+    "imports": [
+     "lib:@api/src/lib/lago",
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/permissions",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/audit",
+     "lib:@api/src/services/customDomainActivation",
+     "lib:@api/src/services/planLimits",
+     "lib:@api/src/services/renameStatus",
+     "lib:@api/src/services/tokenAccess"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:Deployment",
+     "table:api:Project"
+    ],
+    "tablesWritten": [
+     "table:api:AppDetails",
      "table:api:Project"
     ],
     "services": []
@@ -5855,14 +6156,39 @@
     "services": []
    },
    {
+    "id": "lib:@api/src/services/tokenAccess",
+    "repo": "api",
+    "file": "@api/src/services/tokenAccess.ts",
+    "summary": "May this caller act on this app?",
+    "imports": [
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/permissions",
+     "lib:@api/src/lib/prisma",
+     "lib:@api/src/services/deployTokenAuth"
+    ],
+    "endpoints": [],
+    "defines": [],
+    "tablesRead": [
+     "table:api:AuditLog",
+     "table:api:Deployment"
+    ],
+    "tablesWritten": [],
+    "services": []
+   },
+   {
     "id": "lib:@api/src/services/workspaceRoles",
     "repo": "api",
     "file": "@api/src/services/workspaceRoles.ts",
     "summary": "Changing who may do what in a workspace: the members list with roles, role changes, per-app access, and invites with a role chosen up front.",
     "imports": [
+     "lib:@api/src/lib/frontendOrigin",
+     "lib:@api/src/lib/logger",
+     "lib:@api/src/lib/memberInviteEmail",
      "lib:@api/src/lib/msg91",
      "lib:@api/src/lib/permissions",
      "lib:@api/src/lib/prisma",
+     "lib:@api/src/lib/webhooks",
      "lib:@api/src/services/audit"
     ],
     "endpoints": [],
@@ -5900,7 +6226,7 @@
     "store": "api",
     "name": "DeployToken",
     "migration": "@api/prisma/schema.prisma",
-    "note": "Company-wide deploy token.",
+    "note": "A deploy token.",
     "columns": [
      "id",
      "companyId",
@@ -5912,7 +6238,8 @@
      "updatedAt",
      "revokedAt",
      "lastUsedAt",
-     "source"
+     "source",
+     "kind"
     ]
    },
    {
@@ -5951,9 +6278,7 @@
      "companyId",
      "userId",
      "role",
-     "appScope",
-     "canCreate",
-     "canDelete",
+     "appAccess",
      "createdAt",
      "updatedAt"
     ]
@@ -5964,7 +6289,7 @@
     "store": "api",
     "name": "AppGrant",
     "migration": "@api/prisma/schema.prisma",
-    "note": "One app a developer/viewer with appScope \"selected\" may reach, and how far: \"manage\" (deploy, change settings) or \"view\" (status, logs, history).",
+    "note": "One app a Member with appAccess \"chosen\" can reach, and how far: \"use\", \"edit\" (have their AI make changes as a preview; logs) or \"full\" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.",
     "columns": [
      "id",
      "projectId",
@@ -5985,12 +6310,25 @@
      "companyId",
      "email",
      "role",
-     "appScope",
-     "canCreate",
-     "canDelete",
+     "appAccess",
      "grants",
      "invitedBy",
      "createdAt"
+    ]
+   },
+   {
+    "id": "table:api:WorkspaceRoleSetup",
+    "repo": "api",
+    "store": "api",
+    "name": "WorkspaceRoleSetup",
+    "migration": "@api/prisma/schema.prisma",
+    "note": "How far a workspace's roles have been set up (permissions.ts setUpWorkspaceRoles).",
+    "columns": [
+     "companyId",
+     "ownerDecidedAt",
+     "membersCapturedAt",
+     "createdAt",
+     "updatedAt"
     ]
    },
    {

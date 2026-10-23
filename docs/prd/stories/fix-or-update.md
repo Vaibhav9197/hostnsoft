@@ -8,7 +8,7 @@
 - **Wants to:** change a live app, or return to a version that worked
 - **Ends with:** A new or earlier version of the app is live.
 - **Steps:** 5 · 1 by AI · 3 can go wrong
-- **Last change to its code:** v147, 21 Oct 2026 — feat: X-App-Id and embarko.json appId on deploy
+- **Last change to its code:** v156, 22 Oct 2026 — feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access
 
 [← All stories](../README.md)
 
@@ -149,7 +149,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 
 ## Tables
 
-- **Keeps** `AppGrant` — A Member's access to one project, above the default "use": "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
+- **Keeps** `AppGrant` — One app a Member with appAccess "chosen" can reach, and how far: "use", "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `Deployment` — Versioned deploy history — one row per deploy attempt.
@@ -167,11 +167,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v147 (23a3409) | 21 Oct 2026 | feat: X-App-Id and embarko.json appId on deploy | ai-updates, rollback |
-| v146 (ceac79b) | 21 Oct 2026 | doc improvements | choose |
-| v145 (bffa93d) | 19 Oct 2026 | Report the real cause when an app crashes on startup | ai-updates, rollback |
-| v144 (36b6871) | 19 Oct 2026 | Show an app's scheduled jobs in the panel | choose |
-| v143 (0d035d5) | 19 Oct 2026 | Report the running commit on /health and check it after deploy | ai-updates, rollback |
+| v156 (782798d) | 22 Oct 2026 | feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access | choose, rollback, watch |
+| v155 (28bcc06) | 22 Oct 2026 | feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access | — |
+| v154 (7484583) | 22 Oct 2026 | feat: send status vs logs permission for dashboard reads; permission_denied next step | ai-updates, rollback |
+| v153 (7513559) | 22 Oct 2026 | docs: canonical AI-agent doc set and evidence-based cleanup | choose |
+| v152 (1633d9d) | 21 Oct 2026 | feat: per-app access on status and logs for dashboard sessions | ai-updates, rollback |
 
 ## Open questions
 

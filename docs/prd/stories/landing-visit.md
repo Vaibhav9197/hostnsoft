@@ -8,7 +8,7 @@
 - **Wants to:** understand what Embarko does and try it
 - **Ends with:** The visitor has seen one landing version, copied the prompt, and the visit counts for that version.
 - **Steps:** 5 · 0 by AI · 3 can go wrong
-- **Last change to its code:** v70, 21 Oct 2026 — Use one hero subtitle on every landing page
+- **Last change to its code:** v72, 22 Oct 2026 — docs: canonical AI-agent doc set and evidence-based cleanup
 
 [← All stories](../README.md)
 
@@ -155,11 +155,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v72 (7513559) | 22 Oct 2026 | docs: canonical AI-agent doc set and evidence-based cleanup | copy-prompt |
+| v71 (105ccbb) | 21 Oct 2026 | feat(v5): new landing page built on v1's scenes | pick-version |
 | v70 (26013d4) | 21 Oct 2026 | Use one hero subtitle on every landing page | read-page |
 | v69 (36b6871) | 19 Oct 2026 | Show an app's scheduled jobs in the panel | copy-prompt |
 | v68 (e19113b) | 14 Oct 2026 | Replace the docs with the agent guide | pick-version, copy-prompt |
-| v67 (a1ec2d4) | 12 Oct 2026 | feat(landing): one feature list for v1–v4 — tiles on v1/v2, tabs on v3/v4 | read-page |
-| v66 (a7e6b9b) | 10 Oct 2026 | feat(landing): trim copy, pill labels, Use cases moves to the footer | read-page, copy-prompt |
 
 ## Open questions
 

@@ -1,7 +1,7 @@
 ---
 covers: ["app/**", "worker.ts", "next.config.mjs", "wrangler.jsonc", "scripts/**"]
 verified_at: 1629250
-verified_on: 2026-10-22
+verified_on: 2026-10-23
 ---
 # Architecture & Mental Model
 
@@ -139,7 +139,7 @@ There is no global store library (no Redux/Zustand/TanStack Query): contexts for
 |---|---|---|---|
 | hostnsoft-api | Accounts, apps, tokens, domains, billing, Showcase | REST over `HOSTNSOFT_API_URL` (must end in `/api`), header `proxy_auth_token` | `app/lib/api.ts`, `app/lib/hnsForward.ts`, `app/lib/hnsApi.ts`, `app/lib/showcase.ts` |
 | hostnsoft-deploy (via API deploy root) | Upload/deploy an app, app logs | Multipart `source` + `X-Company-Id` to `DEPLOY_BASE` | `app/lib/api.ts:uploadToDeploy`, `app/api/apps/[slug]/logs/route.ts` |
-| MSG91 proxy-auth | Identity provider; the PAT is the session | `getDetails` / `logout` with `proxy_auth_token`; widget in the page | `app/lib/api.ts`, `app/components/console/LoginScreen.tsx`, `app/components/console/UserManagementWidget.tsx` |
+| MSG91 proxy-auth | Identity provider; the PAT is the session | `getDetails` / `logout` with `proxy_auth_token`; widget in the page | `app/lib/api.ts`, `app/components/console/LoginScreen.tsx` |
 | Cloudflare D1 | A/B events, votes, legacy contact rows | `DB` (write, local in dev) / `DB_ADMIN` (read, remote in dev) | `app/lib/db.ts`, `migrations/` |
 | Google Tag Manager | Pageviews, `user_state`, funnel | dataLayer pushes; container id committed | `app/lib/gtm.ts`, `app/components/analytics/` |
 | Early-access webhook | Signup capture | `EARLY_ACCESS_WEBHOOK_URL` (dashboard var) | `app/api/early-access/route.ts` |

@@ -82,23 +82,28 @@ export const membersApi = {
   // GET /companies/:companyId/members/:userId — one member, same shape.
   get: (companyId: string, userId: string) => hns<Member>(`/companies/${companyId}/members/${userId}`),
 
-  // PATCH /companies/:companyId/members/:userId — change their role.
+  // PATCH /companies/:companyId/members/:userId — change their role and, for
+  // a Member, their access. Leaving "chosen" clears their app grants.
   update: (companyId: string, userId: string, change: RoleChange) =>
     hns<Member>(`/companies/${companyId}/members/${userId}`, { method: "PATCH", body: change }),
 
-  // PUT .../members/:userId/apps — replace a Member's per-app access (grants
-  // above the default "use"; an app left out goes back to the default).
+  // PUT .../members/:userId/apps — replace the apps a Member with access
+  // "chosen" can reach (an app left out: no access).
   setApps: (companyId: string, userId: string, grants: AppGrant[]) =>
     hns<Member>(`/companies/${companyId}/members/${userId}/apps`, { method: "PUT", body: { grants } }),
 
-  // POST /companies/:companyId/invites — remember the role someone gets when
-  // they join. The invite email is sent from the embed. Without
-  // members.manage only role "member" with no grants is accepted.
+  // DELETE /companies/:companyId/members/:userId — take them out of the
+  // workspace (sign-in and roles). Not yourself; the last Owner stays.
+  remove: (companyId: string, userId: string) =>
+    hns<null>(`/companies/${companyId}/members/${userId}`, { method: "DELETE" }),
+
+  // POST /companies/:companyId/invites — record their role and access and
+  // send the invite email. members.manage.
   invite: (companyId: string, invite: InviteInput) =>
     hns<PendingInvite>(`/companies/${companyId}/invites`, { method: "POST", body: invite }),
 
-  // DELETE /companies/:companyId/invites/:inviteId — forget a waiting role.
-  // Anyone may cancel an invite they sent; others' take members.manage.
+  // DELETE /companies/:companyId/invites/:inviteId — take back an invite
+  // (and the workspace seat it already added). members.manage.
   cancelInvite: (companyId: string, inviteId: string) =>
     hns<null>(`/companies/${companyId}/invites/${inviteId}`, { method: "DELETE" }),
 

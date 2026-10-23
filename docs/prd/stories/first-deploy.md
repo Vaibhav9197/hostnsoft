@@ -8,7 +8,7 @@
 - **Wants to:** get the app their AI built online
 - **Ends with:** The app is live at its own embarko.app address and shows in Your apps.
 - **Steps:** 10 · 1 by AI · 7 can go wrong
-- **Last change to its code:** v208, 21 Oct 2026 — feat: deploy by app id, keep old names after a rename
+- **Last change to its code:** v219, 22 Oct 2026 — feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access
 
 [← All stories](../README.md)
 
@@ -282,7 +282,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 ## Tables
 
 - **Keeps** `AppDetails` — Public-facing details of a deployed app.
-- **Keeps** `AppGrant` — A Member's access to one project, above the default "use": "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
+- **Keeps** `AppGrant` — One app a Member with appAccess "chosen" can reach, and how far: "use", "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `DeployToken` — A deploy token.
@@ -305,11 +305,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v208 (16f50ec) | 21 Oct 2026 | feat: deploy by app id, keep old names after a rename | check-key |
-| v207 (23a3409) | 21 Oct 2026 | feat: X-App-Id and embarko.json appId on deploy | ai-deploys, check-key |
-| v206 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | — |
-| v205 (ee930c9) | 21 Oct 2026 | feat: add auto-approve setting for showcase collections and submission flow | make-token |
-| v204 (ceac79b) | 21 Oct 2026 | doc improvements | copy-prompt |
+| v219 (782798d) | 22 Oct 2026 | feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access | copy-prompt, make-token, watch, app-appears |
+| v218 (28bcc06) | 22 Oct 2026 | feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access | make-token, watch, check-key |
+| v217 (7484583) | 22 Oct 2026 | feat: send status vs logs permission for dashboard reads; permission_denied next step | ai-deploys, check-key |
+| v216 (f3a0897) | 22 Oct 2026 | fix: refuse an app id sent under a name the app never had | check-key |
+| v215 (7513559) | 22 Oct 2026 | docs: canonical AI-agent doc set and evidence-based cleanup | copy-prompt, make-token |
 
 ## Open questions
 

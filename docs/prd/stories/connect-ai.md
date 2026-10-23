@@ -8,7 +8,7 @@
 - **Wants to:** let their AI tool deploy for them without copying a key
 - **Ends with:** The AI tool holds its own deploy key for their workspace.
 - **Steps:** 4 · 0 by AI · 4 can go wrong
-- **Last change to its code:** v24, 13 Oct 2026 — Say workspace instead of company in API messages; rollback error no longer mentions images
+- **Last change to its code:** v25, 21 Oct 2026 — feat: personal deploy tokens and moving apps between workspaces
 
 [← All stories](../README.md)
 
@@ -148,11 +148,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v25 (b7f1799) | 21 Oct 2026 | feat: personal deploy tokens and moving apps between workspaces | get-key |
 | v24 (104abda) | 13 Oct 2026 | Say workspace instead of company in API messages; rollback error no longer mentions images | hand-back, get-key |
 | v23 (85bafee) | 8 Oct 2026 | feat: allow mcp.embarko.ai OAuth callback as connector redirect_uri | hand-back |
 | v22 (db159cf) | 1 Oct 2026 | fix(connector): name the AI tool, never the connector proxy | arrive, sign-in, hand-back |
 | v21 (ce3edc2) | 1 Oct 2026 | feat(connector): show 'Connecting Embarko to <tool>…' while sign-in hands off | arrive, sign-in, hand-back |
-| v20 (bf03836) | 17 Sept 2026 | fix: proxy auth token fix (#14) | hand-back |
 
 ## Open questions
 

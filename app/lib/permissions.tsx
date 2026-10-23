@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { membersApi } from "./hnsApi";
 import { useSession } from "./session";
-import type { AccessLevel, MyPermissions, Permission, WorkspaceRole } from "./types";
+import type { AccessLevel, AppAccess, MyPermissions, Permission, WorkspaceRole } from "./types";
 
 // What the signed-in person may do in the active workspace, loaded once per
 // workspace and shared by the menu, the members page and the app pages — so
@@ -102,11 +102,12 @@ export const ROLE_LABELS: Record<WorkspaceRole, string> = {
   billing: "Billing",
 };
 
+// One line under the role picker in the invite dialog.
 export const ROLE_HINTS: Record<WorkspaceRole, string> = {
-  owner: "Everything, including billing and who the Owners and Admins are.",
-  admin: "Everything, including billing and every app. Only an Owner can change Owners and Admins.",
-  member: "Can use every app, add new ones and invite people. More access to particular apps when you give it.",
-  billing: "Plan and billing only. No apps.",
+  owner: "Everything, including who the Owners and Admins are.",
+  admin: "Everything, including billing and inviting people.",
+  member: "Works on apps through their AI. You choose how much below.",
+  billing: "Plan and invoices only.",
 };
 
 // Access to one app, lowest first. Each includes everything above it in
@@ -114,8 +115,19 @@ export const ROLE_HINTS: Record<WorkspaceRole, string> = {
 // what happens to the live app.
 export const ACCESS_LEVELS: AccessLevel[] = ["use", "edit", "full"];
 
-// What a Member has on an app nobody gave them more access to.
+// What a Member gets unless someone chooses otherwise, and what a ticked
+// app starts at.
 export const DEFAULT_LEVEL: AccessLevel = "use";
+
+// A Member's access, as the Access picker and the members list say it.
+export const ACCESS_OPTIONS: AppAccess[] = ["use", "edit", "full", "chosen"];
+
+export const ACCESS_LABELS: Record<AppAccess, string> = {
+  use: "Can use all apps",
+  edit: "Can edit all apps",
+  full: "Full access to all apps",
+  chosen: "Choose apps…",
+};
 
 export const LEVEL_LABELS: Record<AccessLevel, string> = {
   use: "Can use",
@@ -131,6 +143,3 @@ export const LEVEL_HINTS: Record<AccessLevel, string> = {
   full: "Also approve and publish, restore a version, settings, secrets and domains, share, move or delete it.",
 };
 
-// The one-line rule shown wherever a level is picked.
-export const LEVEL_RULE =
-  "Should this person’s AI be able to change the app? No → Can use. Yes, but someone checks first → Can edit. Yes, and they sign off → Full access.";

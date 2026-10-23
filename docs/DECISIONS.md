@@ -1,7 +1,7 @@
 ---
 covers: ["*"]
 verified_at: 105ccbb
-verified_on: 2026-10-21
+verified_on: 2026-10-23
 ---
 # Architectural & Design Decisions (ADRs)
 
@@ -126,7 +126,7 @@ later ADR, kept so nobody reintroduces the old approach.
 
 **Decision.** All browser calls go to this app's `/api/*` routes (`app/lib/api.ts`). The MSG91 `proxy_auth_token` is kept in one httpOnly cookie, `app/lib/api.ts:PAT_COOKIE` (`hns_pat`), and forwarded as a header upstream. Login survives an unreachable hostnsoft-api because `app/lib/api.ts` can validate the PAT against MSG91 alone (`apiConnected: false` in `app/lib/session.tsx`). `app/lib/session.tsx` strips the token and MSG91's echoed `user_ref_id`/`company_ref_id` off the URL before anything reports it.
 
-**Evidence.** `d10131a` (proxy auth), `dcbd0f7` (Members handed to MSG91's widget; `app/api/auth/widget-token/` is the one place the PAT reaches the client, because the widget needs it), `e6cc00c` (`app/connector/login/` bridges AI-connector OAuth the same way), `5f32349` (`app/admin/guard.tsx:requireAdmin` requires `isSuperAdmin` from the API — the previous allowlist check let every signed-in user into `/admin`).
+**Evidence.** `d10131a` (proxy auth), `dcbd0f7` (Members handed to MSG91's widget, with `app/api/auth/widget-token/` passing it the PAT — both removed on `feat/roles`, 2026-10-23, when the Members page became ours and hostnsoft-api took over adding and removing people), `e6cc00c` (`app/connector/login/` bridges AI-connector OAuth the same way), `5f32349` (`app/admin/guard.tsx:requireAdmin` requires `isSuperAdmin` from the API — the previous allowlist check let every signed-in user into `/admin`).
 
 **Consequences.** Browser uploads must go through a server route (`9e01a24`), and are signed with the PAT plus `X-Company-Id` rather than a deploy token — a deploy token is a long-lived company secret that should exist only because someone asked for one.
 

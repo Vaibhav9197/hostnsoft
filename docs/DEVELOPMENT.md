@@ -1,7 +1,7 @@
 ---
 covers: ["package.json", "scripts/**", "wrangler.jsonc", "next.config.mjs", "tsconfig.json", ".env.example", "migrations/**"]
 verified_at: 105ccbb
-verified_on: 2026-10-21
+verified_on: 2026-10-23
 ---
 # Development & Verification Guide
 
@@ -52,7 +52,7 @@ Document names and code defaults only. Never copy .env.local values.
 |---|---|---|---|---|
 | `HOSTNSOFT_API_URL` | No | No | `http://localhost:4100` | `app/lib/api.ts:API_BASE`, `worker.ts`. Must include `/api`. Pinned for production in `wrangler.jsonc` `vars`; `.env.example` sets the live value for dev. |
 | `NEXT_PUBLIC_MSG91_REFERENCE_ID` | No | Yes | baked-in account id | `app/components/console/LoginScreen.tsx`, `app/connector/login/page.tsx` |
-| `NEXT_PUBLIC_MSG91_WIDGET_SCRIPT` | No | Yes | proxy-auth script URL | `app/components/console/LoginScreen.tsx`, `app/components/console/UserManagementWidget.tsx`, `app/connector/login/page.tsx` |
+| `NEXT_PUBLIC_MSG91_WIDGET_SCRIPT` | No | Yes | proxy-auth script URL | `app/components/console/LoginScreen.tsx`, `app/connector/login/page.tsx` |
 | `MSG91_ROUTES_BASE` | No | No | `https://routes.msg91.com` | `app/lib/api.ts:MSG91_BASE` — token validation base |
 | `ADMIN_EMAILS` | No | No | empty (no allowlist) | `app/lib/api.ts:currentUser` and the admin check beside it. Comma list; narrows admin access, never widens it. |
 | `EARLY_ACCESS_WEBHOOK_URL` | No | No | `DEFAULT_WEBHOOK_URL` in `app/api/early-access/route.ts` | Set in the Cloudflare dashboard only; `keep_vars` in `wrangler.jsonc` preserves it across deploys. |

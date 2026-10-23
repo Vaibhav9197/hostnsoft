@@ -8,7 +8,7 @@
 - **Wants to:** let teammates deploy or watch some apps without handing them everything
 - **Ends with:** Each person, and their AI, can do exactly what their role allows; anything else is refused with a reason.
 - **Steps:** 4 · 0 by AI · 4 can go wrong
-- **Last change to its code:** v15, 13 Oct 2026 — feat: add Company model to mirror billing state and fallback when Lago is unreachable
+- **Last change to its code:** v22, 22 Oct 2026 — feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access
 
 [← All stories](../README.md)
 
@@ -17,8 +17,8 @@
 | # | Step ID | Step | Who acts | What happens |
 |---|---|---|---|---|
 | 1 | `team-roles/open` | Open Members | Person | They see everyone in the workspace with their role and which apps they reach. |
-| 2 | `team-roles/invite` | Invite with a role | Person | They choose a role (and, for a Member, access to apps) for an email, then send the invite from MSG91's list. The role applies when the person first arrives. |
-| 3 | `team-roles/change` | Change a role | Person | They change someone's role and, for a Member, their access to each app: Can use (the default), Can edit or Full access. |
+| 2 | `team-roles/invite` | Invite with a role | Person | They enter an email and a role; for a Member, access to every app (Can use, Can edit or Full access) or only chosen apps. @api has MSG91 add them (as the person inviting) and sends Embarko's own invite email. The role applies when they first arrive. |
+| 3 | `team-roles/change` | Change a role | Person | They change someone's role and, for a Member, their access: every app at Can use (the default), Can edit or Full access, or only chosen apps. They can also remove someone, which removes them on MSG91 too. |
 | 4 | `team-roles/enforce` | Every action is checked | Rule | Each panel call, agent call and deploy is checked against the role. The panel hides what the person can't do. |
 
 ## Flow
@@ -55,6 +55,8 @@ flowchart TD
   s2f -.->|no| s2f1
   s2f2["If an Admin invites an Owner or Admin<br/>→ refused owner_required, 403."]:::fail
   s2f -.->|no| s2f2
+  s2f3["If MSG91 refuses the invite<br/>→ nothing is kept, and its reason is shown."]:::fail
+  s2f -.->|no| s2f3
   s3["3. Change a role<br/>Person"]
   s2f -->|yes| s3
   s3f{Did it work?}
@@ -63,6 +65,8 @@ flowchart TD
   s3f -.->|no| s3f1
   s3f2["If an Admin changes an Owner or Admin<br/>→ refused owner_required, 403."]:::fail
   s3f -.->|no| s3f2
+  s3f3["If they try to remove themselves<br/>→ refused not_yourself, 400."]:::fail
+  s3f -.->|no| s3f3
   s4["4. Every action is checked<br/>Rule"]
   s3f -->|yes| s4
   s4f{Did it work?}
@@ -92,36 +96,38 @@ flowchart TD
 - **Keeps:** `AppGrant`, `AuditLog`, `PendingInvite`, `WorkspaceMember`, `WorkspaceRoleSetup`
 - **Looks up:** `Company`, `DeployToken`, `Project`
 - **Code:** `page:/app/members` → `app/app/members/page.tsx`, `lib:app/components/console/TeamRoles` → `app/components/console/TeamRoles.tsx`, `api:@api/companies/:companyId/members` → `@api/src/routes/members.routes.ts`, `lib:@api/src/services/workspaceRoles` → `@api/src/services/workspaceRoles.ts`
-- **Outside services:** Redis
+- **Outside services:** Redis, viaSocket webhook
 
 ### 2. Invite with a role
 
 - **ID:** `team-roles/invite`
 - **Who acts:** Person
-- **What happens:** They choose a role (and, for a Member, access to apps) for an email, then send the invite from MSG91's list. The role applies when the person first arrives.
+- **What happens:** They enter an email and a role; for a Member, access to every app (Can use, Can edit or Full access) or only chosen apps. @api has MSG91 add them (as the person inviting) and sends Embarko's own invite email. The role applies when they first arrive.
 - **Choices:** Owner · Admin · Member · Billing
 - **If it goes wrong:**
   - If the person is already in the workspace → refused (already_member, 409): change their role instead.
   - If an Admin invites an Owner or Admin → refused (owner_required, 403).
+  - If MSG91 refuses the invite → nothing is kept, and its reason is shown.
 - **Parts:** Your apps panel (`console`), Roles (`roles`), Roles and app access (`roles-data`), MSG91 (`msg91`)
 - **Keeps:** `AppGrant`, `AuditLog`, `PendingInvite`, `WorkspaceMember`, `WorkspaceRoleSetup`
 - **Looks up:** `Company`, `DeployToken`, `Project`
-- **Code:** `api:@api/companies/:companyId/invites` → `@api/src/routes/members.routes.ts`, `lib:app/components/console/UserManagementWidget` → `app/components/console/UserManagementWidget.tsx`
-- **Outside services:** MSG91, Redis
+- **Code:** `api:@api/companies/:companyId/invites` → `@api/src/routes/members.routes.ts`, `lib:app/components/console/TeamRoles` → `app/components/console/TeamRoles.tsx`, `lib:@api/src/lib/msg91` → `@api/src/lib/msg91.ts`, `lib:@api/src/lib/memberInviteEmail` → `@api/src/lib/memberInviteEmail.ts`
+- **Outside services:** Redis, viaSocket webhook
 
 ### 3. Change a role
 
 - **ID:** `team-roles/change`
 - **Who acts:** Person
-- **What happens:** They change someone's role and, for a Member, their access to each app: Can use (the default), Can edit or Full access.
+- **What happens:** They change someone's role and, for a Member, their access: every app at Can use (the default), Can edit or Full access, or only chosen apps. They can also remove someone, which removes them on MSG91 too.
 - **If it goes wrong:**
   - If it would leave no Owner → refused (last_owner, 409).
   - If an Admin changes an Owner or Admin → refused (owner_required, 403).
-- **Parts:** Your apps panel (`console`), Roles (`roles`), Roles and app access (`roles-data`)
+  - If they try to remove themselves → refused (not_yourself, 400).
+- **Parts:** Your apps panel (`console`), Roles (`roles`), Roles and app access (`roles-data`), MSG91 (`msg91`)
 - **Keeps:** `AppGrant`, `AuditLog`, `PendingInvite`, `WorkspaceMember`, `WorkspaceRoleSetup`
 - **Looks up:** `Company`, `DeployToken`, `Project`
 - **Code:** `api:@api/companies/:companyId/members/:userId` → `@api/src/routes/members.routes.ts`, `api:@api/companies/:companyId/members/:userId/apps` → `@api/src/routes/members.routes.ts`
-- **Outside services:** Redis
+- **Outside services:** Redis, viaSocket webhook
 
 ### 4. Every action is checked
 
@@ -145,7 +151,7 @@ flowchart TD
 | App builders (`builders`) | People | People whose AI agent builds an app, who want it online and healthy. |
 | Your apps panel (`console`) | Screens | Where builders see their apps, whether each is live, and what to do next. |
 | Panel bridge (`bridge`) | Engine | Passes every panel request to the account service as the signed-in person. |
-| Roles (`roles`) | Engine | Decides what each member may do in a workspace: Owner, Admin, Member or Billing, and each Member's access to each app: Can use, Can edit (their AI's changes wait for approval) or Full access (publishes). |
+| Roles (`roles`) | Engine | Decides what each member may do in a workspace: Owner, Admin, Member or Billing, and each Member's access: Can use, Can edit (their AI's changes wait for approval) or Full access (publishes), on every app or only chosen ones. |
 | MSG91 (`msg91`) | Outside | Checks who a person is, holds workspaces and members, and sends email templates. |
 | Roles and app access (`roles-data`) | Data | Each member's role, which apps they can reach, roles waiting for people who were invited, and whether each workspace's existing members and owner have been set up. |
 | Deploy intake (`intake`) | Engine | Takes an app from an AI, checks the key and the name, and starts the build. |
@@ -155,7 +161,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 
 ## Tables
 
-- **Keeps** `AppGrant` — A Member's access to one project, above the default "use": "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
+- **Keeps** `AppGrant` — One app a Member with appAccess "chosen" can reach, and how far: "use", "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `PendingInvite` — A role chosen for someone before they are a member.
 - **Keeps** `WorkspaceMember` — A member's role in one workspace.
@@ -170,11 +176,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v15 (dc830b8) | 13 Oct 2026 | feat: add Company model to mirror billing state and fallback when Lago is unreachable | — |
-| v14 (c85241c) | 13 Oct 2026 | feat(orphan): claim link — keep a temporary app by signing in, no redeploy | — |
-| v13 (8107360) | 7 Oct 2026 | feat(panel): breadcrumb row replaces the header; calmer app cards | invite |
-| v12 (2b852bb) | 29 Sept 2026 | Record app type and deploy attribution (source, agent name) | — |
-| v11 (82811d9) | 24 Sept 2026 | storing kind on each deployment with token, either static or service | — |
+| v22 (782798d) | 22 Oct 2026 | feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access | open, invite |
+| v21 (28bcc06) | 22 Oct 2026 | feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access | open, invite, change, enforce |
+| v20 (ff4b18d) | 21 Oct 2026 | feat: team roles in the dashboard | open, invite |
+| v19 (d2813cc) | 21 Oct 2026 | feat: workspace roles and per-app access | open, invite, change, enforce |
+| v18 (b7f1799) | 21 Oct 2026 | feat: personal deploy tokens and moving apps between workspaces | enforce |
 
 ## Open questions
 

@@ -8,7 +8,7 @@
 - **Wants to:** set up their app's domain, settings and web address
 - **Ends with:** The app runs with its own domain and settings, at the address they chose.
 - **Steps:** 8 · 0 by AI · 8 can go wrong
-- **Last change to its code:** v137, 21 Oct 2026 — feat: deploy by app id, keep old names after a rename
+- **Last change to its code:** v146, 22 Oct 2026 — feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access
 
 [← All stories](../README.md)
 
@@ -291,7 +291,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 ## Tables
 
 - **Keeps** `AppDetails` — Public-facing details of a deployed app.
-- **Keeps** `AppGrant` — A Member's access to one project, above the default "use": "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
+- **Keeps** `AppGrant` — One app a Member with appAccess "chosen" can reach, and how far: "use", "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `DeployToken` — A deploy token.
@@ -314,11 +314,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v137 (16f50ec) | 21 Oct 2026 | feat: deploy by app id, keep old names after a rename | address |
-| v136 (23a3409) | 21 Oct 2026 | feat: X-App-Id and embarko.json appId on deploy | check-dns, apply, move |
-| v135 (dd89bfd) | 21 Oct 2026 | feat: add auto-approve configuration option for showcase events | — |
-| v134 (bffa93d) | 19 Oct 2026 | Report the real cause when an app crashes on startup | check-dns, apply, move |
-| v133 (cbf0640) | 19 Oct 2026 | Show schedules to the dashboard | address |
+| v146 (782798d) | 22 Oct 2026 | feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access | domain, settings, apply, address |
+| v145 (28bcc06) | 22 Oct 2026 | feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access | address, hand-over |
+| v144 (7484583) | 22 Oct 2026 | feat: send status vs logs permission for dashboard reads; permission_denied next step | check-dns, apply, move |
+| v143 (1633d9d) | 21 Oct 2026 | feat: per-app access on status and logs for dashboard sessions | check-dns, apply, move |
+| v142 (ff4b18d) | 21 Oct 2026 | feat: team roles in the dashboard | domain, settings, apply, address |
 
 ## Open questions
 

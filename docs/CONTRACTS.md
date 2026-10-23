@@ -1,7 +1,7 @@
 ---
 covers: ["app/api/**", "app/lib/hnsApi.ts", "app/lib/types.ts", "app/lib/api.ts", "app/lib/hnsForward.ts", "app/lib/db.ts", "app/lib/tracking.ts", "migrations/**", "worker.ts", "app/openapi.json/**", "app/agent.json/**", "app/.well-known/**"]
 verified_at: 1629250
-verified_on: 2026-10-22
+verified_on: 2026-10-23
 ---
 # Contracts & Data Schemas
 
@@ -47,7 +47,6 @@ Auth column: **PAT** = session cookie `hns_pat` required (401 otherwise); **admi
 | `GET /api/auth/me` | `app/api/auth/me/route.ts` | PAT | → `app/lib/types.ts:MeResponse` | `GET /auth/me` (fallback MSG91 getDetails) |
 | `POST /api/auth/switch-company` | `app/api/auth/switch-company/route.ts` | PAT | `{companyId}` → backend body passthrough | `POST /auth/switch-company` |
 | `POST /api/auth/logout` | `app/api/auth/logout/route.ts` | PAT | → 204; deletes cookie | `POST /auth/logout` + MSG91 `DELETE /api/c/logout` |
-| `GET /api/auth/widget-token` | `app/api/auth/widget-token/route.ts` | PAT | → `{authToken}` (the raw PAT, `Cache-Control: no-store`) | none |
 | `GET /api/auth/connector-callback` | `app/api/auth/connector-callback/route.ts` | query `proxy_auth_token` | query passthrough → 302 to backend `Location` | `GET /auth/msg91/callback` |
 | `ANY /api/hns/[...path]` | `app/api/hns/[...path]/route.ts`, `worker.ts` | PAT | JSON passthrough (status + body only) | `<API_BASE>/<path>` |
 | `POST /api/apps/upload` | `app/api/apps/upload/route.ts` | PAT | multipart `source, appName, companyId, appVersion?` → deploy service body | `POST <DEPLOY_BASE>/apps` with `X-Company-Id`, `X-App-Name`, `X-App-Version` |
@@ -137,7 +136,7 @@ sequenceDiagram
   API-->>B: MeResponse (c_companies → companies)
 ```
 
-- **Session = the MSG91 proxy_auth_token (PAT).** Cookie `hns_pat` (`app/lib/api.ts:PAT_COOKIE`): httpOnly, `sameSite: lax`, `path: /`, `secure` in production, 30 days (`PAT_MAX_AGE`). No refresh cycle: the backend validates the PAT per request with caching. The browser never holds it except via `/api/auth/widget-token`.
+- **Session = the MSG91 proxy_auth_token (PAT).** Cookie `hns_pat` (`app/lib/api.ts:PAT_COOKIE`): httpOnly, `sameSite: lax`, `path: /`, `secure` in production, 30 days (`PAT_MAX_AGE`). No refresh cycle: the backend validates the PAT per request with caching. The browser never holds it.
 - **Exchange** (`app/lib/api.ts:exchange`): login succeeds if either the backend or MSG91 accepts the token. 401 only when the backend actively rejects it; 502 when neither answers. Tokens are single-use; `app/lib/client.ts:wasExchanged` / `markExchanged` dedupe via sessionStorage because the widget delivers the same token twice.
 - **Me** (`app/lib/api.ts:me`): backend 401/403 deletes the cookie and returns 401 (session over). Backend unreachable → MSG91 identity with `companies: []`, `apiConnected: false`. `app/lib/api.ts:normalizeMeResponse` maps backend `c_companies[{id,name}]` to `companies[{companyId, companyName}]`.
 - **Workspace switch**: `POST /api/auth/switch-company` forwards to backend; the client also stores the active id in localStorage `hns.activeCompany` (`app/lib/session.tsx`). Tenant isolation is purely path-based: every data route includes `/companies/:companyId/...` and the backend's `loadCompanyContext` middleware checks membership. There is no tenant header. <!-- verify:ignore -->
@@ -219,9 +218,9 @@ These describe the **agent** surface (backend `agentApps.routes.ts`, deploy-toke
 ## Required / Unavailable Backend Capabilities
 
 ### Members and roles
-Who is in a workspace stays MSG91's: `/app/members` still renders its user-management widget (`app/components/console/UserManagementWidget.tsx`) for adding and removing people. What each member may do is hostnsoft-api's (roles Owner, Admin, Member, Billing, plus each Member's access to each app: Can use by default, Can edit — their AI's changes wait for approval — or Full access), through `app/lib/hnsApi.ts:membersApi`:
-- `list` / `get` / `update` / `setApps` → `GET|PATCH /companies/:companyId/members[/:userId]`, `PUT …/members/:userId/apps`; one `Member` shape (`app/lib/types.ts`) from all of them.
-- `invite` / `cancelInvite` → `POST|DELETE /companies/:companyId/invites[/:id]` (the role someone gets when they join; the invite email itself is still the widget's).
+Who is in a workspace lives on MSG91, but the panel never shows MSG91's widget for it: `/app/members` (`app/components/console/TeamRoles.tsx`) is one page for people, roles and app access, and hostnsoft-api adds and removes people on MSG91 itself. What each member may do is hostnsoft-api's (roles Owner, Admin, Member, Billing; a Member's access is one level on every app — Can use, Can edit, Full access, apps added later included — or only chosen apps, the rest hidden), through `app/lib/hnsApi.ts:membersApi`:
+- `list` / `get` / `update` / `setApps` / `remove` → `GET|PATCH|DELETE /companies/:companyId/members[/:userId]`, `PUT …/members/:userId/apps`; one `Member` shape (`app/lib/types.ts`, `access` + `apps`) from all of them. `remove` takes them off MSG91 too.
+- `invite` / `cancelInvite` → `POST|DELETE /companies/:companyId/invites[/:id]` `{email, role, access?, grants?}`: hostnsoft-api records the role, has MSG91 add them, and sends Embarko's own invite email; MSG91's refusal comes back as the error sentence.
 - `myPermissions` → `GET /me/permissions?companyId=` → `MyPermissions`, read once per workspace by `app/lib/permissions.tsx:PermissionsProvider`.
 
 Every guarded API route answers 403 `permission_denied` `{permission, role, access?, error}` (`access` is their level on the app), or 404 for an app the person can't see. `GET /companies/:companyId/projects` returns only the apps the person can see (an empty list for a Billing member), and `projectCount` on the company routes counts the same set. Owner and Admin both have billing; only an Owner can add or change Owners and Admins. Everyone in a workspace before roles is an Admin and its creator its Owner; someone added later without a role starts as a Member. Publishing (deploy, rollback, settings) needs Full access; Can edit can't publish until previews exist. Inviting people, roles and app access are Owner/Admin only.
@@ -244,7 +243,7 @@ Every guarded API route answers 403 `permission_denied` `{permission, role, acce
 > Reads time out at 5s, writes at 10s, upload at 120s. A write that times out may still have landed upstream; re-read before retrying a create.
 
 > [!WARNING]
-> `GET /api/auth/widget-token` hands the raw session token to page JS. Only `UserManagementWidget` may call it; any new caller widens the blast radius of XSS. Related: GTM tags must block on `^/app` because `/app/tokens` renders deploy-token secrets (see `app/lib/gtm.ts`).
+> Related: GTM tags must block on `^/app` because `/app/tokens` renders deploy-token secrets (see `app/lib/gtm.ts`).
 
 > [!WARNING]
 > `app/lib/api.ts:currentUser` (MSG91 identity + `ADMIN_EMAILS`) is not an admin check. Admin-only data (`/api/metrics`, `/api/contact/list`, `/api/feature-votes/summary`, `/api/system/*`) must use `currentSuperAdmin`, which fails closed when the backend is down.

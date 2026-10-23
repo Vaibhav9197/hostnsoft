@@ -8,7 +8,7 @@
 - **Wants to:** move to the plan that fits their apps
 - **Ends with:** They are on the new plan, paid by card, or back on Free.
 - **Steps:** 4 · 0 by AI · 4 can go wrong
-- **Last change to its code:** v49, 17 Oct 2026 — feat(companies): add PATCH /companies/:id to rename a workspace via proxy (#44)
+- **Last change to its code:** v53, 22 Oct 2026 — feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access
 
 [← All stories](../README.md)
 
@@ -148,7 +148,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 
 ## Tables
 
-- **Keeps** `AppGrant` — A Member's access to one project, above the default "use": "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
+- **Keeps** `AppGrant` — One app a Member with appAccess "chosen" can reach, and how far: "use", "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
@@ -166,11 +166,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v53 (782798d) | 22 Oct 2026 | feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access | load, choose, card |
+| v52 (28bcc06) | 22 Oct 2026 | feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access | — |
+| v51 (d2813cc) | 21 Oct 2026 | feat: workspace roles and per-app access | load, card, apply |
+| v50 (b7f1799) | 21 Oct 2026 | feat: personal deploy tokens and moving apps between workspaces | — |
 | v49 (9246658) | 17 Oct 2026 | feat(companies): add PATCH /companies/:id to rename a workspace via proxy (#44) | load, card, apply |
-| v48 (dc830b8) | 13 Oct 2026 | feat: add Company model to mirror billing state and fallback when Lago is unreachable | load, apply |
-| v47 (c85241c) | 13 Oct 2026 | feat(orphan): claim link — keep a temporary app by signing in, no redeploy | — |
-| v46 (d24ce6a) | 12 Oct 2026 | fix: improve case-insensitive coupon resolution and update rate limit window duration | load, card, apply |
-| v45 (b73325d) | 12 Oct 2026 | Coupon integration with Lago + DB dash | load, choose, card |
 
 ## Open questions
 

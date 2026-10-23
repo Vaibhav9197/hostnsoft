@@ -65,10 +65,10 @@ export interface CompanyDetail extends Company {
 // What a person may do in a workspace (hostnsoft-api lib/permissions.ts).
 // Who is in the workspace at all stays with the members embed.
 //
-// Owner and Admin reach every app fully; Billing reaches none. A Member can
-// use every app, has full access to the apps they added, and more access
-// to particular apps through grants. Anyone but Billing may invite people,
-// as Members; roles and per-app access are members.manage.
+// Owner and Admin reach every app fully; Billing reaches none. A Member has
+// one access level on every app (AppAccess), or only the apps they were
+// given ("chosen"), and always full access to the apps they added. Inviting,
+// removing and changing roles or access is members.manage.
 export type WorkspaceRole = "owner" | "admin" | "member" | "billing";
 // Access to one app, lowest first; each includes everything below it.
 //   use   open and use it, its Context and history, comment
@@ -76,6 +76,9 @@ export type WorkspaceRole = "owner" | "admin" | "member" | "billing";
 //           approve, read logs (the live app doesn't change)
 //   full  + publish, restore, settings, secrets, domains, share, delete, move
 export type AccessLevel = "use" | "edit" | "full";
+// A Member's access across the workspace: one level on every app (including
+// apps added later), or "chosen" — only the apps listed in their grants.
+export type AppAccess = AccessLevel | "chosen";
 export type Permission =
   | "workspace.manage"
   | "members.manage"
@@ -103,10 +106,9 @@ export interface Member {
   role: WorkspaceRole;
   // false = never given a role; they count as an Admin.
   roleIsSet: boolean;
-  // A Member's access to apps not in `apps` ("use"); null for other roles.
-  defaultAccess: AccessLevel | null;
-  // A Member's access to particular apps, above defaultAccess. Empty for
-  // other roles.
+  // A Member's access; null for other roles.
+  access: AppAccess | null;
+  // With access "chosen": the apps they were given and how far. Else empty.
   apps: AppGrant[];
   isYou: boolean;
 }
@@ -115,6 +117,8 @@ export interface PendingInvite {
   id: string;
   email: string;
   role: WorkspaceRole;
+  // As on Member: null unless role is "member".
+  access: AppAccess | null;
   apps: AppGrant[];
   // Their userId. Whoever sent an invite may cancel it; anyone else's
   // takes members.manage.
@@ -130,16 +134,20 @@ export interface MembersList {
   invites: PendingInvite[];
 }
 
-// PATCH /companies/:companyId/members/:userId — the role only; per-app
-// access is its own call (PUT .../apps).
+// PATCH /companies/:companyId/members/:userId — role, and a Member's access.
+// Moving off "chosen" (or off Member) clears their app grants; the chosen
+// apps themselves are their own call (PUT .../apps).
 export interface RoleChange {
   role: WorkspaceRole;
+  access?: AppAccess;
 }
 
+// POST /companies/:companyId/invites — the API sends the invite email too.
 export interface InviteInput {
   email: string;
   role: WorkspaceRole;
-  // Per-app access for a Member; ignored for other roles.
+  access?: AppAccess;
+  // With access "chosen": the apps they get, and how far.
   grants?: AppGrant[];
 }
 
@@ -149,7 +157,7 @@ export interface MyPermissions {
   userId: string;
   role: WorkspaceRole;
   roleIsSet: boolean;
-  defaultAccess: AccessLevel | null;
+  access: AppAccess | null;
   permissions: Permission[];
   // Every app they can see, with their level and what it lets them do.
   apps: { projectId: string; level: AccessLevel; permissions: Permission[] }[];

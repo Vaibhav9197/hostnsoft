@@ -8,7 +8,7 @@
 - **Wants to:** send feedback, report a problem or ask for a feature
 - **Ends with:** The message is saved in the team's inbox, where admins read it.
 - **Steps:** 4 · 0 by AI · 4 can go wrong
-- **Last change to its code:** v101, 21 Oct 2026 — feat: X-App-Id and embarko.json appId on deploy
+- **Last change to its code:** v104, 22 Oct 2026 — feat: send status vs logs permission for dashboard reads; permission_denied next step
 
 [← All stories](../README.md)
 
@@ -161,11 +161,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v104 (7484583) | 22 Oct 2026 | feat: send status vs logs permission for dashboard reads; permission_denied next step | write |
+| v103 (1633d9d) | 21 Oct 2026 | feat: per-app access on status and logs for dashboard sessions | write |
+| v102 (75dc404) | 21 Oct 2026 | feat: relay app_moved and no_access; ask the API for per-app access | write |
 | v101 (23a3409) | 21 Oct 2026 | feat: X-App-Id and embarko.json appId on deploy | write |
 | v100 (bffa93d) | 19 Oct 2026 | Report the real cause when an app crashes on startup | write |
-| v99 (0d035d5) | 19 Oct 2026 | Report the running commit on /health and check it after deploy | write |
-| v98 (52cc384) | 19 Oct 2026 | Read embarko.json on deploy for schedules, warn about in-process timers | write |
-| v97 (b3e21dd) | 14 Oct 2026 | feat: add zero-downtime graceful shutdown, unref intervals, and live migration script | write |
 
 ## Open questions
 
