@@ -8,7 +8,7 @@
 - **Wants to:** see at a glance which apps are live and which need attention
 - **Ends with:** Each app shows Live, Not online or Needs attention, and one click opens it.
 - **Steps:** 5 · 0 by AI · 5 can go wrong
-- **Last change to its code:** v174, 23 Oct 2026 — feat: invite and remove people through the API; per-member app access
+- **Last change to its code:** v175, 23 Oct 2026 — Re-point the registry tag at every new build
 
 [← All stories](../README.md)
 
@@ -188,11 +188,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v175 (073a0af) | 23 Oct 2026 | Re-point the registry tag at every new build | list, details |
 | v174 (3be464c) | 23 Oct 2026 | feat: invite and remove people through the API; per-member app access | — |
-| v173 (8b5e212) | 23 Oct 2026 | feat: schedule alerts wait for 3 failures in a row or a 6h failing streak | — |
-| v172 (782798d) | 22 Oct 2026 | feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access | list, keep-current, open, details |
-| v171 (28bcc06) | 22 Oct 2026 | feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access | list |
-| v170 (7484583) | 22 Oct 2026 | feat: send status vs logs permission for dashboard reads; permission_denied next step | list, details |
+| v173 (e367e80) | 23 Oct 2026 | Run apps from the image registry, pull back a missing image | list, details |
+| v172 (8b5e212) | 23 Oct 2026 | feat: schedule alerts wait for 3 failures in a row or a 6h failing streak | — |
+| v171 (d5b9cca) | 23 Oct 2026 | refactor: extract and use pollWhileVisible utility to pause polling when tab is hidden | list, keep-current, details |
 
 ## Open questions
 

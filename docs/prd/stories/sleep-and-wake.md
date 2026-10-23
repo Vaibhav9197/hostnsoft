@@ -8,7 +8,7 @@
 - **Wants to:** open an app that nobody has used for hours
 - **Ends with:** The app wakes in seconds and answers; while asleep it used nothing.
 - **Steps:** 5 · 0 by AI · 4 can go wrong
-- **Last change to its code:** v45, 19 Oct 2026 — Report the real cause when an app crashes on startup
+- **Last change to its code:** v46, 23 Oct 2026 — Run apps from the image registry, pull back a missing image
 
 [← All stories](../README.md)
 
@@ -164,11 +164,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v46 (e367e80) | 23 Oct 2026 | Run apps from the image registry, pull back a missing image | sleep, wake, answer |
 | v45 (bffa93d) | 19 Oct 2026 | Report the real cause when an app crashes on startup | wake, answer |
 | v44 (164654d) | 19 Oct 2026 | Let webhooks from HTTP client libraries wake sleeping apps | sleep |
 | v43 (b3e21dd) | 14 Oct 2026 | feat: add zero-downtime graceful shutdown, unref intervals, and live migration script | record |
 | v42 (802c949) | 14 Oct 2026 | issue with stuck sleeping app due to livestream backup check | sleep, wake, answer |
-| v41 (bbde1e1) | 12 Oct 2026 | Close the 502 window after a scale-to-zero stop | sleep, wake, answer |
 
 ## Open questions
 

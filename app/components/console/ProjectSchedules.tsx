@@ -59,9 +59,9 @@ export function ProjectSchedules({
     };
   }, [companyId, projectId]);
 
-  /* The failing-job email links here with ?fix=<scheduleId>: bring that job
-     into view, its "Fix with your AI" button marked, so the person lands
-     one click from the prompt. Read from location, not useSearchParams, so
+  /* The failing-job email's "Open in Embarko" links here with
+     ?fix=<scheduleId>: bring that job into view, its "Fix with your AI"
+     button marked. Read from location, not useSearchParams, so
      the page needs no Suspense boundary for it. */
   const [fixId, setFixId] = useState<string | null>(null);
   useEffect(() => {

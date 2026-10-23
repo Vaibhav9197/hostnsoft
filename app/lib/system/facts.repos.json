@@ -6008,17 +6008,15 @@
      "lib:@api/src/lib/frontendOrigin",
      "lib:@api/src/lib/logger",
      "lib:@api/src/lib/msg91",
-     "lib:@api/src/lib/prisma",
      "lib:@api/src/lib/publicHttpsUrl",
+     "lib:@api/src/lib/publicTokenConfig",
      "lib:@api/src/lib/webhooks",
      "lib:@api/src/services/schedules",
      "lib:@api/src/services/showcase"
     ],
     "endpoints": [],
     "defines": [],
-    "tablesRead": [
-     "table:api:ScheduleRun"
-    ],
+    "tablesRead": [],
     "tablesWritten": [],
     "services": []
    },
@@ -6766,7 +6764,8 @@
     "services": [
      "ext:docker",
      "ext:nomad",
-     "ext:railpack"
+     "ext:railpack",
+     "ext:registry"
     ]
    },
    {
@@ -6790,7 +6789,8 @@
     "tablesWritten": [],
     "services": [
      "ext:docker",
-     "ext:nomad"
+     "ext:nomad",
+     "ext:registry"
     ]
    },
    {
@@ -6814,7 +6814,8 @@
     "tablesWritten": [],
     "services": [
      "ext:docker",
-     "ext:nomad"
+     "ext:nomad",
+     "ext:registry"
     ]
    },
    {
@@ -6846,6 +6847,7 @@
     ],
     "inbound": true,
     "imports": [
+     "lib:@deploy/image-registry",
      "lib:@deploy/image-retention",
      "lib:@deploy/internal-auth",
      "lib:@deploy/logger",
@@ -6861,6 +6863,7 @@
     "tablesWritten": [],
     "services": [
      "ext:docker",
+     "ext:registry",
      "ext:traefik"
     ]
    },
@@ -6886,6 +6889,7 @@
     "services": [
      "ext:docker",
      "ext:nomad",
+     "ext:registry",
      "ext:traefik"
     ]
    },
@@ -6900,6 +6904,7 @@
     "inbound": true,
     "imports": [
      "lib:@deploy/deploy-in-flight",
+     "lib:@deploy/image-registry",
      "lib:@deploy/internal-auth",
      "lib:@deploy/logger",
      "lib:@deploy/nomad-job",
@@ -6914,6 +6919,7 @@
     "services": [
      "ext:docker",
      "ext:nomad",
+     "ext:registry",
      "ext:traefik"
     ]
    },
@@ -6936,7 +6942,8 @@
     "tablesWritten": [],
     "services": [
      "ext:docker",
-     "ext:nomad"
+     "ext:nomad",
+     "ext:registry"
     ]
    },
    {
@@ -7331,6 +7338,7 @@
     "imports": [
      "lib:@deploy/analytics/bot-filter",
      "lib:@deploy/analytics/db",
+     "lib:@deploy/image-registry",
      "lib:@deploy/nomad-job-spec",
      "lib:@deploy/scale-to-zero-apps",
      "lib:@deploy/scale-to-zero-images",
@@ -7351,7 +7359,7 @@
     "id": "lib:@deploy/image-registry",
     "repo": "deploy",
     "file": "@deploy/image-registry.js",
-    "summary": "image-registry.js Copies every freshly built image into the host's local registry (server-setup.md#image-registry).",
+    "summary": "image-registry.js The host's local registry (server-setup.md#image-registry) is where an app's image lives once it is built.",
     "imports": [
      "lib:@deploy/logger"
     ],
@@ -7360,16 +7368,16 @@
     "tablesRead": [],
     "tablesWritten": [],
     "services": [
-     "ext:registry",
-     "ext:docker"
+     "ext:registry"
     ]
    },
    {
     "id": "lib:@deploy/image-retention",
     "repo": "deploy",
     "file": "@deploy/image-retention.js",
-    "summary": "image-retention.js Keeps only the N most recently built local images for an app, deleting older ones — bounds disk usage on a host that never pushes images to a registry (every build lives here forever otherwise), while ",
+    "summary": "image-retention.js Keeps only the N most recently built local images for an app, deleting older ones — bounds disk usage (every build lives here forever otherwise), while keeping one-click rollback (POST /internal/apps/:",
     "imports": [
+     "lib:@deploy/image-registry",
      "lib:@deploy/logger"
     ],
     "endpoints": [],
@@ -7532,6 +7540,7 @@
     "summary": "rename-app.js — move a deployed app from one name to another.",
     "imports": [
      "lib:@deploy/analytics/db",
+     "lib:@deploy/image-registry",
      "lib:@deploy/logger",
      "lib:@deploy/nomad-job",
      "lib:@deploy/nomad-job-spec",
@@ -7546,6 +7555,7 @@
     "tablesWritten": [],
     "services": [
      "ext:traefik",
+     "ext:registry",
      "ext:docker"
     ]
    },
@@ -7593,8 +7603,10 @@
     "id": "lib:@deploy/scale-to-zero-images",
     "repo": "deploy",
     "file": "@deploy/scale-to-zero-images.js",
-    "summary": "Is an app's image still on this host?",
-    "imports": [],
+    "summary": "Is an app's image on this host — and if not, can it be brought back?",
+    "imports": [
+     "lib:@deploy/image-registry"
+    ],
     "endpoints": [],
     "defines": [],
     "tablesRead": [],

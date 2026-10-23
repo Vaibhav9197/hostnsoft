@@ -8,7 +8,7 @@
 - **Wants to:** get the app their AI built online
 - **Ends with:** The app is live at its own embarko.app address and shows in Your apps.
 - **Steps:** 10 · 1 by AI · 7 can go wrong
-- **Last change to its code:** v223, 23 Oct 2026 — feat: one Members page: invite with role and access, remove people
+- **Last change to its code:** v225, 23 Oct 2026 — feat: open the failing job from the alert email, one click from the fix prompt
 
 [← All stories](../README.md)
 
@@ -305,11 +305,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v225 (d494cb9) | 23 Oct 2026 | feat: open the failing job from the alert email, one click from the fix prompt | copy-prompt |
+| v224 (073a0af) | 23 Oct 2026 | Re-point the registry tag at every new build | ai-deploys |
 | v223 (e19e29b) | 23 Oct 2026 | feat: one Members page: invite with role and access, remove people | make-token |
 | v222 (3be464c) | 23 Oct 2026 | feat: invite and remove people through the API; per-member app access | — |
-| v221 (8b5e212) | 23 Oct 2026 | feat: schedule alerts wait for 3 failures in a row or a 6h failing streak | — |
-| v220 (dbddf65) | 22 Oct 2026 | refactor: lower default CPU allocation from 100 to 50 in job spec and documentation | build-run |
-| v219 (782798d) | 22 Oct 2026 | feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access | copy-prompt, make-token, watch, app-appears |
+| v221 (e367e80) | 23 Oct 2026 | Run apps from the image registry, pull back a missing image | ai-deploys, build-run |
 
 ## Open questions
 

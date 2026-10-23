@@ -8,7 +8,7 @@
 - **Wants to:** put an app online without making an account first
 - **Ends with:** The app is live for 24 hours with a banner, and stays for good once they claim it.
 - **Steps:** 6 · 1 by AI · 5 can go wrong
-- **Last change to its code:** v134, 23 Oct 2026 — feat: invite and remove people through the API; per-member app access
+- **Last change to its code:** v134, 23 Oct 2026 — Re-point the registry tag at every new build
 
 [← All stories](../README.md)
 
@@ -190,11 +190,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
-| v134 (3be464c) | 23 Oct 2026 | feat: invite and remove people through the API; per-member app access | — |
-| v133 (8b5e212) | 23 Oct 2026 | feat: schedule alerts wait for 3 failures in a row or a 6h failing streak | — |
-| v132 (dbddf65) | 22 Oct 2026 | refactor: lower default CPU allocation from 100 to 50 in job spec and documentation | banner |
-| v131 (28bcc06) | 22 Oct 2026 | feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access | trial, claim |
-| v130 (7484583) | 22 Oct 2026 | feat: send status vs logs permission for dashboard reads; permission_denied next step | ai-deploys, cleanup |
+| v134 (073a0af) | 23 Oct 2026 | Re-point the registry tag at every new build | ai-deploys, cleanup |
+| v133 (3be464c) | 23 Oct 2026 | feat: invite and remove people through the API; per-member app access | — |
+| v132 (e367e80) | 23 Oct 2026 | Run apps from the image registry, pull back a missing image | ai-deploys, banner, cleanup |
+| v131 (8b5e212) | 23 Oct 2026 | feat: schedule alerts wait for 3 failures in a row or a 6h failing streak | — |
+| v130 (dbddf65) | 22 Oct 2026 | refactor: lower default CPU allocation from 100 to 50 in job spec and documentation | banner |
 
 ## Open questions
 

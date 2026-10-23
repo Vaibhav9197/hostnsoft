@@ -8,7 +8,7 @@
 - **Wants to:** change a live app, or return to a version that worked
 - **Ends with:** A new or earlier version of the app is live.
 - **Steps:** 5 · 1 by AI · 3 can go wrong
-- **Last change to its code:** v157, 23 Oct 2026 — feat: invite and remove people through the API; per-member app access
+- **Last change to its code:** v159, 23 Oct 2026 — feat: open the failing job from the alert email, one click from the fix prompt
 
 [← All stories](../README.md)
 
@@ -167,11 +167,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v159 (d494cb9) | 23 Oct 2026 | feat: open the failing job from the alert email, one click from the fix prompt | choose |
+| v158 (073a0af) | 23 Oct 2026 | Re-point the registry tag at every new build | ai-updates, rollback |
 | v157 (3be464c) | 23 Oct 2026 | feat: invite and remove people through the API; per-member app access | — |
-| v156 (782798d) | 22 Oct 2026 | feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access | choose, rollback, watch |
-| v155 (28bcc06) | 22 Oct 2026 | feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access | — |
-| v154 (7484583) | 22 Oct 2026 | feat: send status vs logs permission for dashboard reads; permission_denied next step | ai-updates, rollback |
-| v153 (7513559) | 22 Oct 2026 | docs: canonical AI-agent doc set and evidence-based cleanup | choose |
+| v156 (e367e80) | 23 Oct 2026 | Run apps from the image registry, pull back a missing image | ai-updates, rollback |
+| v155 (d5b9cca) | 23 Oct 2026 | refactor: extract and use pollWhileVisible utility to pause polling when tab is hidden | rollback, watch |
 
 ## Open questions
 
