@@ -30,6 +30,7 @@ const NAV_LINKS = [
   /* A static file in /public, so a plain anchor — Link would route it. */
   { label: "llms.txt", href: "/llms.txt", external: true },
   { label: "Agent skill", href: SKILL_REPO, external: true, newTab: true },
+  { label: "FAQ", href: "/faq" },
   { label: "Contact", href: "/support" },
 ] as const;
 

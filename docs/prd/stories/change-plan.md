@@ -8,7 +8,7 @@
 - **Wants to:** move to the plan that fits their apps
 - **Ends with:** They are on the new plan, paid by card, or back on Free.
 - **Steps:** 4 · 0 by AI · 4 can go wrong
-- **Last change to its code:** v53, 22 Oct 2026 — feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access
+- **Last change to its code:** v54, 23 Oct 2026 — feat: invite and remove people through the API; per-member app access
 
 [← All stories](../README.md)
 
@@ -152,7 +152,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
-- **Keeps** `PendingInvite` — A role chosen for someone before they are a member.
+- **Keeps** `PendingInvite` — A role chosen for someone before they are a member: the invite adds them on proxy and emails them (services/workspaceRoles.ts createInvite); this remembers what they should be allowed to do.
 - **Keeps** `WorkspaceMember` — A member's role in one workspace.
 - **Keeps** `WorkspaceRoleSetup` — How far a workspace's roles have been set up (permissions.ts setUpWorkspaceRoles).
 - **Looks up** `DeployToken` — A deploy token.
@@ -166,11 +166,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v54 (3be464c) | 23 Oct 2026 | feat: invite and remove people through the API; per-member app access | — |
 | v53 (782798d) | 22 Oct 2026 | feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access | load, choose, card |
 | v52 (28bcc06) | 22 Oct 2026 | feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access | — |
 | v51 (d2813cc) | 21 Oct 2026 | feat: workspace roles and per-app access | load, card, apply |
 | v50 (b7f1799) | 21 Oct 2026 | feat: personal deploy tokens and moving apps between workspaces | — |
-| v49 (9246658) | 17 Oct 2026 | feat(companies): add PATCH /companies/:id to rename a workspace via proxy (#44) | load, card, apply |
 
 ## Open questions
 

@@ -8,7 +8,7 @@
 - **Wants to:** show their app to others on a public page
 - **Ends with:** The app is on a Showcase page, or waiting for the organiser to approve it.
 - **Steps:** 5 · 0 by AI · 5 can go wrong
-- **Last change to its code:** v68, 22 Oct 2026 — feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access
+- **Last change to its code:** v69, 23 Oct 2026 — feat: invite and remove people through the API; per-member app access
 
 [← All stories](../README.md)
 
@@ -184,7 +184,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `AppDetails` — Public-facing details of a deployed app.
 - **Keeps** `AppGrant` — One app a Member with appAccess "chosen" can reach, and how far: "use", "edit" (have their AI make changes as a preview; logs) or "full" (approve and publish, settings, delete, move) — ACCESS_LEVELS in permissions.ts.
 - **Keeps** `AuditLog` — Every mutating action: who, what, when.
-- **Keeps** `PendingInvite` — A role chosen for someone before they are a member.
+- **Keeps** `PendingInvite` — A role chosen for someone before they are a member: the invite adds them on proxy and emails them (services/workspaceRoles.ts createInvite); this remembers what they should be allowed to do.
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
 - **Keeps** `ShowcaseEvent` — An event page, /showcase/<slug>: a hackathon, a demo day.
 - **Keeps** `ShowcaseEventListing` — One app shown on one event page.
@@ -200,11 +200,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v69 (3be464c) | 23 Oct 2026 | feat: invite and remove people through the API; per-member app access | — |
 | v68 (782798d) | 22 Oct 2026 | feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access | choose, approve |
 | v67 (28bcc06) | 22 Oct 2026 | feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access | — |
 | v66 (7513559) | 22 Oct 2026 | docs: canonical AI-agent doc set and evidence-based cleanup | choose |
 | v65 (d2813cc) | 21 Oct 2026 | feat: workspace roles and per-app access | send, approve |
-| v64 (b7f1799) | 21 Oct 2026 | feat: personal deploy tokens and moving apps between workspaces | — |
 
 ## Open questions
 

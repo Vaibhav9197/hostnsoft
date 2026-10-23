@@ -8,7 +8,7 @@
 - **Wants to:** change a live app, or return to a version that worked
 - **Ends with:** A new or earlier version of the app is live.
 - **Steps:** 5 · 1 by AI · 3 can go wrong
-- **Last change to its code:** v156, 22 Oct 2026 — feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access
+- **Last change to its code:** v157, 23 Oct 2026 — feat: invite and remove people through the API; per-member app access
 
 [← All stories](../README.md)
 
@@ -154,7 +154,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `Company` — Local mirror of the few company facts the proxy doesn't hold.
 - **Keeps** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Keeps** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
-- **Keeps** `PendingInvite` — A role chosen for someone before they are a member.
+- **Keeps** `PendingInvite` — A role chosen for someone before they are a member: the invite adds them on proxy and emails them (services/workspaceRoles.ts createInvite); this remembers what they should be allowed to do.
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
 - **Keeps** `WorkspaceMember` — A member's role in one workspace.
 - **Keeps** `WorkspaceRoleSetup` — How far a workspace's roles have been set up (permissions.ts setUpWorkspaceRoles).
@@ -167,11 +167,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v157 (3be464c) | 23 Oct 2026 | feat: invite and remove people through the API; per-member app access | — |
 | v156 (782798d) | 22 Oct 2026 | feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access | choose, rollback, watch |
 | v155 (28bcc06) | 22 Oct 2026 | feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access | — |
 | v154 (7484583) | 22 Oct 2026 | feat: send status vs logs permission for dashboard reads; permission_denied next step | ai-updates, rollback |
 | v153 (7513559) | 22 Oct 2026 | docs: canonical AI-agent doc set and evidence-based cleanup | choose |
-| v152 (1633d9d) | 21 Oct 2026 | feat: per-app access on status and logs for dashboard sessions | ai-updates, rollback |
 
 ## Open questions
 

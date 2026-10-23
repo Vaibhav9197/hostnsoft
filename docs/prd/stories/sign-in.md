@@ -8,7 +8,7 @@
 - **Wants to:** get into their workspace
 - **Ends with:** They are in Your apps with a workspace chosen, and stay signed in for 30 days.
 - **Steps:** 5 · 0 by AI · 4 can go wrong
-- **Last change to its code:** v47, 22 Oct 2026 — feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access
+- **Last change to its code:** v49, 23 Oct 2026 — feat: one Members page: invite with role and access, remove people
 
 [← All stories](../README.md)
 
@@ -191,11 +191,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v49 (e19e29b) | 23 Oct 2026 | feat: one Members page: invite with role and access, remove people | start-session |
+| v48 (3be464c) | 23 Oct 2026 | feat: invite and remove people through the API; per-member app access | start-session |
 | v47 (28bcc06) | 22 Oct 2026 | feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access | start-session |
 | v46 (d2813cc) | 21 Oct 2026 | feat: workspace roles and per-app access | start-session |
 | v45 (9246658) | 17 Oct 2026 | feat(companies): add PATCH /companies/:id to rename a workspace via proxy (#44) | start-session |
-| v44 (01836d2) | 17 Oct 2026 | feat(settings): drop workspace deletion, simplify workspace panel | workspace |
-| v43 (f160b9b) | 14 Oct 2026 | feat(panel): upvote upcoming features from the "What's missing?" box | start-session |
 
 ## Open questions
 

@@ -6003,10 +6003,12 @@
     "id": "lib:@api/src/services/scheduleAlerts",
     "repo": "api",
     "file": "@api/src/services/scheduleAlerts.ts",
-    "summary": "Tells someone when a schedule starts failing and when it recovers — one message each way, never one per failed run.",
+    "summary": "Tells someone when a schedule starts failing (SCHEDULE_ALERT_AFTER_FAILURES runs in a row, or a streak SCHEDULE_ALERT_AFTER_HOURS old) and when it recovers — one message each way, never one per failed run.",
     "imports": [
+     "lib:@api/src/lib/frontendOrigin",
      "lib:@api/src/lib/logger",
      "lib:@api/src/lib/msg91",
+     "lib:@api/src/lib/prisma",
      "lib:@api/src/lib/publicHttpsUrl",
      "lib:@api/src/lib/webhooks",
      "lib:@api/src/services/schedules",
@@ -6014,7 +6016,9 @@
     ],
     "endpoints": [],
     "defines": [],
-    "tablesRead": [],
+    "tablesRead": [
+     "table:api:ScheduleRun"
+    ],
     "tablesWritten": [],
     "services": []
    },
@@ -6304,7 +6308,7 @@
     "store": "api",
     "name": "PendingInvite",
     "migration": "@api/prisma/schema.prisma",
-    "note": "A role chosen for someone before they are a member.",
+    "note": "A role chosen for someone before they are a member: the invite adds them on proxy and emails them (services/workspaceRoles.ts createInvite); this remembers what they should be allowed to do.",
     "columns": [
      "id",
      "companyId",
@@ -6363,6 +6367,7 @@
      "nextRunAt",
      "consecutiveFailures",
      "failing",
+     "failingSince",
      "createdBy",
      "createdAt",
      "updatedAt"

@@ -17,9 +17,12 @@ const MEASURE = "mx-auto w-full max-w-[760px] px-6";
 export function DocumentPage({
   title,
   updated,
+  fullFooter,
   children,
 }: {
   title: string;
+  /** Use the marketing pages' full-width footer instead of the text column. */
+  fullFooter?: boolean;
   /** e.g. "March 2026". Omitted on pages that aren't policy documents. */
   updated?: string;
   children: React.ReactNode;
@@ -39,7 +42,7 @@ export function DocumentPage({
         <div className="mt-12 space-y-12">{children}</div>
       </div>
 
-      <SiteFooter measure={MEASURE} />
+      <SiteFooter measure={fullFooter ? undefined : MEASURE} />
     </main>
   );
 }

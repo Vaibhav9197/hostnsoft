@@ -171,7 +171,7 @@ Declared links come from foreign keys (Prisma `@relation`); the rest are inferre
 ## PendingInvite
 
 - **Store:** API database (`table:api:PendingInvite`)
-- **Meaning:** A role chosen for someone before they are a member.
+- **Meaning:** A role chosen for someone before they are a member: the invite adds them on proxy and emails them (services/workspaceRoles.ts createInvite); this remembers what they should be allowed to do.
 - **Part:** Roles and app access (`roles-data`)
 - **Defined in:** `@api/prisma/schema.prisma`
 - **Columns:** `id`, `companyId`, `email`, `role`, `appAccess`, `grants`, `invitedBy`, `createdAt`
@@ -210,7 +210,7 @@ Declared links come from foreign keys (Prisma `@relation`); the rest are inferre
 - **Meaning:** A timed HTTP call into the app — see docs/schedules.md.
 - **Part:** Schedules and runs (`schedule-data`)
 - **Defined in:** `@api/prisma/schema.prisma`
-- **Columns:** `id`, `projectId`, `name`, `cron`, `timezone`, `path`, `enabled`, `alertWebhookUrl`, `nextRunAt`, `consecutiveFailures`, `failing`, `createdBy`, `createdAt`, `updatedAt`
+- **Columns:** `id`, `projectId`, `name`, `cron`, `timezone`, `path`, `enabled`, `alertWebhookUrl`, `nextRunAt`, `consecutiveFailures`, `failing`, `failingSince`, `createdBy`, `createdAt`, `updatedAt`
 - **Declared links:** table:api:Schedule.projectId → table:api:Project.id
 - **Stories:** [First Deploy](stories/first-deploy.md), [Trial App](stories/try-without-account.md), [Check Apps](stories/check-apps.md), [App Settings](stories/app-settings.md), [Scheduled Task](stories/scheduled-task.md)
 - **Written by:** `api:@api/apps/:appName/schedules`, `api:@api/apps/:appName/schedules/run`, `api:@api/apps/:appName/schedules/:scheduleId`, `api:@api/apps/:appName/schedules/:scheduleId/run`, `api:@api/internal/deployments/record`, `api:@api/internal/projects/claim`, `lib:@api/src/routes/agentApps.routes`, `lib:@api/src/services/scheduleRunner`, `lib:@api/src/services/scheduleSync`
@@ -226,7 +226,7 @@ Declared links come from foreign keys (Prisma `@relation`); the rest are inferre
 - **Declared links:** table:api:ScheduleRun.scheduleId → table:api:Schedule.id
 - **Stories:** [First Deploy](stories/first-deploy.md), [Trial App](stories/try-without-account.md), [Check Apps](stories/check-apps.md), [App Settings](stories/app-settings.md), [Scheduled Task](stories/scheduled-task.md)
 - **Written by:** `api:@api/apps/:appName/schedules/run`, `api:@api/apps/:appName/schedules/:scheduleId/run`, `lib:@api/src/services/scheduleRunner`
-- **Read by:** `api:@api/apps/:appName/env-vars/:key`, `api:@api/apps/:appName/schedules`, `api:@api/apps/:appName/schedules/run`, `api:@api/apps/:appName/schedules/:scheduleId`, `api:@api/apps/:appName/schedules/:scheduleId/run`, `api:@api/apps/:appName/schedules/:scheduleId/runs`, `api:@api/apps/:appName/schedules/:scheduleId/runs/:runId`, `api:@api/internal/deployments/record`, `api:@api/internal/projects/claim`, `api:@api/companies/:companyId/projects`, `api:@api/companies/:companyId/orphans/claim`, `api:@api/companies/:companyId/projects/:projectId`, `api:@api/companies/:companyId/projects/:projectId/move`, `api:@api/companies/:companyId/projects/:projectId/schedules`, `api:@api/companies/:companyId/projects/:projectId/schedules/:scheduleId/runs`, `lib:@api/src/routes/agentApps.routes`, `lib:@api/src/services/scheduleRunner`, `lib:@api/src/services/schedules`
+- **Read by:** `api:@api/apps/:appName/env-vars/:key`, `api:@api/apps/:appName/schedules`, `api:@api/apps/:appName/schedules/run`, `api:@api/apps/:appName/schedules/:scheduleId`, `api:@api/apps/:appName/schedules/:scheduleId/run`, `api:@api/apps/:appName/schedules/:scheduleId/runs`, `api:@api/apps/:appName/schedules/:scheduleId/runs/:runId`, `api:@api/internal/deployments/record`, `api:@api/internal/projects/claim`, `api:@api/companies/:companyId/projects`, `api:@api/companies/:companyId/orphans/claim`, `api:@api/companies/:companyId/projects/:projectId`, `api:@api/companies/:companyId/projects/:projectId/move`, `api:@api/companies/:companyId/projects/:projectId/schedules`, `api:@api/companies/:companyId/projects/:projectId/schedules/:scheduleId/runs`, `lib:@api/src/routes/agentApps.routes`, `lib:@api/src/services/scheduleAlerts`, `lib:@api/src/services/scheduleRunner`, `lib:@api/src/services/schedules`
 
 ## Domain
 

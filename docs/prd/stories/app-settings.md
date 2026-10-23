@@ -8,7 +8,7 @@
 - **Wants to:** set up their app's domain, settings and web address
 - **Ends with:** The app runs with its own domain and settings, at the address they chose.
 - **Steps:** 8 · 0 by AI · 8 can go wrong
-- **Last change to its code:** v146, 22 Oct 2026 — feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access
+- **Last change to its code:** v148, 23 Oct 2026 — feat: invite and remove people through the API; per-member app access
 
 [← All stories](../README.md)
 
@@ -298,7 +298,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Keeps** `Domain` — A client-owned domain (or subdomain) attached to a project — see docs/Customdomain-req.md.
 - **Keeps** `EnvVar`
-- **Keeps** `PendingInvite` — A role chosen for someone before they are a member.
+- **Keeps** `PendingInvite` — A role chosen for someone before they are a member: the invite adds them on proxy and emails them (services/workspaceRoles.ts createInvite); this remembers what they should be allowed to do.
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
 - **Keeps** `ShowcaseEvent` — An event page, /showcase/<slug>: a hackathon, a demo day.
 - **Keeps** `ShowcaseEventListing` — One app shown on one event page.
@@ -314,11 +314,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v148 (3be464c) | 23 Oct 2026 | feat: invite and remove people through the API; per-member app access | — |
+| v147 (8b5e212) | 23 Oct 2026 | feat: schedule alerts wait for 3 failures in a row or a 6h failing streak | — |
 | v146 (782798d) | 22 Oct 2026 | feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access | domain, settings, apply, address |
 | v145 (28bcc06) | 22 Oct 2026 | feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access | address, hand-over |
 | v144 (7484583) | 22 Oct 2026 | feat: send status vs logs permission for dashboard reads; permission_denied next step | check-dns, apply, move |
-| v143 (1633d9d) | 21 Oct 2026 | feat: per-app access on status and logs for dashboard sessions | check-dns, apply, move |
-| v142 (ff4b18d) | 21 Oct 2026 | feat: team roles in the dashboard | domain, settings, apply, address |
 
 ## Open questions
 

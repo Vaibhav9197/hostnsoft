@@ -8,7 +8,7 @@
 - **Wants to:** get the app their AI built online
 - **Ends with:** The app is live at its own embarko.app address and shows in Your apps.
 - **Steps:** 10 · 1 by AI · 7 can go wrong
-- **Last change to its code:** v219, 22 Oct 2026 — feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access
+- **Last change to its code:** v223, 23 Oct 2026 — feat: one Members page: invite with role and access, remove people
 
 [← All stories](../README.md)
 
@@ -288,7 +288,7 @@ See [system-map.md](../system-map.md) for how the parts connect.
 - **Keeps** `DeployToken` — A deploy token.
 - **Keeps** `Deployment` — Versioned deploy history — one row per deploy attempt.
 - **Keeps** `EnvVar`
-- **Keeps** `PendingInvite` — A role chosen for someone before they are a member.
+- **Keeps** `PendingInvite` — A role chosen for someone before they are a member: the invite adds them on proxy and emails them (services/workspaceRoles.ts createInvite); this remembers what they should be allowed to do.
 - **Keeps** `Project` — One Project == one deployed app on hostnsoft-deploy.
 - **Keeps** `Schedule` — A timed HTTP call into the app — see docs/schedules.md.
 - **Keeps** `ShowcaseEvent` — An event page, /showcase/<slug>: a hackathon, a demo day.
@@ -305,11 +305,11 @@ See [tables.md](../tables.md).
 
 | Version | Date | Change | Steps changed |
 |---|---|---|---|
+| v223 (e19e29b) | 23 Oct 2026 | feat: one Members page: invite with role and access, remove people | make-token |
+| v222 (3be464c) | 23 Oct 2026 | feat: invite and remove people through the API; per-member app access | — |
+| v221 (8b5e212) | 23 Oct 2026 | feat: schedule alerts wait for 3 failures in a row or a 6h failing streak | — |
+| v220 (dbddf65) | 22 Oct 2026 | refactor: lower default CPU allocation from 100 to 50 in job spec and documentation | build-run |
 | v219 (782798d) | 22 Oct 2026 | feat: dashboard and guide for Owner, Admin, Member, Billing and per-app access | copy-prompt, make-token, watch, app-appears |
-| v218 (28bcc06) | 22 Oct 2026 | feat: roles for an AI workspace: Owner, Admin, Member, Billing; per-app Can use / Can edit / Full access | make-token, watch, check-key |
-| v217 (7484583) | 22 Oct 2026 | feat: send status vs logs permission for dashboard reads; permission_denied next step | ai-deploys, check-key |
-| v216 (f3a0897) | 22 Oct 2026 | fix: refuse an app id sent under a name the app never had | check-key |
-| v215 (7513559) | 22 Oct 2026 | docs: canonical AI-agent doc set and evidence-based cleanup | copy-prompt, make-token |
 
 ## Open questions
 
