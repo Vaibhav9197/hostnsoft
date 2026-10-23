@@ -685,7 +685,7 @@ export const AREAS: Area[] = [
     name: "Schedules",
     lane: "background",
     plain: "Calls a route of an app at the times listed in the app's embarko.json, keeps a record of each run, and emails the owner when a schedule starts failing or recovers.",
-    detail: "The AI lists an app's full set of schedules in the optional embarko.json in the app's top folder; @deploy reads the file from the upload (refusing bad JSON or anything secret-looking) and @api checks the schedules at claim, before the build, creates a CRON_SECRET setting if the app has none, and replaces the app's schedules with the declared set (matched by path, history kept) only when the deploy succeeds. A timer inside @api every 30s takes due schedules and sends GET <path> to the app's own address, with the app's CRON_SECRET as a bearer token when it has one. A sleeping app is woken like any visitor. 2xx is ok; 5 minutes to answer; at most 5 schedules per app, no closer than 5 minutes apart. One alert on the first failure and one on recovery, by email and an optional webhook. The panel shows each app's jobs read-only (next run, last run) and marks the app 'Needs attention' while one is failing, with a prompt to hand it to the AI.",
+    detail: "The AI lists an app's full set of schedules in the optional embarko.json in the app's top folder; @deploy reads the file from the upload (refusing bad JSON or anything secret-looking) and @api checks the schedules at claim, before the build, creates a CRON_SECRET setting if the app has none, and replaces the app's schedules with the declared set (matched by path, history kept) only when the deploy succeeds. A timer inside @api every 30s takes due schedules and sends GET <path> to the app's own address, with the app's CRON_SECRET as a bearer token when it has one. A sleeping app is woken like any visitor. 2xx is ok; 5 minutes to answer; at most 5 schedules per app, no closer than 5 minutes apart. One alert after 3 failed runs in a row or 6 hours of failing with no success, whichever comes first (a single failure is treated as a blip), and one on recovery, by email and an optional webhook. The panel shows each app's jobs read-only (next run, last run) and marks the app 'Needs attention' while one is failing, with a prompt to hand it to the AI.",
     judge: "rule",
     refs: [
       "lib:@api/src/routes/schedules.routes",
@@ -1698,7 +1698,7 @@ export const JOURNEYS: Journey[] = [
       {
         id: "alert",
         title: "Tell the owner",
-        plain: "On the first failed run the owner gets an email, and the optional webhook a schedule.failed message; on the next good run, one recovery message each.",
+        plain: "When 3 runs in a row have failed, or it has been failing for 6 hours with no success, the owner gets an email, and the optional webhook a schedule.failed message; on the next good run, one recovery message each. Shorter failure streaks reset quietly on the next good run.",
         actor: "system",
         failure: [
           "The email or webhook can't be sent → only logged; never retried, and the run's result is unchanged.",

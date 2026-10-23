@@ -81,7 +81,7 @@ flowchart TD
 - **If it goes wrong:** not written down yet — open question.
 - **Parts:** Your AI agent (`ai-agent`), Deploy intake (`intake`)
 - **Code:** `api:@deploy/apps` → `@deploy/server.js`, `lib:@deploy/deploy-credential` → `@deploy/deploy-credential.js`
-- **Outside services:** Docker, Nomad, Railpack
+- **Outside services:** Docker, Nomad, Railpack, Image registry
 
 ### 2. Make it a trial app
 
@@ -144,7 +144,7 @@ flowchart TD
 - **Parts:** Cleanup and re-checks (`cleanup`), App runner (`runner`), Apps and deploys (`apps-data`)
 - **Keeps:** `Project`
 - **Code:** `lib:@api/src/services/orphanCleanup` → `@api/src/services/orphanCleanup.ts`, `lib:@api/src/services/appTeardown` → `@api/src/services/appTeardown.ts`, `api:@deploy/internal/apps/:appName` → `@deploy/server.js`
-- **Outside services:** Docker, Nomad, Traefik
+- **Outside services:** Docker, Nomad, Image registry, Traefik
 
 ## Parts involved
 

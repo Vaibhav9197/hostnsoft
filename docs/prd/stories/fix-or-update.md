@@ -90,7 +90,7 @@ flowchart TD
 - **If it goes wrong:** not written down yet — open question.
 - **Parts:** Your AI agent (`ai-agent`), Deploy intake (`intake`)
 - **Code:** `api:@deploy/apps` → `@deploy/server.js`
-- **Outside services:** Docker, Nomad, Railpack
+- **Outside services:** Docker, Nomad, Railpack, Image registry
 
 ### 3. Re-deploy an earlier one
 
@@ -106,7 +106,7 @@ flowchart TD
 - **Keeps:** `AuditLog`, `Company`, `Deployment`, `Domain`, `Project`
 - **Looks up:** `EnvVar`
 - **Code:** `page:/app/projects/[projectId]/deployments` → `app/app/projects/[projectId]/deployments/page.tsx`, `api:@api/companies/:companyId/projects/:projectId/deployments/:deploymentId/rollback` → `@api/src/routes/deployments.routes.ts`, `lib:@api/src/services/redeploy` → `@api/src/services/redeploy.ts`, `api:@deploy/internal/apps/:appName/config` → `@deploy/server.js`
-- **Outside services:** Docker, Lago, Redis, Stripe, Traefik
+- **Outside services:** Docker, Lago, Redis, Image registry, Stripe, Traefik
 
 ### 4. Confirm it worked
 

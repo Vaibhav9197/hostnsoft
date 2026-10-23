@@ -179,7 +179,7 @@ flowchart TD
 - **Keeps:** `AuditLog`, `Company`, `Domain`
 - **Looks up:** `Deployment`, `EnvVar`, `Project`
 - **Code:** `api:@api/companies/:companyId/projects/:projectId/domains/:domain/verify` → `@api/src/routes/domains.routes.ts`, `lib:@api/src/lib/dnsVerify` → `@api/src/lib/dnsVerify.ts`, `lib:@api/src/services/customDomainActivation` → `@api/src/services/customDomainActivation.ts`, `api:@deploy/internal/apps/:appName/config` → `@deploy/server.js`
-- **Outside services:** Docker, Lago, Redis, Stripe, Traefik
+- **Outside services:** Docker, Lago, Redis, Image registry, Stripe, Traefik
 
 ### 3. Re-check every day
 
@@ -220,7 +220,7 @@ flowchart TD
 - **Keeps:** `Deployment`
 - **Looks up:** `Domain`, `EnvVar`
 - **Code:** `page:/app/projects/[projectId]/environment` → `app/app/projects/[projectId]/environment/page.tsx`, `lib:@api/src/services/redeploy` → `@api/src/services/redeploy.ts`, `api:@deploy/internal/apps/:appName/config` → `@deploy/server.js`
-- **Outside services:** Docker, Traefik
+- **Outside services:** Docker, Image registry, Traefik
 
 ### 6. Rename or move
 
@@ -267,7 +267,7 @@ flowchart TD
 - **Parts:** App records (`app-records`), App runner (`runner`), Traffic router (`router`), Status refresh (`refresh`)
 - **Looks up:** `Deployment`, `Domain`, `EnvVar`
 - **Code:** `lib:@api/src/services/appRename` → `@api/src/services/appRename.ts`, `api:@deploy/internal/apps/:appName/rename` → `@deploy/server.js`, `lib:@deploy/rename-app` → `@deploy/rename-app.js`
-- **Outside services:** Docker, Nomad, Traefik
+- **Outside services:** Docker, Nomad, Image registry, Traefik
 
 ## Parts involved
 

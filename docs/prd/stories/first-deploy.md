@@ -181,7 +181,7 @@ flowchart TD
 - **If it goes wrong:** not written down yet — open question.
 - **Parts:** Your AI agent (`ai-agent`), Agent docs (`docs`), Deploy intake (`intake`)
 - **Code:** `page:/docs/[slug]` → `app/docs/[slug]/page.tsx`, `api:@deploy/apps` → `@deploy/server.js`
-- **Outside services:** Docker, Nomad, Railpack
+- **Outside services:** Docker, Nomad, Railpack, Image registry
 
 ### 6. Check key and name
 

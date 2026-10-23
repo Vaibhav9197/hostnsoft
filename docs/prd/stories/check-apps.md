@@ -96,7 +96,7 @@ flowchart TD
 - **Keeps:** `AppDetails`, `AuditLog`, `Project`, `ShowcaseEvent`, `ShowcaseEventListing`
 - **Looks up:** `Deployment`, `Domain`, `Schedule`, `ScheduleRun`
 - **Code:** `page:/app` → `app/app/page.tsx`, `lib:app/lib/lastSeen` → `app/lib/lastSeen.ts`, `lib:app/lib/earlyReads` → `app/lib/earlyReads.ts`, `api:@api/companies/:companyId/projects` → `@api/src/routes/projects.routes.ts`, `lib:@api/src/services/appHealth` → `@api/src/services/appHealth.ts`, `api:@deploy/internal/apps/:appName/status` → `@deploy/server.js`, `lib:@deploy/app-health` → `@deploy/app-health.js`
-- **Outside services:** Docker, Nomad, Redis, viaSocket webhook
+- **Outside services:** Docker, Nomad, Redis, Image registry, viaSocket webhook
 
 ### 2. Label each app
 
@@ -144,7 +144,7 @@ flowchart TD
 - **Keeps:** `request_log`, `resource_sample`, `tail_state`
 - **Looks up:** `Project`
 - **Code:** `lib:app/components/console/ProjectAnalytics` → `app/components/console/ProjectAnalytics.tsx`, `page:/app/projects/[projectId]/deployments` → `app/app/projects/[projectId]/deployments/page.tsx`, `api:@api/companies/:companyId/projects/:projectId/analytics` → `@api/src/routes/analytics.routes.ts`, `api:@deploy/internal/apps/:appName/analytics` → `@deploy/server.js`, `api:/api/apps/[slug]/logs` → `app/api/apps/[slug]/logs/route.ts`, `api:@deploy/apps/:appName/logs` → `@deploy/server.js`
-- **Outside services:** Docker, MSG91, Nomad, Redis, Traefik
+- **Outside services:** Docker, MSG91, Nomad, Redis, Image registry, Traefik
 
 ## Parts involved
 

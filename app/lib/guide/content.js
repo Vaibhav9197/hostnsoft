@@ -920,7 +920,7 @@ function topics(base) {
         skipped: 'Final. The previous run was still going when this one was due.',
       },
       alerts: [
-        'The app\'s owner gets one email when a schedule starts failing, and one when it works again. Not one per failed run.',
+        'The app\'s owner gets one email when a schedule fails 3 runs in a row, or has been failing for 6 hours with no successful run, whichever comes first. One more email when it works again. A single failed run that the next run fixes sends nothing.',
         'Test runs count too: a failing test run can send that email.',
         'With alertWebhookUrl set, the same two events also go there as JSON (see the example).',
       ],
@@ -965,7 +965,7 @@ function topics(base) {
         {
           title: 'Alert webhook payload',
           lang: 'json',
-          code: JSON.stringify({ event: 'schedule.failed', app: { name: 'my-app', url: 'https://my-app.embarko.app' }, schedule: { id: 'cmgv2k8w0000108l4schd7x2a', name: 'daily digest', cron: '0 9 * * 1-5', timezone: 'Asia/Kolkata', path: '/tasks/daily-digest' }, run: { id: 'cmgv3a7pe000508l4run2h6qz', trigger: 'schedule', outcome: 'failed', terminal: true, httpStatus: 500, error: 'HTTP 500', responseExcerpt: 'Error: SMTP login failed', startedAt: '2026-10-19T03:30:00.412Z', finishedAt: '2026-10-19T03:30:01.224Z', durationMs: 812 }, consecutiveFailures: 1, sentAt: '2026-10-19T03:30:01.300Z' }),
+          code: JSON.stringify({ event: 'schedule.failed', app: { name: 'my-app', url: 'https://my-app.embarko.app' }, schedule: { id: 'cmgv2k8w0000108l4schd7x2a', name: 'daily digest', cron: '0 9 * * 1-5', timezone: 'Asia/Kolkata', path: '/tasks/daily-digest' }, run: { id: 'cmgv3a7pe000508l4run2h6qz', trigger: 'schedule', outcome: 'failed', terminal: true, httpStatus: 500, error: 'HTTP 500', responseExcerpt: 'Error: SMTP login failed', startedAt: '2026-10-19T03:30:00.412Z', finishedAt: '2026-10-19T03:30:01.224Z', durationMs: 812 }, consecutiveFailures: 3, sentAt: '2026-10-19T03:30:01.300Z' }),
           note: 'event is schedule.failed or schedule.recovered.',
         },
       ],

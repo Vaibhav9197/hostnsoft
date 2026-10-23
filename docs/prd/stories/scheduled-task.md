@@ -21,7 +21,7 @@
 | 3 | `scheduled-task/deploy` | Deploy with the schedules | AI | The AI lists the schedules under "schedules" in embarko.json, in the app's top folder, and deploys any usual way. The list is the app's full set; no file or no schedules key leaves them unchanged, [] removes all. They are checked before the build and a CRON_SECRET setting is created if the app has none; when the deploy succeeds, listed schedules are created or updated by path, unlisted ones deleted. |
 | 4 | `scheduled-task/test` | Run each once | AI | Once the app is live the AI runs every schedule once and checks each answer, so a broken route shows before the first real time. The skill's deploy script does this itself. |
 | 5 | `scheduled-task/call` | Call the app on time | System | Every 30 seconds due schedules are taken and their route is called on the app's own address; a sleeping app is woken first. |
-| 6 | `scheduled-task/alert` | Tell the owner | System | On the first failed run the owner gets an email, and the optional webhook a schedule.failed message; on the next good run, one recovery message each. |
+| 6 | `scheduled-task/alert` | Tell the owner | System | When 3 runs in a row have failed, or it has been failing for 6 hours with no success, the owner gets an email, and the optional webhook a schedule.failed message; on the next good run, one recovery message each. Shorter failure streaks reset quietly on the next good run. |
 
 ## Flow
 
@@ -141,7 +141,7 @@ flowchart TD
 - **Keeps:** `AppDetails`, `AuditLog`, `Company`, `DeployToken`, `Deployment`, `EnvVar`, `Project`, `Schedule`, `ShowcaseEvent`, `ShowcaseEventListing`, `SlugAlias`
 - **Looks up:** `Domain`, `ScheduleRun`
 - **Code:** `api:@deploy/apps` → `@deploy/server.js`, `api:@api/internal/projects/claim` → `@api/src/routes/internalProjects.routes.ts`, `api:@api/internal/deployments/record` → `@api/src/routes/internalDeployments.routes.ts`, `lib:@deploy/server` → `@deploy/server.js`, `lib:@deploy/claim-project` → `@deploy/claim-project.js`, `lib:@deploy/record-deployment` → `@deploy/record-deployment.js`, `lib:@deploy/deploy-response` → `@deploy/deploy-response.js`, `lib:@deploy/json-source` → `@deploy/json-source.js`, `lib:@deploy/embarko-config` → `@deploy/embarko-config.js`, `lib:@deploy/detect-timers` → `@deploy/detect-timers.js`, `lib:@api/src/routes/internalProjects.routes` → `@api/src/routes/internalProjects.routes.ts`, `lib:@api/src/routes/internalDeployments.routes` → `@api/src/routes/internalDeployments.routes.ts`, `lib:@api/src/services/deployActor` → `@api/src/services/deployActor.ts`, `lib:@api/src/services/scheduleSync` → `@api/src/services/scheduleSync.ts`, `lib:@api/src/services/schedules` → `@api/src/services/schedules.ts`
-- **Outside services:** Docker, Lago, Nomad, Railpack, Redis, Stripe, Traefik, viaSocket webhook
+- **Outside services:** Docker, Lago, Nomad, Railpack, Redis, Image registry, Stripe, Traefik, viaSocket webhook
 
 ### 4. Run each once
 
@@ -180,11 +180,12 @@ flowchart TD
 
 - **ID:** `scheduled-task/alert`
 - **Who acts:** System
-- **What happens:** On the first failed run the owner gets an email, and the optional webhook a schedule.failed message; on the next good run, one recovery message each.
+- **What happens:** When 3 runs in a row have failed, or it has been failing for 6 hours with no success, the owner gets an email, and the optional webhook a schedule.failed message; on the next good run, one recovery message each. Shorter failure streaks reset quietly on the next good run.
 - **If it goes wrong:**
   - If the email or webhook can't be sent → only logged; never retried, and the run's result is unchanged.
   - If the webhook address now points somewhere private → not sent.
 - **Parts:** Schedules (`schedules`), viaSocket (`webhook`)
+- **Looks up:** `ScheduleRun`
 - **Code:** `lib:@api/src/services/scheduleAlerts` → `@api/src/services/scheduleAlerts.ts`, `lib:@api/src/lib/publicHttpsUrl` → `@api/src/lib/publicHttpsUrl.ts`
 - **Outside services:** viaSocket webhook
 
