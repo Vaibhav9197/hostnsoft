@@ -231,6 +231,7 @@ const DEPLOY_ERRORS = [
   { code: 'embarko_json_not_at_top / embarko_json_misnamed / embarko_json_unknown_keys / schedules_unchanged / schedules_on_static_site (warnings, deploy goes ahead)', status: 202, retry: 'No', do: 'Read warnings[].detail and do what it says: move or rename the file, drop keys Embarko ignores, or use [] to remove schedules (see embarko-json).' },
   { code: 'app_kind_changed', status: 422, retry: 'No', do: 'A static site cannot become a server app. Use a new name.' },
   { code: '(rate limited)', status: 429, retry: 'Later', do: 'Wait retryAfterMs, or a few minutes, then retry once.' },
+  { code: 'builds_paused', status: 503, retry: 'Later', do: 'Embarko is briefly short of capacity and nothing was accepted. Wait retryAfterSeconds (10 minutes), then send the identical request once. Tell the person deploys are paused for a few minutes, not broken.' },
   { code: 'deploy_failed / publish_failed', status: 500, retry: 'Once', do: 'Check status first, then redeploy once. If it repeats, report it.' },
   { code: 'app_name_check_failed', status: 502, retry: 'Once', do: 'Transient, and nothing was accepted: wait 2 seconds and send the identical request once. No status check needed.' },
   { code: '(other 5xx)', status: '502/503/504', retry: 'Once', do: 'Check status before re-sending: it may have been accepted.' },
