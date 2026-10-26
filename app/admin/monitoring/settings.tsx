@@ -209,6 +209,11 @@ export default function MonitoringSettings() {
                     {setup.pending > 0 && ` · ${setup.pending} message${setup.pending > 1 ? 's' : ''} waiting`}
                   </Check>
                   <Check ok={setup.secretSet}>Scheduler secret (MONITOR_SECRET) {setup.secretSet ? 'is set' : 'is not set'}</Check>
+                  <Check ok={!!(data.settings.channels.reports || data.settings.channels.critical || data.settings.channels.warning)}>
+                    {data.settings.channels.reports || data.settings.channels.critical || data.settings.channels.warning
+                      ? 'A Slack channel is set'
+                      : 'No Slack channel set yet. Messages wait until you set one under “Where to send”.'}
+                  </Check>
                   <Check ok={setup.tokenSet}>App-data sign-in (MONITOR_PROXY_TOKEN) {setup.tokenSet ? 'is set' : 'is not set'}</Check>
                   <Check ok={setup.lastRun ? setup.lastRun.appsOk && setup.lastRun.queriesOk : null}>
                     {setup.lastRun
@@ -273,7 +278,7 @@ export default function MonitoringSettings() {
                 </div>
               </Card>
 
-              <Card title="Where to send" hint="Slack channel names (like #embarko-alerts) or ids. Leave one empty to use the scheduler’s default channel.">
+              <Card title="Where to send" hint="Slack channel names (like #embarko-alerts) or ids. Change them any time; the next message goes to the new channel. An empty one uses the reports channel. For a private channel, invite the viaSocket bot first.">
                 <div className="grid gap-4 md:grid-cols-3">
                   {(['critical', 'warning', 'reports'] as const).map((k) => (
                     <div key={k}>

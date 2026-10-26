@@ -15,9 +15,14 @@ export async function POST() {
   try {
     const db = monitorDb();
     const { settings } = await loadSettings(db);
-    const channels = [...new Set([settings.channels.critical, settings.channels.warning, settings.channels.reports])];
+    const fallback = settings.channels.reports || settings.channels.critical || settings.channels.warning;
+    if (!fallback) {
+      return NextResponse.json({ error: "Set a Slack channel under “Where to send” and save first." }, { status: 400 });
+    }
+    // The same fallback the hand-off uses, so the test lands where real alerts will.
+    const channels = [...new Set([settings.channels.critical, settings.channels.warning, settings.channels.reports].map((c) => c || fallback))];
     for (const channel of channels) {
-      await enqueue(db, "test", channel, `🧪 Test from Embarko monitoring, sent by ${admin.email || admin.id}. If you can read this, alerts reach ${channel || "the default channel"}.`);
+      await enqueue(db, "test", channel, `🧪 Test from Embarko monitoring, sent by ${admin.email || admin.id}. If you can read this, alerts reach ${channel}.`);
     }
     return NextResponse.json({ ok: true, queued: channels.length });
   } catch (err) {
