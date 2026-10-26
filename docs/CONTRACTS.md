@@ -1,7 +1,7 @@
 ---
 covers: ["app/api/**", "app/lib/hnsApi.ts", "app/lib/types.ts", "app/lib/api.ts", "app/lib/hnsForward.ts", "app/lib/db.ts", "app/lib/tracking.ts", "migrations/**", "worker.ts", "app/openapi.json/**", "app/agent.json/**", "app/.well-known/**"]
-verified_at: 1629250
-verified_on: 2026-10-23
+verified_at: 5836120
+verified_on: 2026-10-26
 ---
 # Contracts & Data Schemas
 
@@ -59,6 +59,11 @@ Auth column: **PAT** = session cookie `hns_pat` required (401 otherwise); **admi
 | `GET /api/metrics?range=` | `app/api/metrics/route.ts` | admin | `range ∈ 24h\|7d\|30d\|90d\|all` → `{range, metrics[]}` per variant | D1 aggregate of `hero_events` |
 | `GET/POST/PATCH /api/feature-votes` | `app/api/feature-votes/route.ts` | PAT via `app/lib/api.ts:sessionUser` (no allowlist) | `POST {features[], companyId?}`, `PATCH {queryId, features[]}` → `{voted[]}` / `{ok}` | D1 `feature_votes` |
 | `GET /api/feature-votes/summary` | `app/api/feature-votes/summary/route.ts` | admin | → `{votes[]}` with emails | D1 read |
+| `POST /api/monitor/tick` | `app/api/monitor/tick/route.ts` | header `X-Monitor-Secret` = `MONITOR_SECRET` (scheduler), or admin | → `app/lib/monitor/tick.ts:TickResult`; `messages[]` handed over only to the scheduler | upstream `GET /admin/apps`, `GET /admin/customer-query` with `MONITOR_PROXY_TOKEN`; D1 `monitor_*` |
+| `GET/PUT /api/monitor/settings` | `app/api/monitor/settings/route.ts` | admin | `PUT {settings}` → `{ok, changed}` / 400 `{errors}` keyed by field path | D1 `monitor_settings`, `monitor_settings_audit` |
+| `GET /api/monitor/health?range=` | `app/api/monitor/health/route.ts` | admin | `range ∈ 24h\|7d\|30d` → `{cur, prev, alerts, tempApps, queries, events, lastRun}` | D1 read |
+| `POST /api/monitor/preview`, `POST /api/monitor/test` | `app/api/monitor/preview/route.ts`, `app/api/monitor/test/route.ts` | admin | `{kind: daily\|weekly}` → `{text}`; test → `{queued}` | D1 |
+| `PATCH /api/monitor/queries/[id]` | `app/api/monitor/queries/[id]/route.ts` | admin | `{status: open\|resolved\|wont_fix}` → `{ok}` | D1 `monitor_queries` |
 | `GET /api/system/graph`, `GET /api/system/table?db=&name=` | `app/api/system/graph/route.ts`, `app/api/system/table/route.ts` | admin (`app/lib/system/catalogue.ts:denyUnlessSuperAdmin`: 401 anon / 403 signed-in) | → table catalogue, newest 3 rows, secret columns blanked | D1 read; other stores from scanned schema |
 
 Admin pages also call the proxy directly with `fetch` (no `hnsApi` wrapper):
@@ -155,6 +160,7 @@ sequenceDiagram
 | `contact_messages` | `migrations/0001_init.sql` | nothing (legacy; contact now posts to backend) | `app/api/contact/list/route.ts` |
 | `showcase_apps`, `showcase_tags`, `showcase_collections`, `showcase_collection_apps` | `migrations/0003_showcase.sql` | nothing in this repo (Showcase moved to the backend) | nothing in this repo |
 | `feature_votes` (+ `query_id`) | `migrations/0004_feature_votes.sql`, `migrations/0005_feature_votes_query.sql` | `app/api/feature-votes/route.ts` (PK `user_id, feature_id`; `INSERT OR IGNORE`) | same + `app/api/feature-votes/summary/route.ts` |
+| `monitor_apps`, `monitor_events`, `monitor_runs`, `monitor_gauges`, `monitor_health`, `monitor_queries`, `monitor_alerts`, `monitor_outbox`, `monitor_sends`, `monitor_settings`, `monitor_settings_audit` | `migrations/0006_monitoring.sql` | `app/lib/monitor/tick.ts`, `app/lib/monitor/store.ts` (always `getDb`, reads too: local in dev) | `app/api/monitor/*`; see docs/MONITORING.md |
 
 `feature_id` must be an id from `app/lib/features.ts:FEATURES` with `upcoming: true`; anything else is rejected with 400.
 
@@ -224,6 +230,9 @@ Who is in a workspace lives on MSG91, but the panel never shows MSG91's widget f
 - `myPermissions` → `GET /me/permissions?companyId=` → `MyPermissions`, read once per workspace by `app/lib/permissions.tsx:PermissionsProvider`.
 
 Every guarded API route answers 403 `permission_denied` `{permission, role, access?, error}` (`access` is their level on the app), or 404 for an app the person can't see. `GET /companies/:companyId/projects` returns only the apps the person can see (an empty list for a Billing member), and `projectCount` on the company routes counts the same set. Owner and Admin both have billing; only an Owner can add or change Owners and Admins. Everyone in a workspace before roles is an Admin and its creator its Owner; someone added later without a role starts as a Member. Publishing (deploy, rollback, settings) needs Full access; Can edit can't publish until previews exist. Inviting people, roles and app access are Owner/Admin only.
+
+### Monitoring data
+The monitor (docs/MONITORING.md) reads `/admin/apps` and `/admin/customer-query` with a super-admin's token (`MONITOR_PROXY_TOKEN`) and infers temporary-app creation, claims and expiry by comparing checks. hostnsoft-api has no signup record, no service-auth stats route, no record of temporary-app deploys, expiries or claims, and no customer-query status. "What can't it see yet?" in docs/MONITORING.md lists each one and what would replace the workaround.
 
 ### `signup` A/B event
 - Counted by `app/api/metrics/route.ts` but never emitted from `app/` (`trackEvent('signup')` has no caller). Signups column is always 0 until something sends it.

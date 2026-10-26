@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ArrowLeft, BarChart3, Boxes, ChevronsUp, Mail, MessageSquare, ShieldCheck, Sparkles } from 'lucide-react';
+import { Activity, ArrowLeft, BarChart3, BellRing, Boxes, ChevronsUp, Mail, MessageSquare, ShieldCheck, Sparkles } from 'lucide-react';
 
 export function AdminNav() {
   const pathname = usePathname();
@@ -21,6 +21,18 @@ export function AdminNav() {
         </div>
 
         <div className="space-y-2">
+          <Link
+            href="/admin/health"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+              isActive('/admin/health')
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-elevated hover:text-foreground'
+            }`}
+          >
+            <Activity className="w-5 h-5" />
+            <span>Health</span>
+          </Link>
+
           <Link
             href="/admin"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
@@ -94,6 +106,18 @@ export function AdminNav() {
           >
             <Sparkles className="w-5 h-5" />
             <span>Showcase</span>
+          </Link>
+
+          <Link
+            href="/admin/monitoring"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+              isActive('/admin/monitoring')
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-elevated hover:text-foreground'
+            }`}
+          >
+            <BellRing className="w-5 h-5" />
+            <span>Monitoring</span>
           </Link>
 
           <Link

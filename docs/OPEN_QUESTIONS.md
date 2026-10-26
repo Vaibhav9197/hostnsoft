@@ -13,7 +13,8 @@ Add a row here only for a genuine unknown you hit while working: topic, affected
 
 | ID | Topic / Question | Affected Code | Conflicting Evidence / Current Status | What Would Resolve It |
 |---|---|---|---|---|
-| — | none open | | | |
+| Q1 | How long does a super-admin `proxy_auth_token` stay valid for the monitor? | `app/lib/monitor/server.ts:tickEnv` (`MONITOR_PROXY_TOKEN`) | The site keeps the session cookie 30 days, but MSG91's own token lifetime and rotation aren't documented anywhere in the three repos. If it expires, app data reads fail and the "Monitoring can't read app data" alert fires. | MSG91's token lifetime, or an internal-secret stats route in hostnsoft-api (docs/MONITORING.md "What can't it see yet?"). |
+| Q2 | How are production D1 migrations applied? | `migrations/0006_monitoring.sql` | No script or CI applies them (docs/DEVELOPMENT.md "D1 Migrations"). The monitor answers 503 until 0006 is applied. | The team's confirmed command, presumably `npx wrangler d1 migrations apply hostnsoft-ab --remote` from the socket account. |
 
 ## Known Technical Limitations & Verification Gaps
 
