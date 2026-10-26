@@ -9,11 +9,20 @@
  * - Deploy: a deploy by a signed-in workspace, as recorded by hostnsoft-api.
  *   Temporary apps are counted separately; upstream records no deploys for them.
  * - Failed deploy: a deploy whose latest outcome is "failed".
- * - New app: a workspace app first seen in the period. Temporary apps are not in it.
- * - Temporary app created / kept / expired: first seen, claimed into a
- *   workspace, or gone from the list, in the period.
+ * - New app: a workspace app whose creation date (from hostnsoft-api) falls
+ *   in the period. Temporary apps are not in it.
+ * - Temporary app created: by creation date, likewise. Kept / expired: claimed
+ *   into a workspace, or gone from the list, in the period.
  * - Kept rate: of temporary apps created in the period, the share claimed so far.
- * - New workspace: a workspace whose first app appeared (or was claimed) in the period.
+ * - New workspace: a workspace whose first app was created (or claimed) in the period.
+ *
+ * Two kinds of number, with different history:
+ * - From creation dates (new apps, temporary apps created, new workspaces):
+ *   real for any period, before monitoring started too. Apps deleted before
+ *   monitoring started are never seen, so old periods can read slightly low.
+ * - From comparing checks (deploys, failures, kept, expired, uptime): exist
+ *   only since monitoring started (`data.since`). A period that starts earlier
+ *   is not fully covered (`data.complete` false), so it gets no comparison.
  * - Live apps: apps whose latest deploy succeeded, at the end of the period.
  * - Customer query open / overdue: not marked resolved; overdue once older
  *   than the overdue setting.
@@ -35,7 +44,16 @@ export type DataState = "ok" | "partial" | "none";
 export interface Summary {
   from: string;
   to: string;
-  data: { state: DataState; coverage: number; appsChecks: number; expectedChecks: number };
+  data: {
+    state: DataState;
+    coverage: number;
+    appsChecks: number;
+    expectedChecks: number;
+    /** First successful check ever; null before monitoring has run. */
+    since: string | null;
+    /** True when monitoring covered the whole period, so check-based numbers can be compared. */
+    complete: boolean;
+  };
   apps: {
     created: number;
     deleted: number;
@@ -103,17 +121,29 @@ export async function summarize(db: D1Database, fromMs: number, toMs: number, se
   const appsChecks = await count(db, "SELECT COUNT(*) AS n FROM monitor_runs WHERE apps_ok = 1 AND at >= ? AND at < ?", from, to);
   const coverage = Math.min(1, appsChecks / expectedChecks);
   const state: DataState = appsChecks === 0 ? "none" : coverage < 0.8 ? "partial" : "ok";
+  const first = await db.prepare("SELECT MIN(at) AS at FROM monitor_runs WHERE apps_ok = 1").first<{ at: string | null }>();
+  const since = first?.at ?? null;
+  const complete = since !== null && since <= from && state === "ok";
 
   const [created, deleted, deploys, failed, tempCreated, claimed, expired, expiredEarly, firstApp] = await Promise.all([
-    countEvents(db, "app_created", from, to, "AND is_temp = 0"),
+    count(db, "SELECT COUNT(*) AS n FROM monitor_apps WHERE was_temp = 0 AND created_at >= ? AND created_at < ?", from, to),
     countEvents(db, "app_deleted", from, to),
     countEvents(db, "deploy", from, to),
     countEvents(db, "deploy_failed", from, to),
-    countEvents(db, "app_created", from, to, "AND is_temp = 1"),
+    count(db, "SELECT COUNT(*) AS n FROM monitor_apps WHERE was_temp = 1 AND created_at >= ? AND created_at < ?", from, to),
     countEvents(db, "temp_claimed", from, to),
     countEvents(db, "temp_expired", from, to),
     countEvents(db, "temp_expired", from, to, "AND detail = 'early'"),
-    countEvents(db, "workspace_first_app", from, to),
+    // A workspace's first app: created there, or a temporary app claimed into it.
+    count(
+      db,
+      `SELECT COUNT(*) AS n FROM (
+         SELECT company, MIN(CASE WHEN was_temp = 1 THEN claimed_at ELSE created_at END) AS first_at
+         FROM monitor_apps WHERE is_temp = 0 AND company IS NOT NULL GROUP BY company
+       ) WHERE first_at >= ? AND first_at < ?`,
+      from,
+      to,
+    ),
   ]);
 
   const { results: sourceRows } = await db
@@ -199,7 +229,7 @@ export async function summarize(db: D1Database, fromMs: number, toMs: number, se
   return {
     from,
     to,
-    data: { state, coverage: Math.round(coverage * 100), appsChecks, expectedChecks },
+    data: { state, coverage: Math.round(coverage * 100), appsChecks, expectedChecks, since, complete },
     apps: {
       created,
       deleted,

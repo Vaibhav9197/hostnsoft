@@ -72,15 +72,19 @@ function Stat({
   suffix = '',
   goodWhenUp = true,
   noData = false,
+  since = null,
 }: {
   label: string;
   value: number | null;
+  /** Omit, or pass null, when the period before can't be compared fairly. */
   before?: number | null;
   suffix?: string;
   goodWhenUp?: boolean;
   noData?: boolean;
+  /** Set when the number only counts from this time on (monitoring started mid-period). */
+  since?: string | null;
 }) {
-  const c = noData ? null : change(value, before ?? null);
+  const c = noData || since ? null : change(value, before ?? null);
   const tone =
     c?.up == null ? 'text-muted-foreground' : c.up === goodWhenUp ? 'text-success' : 'text-destructive';
   return (
@@ -92,6 +96,7 @@ function Stat({
         </span>
         {c && <span className={`text-xs ${tone}`}>{c.text}</span>}
       </dd>
+      {since && !noData && value !== null && <p className="mt-0.5 text-xs text-faint">since {relativeTime(since)}</p>}
     </div>
   );
 }
@@ -166,6 +171,11 @@ export default function Health() {
   const cur = data?.cur;
   const prev = data?.prev;
   const none = cur?.data.state === 'none';
+  /* Check-based numbers (deploys, kept, expired, uptime) only exist since the
+     first check. Creation-date numbers are real for any period. */
+  const startedMidPeriod = !!cur?.data.since && cur.data.since > cur.from;
+  const checkSince = startedMidPeriod ? cur?.data.since ?? null : null;
+  const prevComparable = !!prev?.data.complete;
   const loud = data?.alerts.filter((a) => a.level !== 'info') ?? [];
   const quiet = data?.alerts.filter((a) => a.level === 'info') ?? [];
   const overdueBefore = data ? Date.now() - data.overdueHours * 3600_000 : 0;
@@ -266,33 +276,40 @@ export default function Health() {
                 )}
               </Section>
 
-              {cur.data.state !== 'ok' && (
+              {startedMidPeriod ? (
                 <p className="mb-6 text-sm text-muted-foreground">
-                  {none
-                    ? 'No successful check in this period, so activity shows as no data rather than zero.'
-                    : `Only ${cur.data.coverage}% of checks ran in this period, so counts may be low.`}
+                  Monitoring started {relativeTime(cur.data.since)}. Deploys, kept, expired and uptime count from then. New apps,
+                  workspaces, queries and visitors use real dates, so they cover the whole period.
                 </p>
+              ) : (
+                cur.data.state !== 'ok' && (
+                  <p className="mb-6 text-sm text-muted-foreground">
+                    {none
+                      ? 'No successful check in this period, so check-based numbers show as no data rather than zero.'
+                      : `Only ${cur.data.coverage}% of checks ran in this period, so check-based counts may be low.`}
+                  </p>
+                )
               )}
 
               <Section title={`Last ${RANGE_LABEL[range]}`} aside={<span className="text-xs text-faint">vs the {RANGE_LABEL[range]} before</span>}>
                 <div className="rounded-lg border border-border bg-card px-6 py-2">
                   <h3 className="pt-3 text-xs font-semibold uppercase tracking-wide text-faint">Apps</h3>
                   <dl className="grid grid-cols-2 gap-x-8 md:grid-cols-4">
-                    <Stat label="New apps" value={cur.apps.created} before={prev.apps.created} noData={none} />
-                    <Stat label="Deploys" value={cur.apps.deploys} before={prev.apps.deploys} noData={none} />
-                    <Stat label="Failed deploys" value={cur.apps.failed} before={prev.apps.failed} goodWhenUp={false} noData={none} />
+                    <Stat label="New apps" value={cur.apps.created} before={prev.apps.created} />
+                    <Stat label="Deploys" value={cur.apps.deploys} before={prevComparable ? prev.apps.deploys : null} noData={none} since={checkSince} />
+                    <Stat label="Failed deploys" value={cur.apps.failed} before={prevComparable ? prev.apps.failed : null} goodWhenUp={false} noData={none} since={checkSince} />
                     <Stat label="Live now" value={cur.live.live} />
                   </dl>
                   <h3 className="border-t border-border pt-3 text-xs font-semibold uppercase tracking-wide text-faint">Temporary apps (no login)</h3>
                   <dl className="grid grid-cols-2 gap-x-8 md:grid-cols-4">
-                    <Stat label="Created" value={cur.temp.created} before={prev.temp.created} noData={none} />
-                    <Stat label="Kept" value={cur.temp.claimed} before={prev.temp.claimed} noData={none} />
-                    <Stat label="Expired" value={cur.temp.expired} before={prev.temp.expired} goodWhenUp={false} noData={none} />
-                    <Stat label="Kept rate" value={cur.temp.keptRate} before={prev.temp.keptRate} suffix="%" noData={none} />
+                    <Stat label="Created" value={cur.temp.created} before={prev.temp.created} />
+                    <Stat label="Kept" value={cur.temp.claimed} before={prevComparable ? prev.temp.claimed : null} noData={none} since={checkSince} />
+                    <Stat label="Expired" value={cur.temp.expired} before={prevComparable ? prev.temp.expired : null} goodWhenUp={false} noData={none} since={checkSince} />
+                    <Stat label="Kept rate" value={cur.temp.keptRate} before={prevComparable ? prev.temp.keptRate : null} suffix="%" noData={none} since={checkSince} />
                   </dl>
                   <h3 className="border-t border-border pt-3 text-xs font-semibold uppercase tracking-wide text-faint">Growth</h3>
                   <dl className="grid grid-cols-2 gap-x-8 md:grid-cols-4">
-                    <Stat label="New workspaces" value={cur.workspaces.firstApp} before={prev.workspaces.firstApp} noData={none} />
+                    <Stat label="New workspaces" value={cur.workspaces.firstApp} before={prev.workspaces.firstApp} />
                     <Stat label="Website visitors" value={cur.web?.visitors ?? null} before={prev.web?.visitors ?? null} />
                     <Stat label="Prompt copies" value={cur.web?.promptCopies ?? null} before={prev.web?.promptCopies ?? null} />
                     <div className="py-3">
@@ -305,7 +322,7 @@ export default function Health() {
                     <Stat label="New queries" value={cur.queries.created} before={prev.queries.created} goodWhenUp={false} />
                     <Stat label="Open now" value={cur.queries.openNow} />
                     {cur.health.map((h) => (
-                      <Stat key={h.id} label={`${h.name} uptime`} value={h.uptime} suffix="%" />
+                      <Stat key={h.id} label={`${h.name} uptime`} value={h.uptime} suffix="%" since={checkSince} />
                     ))}
                   </dl>
                 </div>

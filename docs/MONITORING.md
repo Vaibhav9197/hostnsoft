@@ -50,21 +50,24 @@ Defined once in `app/lib/monitor/metrics.ts`; the Health page, the reports and t
 |---|---|
 | Deploys | Deploys by signed-in workspaces, as recorded by hostnsoft-api. Temporary apps are counted on their own. |
 | Failed deploys | Deploys whose latest outcome is `failed`. With several deploys of one app between two checks, at most one counts as failed. |
-| New apps | Workspace apps first seen in the period. |
-| Temporary apps created / kept / expired | First seen, claimed into a workspace, or gone from the list, in the period. "Early" means gone more than an hour before its expiry time. |
+| New apps | Workspace apps whose creation date (from hostnsoft-api) is in the period. Real for any period, before monitoring started too. |
+| Temporary apps created | By creation date, like new apps. Ones that expired before monitoring started were never seen. |
+| Temporary apps kept / expired | Claimed into a workspace, or gone from the list, in the period. Only since monitoring started. "Early" means gone more than an hour before its expiry time. |
 | Kept rate | Of temporary apps created in the period, the share claimed so far. |
-| New workspaces | Workspaces whose first app appeared or was claimed in the period. |
+| New workspaces | Workspaces whose first app was created (or claimed) in the period. Real for any period. |
 | Live now / failing | Apps whose latest deploy succeeded / failed, at the end of the period. |
 | Customer queries open / overdue | Not marked resolved on the Health page; overdue past the overdue setting. |
 | Uptime | Share of health checks that answered 2xx in time. |
 | Website visitors / prompt copies | Distinct visitors in `hero_events`, bots filtered the same way as `/api/metrics`. |
 | Signups | **Not tracked yet.** hostnsoft-api has no signup record to read. |
 
-**Missing data is never zero.** A period with no successful app-list read shows "no data". Under 80% of expected checks shows "Partial data".
+**Two kinds of number.** Creation-date numbers (new apps, temporary apps created, new workspaces, customer queries, website visitors) are real for any period. Check-based numbers (deploys, failures, kept, expired, uptime) exist only since the first check. A period that starts before monitoring did shows them "since <time>" with no comparison, and the reports say so. Apps deleted before monitoring started were never seen, so very old periods can read slightly low.
 
-**The first check is a baseline.** It records what exists and counts nothing. Events start from the second check. The very first check also skips that day's report instead of sending an empty one.
+**Missing data is never zero.** A period with no successful check shows check-based numbers as "no data". Under 80% of expected checks shows "Partial data".
 
-**Queries on day one.** The first import marks queries older than the overdue time as `before_monitoring`, not open, so old answered queries don't all read as overdue.
+**The first check is a baseline.** It records what exists and counts no events, and it skips that day's report instead of sending an empty one.
+
+**Customer queries.** Each check copies the last 8 days; once an hour it reaches back 90 days. A query already older than the overdue time when monitoring started is `before_monitoring`, not open, so old answered queries don't read as overdue.
 
 ## What alerts are there, and when do they fire?
 
