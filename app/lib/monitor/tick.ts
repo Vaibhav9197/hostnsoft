@@ -233,8 +233,10 @@ async function gatherReadings(db: D1Database, s: MonitorSettings, nowMs: number,
   const overdueBefore = iso(nowMs - s.queries.overdueHours * HOUR);
   const overdue = await db.prepare("SELECT COUNT(*) AS n FROM monitor_queries WHERE status = 'open' AND created_at < ?").bind(overdueBefore).first<{ n: number }>();
   const { results: bugs } = await db
-    .prepare("SELECT id, created_at, project_slug FROM monitor_queries WHERE status = 'open' AND type = 'platform_bug' ORDER BY created_at LIMIT 10")
-    .all<{ id: string; created_at: string; project_slug: string | null }>();
+    .prepare(
+      "SELECT id, created_at, project_slug, agent_name, email, message FROM monitor_queries WHERE status = 'open' AND type = 'platform_bug' ORDER BY created_at LIMIT 10",
+    )
+    .all<{ id: string; created_at: string; project_slug: string | null; agent_name: string | null; email: string | null; message: string | null }>();
 
   return {
     healthStreaks,
@@ -252,7 +254,13 @@ async function gatherReadings(db: D1Database, s: MonitorSettings, nowMs: number,
     },
     historyDays: await historyDays(db, nowMs),
     queriesOverdue: Number(overdue?.n ?? 0),
-    bugReports: bugs.map((b) => ({ id: b.id, hours: (nowMs - Date.parse(b.created_at)) / HOUR, project: b.project_slug })),
+    bugReports: bugs.map((b) => ({
+      id: b.id,
+      hours: (nowMs - Date.parse(b.created_at)) / HOUR,
+      project: b.project_slug,
+      from: b.agent_name || b.email,
+      message: b.message,
+    })),
   };
 }
 

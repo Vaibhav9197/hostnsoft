@@ -43,8 +43,10 @@ function since(fromIso: string, nowMs: number): string {
   return h < 48 ? `${h} h` : `${Math.round(h / 24)} days`;
 }
 
-export function alertText(f: { level: Level; title: string; action: string }, healthUrl: string): string {
-  return `${ICON[f.level]} *${NAME[f.level]}* · ${f.title}\n→ ${f.action} <${healthUrl}|Open Health page>`;
+export function alertText(f: { level: Level; title: string; action: string; anchor?: string }, healthUrl: string): string {
+  // An alert about one thing links straight to it; the rest open the page.
+  const link = f.anchor ? `<${healthUrl}${f.anchor}|Open the report>` : `<${healthUrl}|Open Health page>`;
+  return `${ICON[f.level]} *${NAME[f.level]}* · ${f.title}\n→ ${f.action} ${link}`;
 }
 
 export function decide(
