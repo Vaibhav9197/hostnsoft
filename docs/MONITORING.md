@@ -37,10 +37,10 @@ viaSocket flow (every 5 min)
 3. **Build the viaSocket flow** (one flow, in the workspace that owns Embarko's Slack connection):
    - Trigger: cron, `*/5 * * * *`.
    - Step `check`: `POST https://embarko.ai/api/monitor/tick` with header `X-Monitor-Secret`, timeout 50 s. Return the JSON.
-   - Step `send`: if `context.res.check.messages` exists, send each `text` with Slack "Send message" to `channel` (or the default channel when it is empty).
+   - Step `send`: if `context.res.check.messages` exists, send each `text` with Slack "Send message" to its `channel`. The channel always comes from `/admin/monitoring`, so changing it there needs no flow edit.
    - Step `unreachable`: if `context.res.check` has `error` or no `messages` array, send "🔴 Monitoring can't reach Embarko" once per hour (remember the last send in viaSocket Memory).
    - A failed step does not stop a viaSocket run and its caller still gets 200, so every step checks the one before it.
-4. **Open `/admin/monitoring`.** Set the Slack channels, press **Send test message**, and wait up to 5 minutes for it in Slack. Every other setting already has a working default.
+4. **Open `/admin/monitoring`.** Set at least one Slack channel (an empty field uses the reports channel; with none set, messages wait in the queue), press **Send test message**, and wait up to 5 minutes for it in Slack. Every other setting already has a working default.
 
 ## What does each number mean?
 

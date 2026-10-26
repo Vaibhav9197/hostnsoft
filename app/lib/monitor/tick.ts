@@ -362,9 +362,12 @@ export async function runTick(db: D1Database, env: TickEnv, opts: { nowMs?: numb
     ]);
   }
 
-  // 6. Hand queued messages to the scheduler.
+  // 6. Hand queued messages to the scheduler. Channels come from the
+  //    settings page; an empty one falls back to the reports channel. With
+  //    no channel set at all, messages stay queued: the flow has nowhere to post.
   let messages: OutboxMessage[] = [];
-  if (opts.handOff) {
+  const fallback = s.channels.reports || s.channels.critical || s.channels.warning;
+  if (opts.handOff && fallback) {
     const { results } = await db
       .prepare("SELECT id, kind, channel, text FROM monitor_outbox WHERE handed_at IS NULL ORDER BY id LIMIT 20")
       .all<OutboxMessage>();
@@ -374,7 +377,7 @@ export async function runTick(db: D1Database, env: TickEnv, opts: { nowMs?: numb
         .bind(now, ...results.map((m) => m.id))
         .run();
     }
-    messages = results;
+    messages = results.map((m) => ({ ...m, channel: m.channel || fallback }));
   }
 
   return {
