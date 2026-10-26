@@ -34,11 +34,11 @@ viaSocket flow (every 5 min)
 2. **Add two secrets** in the Cloudflare dashboard (Worker `hostnsoft` → Settings → Variables and Secrets). `keep_vars` keeps them across deploys.
    - `MONITOR_SECRET`: a long random string, also pasted into the viaSocket flow.
    - `MONITOR_PROXY_TOKEN`: the `proxy_auth_token` of a super-admin account kept for monitoring. It reads `/admin/apps` and `/admin/customer-query` upstream. If it expires or loses admin access, the critical alert "Monitoring can't read app data" fires within 15 minutes.
-3. **Build the viaSocket flow** (one flow, in the workspace that owns Embarko's Slack connection):
+3. **The viaSocket flow** "Embarko monitoring" (`scriDDHL97P5`, built 2026-10-26 in the shared Walkover viaSocket workspace, Slack connection WALKOVER):
    - Trigger: cron, `*/5 * * * *`.
    - Step `check`: `POST https://embarko.ai/api/monitor/tick` with header `X-Monitor-Secret`, timeout 50 s. Return the JSON.
    - Step `send`: if `context.res.check.messages` exists, send each `text` with Slack "Send message" to its `channel`. The channel always comes from `/admin/monitoring`, so changing it there needs no flow edit.
-   - Step `unreachable`: if `context.res.check` has `error` or no `messages` array, send "🔴 Monitoring can't reach Embarko" once per hour (remember the last send in viaSocket Memory).
+   - Step `unreachable`: if the check got no proper answer, send "🔴 Monitoring can't reach Embarko" to #embarko-alerts (a fixed channel: settings can't be read while Embarko is down), at most once every 15 minutes.
    - A failed step does not stop a viaSocket run and its caller still gets 200, so every step checks the one before it.
 4. **Open `/admin/monitoring`.** Set at least one Slack channel (an empty field uses the reports channel; with none set, messages wait in the queue), press **Send test message**, and wait up to 5 minutes for it in Slack. Every other setting already has a working default.
 
