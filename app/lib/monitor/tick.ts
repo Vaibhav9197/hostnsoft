@@ -155,11 +155,15 @@ interface UpstreamQuery {
 /** Copies customer queries from the last 8 days in. Existing rows keep their triage. */
 async function collectQueries(db: D1Database, env: TickEnv, s: MonitorSettings, nowMs: number) {
   if (!env.proxyToken) throw new Error("MONITOR_PROXY_TOKEN is not set");
-  const first = await db.prepare("SELECT COUNT(*) AS n FROM monitor_queries").first<{ n: number }>();
-  const isFirstImport = Number(first?.n ?? 0) === 0;
-  const since = iso(nowMs - 8 * DAY);
+  /* Usually the last 8 days, which covers every query a check could have
+     missed. Once an hour (and on the first import) it reaches back 90 days,
+     so counts for long periods are real rather than starting when monitoring
+     did. */
+  const count = await db.prepare("SELECT COUNT(*) AS n FROM monitor_queries").first<{ n: number }>();
+  const deep = Number(count?.n ?? 0) === 0 || new Date(nowMs).getUTCMinutes() < 5;
+  const since = iso(nowMs - (deep ? 90 : 8) * DAY);
   const rows: UpstreamQuery[] = [];
-  for (let page = 1; page <= 5; page++) {
+  for (let page = 1; page <= (deep ? 10 : 5); page++) {
     const payload = (await getJson(
       `${env.apiBase}/admin/customer-query?createdFrom=${encodeURIComponent(since)}&limit=100&page=${page}`,
       env.proxyToken,
@@ -170,14 +174,16 @@ async function collectQueries(db: D1Database, env: TickEnv, s: MonitorSettings, 
     if (Array.isArray(payload) || !payload.totalPages || page >= payload.totalPages) break;
   }
 
-  /* The very first import would otherwise mark every query from the last 8
-     days as open and overdue, including ones answered long ago. Older than the
-     overdue time on day one → "before monitoring", not open. */
-  const baselineBefore = nowMs - s.queries.overdueHours * HOUR;
+  /* A query that was already older than the overdue time when monitoring
+     started was handled (or not) before anyone could triage it here, so it is
+     "before monitoring", not open: otherwise every old answered query would
+     read as overdue. */
+  const firstRun = await db.prepare("SELECT MIN(at) AS at FROM monitor_runs").first<{ at: string | null }>();
+  const baselineBefore = Date.parse(firstRun?.at ?? iso(nowMs)) - s.queries.overdueHours * HOUR;
   const stmts = rows
     .filter((q) => q.id != null && q.createdAt)
     .map((q) => {
-      const status = isFirstImport && Date.parse(q.createdAt!) < baselineBefore ? "before_monitoring" : "open";
+      const status = Date.parse(q.createdAt!) < baselineBefore ? "before_monitoring" : "open";
       return db
         .prepare(
           `INSERT OR IGNORE INTO monitor_queries (id, created_at, type, source, email, project_slug, agent_name, message, status)

@@ -15,8 +15,11 @@ import { dayLabel } from "./time";
 const fmt = (n: number) => n.toLocaleString("en-US");
 
 function dataNote(s: Summary): string | null {
-  if (s.data.state === "none") return "⚠️ *No data* for this period: the monitor didn't get a single successful check.";
-  if (s.data.state === "partial") return `⚠️ Partial data: ${s.data.coverage}% of checks ran, so counts may be low.`;
+  if (s.data.since && s.data.since > s.from) {
+    return "ℹ️ Monitoring started during this period: deploys, kept, expired and uptime count only from then. New apps and workspaces use real dates.";
+  }
+  if (s.data.state === "none") return "⚠️ *No data* from checks in this period: deploys, kept, expired and uptime are unknown.";
+  if (s.data.state === "partial") return `⚠️ Partial data: ${s.data.coverage}% of checks ran, so check-based counts may be low.`;
   return null;
 }
 
@@ -61,16 +64,19 @@ export function dailyReport(args: {
   const note = dataNote(s);
   if (note) lines.push(note);
 
-  lines.push("");
-  if (s.data.state === "none") {
-    lines.push("*Apps, temporary apps, new workspaces* no data");
-  } else {
-    lines.push(
-      `*Apps* ${fmt(s.apps.created)} new · ${fmt(s.apps.deploys)} deploys · ${fmt(s.apps.failed)} failed${s.apps.failureRate !== null ? ` (${s.apps.failureRate}%)` : ""}`,
-      `*Temporary apps* ${fmt(s.temp.created)} created · ${fmt(s.temp.claimed)} kept · ${fmt(s.temp.expired)} expired${s.temp.expiredEarly ? ` (${s.temp.expiredEarly} early)` : ""} · ${opt(s.temp.activeNow)} online now`,
-      `*New workspaces* ${fmt(s.workspaces.firstApp)} deployed their first app`,
-    );
-  }
+  // New apps, temporary apps created and workspaces come from real creation
+  // dates; deploys, kept and expired only exist where checks ran.
+  const none = s.data.state === "none";
+  lines.push(
+    "",
+    none
+      ? `*Apps* ${fmt(s.apps.created)} new · deploys: no data`
+      : `*Apps* ${fmt(s.apps.created)} new · ${fmt(s.apps.deploys)} deploys · ${fmt(s.apps.failed)} failed${s.apps.failureRate !== null ? ` (${s.apps.failureRate}%)` : ""}`,
+    none
+      ? `*Temporary apps* ${fmt(s.temp.created)} created · kept and expired: no data · ${opt(s.temp.activeNow)} online now`
+      : `*Temporary apps* ${fmt(s.temp.created)} created · ${fmt(s.temp.claimed)} kept · ${fmt(s.temp.expired)} expired${s.temp.expiredEarly ? ` (${s.temp.expiredEarly} early)` : ""} · ${opt(s.temp.activeNow)} online now`,
+    `*New workspaces* ${fmt(s.workspaces.firstApp)} deployed their first app`,
+  );
   lines.push(
     s.live.live === null ? "*Live now* no data" : `*Live now* ${fmt(s.live.live)} live · ${opt(s.live.failing)} failing`,
     `*Customer queries* ${fmt(s.queries.created)} new · ${fmt(s.queries.openNow)} open · ${fmt(s.queries.overdueNow)} overdue`,
@@ -91,7 +97,7 @@ export function recommendations(cur: Summary, prev: Summary): string[] {
   const out: string[] = [];
   const top = cur.apps.bySource.filter((x) => x.failed > 0).sort((a, b) => b.failed - a.failed)[0];
 
-  if (cur.apps.failureRate !== null && (cur.apps.failureRate >= 15 || (prev.apps.failureRate !== null && cur.apps.failureRate - prev.apps.failureRate >= 5))) {
+  if (cur.apps.failureRate !== null && (cur.apps.failureRate >= 15 || (prev.data.complete && prev.apps.failureRate !== null && cur.apps.failureRate - prev.apps.failureRate >= 5))) {
     out.push(`Deploy failures are at ${cur.apps.failureRate}%.${top ? ` Most come from ${top.source} (${top.failed}).` : ""} Read their errors and fix the agent guide or the deploy step behind them.`);
   }
   if (cur.temp.created >= 10 && cur.temp.keptRate !== null && cur.temp.keptRate < 20) {
@@ -125,15 +131,18 @@ export function weeklyReport(args: {
   healthUrl: string;
 }): string {
   const { cur, prev, open, fromMs, toMs, timezone, healthUrl } = args;
-  const p = (v: number) => (prev.data.state === "none" ? null : v);
+  // Creation-date numbers compare with any week; check-based ones only with a
+  // week monitoring fully covered.
+  const p = (v: number) => v;
+  const pc = (v: number) => (prev.data.complete ? v : null);
   const success = (s: Summary) => (s.apps.failureRate === null ? null : Math.round((100 - s.apps.failureRate) * 10) / 10);
   const curSuccess = success(cur);
-  const prevSuccess = prev.data.state === "none" ? null : success(prev);
+  const prevSuccess = prev.data.complete ? success(prev) : null;
 
   const lines = [`*Embarko weekly · ${dayLabel(fromMs, timezone)} – ${dayLabel(toMs - 1, timezone)}*`, statusLine(open)];
   const note = dataNote(cur);
   if (note) lines.push(note);
-  if (prev.data.state === "none") lines.push("No data for the week before, so there's nothing to compare with yet.");
+  if (!prev.data.complete) lines.push("Monitoring didn't cover the week before yet, so deploys and success rate have nothing to compare with.");
 
   const sources = cur.apps.bySource.slice(0, 4).map((x) => `${x.source} ${fmt(x.deploys)}`).join(" · ") || "none";
 
@@ -147,7 +156,7 @@ export function weeklyReport(args: {
     "Signups: not tracked yet",
     "",
     "*Apps*",
-    `New apps ${vs(cur.apps.created, p(prev.apps.created))} · deploys ${vs(cur.apps.deploys, p(prev.apps.deploys))}`,
+    `New apps ${vs(cur.apps.created, p(prev.apps.created))} · deploys ${vs(cur.apps.deploys, pc(prev.apps.deploys))}`,
     `Deploy success ${curSuccess === null ? "no deploys" : vs(curSuccess, prevSuccess, "pts")}`,
     `Top sources: ${sources}`,
     cur.live.live === null ? "Live now: no data" : `Live now ${fmt(cur.live.live)} of ${opt(cur.live.total)} apps`,
