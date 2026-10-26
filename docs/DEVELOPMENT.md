@@ -1,7 +1,7 @@
 ---
 covers: ["package.json", "scripts/**", "wrangler.jsonc", "next.config.mjs", "tsconfig.json", ".env.example", "migrations/**"]
-verified_at: 105ccbb
-verified_on: 2026-10-23
+verified_at: 5836120
+verified_on: 2026-10-26
 ---
 # Development & Verification Guide
 
@@ -56,6 +56,8 @@ Document names and code defaults only. Never copy .env.local values.
 | `MSG91_ROUTES_BASE` | No | No | `https://routes.msg91.com` | `app/lib/api.ts:MSG91_BASE` — token validation base |
 | `ADMIN_EMAILS` | No | No | empty (no allowlist) | `app/lib/api.ts:currentUser` and the admin check beside it. Comma list; narrows admin access, never widens it. |
 | `EARLY_ACCESS_WEBHOOK_URL` | No | No | `DEFAULT_WEBHOOK_URL` in `app/api/early-access/route.ts` | Set in the Cloudflare dashboard only; `keep_vars` in `wrangler.jsonc` preserves it across deploys. |
+| `MONITOR_SECRET` | For monitoring | No | unset (scheduler refused) | `app/lib/monitor/server.ts:secretMatches`. Secret; Cloudflare dashboard only. The viaSocket flow sends it as `X-Monitor-Secret` (docs/MONITORING.md). |
+| `MONITOR_PROXY_TOKEN` | For monitoring | No | unset (app data reads fail, alert fires) | `app/lib/monitor/server.ts:tickEnv`. Secret; a super-admin's `proxy_auth_token` for upstream `/admin/*`. |
 | `NEXT_PUBLIC_GTM_ID` | No | Yes | production container pinned in `app/lib/gtm.ts:GTM_ID`; empty in dev/preview | Override only to test a container locally or to switch GTM off in production. Inlined at build time. |
 | `NODE_ENV` | set by Next | — | — | `app/lib/api.ts` (secure cookies), `app/lib/gtm.ts`, `app/lib/system/load.ts` (live rescan in dev), `next.config.mjs` (dev-only workerd init). |
 | `HOSTNSOFT_API_DIR` | No | No | `../hostnsoft-api` | `scripts/build-system-map.mjs` — where the PRD scanner finds the API repo |
@@ -144,7 +146,7 @@ incremental cache, which is only safe because nothing in the app revalidates.
 
 ## D1 Migrations
 
-Schema lives in `migrations/` (`0001_init.sql` … `0005_feature_votes_query.sql`),
+Schema lives in `migrations/` (`0001_init.sql` … `0006_monitoring.sql`),
 not in a migrate-on-first-use call (`app/lib/db.ts` explains why). The
 `wrangler.jsonc` database is `hostnsoft-ab`; wrangler's default migrations
 directory matches `migrations/`.

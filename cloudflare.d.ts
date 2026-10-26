@@ -24,4 +24,8 @@ interface CloudflareEnv {
   NEXT_PUBLIC_MSG91_REFERENCE_ID: string;
   NEXT_PUBLIC_MSG91_WIDGET_SCRIPT: string;
   EARLY_ACCESS_WEBHOOK_URL: string;
+  /** Shared secret the monitoring scheduler sends as X-Monitor-Secret. Dashboard secret. */
+  MONITOR_SECRET?: string;
+  /** A super-admin's MSG91 proxy_auth_token, so the monitor can read /admin/* upstream. Dashboard secret. */
+  MONITOR_PROXY_TOKEN?: string;
 }
