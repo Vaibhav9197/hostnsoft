@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AdminNav } from '../../components/AdminNav';
 import { relativeTime, untilTime } from '../../lib/format';
 import type { AlertState } from '../../lib/monitor/alerts';
@@ -55,6 +55,11 @@ const EVENT_WORDS: Record<string, string> = {
   app_deleted: 'App deleted',
   workspace_first_app: 'New workspace',
 };
+
+/** The customer query an alert is about, from its key ("bug_report_open:<id>"). */
+function queryOf(key: string): string | null {
+  return key.startsWith('bug_report_open:') ? key.slice('bug_report_open:'.length) : null;
+}
 
 /** "▲ 20%" against the period before; null when there's nothing to compare with. */
 function change(now: number | null, before: number | null): { text: string; up: boolean | null } | null {
@@ -119,6 +124,19 @@ export default function Health() {
   const [error, setError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const [busyQuery, setBusyQuery] = useState<string | null>(null);
+  /* Queries showing their whole message. A link from an alert or from Slack
+     (#query-<id>) opens that one, so the reader lands on the full report. */
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const jumped = useRef(false);
+  useEffect(() => {
+    const id = window.location.hash.match(/^#query-(.+)$/)?.[1];
+    // Once, on first load: the page refreshes every minute and mustn't keep scrolling.
+    if (!id || !data || jumped.current) return;
+    jumped.current = true;
+    setExpanded((prev) => new Set(prev).add(decodeURIComponent(id)));
+    document.getElementById(`query-${id}`)?.scrollIntoView({ block: 'center' });
+  }, [data]);
+  const openQuery = (id: string) => setExpanded((prev) => new Set(prev).add(id));
 
   const load = useCallback(async () => {
     try {
@@ -260,7 +278,21 @@ export default function Health() {
                         <span className={`rounded px-2 py-0.5 text-xs font-medium ${LEVEL[a.level]?.className}`}>{LEVEL[a.level]?.label}</span>
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium text-foreground">{a.title}</p>
-                          <p className="mt-0.5 text-sm text-muted-foreground">{a.detail}</p>
+                          <p className="mt-0.5 text-sm text-muted-foreground">
+                            {a.detail}
+                            {queryOf(a.key) && (
+                              <>
+                                {' '}
+                                <a
+                                  href={`#query-${queryOf(a.key)}`}
+                                  onClick={() => openQuery(queryOf(a.key)!)}
+                                  className="font-medium text-primary hover:underline"
+                                >
+                                  Open the report
+                                </a>
+                              </>
+                            )}
+                          </p>
                         </div>
                         <span className="text-xs text-faint">since {relativeTime(a.first_at)}</span>
                       </li>
@@ -348,7 +380,11 @@ export default function Health() {
                     {data.queries.map((q) => {
                       const overdue = Date.parse(q.created_at) < overdueBefore;
                       return (
-                        <li key={q.id} className="flex flex-wrap items-start gap-4 p-4">
+                        <li
+                          key={q.id}
+                          id={`query-${q.id}`}
+                          className="flex scroll-mt-24 flex-wrap items-start gap-4 p-4 target:bg-[var(--warn-soft)]"
+                        >
                           <div className="min-w-0 flex-1">
                             <p className="text-xs text-faint">
                               {(q.type ?? 'other').replace(/_/g, ' ')} · {q.email ?? q.agent_name ?? q.source ?? 'unknown'}
@@ -358,7 +394,14 @@ export default function Health() {
                                 {overdue && ' (overdue)'}
                               </span>
                             </p>
-                            <p className="mt-1 line-clamp-2 text-sm text-foreground">{q.message || '—'}</p>
+                            <p className={`mt-1 whitespace-pre-wrap text-sm text-foreground ${expanded.has(q.id) ? '' : 'line-clamp-2'}`}>
+                              {q.message || '—'}
+                            </p>
+                            {!expanded.has(q.id) && (q.message?.length ?? 0) > 160 && (
+                              <button onClick={() => openQuery(q.id)} className="mt-1 text-xs text-primary hover:underline">
+                                Read all
+                              </button>
+                            )}
                           </div>
                           <div className="flex gap-2">
                             <button

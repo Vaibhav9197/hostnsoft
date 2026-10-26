@@ -21,7 +21,14 @@ export interface Readings {
   historyDays: number;
   queriesOverdue: number;
   /** Platform bug reports still open, with hours open. */
-  bugReports: { id: string; hours: number; project: string | null }[];
+  bugReports: {
+    id: string;
+    hours: number;
+    project: string | null;
+    /** Who sent it: the agent's name, else the email. */
+    from: string | null;
+    message: string | null;
+  }[];
 }
 
 export interface Firing {
@@ -31,6 +38,15 @@ export interface Firing {
   title: string;
   /** What to do about it, one line. */
   action: string;
+  /** Path on the Health page that shows exactly this problem, e.g. "#query-abc". */
+  anchor?: string;
+}
+
+/** First line of a message, cut to `max` characters, for quoting in an alert. */
+export function snippet(text: string | null, max = 90): string | null {
+  const line = (text ?? "").replace(/\s+/g, " ").trim();
+  if (!line) return null;
+  return line.length > max ? `${line.slice(0, max - 1).trimEnd()}…` : line;
 }
 
 const TREND_RULE = {
@@ -129,12 +145,16 @@ export function evaluate(r: Readings, s: MonitorSettings): Firing[] {
   if (on("bug_report_open")) {
     for (const b of r.bugReports) {
       if (b.hours < bug.threshold) continue;
+      // Say which bug: its words, the app and who sent it, so nobody has to go looking.
+      const quote = snippet(b.message);
+      const where = [b.project && `app ${b.project}`, b.from && `from ${b.from}`].filter(Boolean).join(", ");
       out.push({
         key: `bug_report_open:${b.id}`,
         rule: "bug_report_open",
         level: bug.level,
-        title: `Bug report open for ${Math.floor(b.hours)} hours${b.project ? ` (${b.project})` : ""}`,
-        action: "Read it on the Health page, then fix or mark it resolved.",
+        title: `Bug report open for ${Math.floor(b.hours)} hours${quote ? `: “${quote}”` : ""}${where ? ` (${where})` : ""}`,
+        action: "Fix it, then mark it resolved.",
+        anchor: `#query-${b.id}`,
       });
     }
   }

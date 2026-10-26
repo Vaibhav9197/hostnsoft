@@ -83,7 +83,7 @@ Every row is editable on `/admin/monitoring`: on/off, level, threshold, minimum 
 | Temporary apps up or down | Warning | Same, with ≥ 5 on a usual day | 24 h |
 | New workspaces up or down | Info | Same, with ≥ 3 on a usual day | 24 h |
 | Customer queries overdue | Warning | ≥ 1 query open over 48 h | 24 h |
-| Bug report waiting | Warning | A `platform_bug` query open over 4 h | 12 h |
+| Bug report waiting | Warning | A `platform_bug` query open over 4 h. The alert quotes the report, names the app and sender, and links straight to it on the Health page | 12 h |
 
 - **Critical** goes out at once. **Warning** waits until quiet hours (default 22:00–08:00) end. **Info** only appears in the daily report.
 - **One problem, one message.** An alert is sent again only when its level rises or its repeat time passes, and sends one "Resolved" when it clears.
