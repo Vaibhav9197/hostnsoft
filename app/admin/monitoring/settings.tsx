@@ -231,7 +231,7 @@ export default function MonitoringSettings() {
                 </div>
               </Card>
 
-              <Card title="Reports" hint="A short summary in Slack. The daily one covers the last 24 hours; the weekly one compares with the week before.">
+              <Card title="Reports" hint="Checks run every 5 minutes so alerts reach you at once. Reports go out only at the times below: the daily one covers the last 24 hours; the weekly one compares with the week before.">
                 <div className="space-y-4">
                   <div className="flex flex-wrap items-center gap-3">
                     <Toggle checked={form.reports.daily.enabled} onChange={(v) => set('reports.daily.enabled', v)} label="Daily report at" />
