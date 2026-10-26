@@ -15,6 +15,7 @@ export const VARIANTS = {
   beta: "/v2",
   gamma: "/v3",
   delta: "/v4",
+  epsilon: "/v5",
 } as const;
 
 export type Variant = keyof typeof VARIANTS;
@@ -28,7 +29,7 @@ export function isVariant(value: string | null | undefined): value is Variant {
 /**
  * Which arm does this path render, if any?
  *
- * Only a direct hit on /v1../v4 answers. A bucketed visitor sees `/` — the
+ * Only a direct hit on /v1../v5 answers. A bucketed visitor sees `/` — the
  * rewrite is invisible to the browser — so the path says nothing and the
  * cookie is the only source. Returns null for every other page, /docs included.
  */

@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { VARIANTS, VARIANT_NAMES, isVariant } from "@/app/lib/variants";
 
-/* Landing-page split test across four arms — Alpha, Beta, Gamma, Delta. `/` is
+/* Landing-page split test across five arms — Alpha, Beta, Gamma, Delta, Epsilon. `/` is
    rewritten — never redirected — to one of these routes, so the visitor stays
    on embarko.ai while a different page renders. A visitor's bucket is sticky
    via cookie, so they don't see the layout change between visits (which would
@@ -66,7 +66,7 @@ export function middleware(request: NextRequest) {
     return guide(request);
   }
 
-  /* Direct hits on /v1../v4 stay reachable for QA and for sharing a
+  /* Direct hits on /v1../v5 stay reachable for QA and for sharing a
      specific version, but must not be indexed — otherwise they compete with
      embarko.ai as duplicate content. The rewritten `/` response never passes
      through here, so the homepage itself stays indexable. */
@@ -77,7 +77,7 @@ export function middleware(request: NextRequest) {
   }
 
   /* The cookie is the only source of a visitor's arm — nothing on the URL can
-     set or change it. To look at a specific landing page, hit /v1../v4
+     set or change it. To look at a specific landing page, hit /v1../v5
      directly; that renders the page without touching anyone's bucket. */
   const existing = request.cookies.get(COOKIE)?.value;
 
